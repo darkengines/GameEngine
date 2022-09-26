@@ -75,6 +75,9 @@ namespace drk::Devices {
 			if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
 				indices.graphicsFamily = i;
 			}
+			if (queueFamily.queueFlags & vk::QueueFlagBits::eCompute) {
+				indices.computeFamily = i;
+			}
 			if (indices.isComplete()) {
 				break;
 			}
@@ -130,7 +133,11 @@ namespace drk::Devices {
 	) {
 		auto indices = Device::findQueueFamilies(physicalDevice, surface);
 		std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-		std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+		std::set<uint32_t> uniqueQueueFamilies = {
+			indices.graphicsFamily.value(),
+			indices.presentFamily.value(),
+			indices.computeFamily.value()
+		};
 		auto queuePriority = 1.0f;
 		for (uint32_t queueFamily : uniqueQueueFamilies) {
 			vk::DeviceQueueCreateInfo queueCreateInfo = {
@@ -173,18 +180,18 @@ namespace drk::Devices {
 		auto device = physicalDevice.createDevice(deviceCreateInfo);
 		auto graphicQueue = device.getQueue(indices.graphicsFamily.value(), 0);
 		auto presentQueue = device.getQueue(indices.presentFamily.value(), 0);
+		auto computeQueue = device.getQueue(indices.computeFamily.value(), 0);
 
 		return {
 			.device=device,
 			.graphicQueue = graphicQueue,
-			.presentQueue = presentQueue
+			.presentQueue = presentQueue,
+			.computeQueue = computeQueue
 		};
 	}
 
-	Context Device::createContext(
-		GLFWwindow *window,
+	vk::Instance Device::createInstance(
 		const std::vector<const char *> &requiredInstanceExtensions,
-		const std::vector<const char *> &requiredDeviceExtensions,
 		const std::vector<const char *> &requiredLayers
 	) {
 		vk::ApplicationInfo applicationInfo = {
@@ -215,31 +222,7 @@ namespace drk::Devices {
 		};
 
 		auto instance = vk::createInstance(instanceCreationInfo);
-
-		VkSurfaceKHR surface;
-		glfwCreateWindowSurface(instance, window, nullptr, &surface);
-
-		auto physicalDevice = Device::pickPhysicalDevice(instance, surface, requiredDeviceExtensions);
-		auto logicalDeviceInfo = Device::createLogicalDevice(
-			physicalDevice,
-			surface,
-			requiredDeviceExtensions,
-			true,
-			requiredLayers
-		);
-		auto allocator = Device::createAllocator(instance, physicalDevice, logicalDeviceInfo.device);
-
-		Context context = {
-			.instance = instance,
-			.surface = surface,
-			.physicalDevice = physicalDevice,
-			.device = logicalDeviceInfo.device,
-			.graphicQueue = logicalDeviceInfo.graphicQueue,
-			.presentQueue = logicalDeviceInfo.presentQueue,
-			.vmaAllocator = allocator
-		};
-
-		return context;
+		return instance;
 	}
 
 	vk::Format Device::findDepthFormat(vk::PhysicalDevice physicalDevice) {
@@ -302,12 +285,6 @@ namespace drk::Devices {
 		return allocator;
 	}
 
-	void Device::destroyContext(const Context &context) {
-		vmaDestroyAllocator(context.vmaAllocator);
-		context.device.destroy();
-		context.instance.destroy();
-	}
-
 	Buffer Device::createVmaBuffer(
 		const VmaAllocator allocator,
 		const vk::BufferUsageFlags usage,
@@ -317,7 +294,7 @@ namespace drk::Devices {
 		vk::BufferCreateInfo bufferCreateInfo = {
 			.size = size,
 			.usage = usage,
-			.sharingMode = vk::SharingMode::eExclusive
+			.sharingMode = vk::SharingMode::eExclusive,
 		};
 
 		vk::Buffer buffer;
@@ -339,14 +316,13 @@ namespace drk::Devices {
 
 	Buffer Device::createBuffer(
 		const VmaAllocator &allocator,
-		vk::MemoryPropertyFlags memoryProperties,
-		VmaMemoryUsage vmaUsage,
+		vk::MemoryPropertyFlags properties,
 		vk::BufferUsageFlags usage,
 		vk::DeviceSize size
 	) {
 		VmaAllocationCreateInfo vmaAllocationCreationInfo = {
-			.usage = vmaUsage,
-			.requiredFlags = (VkMemoryPropertyFlags) memoryProperties,
+			.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
+			.requiredFlags = (VkMemoryPropertyFlags) properties,
 		};
 		auto buffer = Device::createVmaBuffer(allocator, usage, &vmaAllocationCreationInfo, size);
 		return buffer;
@@ -525,54 +501,33 @@ namespace drk::Devices {
 		device.freeCommandBuffers(commandPool, {commandBuffer});
 	}
 
-	Textures::Texture Device::createTexture(
-		const Devices::Context &context,
-		const drk::Textures::Image &image,
-		uint32_t arrayLayers,
-		uint32_t mipLevels,
-		vk::ImageType imageType,
-		vk::Format format,
-		vk::ImageLayout initialLayout,
-		vk::SampleCountFlagBits samples,
-		vk::ImageUsageFlags usage,
-		vk::MemoryPropertyFlags requiredProperties,
-		VmaMemoryUsage vmaUsage
+	Texture Device::createTexture(
+		const VmaAllocator& allocator,
+		const vk::ImageCreateInfo imageCreationInfo,
+		vk::MemoryPropertyFlags properties
 	) {
-		vk::ImageCreateInfo imageCreationInfo = {
-			.imageType = imageType,
-			.format = format,
-			.extent = {image.width, image.height, image.depth},
-			.mipLevels = mipLevels,
-			.arrayLayers = arrayLayers,
-			.samples = samples,
-			.usage = usage,
-			.sharingMode = vk::SharingMode::eExclusive,
-			.queueFamilyIndexCount = 0,
-			.initialLayout = initialLayout,
+		VmaAllocationCreateInfo allocationCreationInfo = {
+			.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
+			.requiredFlags = (VkMemoryPropertyFlags) properties,
 		};
 
-		VmaAllocationCreateInfo vmaAllocationInfo = {
-			.usage = vmaUsage,
-			.requiredFlags = (VkMemoryPropertyFlags) requiredProperties,
-		};
-
-		auto texture = Device::createVmaImage(context, imageCreationInfo, vmaAllocationInfo);
+		auto texture = Device::createVmaImage(allocator, imageCreationInfo, allocationCreationInfo);
 		return texture;
 	}
 
-	Textures::Texture Device::createVmaImage(
-		const Devices::Context &context,
-		vk::ImageCreateInfo imageCreationInfo,
-		VmaAllocationCreateInfo vmaAllocationInfo
+	Texture Device::createVmaImage(
+		const VmaAllocator& allocator,
+		const vk::ImageCreateInfo& imageCreationInfo,
+		const VmaAllocationCreateInfo& allocationCreationInfo
 	) {
 		VkImage image;
 		VmaAllocation allocation;
 		VmaAllocationInfo allocationInfo;
 
 		auto result = vmaCreateImage(
-			context.vmaAllocator,
+			allocator,
 			(VkImageCreateInfo *) &imageCreationInfo,
-			&vmaAllocationInfo,
+			&allocationCreationInfo,
 			&image,
 			&allocation,
 			&allocationInfo
@@ -583,21 +538,21 @@ namespace drk::Devices {
 
 	void Device::destroyVmaImage(
 		const VmaAllocator &allocator,
-		const Textures::Texture &texture
+		const Texture &texture
 	) {
 		vmaDestroyImage(allocator, texture.image, texture.allocation);
 	}
 
 	void Device::destroyTexture(
 		const VmaAllocator &allocator,
-		const Textures::Texture &texture
+		const Texture &texture
 	) {
 		Device::destroyVmaImage(allocator, texture);
 	}
 
 	vk::ImageView Device::createImageView(
 		const vk::Device &device,
-		const Textures::Texture &texture,
+		const Texture &texture,
 		vk::ImageViewCreateFlags flags,
 		vk::ImageViewType type,
 		vk::Format format,
@@ -685,39 +640,31 @@ namespace drk::Devices {
 	}
 
 	vk::Extent2D
-	Device::chooseSwapExtent(GLFWwindow *window, const vk::SurfaceCapabilitiesKHR &capabilities) {
+	Device::chooseSwapExtent(vk::Extent2D extent, const vk::SurfaceCapabilitiesKHR &capabilities) {
 		if (capabilities.currentExtent.width != UINT32_MAX) {
 			return capabilities.currentExtent;
 		} else {
-			int width, height;
-			glfwGetFramebufferSize(window, &width, &height);
-
-			vk::Extent2D actualExtent = {
-				.width = static_cast<uint32_t>(width),
-				.height = static_cast<uint32_t>(height)
-			};
-
-			actualExtent.width = std::max(
+			extent.width = std::max(
 				capabilities.minImageExtent.width,
-				std::min(capabilities.maxImageExtent.width, actualExtent.width));
-			actualExtent.height = std::max(
+				std::min(capabilities.maxImageExtent.width, extent.width));
+			extent.height = std::max(
 				capabilities.minImageExtent.height,
-				std::min(capabilities.maxImageExtent.height, actualExtent.height));
+				std::min(capabilities.maxImageExtent.height, extent.height));
 
-			return actualExtent;
+			return extent;
 		}
 	}
 
 	Swapchain Device::createSwapchain(
 		const vk::Device &device,
-		GLFWwindow *window,
 		const vk::PhysicalDevice &physicalDevice,
-		const vk::SurfaceKHR &surface
+		const vk::SurfaceKHR &surface,
+		const vk::Extent2D &extent
 	) {
 		SwapChainSupportDetails swapChainSupport = Device::querySwapChainSupport(physicalDevice, surface);
 		auto surfaceFormat = Device::chooseSwapSurfaceFormat(swapChainSupport.formats);
 		auto presentMode = Device::chooseSwapPresentMode(swapChainSupport.presentModes);
-		auto swapExtent = Device::chooseSwapExtent(window, swapChainSupport.capabilities);
+		auto swapExtent = Device::chooseSwapExtent(extent, swapChainSupport.capabilities);
 
 		auto imageCount = swapChainSupport.capabilities.minImageCount + 1;
 		if (swapChainSupport.capabilities.maxImageCount > 0 &&
@@ -756,13 +703,13 @@ namespace drk::Devices {
 
 		auto vkSwapchain = device.createSwapchainKHR(swapChainCreationInfo);
 		auto swapchainImages = device.getSwapchainImagesKHR(vkSwapchain);
-		std::vector<Textures::Texture> swapchainTextures(swapchainImages.size());
+		std::vector<Texture> swapchainTextures(swapchainImages.size());
 		std::transform(
 			swapchainImages.begin(),
 			swapchainImages.end(),
 			swapchainTextures.data(),
 			[](const vk::Image &vkImage) {
-				return Textures::Texture{
+				return Texture{
 					.image = vkImage
 				};
 			}
@@ -781,7 +728,11 @@ namespace drk::Devices {
 					surfaceFormat.format,
 					vk::ImageAspectFlagBits::eColor,
 					{},
-					{}
+					{
+						.aspectMask=vk::ImageAspectFlagBits::eColor,
+						.levelCount = 1,
+						.layerCount = 1,
+					}
 
 				);
 			}

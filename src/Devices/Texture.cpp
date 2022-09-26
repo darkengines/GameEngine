@@ -1,5 +1,5 @@
 #include "Texture.hpp"
 
-namespace drk::Textures {
+namespace drk::Devices {
 
 }

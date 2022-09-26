@@ -3,29 +3,16 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include <GLFW/glfw3.h>
 #include "QueueFamilyIndices.hpp"
 #include "SwapChainSupportDetails.hpp"
-#include "Context.hpp"
 #include "VulkanLogicalDeviceInfo.hpp"
 #include "BufferView.hpp"
-#include "../Textures/Texture.hpp"
+#include "Texture.hpp"
 #include "Swapchain.hpp"
 
 namespace drk::Devices {
 	class Device {
 	public:
-		static Context createContext(
-			GLFWwindow *window,
-			const std::vector<const char *> &requiredInstanceExtensions,
-			const std::vector<const char *> &requiredDeviceExtensions,
-			const std::vector<const char *> &requiredLayers
-		);
-
-		static void destroyContext(
-			const Context &context
-		);
-
 		static bool checkDeviceExtensionSupport(
 			const vk::PhysicalDevice &device,
 			const std::vector<const char *> &requiredExtensions
@@ -80,8 +67,7 @@ namespace drk::Devices {
 
 		static Buffer createBuffer(
 			const VmaAllocator &allocator,
-			vk::MemoryPropertyFlags memoryProperties,
-			VmaMemoryUsage vmaUsage,
+			vk::MemoryPropertyFlags properties,
 			vk::BufferUsageFlags usage,
 			vk::DeviceSize size
 		);
@@ -125,39 +111,31 @@ namespace drk::Devices {
 			Buffer **deviceBuffer
 		);
 
-		static Textures::Texture createTexture(
-			const Devices::Context &context,
-			const drk::Textures::Image &image,
-			uint32_t arrayLayers,
-			uint32_t mipLevels,
-			vk::ImageType imageType,
-			vk::Format format,
-			vk::ImageLayout initialLayout,
-			vk::SampleCountFlagBits samples,
-			vk::ImageUsageFlags usage,
-			vk::MemoryPropertyFlags requiredProperties,
-			VmaMemoryUsage vmaUsage
+		static Texture createTexture(
+			const VmaAllocator &allocator,
+			const vk::ImageCreateInfo imageCreationInfo,
+			vk::MemoryPropertyFlags properties
 		);
 
-		static Textures::Texture createVmaImage(
-			const Devices::Context &context,
-			vk::ImageCreateInfo imageCreationInfo,
-			VmaAllocationCreateInfo vmaAllocationInfo
+		static Texture createVmaImage(
+			const VmaAllocator &allocator,
+			const vk::ImageCreateInfo &imageCreationInfo,
+			const VmaAllocationCreateInfo &allocationCreationInfo
 		);
 
 		static void destroyVmaImage(
 			const VmaAllocator &allocator,
-			const Textures::Texture &texture
+			const Texture &texture
 		);
 
 		static void destroyTexture(
 			const VmaAllocator &allocator,
-			const Textures::Texture &texture
+			const Texture &texture
 		);
 
 		static vk::ImageView createImageView(
 			const vk::Device &device,
-			const Textures::Texture &texture,
+			const Texture &texture,
 			vk::ImageViewCreateFlags flags,
 			vk::ImageViewType type,
 			vk::Format format,
@@ -196,13 +174,13 @@ namespace drk::Devices {
 		chooseSwapPresentMode(const std::vector<vk::PresentModeKHR> &availablePresentModes);
 
 		static vk::Extent2D
-		chooseSwapExtent(GLFWwindow *window, const vk::SurfaceCapabilitiesKHR &capabilities);
+		chooseSwapExtent(vk::Extent2D extent, const vk::SurfaceCapabilitiesKHR &capabilities);
 
 		static Swapchain createSwapchain(
 			const vk::Device &device,
-			GLFWwindow *window,
 			const vk::PhysicalDevice &physicalDevice,
-			const vk::SurfaceKHR &surface
+			const vk::SurfaceKHR &surface,
+			const vk::Extent2D &extent
 		);
 
 		static void destroySwapchain(const vk::Device &device, const Swapchain &swapchain);
@@ -210,5 +188,10 @@ namespace drk::Devices {
 		static vk::ShaderModule createShaderModules(const vk::Device &device, uint32_t codeSize, const uint32_t *pCode);
 
 		static void destroyShaderModule(const vk::Device &device, const vk::ShaderModule &shaderModule);
+
+		static vk::Instance createInstance(
+			const std::vector<const char *> &requiredInstanceExtensions,
+			const std::vector<const char *> &requiredLayers
+		);
 	};
 }

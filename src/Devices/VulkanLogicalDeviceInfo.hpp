@@ -7,5 +7,6 @@ namespace drk::Devices {
 		vk::Device device;
 		vk::Queue graphicQueue;
 		vk::Queue presentQueue;
+		vk::Queue computeQueue;
 	};
 }

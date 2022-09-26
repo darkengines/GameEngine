@@ -1,13 +1,13 @@
 #pragma once
 
 #define VULKAN_HPP_NO_CONSTRUCTORS
-#include "../Devices/Context.hpp"
-#include "Image.hpp"
+#include "../Textures/Image.hpp"
 #include <vulkan/vulkan.hpp>
+#include <vk_mem_alloc.h>
 
-namespace drk::Textures {
+namespace drk::Devices {
 	struct Texture {
-		VkImage image;
+		vk::Image image;
 		VmaAllocation allocation;
 		VmaAllocationInfo allocationInfo;
 	};

@@ -1,7 +1,9 @@
 #include "implemantations.hpp"
 #include "Devices/Device.hpp"
 #include "Windows/Window.hpp"
+#include "Graphics/Graphics.hpp"
 #include <format>
+#include <GLFW/glfw3.h>
 
 int main(int argc, char **argv) {
 
@@ -12,19 +14,20 @@ int main(int argc, char **argv) {
 	requiredInstanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	requiredInstanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
-	std::vector<const char *> requiredDeviceExtensions = {
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
-		VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
-	};
-
 	const std::vector<const char *> requiredValidationLayers = {"VK_LAYER_KHRONOS_validation"};
 
-	auto device = drk::Devices::Device::createContext(
-		window,
-		requiredInstanceExtensions,
-		requiredDeviceExtensions,
-		requiredValidationLayers
+	drk::Devices::DeviceContext deviceContext(requiredInstanceExtensions, drk::Graphics::Graphics::RequiredDeviceExtensions, requiredValidationLayers, [&window](const vk::Instance& instance) {
+		vk::SurfaceKHR surface;
+		glfwCreateWindowSurface((VkInstance) instance, window, nullptr, (VkSurfaceKHR *) &surface);
+		return surface;
+	}, true);
+
+	vk::Extent2D actualExtent;
+	glfwGetWindowSize(window, (int *) &actualExtent.width, (int *) &actualExtent.height);
+
+	drk::Graphics::Graphics graphics(
+		deviceContext,
+		actualExtent
 	);
 
 	return 0;

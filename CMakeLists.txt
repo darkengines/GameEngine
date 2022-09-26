@@ -10,17 +10,20 @@ file(
     src/Meshes/Vertex.cpp
     src/Meshes/Vertex.cpp
     src/Textures/Image.cpp
-    src/Textures/Texture.cpp
+	src/Devices/Texture.cpp
     src/Windows/Window.cpp
     src/Geometries/Plane.cpp
     src/Geometries/AxisAlignedBoundingBox.cpp
     src/GlmExtensions.cpp
+	src/Graphics/Graphics.cpp
+	src/Devices/DeviceContext.cpp
+	src/Common/Common.cpp
 )
 
 file(
     GLOB HEADERS
     src/implemantations.hpp
-    src/Devices/Context.hpp
+    src/Devices/DeviceContext.hpp
     src/Devices/QueueFamilyIndices.hpp
     src/Devices/SwapChainSupportDetails.hpp
     src/Devices/VulkanLogicalDeviceInfo.hpp
@@ -33,7 +36,7 @@ file(
     src/Indexation.hpp
     src/Meshes/Mesh.hpp
     src/Materials/Material.hpp
-    src/Textures/Texture.hpp
+	src/Devices/Texture.hpp
     src/Devices/BufferView.hpp
     src/Devices/Buffer.hpp
     src/Devices/Swapchain.hpp
@@ -48,6 +51,8 @@ file(
     src/Geometries/AxisAlignedBoundingBox.hpp
     src/Geometries/Frustum.cpp src/Geometries/Frustum.hpp
     src/GlmExtensions.hpp
+	src/Graphics/Graphics.hpp
+	src/Common/Common.hpp
 )
 
 add_executable(drk ${HEADERS} ${SOURCES})
