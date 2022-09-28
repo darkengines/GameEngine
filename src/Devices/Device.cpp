@@ -203,9 +203,10 @@ namespace drk::Devices {
 		};
 
 		vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreationInfo = {
-			.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
-							   vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-							   vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
+			.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose
+							   | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo
+							   | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning
+							   | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
 			.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
 						   vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
 						   vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
@@ -246,14 +247,13 @@ namespace drk::Devices {
 		vk::FormatFeatureFlags features
 	) {
 		for (auto format : candidates) {
-			vk::FormatProperties properties;
 			auto formatProperties = physicalDevice.getFormatProperties(format);
 
 			if (tiling == vk::ImageTiling::eLinear &&
-				(properties.linearTilingFeatures & features) == features) {
+				(formatProperties.linearTilingFeatures & features) == features) {
 				return format;
 			} else if (tiling == vk::ImageTiling::eOptimal &&
-					   (properties.optimalTilingFeatures & features) == features) {
+					   (formatProperties.optimalTilingFeatures & features) == features) {
 				return format;
 			} else {
 				throw std::exception("Failed to find any supported format.");
@@ -502,7 +502,7 @@ namespace drk::Devices {
 	}
 
 	Texture Device::createTexture(
-		const VmaAllocator& allocator,
+		const VmaAllocator &allocator,
 		const vk::ImageCreateInfo imageCreationInfo,
 		vk::MemoryPropertyFlags properties
 	) {
@@ -516,9 +516,9 @@ namespace drk::Devices {
 	}
 
 	Texture Device::createVmaImage(
-		const VmaAllocator& allocator,
-		const vk::ImageCreateInfo& imageCreationInfo,
-		const VmaAllocationCreateInfo& allocationCreationInfo
+		const VmaAllocator &allocator,
+		const vk::ImageCreateInfo &imageCreationInfo,
+		const VmaAllocationCreateInfo &allocationCreationInfo
 	) {
 		VkImage image;
 		VmaAllocation allocation;

@@ -33,9 +33,15 @@ namespace drk::Devices {
 
 		MaxSampleCount = Device::getMaxSampleCount(PhysicalDevice);
 		DepthFormat = Device::findDepthFormat(PhysicalDevice);
+
+		vk::CommandPoolCreateInfo commandPoolCreateInfo = {
+			.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer
+		};
+		CommandPool = Device.createCommandPool(commandPoolCreateInfo);
 	}
 
 	DeviceContext::~DeviceContext() {
+		Device.destroyCommandPool(CommandPool);
 		vmaDestroyAllocator(Allocator);
 		Device.destroy();
 		Instance.destroySurfaceKHR(Surface);

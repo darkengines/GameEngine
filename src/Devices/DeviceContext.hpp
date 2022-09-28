@@ -1,5 +1,6 @@
 #pragma once
 
+#define VULKAN_HPP_NO_CONSTRUCTORS
 #include "Buffer.hpp"
 #include "Texture.hpp"
 #include <vulkan/vulkan.hpp>
@@ -33,6 +34,7 @@ namespace drk::Devices {
 		vk::Queue GraphicQueue;
 		vk::Queue PresentQueue;
 		vk::Queue ComputeQueue;
+		vk::CommandPool CommandPool;
 		VmaAllocator Allocator;
 		vk::SampleCountFlagBits MaxSampleCount;
 		vk::Format DepthFormat;
