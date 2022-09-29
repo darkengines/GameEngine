@@ -84,6 +84,16 @@ namespace drk::Applications {
 
 			Graphics->Render();
 		}
+
+		std::vector<vk::Fence> fences;
+		for (const auto &frameState: EngineState->FrameStates) {
+			fences.push_back(frameState.Fence);
+		}
+		auto waitFenceResult = DeviceContext->Device.waitForFences(
+			fences,
+			VK_TRUE,
+			UINT64_MAX
+		);
 	}
 
 	std::unique_ptr<Graphics::EngineState> Application::BuildEngineState(const Devices::DeviceContext *deviceContext) {
