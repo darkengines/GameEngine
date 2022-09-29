@@ -9,12 +9,16 @@
 
 namespace drk::Graphics {
 	class EngineState {
+	protected:
+		const Devices::DeviceContext* DeviceContext;
 	public:
-		std::unordered_map<std::type_index, GenericStore> stores;
-		std::vector<FrameState> framesStates;
-		std::vector<Devices::Buffer> buffers;
-		std::vector<Devices::Texture> images;
-		std::vector<vk::ImageView> imageViews;
+		EngineState(const Devices::DeviceContext *deviceContext);
+		uint32_t FrameIndex = 0;
+		std::unordered_map<std::type_index, GenericStore> Stores;
+		std::vector<FrameState> FrameStates;
+		std::vector<Devices::Buffer> Buffers;
+		std::vector<Devices::Texture> Images;
+		std::vector<vk::ImageView> ImageViews;
 		vk::DescriptorSet TextureDescriptorSet;
 		vk::DescriptorSetLayout DescriptorSetLayouts;
 	};

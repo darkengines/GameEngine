@@ -3,6 +3,7 @@
 #include "../Common/Common.hpp"
 #include "../Devices/Device.hpp"
 #include "../Meshes/Vertex.hpp"
+#include <imgui_impl_vulkan.h>
 
 namespace drk::Graphics {
 	std::vector<const char *> Graphics::RequiredInstanceExtensions = Windows::Window::getVulkanInstanceExtension();
@@ -14,8 +15,9 @@ namespace drk::Graphics {
 
 	Graphics::Graphics(
 		const Devices::DeviceContext *deviceContext,
+		drk::Graphics::EngineState *engineState,
 		const vk::Extent2D extent
-	) : DeviceContext(deviceContext) {
+	) : DeviceContext(deviceContext), EngineState(engineState) {
 		Swapchain = Devices::Device::createSwapchain(
 			DeviceContext->Device,
 			DeviceContext->PhysicalDevice,
@@ -26,11 +28,20 @@ namespace drk::Graphics {
 		CreateMainFramebufferResources();
 		CreateMainFramebuffers();
 		CreateMainPipelineLayout();
+		CreateShaderModules();
 		CreateMainGraphicPipeline();
+		SetupImgui();
 	}
 
 	Graphics::~Graphics() {
+		DeviceContext->Device.destroyDescriptorPool(ImGuiDescriptorPool);
+		ImGui_ImplVulkan_Shutdown();
+
 		DeviceContext->Device.destroyPipeline(MainGraphicPipeline);
+
+		DeviceContext->Device.destroyShaderModule(MainFragmentShaderModule);
+		DeviceContext->Device.destroyShaderModule(MainVertexShaderModule);
+
 		DeviceContext->Device.destroyPipelineLayout(MainPipelineLayout);
 		for (const auto &framebuffer: MainFramebuffers) {
 			DeviceContext->Device.destroyFramebuffer(framebuffer);
@@ -72,7 +83,8 @@ namespace drk::Graphics {
 		return colorBlendAttachment;
 	}
 
-	vk::PipelineColorBlendStateCreateInfo Graphics::DefaultPipelineColorBlendStateCreateInfo(vk::PipelineColorBlendAttachmentState& pipelineColorBlendAttachmentState) {
+	vk::PipelineColorBlendStateCreateInfo
+	Graphics::DefaultPipelineColorBlendStateCreateInfo(vk::PipelineColorBlendAttachmentState &pipelineColorBlendAttachmentState) {
 		pipelineColorBlendAttachmentState = DefaultPipelineColorBlendAttachmentState();
 		vk::PipelineColorBlendStateCreateInfo colorBlending = {
 			.logicOpEnable = false,
@@ -209,6 +221,7 @@ namespace drk::Graphics {
 
 		vk::AttachmentDescription depthAttachment = {
 			.format = DeviceContext->DepthFormat,
+			//TODO: Use configurable sample count
 			.samples = vk::SampleCountFlagBits::e8,
 			.loadOp = vk::AttachmentLoadOp::eClear,
 			.storeOp = vk::AttachmentStoreOp::eStore,
@@ -397,13 +410,17 @@ namespace drk::Graphics {
 			scissor
 		);
 		const auto &pipelineRasterizationStateCreateInfo = DefaultPipelineRasterizationStateCreateInfo();
-		const auto &pipelineMultisampleStateCreateInfo = DefaultPipelineMultisampleStateCreateInfo();
-		const auto &pipelineColorBlendStateCreateInfo = DefaultPipelineColorBlendStateCreateInfo(pipelineColorBlendAttachmentState);
+		auto pipelineMultisampleStateCreateInfo = DefaultPipelineMultisampleStateCreateInfo();
+		//TODO: Use configurable sample count
+		pipelineMultisampleStateCreateInfo.rasterizationSamples = vk::SampleCountFlagBits::e8;
+		const auto &pipelineColorBlendStateCreateInfo = DefaultPipelineColorBlendStateCreateInfo(
+			pipelineColorBlendAttachmentState
+		);
 		const auto &pipelineDepthStencilStateCreateInfo = DefaultPipelineDepthStencilStateCreateInfo();
 
 		vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo = {
-//			.stageCount = static_cast<uint32_t>(pipelineShaderStageCreateInfos.size()),
-//			.pStages = pipelineShaderStageCreateInfos.data(),
+			.stageCount = static_cast<uint32_t>(pipelineShaderStageCreateInfos.size()),
+			.pStages = pipelineShaderStageCreateInfos.data(),
 			.pVertexInputState = &pipelineVertexInputStateCreateInfo,
 			.pInputAssemblyState = &pipelineInputAssemblyStateCreateInfo,
 			.pViewportState = &pipelineViewportStateCreateInfo,
@@ -428,5 +445,151 @@ namespace drk::Graphics {
 			.pSetLayouts = nullptr,
 		};
 		MainPipelineLayout = DeviceContext->Device.createPipelineLayout(pipelineLayoutCreateInfo);
+	}
+
+	void Graphics::SetupImgui() {
+
+		vk::DescriptorPoolSize poolSizes[] =
+			{
+				{vk::DescriptorType::eSampler,              1000},
+				{vk::DescriptorType::eCombinedImageSampler, 1000},
+				{vk::DescriptorType::eSampledImage,         1000},
+				{vk::DescriptorType::eStorageImage,         1000},
+				{vk::DescriptorType::eUniformTexelBuffer,   1000},
+				{vk::DescriptorType::eStorageTexelBuffer,   1000},
+				{vk::DescriptorType::eUniformBuffer,        1000},
+				{vk::DescriptorType::eStorageBuffer,        1000},
+				{vk::DescriptorType::eUniformBufferDynamic, 1000},
+				{vk::DescriptorType::eStorageBufferDynamic, 1000},
+				{vk::DescriptorType::eInputAttachment,      1000}
+			};
+
+		vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
+			.maxSets = 1000,
+			.poolSizeCount = std::size(poolSizes),
+			.pPoolSizes = poolSizes,
+		};
+
+		ImGuiDescriptorPool = DeviceContext->Device.createDescriptorPool(descriptorPoolCreateInfo);
+
+		ImGui::CreateContext();
+
+		ImGui_ImplVulkan_InitInfo infos{
+			.Instance = DeviceContext->Instance,
+			.PhysicalDevice = DeviceContext->PhysicalDevice,
+			.Device = DeviceContext->Device,
+			.QueueFamily = 0,
+			.Queue = DeviceContext->GraphicQueue,
+			.PipelineCache = VK_NULL_HANDLE,
+			.DescriptorPool = ImGuiDescriptorPool,
+			.Subpass =0,
+			.MinImageCount=2,
+			.ImageCount=2,
+			//TODO: Use configurable sample count
+			.MSAASamples = (VkSampleCountFlagBits) vk::SampleCountFlagBits::e8,
+			.Allocator = nullptr,
+			.CheckVkResultFn = nullptr
+		};
+		ImGui_ImplVulkan_Init(&infos, MainRenderPass);
+		vk::CommandBufferAllocateInfo commandBufferAllocationInfo = {
+			.commandPool = DeviceContext->CommandPool,
+			.level = vk::CommandBufferLevel::ePrimary,
+			.commandBufferCount = 1,
+		};
+		auto commandBuffer = Devices::Device::beginSingleTimeCommands(
+			DeviceContext->Device,
+			DeviceContext->CommandPool
+		);
+		ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
+		Devices::Device::endSingleTimeCommands(
+			DeviceContext->Device,
+			DeviceContext->GraphicQueue,
+			DeviceContext->CommandPool,
+			commandBuffer
+		);
+		ImGui_ImplVulkan_DestroyFontUploadObjects();
+	}
+
+	void Graphics::CreateShaderModules() {
+		MainVertexShaderModule = CreateShaderModule("shaders/spv/main.vert.spv");
+		MainFragmentShaderModule = CreateShaderModule("shaders/spv/main.frag.spv");
+	}
+
+	void Graphics::Render() {
+		ImGui::Render();
+		const auto &frameState = EngineState->FrameStates[EngineState->FrameIndex];
+		const auto &fence = frameState.Fence;
+		const auto &imageReadySemaphore = frameState.ImageReadySemaphore;
+		const auto &imageRenderedSemaphore = frameState.ImageRenderedSemaphore;
+
+		const auto &waitForFenceResult = DeviceContext->Device.waitForFences(1, &fence, VK_TRUE, UINT64_MAX);
+		//Todo: Handle suboptimal and out of date results
+		auto swapchainImageIndex = DeviceContext->Device.acquireNextImageKHR(
+			Swapchain.swapchain,
+			UINT64_MAX,
+			frameState.ImageReadySemaphore,
+			VK_NULL_HANDLE
+		);
+		const auto &resetFenceResult = DeviceContext->Device.resetFences(1, &fence);
+
+		frameState.CommandBuffer.reset();
+
+		vk::CommandBufferBeginInfo commandBufferBeginInfo = {};
+		const auto &result = frameState.CommandBuffer.begin(&commandBufferBeginInfo);
+		vk::ClearValue colorClearValue = {
+			.color = {std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}
+		};
+		vk::ClearValue depthClearValue{
+			.depthStencil = {1.0f, 0}
+		};
+		std::array<vk::ClearValue, 3> clearValues{colorClearValue, depthClearValue, colorClearValue};
+		vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
+			.renderPass = MainRenderPass,
+			.framebuffer = MainFramebuffers[swapchainImageIndex.value],
+			.renderArea = {0, 0, Swapchain.extent},
+			.clearValueCount = clearValues.size(),
+			.pClearValues = clearValues.data(),
+		};
+		frameState.CommandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
+//		frameState.CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, MainGraphicPipeline);
+//		frameState.CommandBuffer.drawIndexed(0, 0, 0, 0, 0);
+
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), frameState.CommandBuffer);
+		frameState.CommandBuffer.endRenderPass();
+		frameState.CommandBuffer.end();
+
+		vk::PipelineStageFlags submissionWaitDstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+		vk::SubmitInfo submitInfo = {
+			.waitSemaphoreCount = 1,
+			.pWaitSemaphores = &imageReadySemaphore,
+			.pWaitDstStageMask = &submissionWaitDstStageMask,
+			.commandBufferCount = 1,
+			.pCommandBuffers = &frameState.CommandBuffer,
+			.signalSemaphoreCount = 1,
+			.pSignalSemaphores = &imageRenderedSemaphore,
+		};
+
+		DeviceContext->GraphicQueue.submit({submitInfo}, fence);
+
+		vk::Result presentResults;
+		vk::PresentInfoKHR presentInfoKHR = {
+			.waitSemaphoreCount = 1,
+			.pWaitSemaphores = &imageRenderedSemaphore,
+			.swapchainCount = 1,
+			.pSwapchains = &Swapchain.swapchain,
+			.pImageIndices = &swapchainImageIndex.value,
+			.pResults = &presentResults,
+		};
+
+		//Todo: make "frame in flight" count configurable
+		EngineState->FrameIndex = (EngineState->FrameIndex + 1) % 2;
+		const auto &presentResult = DeviceContext->PresentQueue.presentKHR(presentInfoKHR);
+
+		//frameState.CommandBuffer.bindIndexBuffer(...);
+		//frameState.CommandBuffer.bindVertexBuffers(...);
+		//frameState.CommandBuffer.bindDescriptorSets(...);
+
+		//frameState.CommandBuffer.bindPipeline(...);
+		//frameState.CommandBuffer.drawIndexed(...);
 	}
 }

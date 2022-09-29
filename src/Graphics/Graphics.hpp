@@ -5,6 +5,7 @@
 #include "vulkan/vulkan.hpp"
 #include "../Devices/DeviceContext.hpp"
 #include "../Devices/Swapchain.hpp"
+#include "EngineState.hpp"
 
 namespace drk::Graphics {
 	class Graphics {
@@ -14,28 +15,19 @@ namespace drk::Graphics {
 
 		Graphics(
 			const Devices::DeviceContext *deviceContext,
+			EngineState *engineState,
 			const vk::Extent2D extent
 		);
 		~Graphics();
 
 		void SetExtent(const vk::Extent2D &extent);
 
-		static vk::PipelineDepthStencilStateCreateInfo DefaultPipelineDepthStencilStateCreateInfo();
-		static vk::PipelineColorBlendAttachmentState DefaultPipelineColorBlendAttachmentState();
-		static vk::PipelineColorBlendStateCreateInfo DefaultPipelineColorBlendStateCreateInfo(vk::PipelineColorBlendAttachmentState& pipelineColorBlendAttachmentState);
-		static vk::PipelineMultisampleStateCreateInfo DefaultPipelineMultisampleStateCreateInfo();
-		static vk::PipelineRasterizationStateCreateInfo DefaultPipelineRasterizationStateCreateInfo();
-		static vk::PipelineViewportStateCreateInfo DefaultPipelineViewportStateCreateInfo(const vk::Extent2D &extent, vk::Viewport& viewport, vk::Rect2D& scissor);
-		static vk::PipelineInputAssemblyStateCreateInfo DefaultPipelineInputAssemblyStateCreateInfo();
-		static vk::PipelineVertexInputStateCreateInfo DefaultPipelineVertexInputStateCreateInfo(
-			std::vector<vk::VertexInputBindingDescription>& vertexInputBindingDescriptions,
-			std::vector<vk::VertexInputAttributeDescription>& vertexInputAttributeDescriptions
-		);
-
-		vk::ShaderModule CreateShaderModule(const std::string &shaderPath) const;
+		void Render();
 
 	protected:
+		vk::ShaderModule CreateShaderModule(const std::string &shaderPath) const;
 		const Devices::DeviceContext *DeviceContext;
+		EngineState *EngineState;
 		Devices::Swapchain Swapchain;
 		vk::ShaderModule MainVertexShaderModule;
 		vk::ShaderModule MainFragmentShaderModule;
@@ -51,11 +43,29 @@ namespace drk::Graphics {
 		std::vector<vk::Framebuffer> MainFramebuffers;
 		vk::Pipeline MainGraphicPipeline;
 
+		vk::DescriptorPool ImGuiDescriptorPool;
+
 		void RecreateSwapchain(const vk::Extent2D extent);
 		void CreateMainRenderPass();
 		void CreateMainFramebufferResources();
 		void CreateMainFramebuffers();
 		void CreateMainPipelineLayout();
+		void CreateShaderModules();
 		void CreateMainGraphicPipeline();
+		void SetupImgui();
+
+		static vk::PipelineDepthStencilStateCreateInfo DefaultPipelineDepthStencilStateCreateInfo();
+		static vk::PipelineColorBlendAttachmentState DefaultPipelineColorBlendAttachmentState();
+		static vk::PipelineColorBlendStateCreateInfo
+		DefaultPipelineColorBlendStateCreateInfo(vk::PipelineColorBlendAttachmentState &pipelineColorBlendAttachmentState);
+		static vk::PipelineMultisampleStateCreateInfo DefaultPipelineMultisampleStateCreateInfo();
+		static vk::PipelineRasterizationStateCreateInfo DefaultPipelineRasterizationStateCreateInfo();
+		static vk::PipelineViewportStateCreateInfo
+		DefaultPipelineViewportStateCreateInfo(const vk::Extent2D &extent, vk::Viewport &viewport, vk::Rect2D &scissor);
+		static vk::PipelineInputAssemblyStateCreateInfo DefaultPipelineInputAssemblyStateCreateInfo();
+		static vk::PipelineVertexInputStateCreateInfo DefaultPipelineVertexInputStateCreateInfo(
+			std::vector<vk::VertexInputBindingDescription> &vertexInputBindingDescriptions,
+			std::vector<vk::VertexInputAttributeDescription> &vertexInputAttributeDescriptions
+		);
 	};
 }
