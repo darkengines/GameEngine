@@ -61,15 +61,20 @@ namespace drk::Devices {
 		Device::destroyBuffer(Allocator, buffer);
 	}
 
-	Texture
-	DeviceContext::CreateTexture(
+	Image
+	DeviceContext::CreateImage(
 		const vk::ImageCreateInfo &imageCreationInfo,
 		vk::MemoryPropertyFlags properties
 	) const {
-		return Device::createTexture(Allocator, imageCreationInfo, properties);
+		return Device::createImage(Allocator, imageCreationInfo, properties);
+	}
+
+	void DeviceContext::DestroyImage(const Image &image) const {
+		Device::destroyImage(Device, Allocator, image);
 	}
 
 	void DeviceContext::DestroyTexture(const Texture &texture) const {
-		Device::destroyTexture(Allocator, texture);
+		Device.destroyImageView(texture.imageView);
+		Device::destroyImage(Device, Allocator, texture.image);
 	}
 }

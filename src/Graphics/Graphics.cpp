@@ -69,9 +69,7 @@ namespace drk::Graphics {
 	}
 
 	void Graphics::DestroyMainFramebufferResources() {
-		DeviceContext->Device.destroyImageView(MainFramebufferDepthImageView);
 		DeviceContext->DestroyTexture(MainFramebufferDepthTexture);
-		DeviceContext->Device.destroyImageView(MainFramebufferImageView);
 		DeviceContext->DestroyTexture(MainFramebufferTexture);
 	}
 
@@ -324,7 +322,7 @@ namespace drk::Graphics {
 			.usage = vk::ImageUsageFlagBits::eColorAttachment,
 			.sharingMode = vk::SharingMode::eExclusive,
 		};
-		MainFramebufferTexture = DeviceContext->CreateTexture(
+		auto mainFramebufferImage = DeviceContext->CreateImage(
 			imageCreateInfo,
 			vk::MemoryPropertyFlagBits::eDeviceLocal
 		);
@@ -338,13 +336,13 @@ namespace drk::Graphics {
 		};
 
 		vk::ImageViewCreateInfo imageViewCreateInfo = {
-			.image = MainFramebufferTexture.image,
+			.image = mainFramebufferImage.image,
 			.viewType = vk::ImageViewType::e2D,
 			.format = Swapchain.imageFormat,
 			.subresourceRange = subresourceRange
 		};
 
-		MainFramebufferImageView = DeviceContext->Device.createImageView(imageViewCreateInfo);
+		auto mainFramebufferImageView = DeviceContext->Device.createImageView(imageViewCreateInfo);
 
 		vk::ImageCreateInfo depthImageCreateInfo{
 			.imageType = vk::ImageType::e2D,
@@ -356,7 +354,7 @@ namespace drk::Graphics {
 			.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
 			.sharingMode = vk::SharingMode::eExclusive,
 		};
-		MainFramebufferDepthTexture = DeviceContext->CreateTexture(
+		auto mainFramebufferDepthImage = DeviceContext->CreateImage(
 			depthImageCreateInfo,
 			vk::MemoryPropertyFlagBits::eDeviceLocal
 		);
@@ -370,20 +368,28 @@ namespace drk::Graphics {
 		};
 
 		vk::ImageViewCreateInfo depthImageViewCreateInfo = {
-			.image = MainFramebufferDepthTexture.image,
+			.image = mainFramebufferDepthImage.image,
 			.viewType = vk::ImageViewType::e2D,
 			.format = DeviceContext->DepthFormat,
 			.subresourceRange = depthSubresourceRange
 		};
 
-		MainFramebufferDepthImageView = DeviceContext->Device.createImageView(depthImageViewCreateInfo);
+		auto mainFramebufferDepthImageView = DeviceContext->Device.createImageView(depthImageViewCreateInfo);
+		MainFramebufferTexture = {
+			.image = mainFramebufferImage,
+			.imageView = mainFramebufferImageView
+		};
+		MainFramebufferDepthTexture = {
+			.image = mainFramebufferDepthImage,
+			.imageView = mainFramebufferDepthImageView
+		};
 	}
 
 	void Graphics::CreateMainFramebuffers() {
 		for (const auto &swapChainImageView: Swapchain.imageViews) {
 			std::array<vk::ImageView, 3> attachments{
-				MainFramebufferImageView,
-				MainFramebufferDepthImageView,
+				MainFramebufferTexture.imageView,
+				MainFramebufferDepthTexture.imageView,
 				swapChainImageView
 			};
 			vk::FramebufferCreateInfo framebufferCreateInfo = {

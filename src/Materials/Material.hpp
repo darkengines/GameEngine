@@ -6,7 +6,7 @@
 #include <optional>
 
 namespace drk::Textures {
-	struct Image;
+	struct ImageInfo;
 }
 namespace drk::Materials {
 	struct Material {
@@ -17,12 +17,12 @@ namespace drk::Materials {
 		glm::vec4 diffuseColor;
 		glm::vec4 specularColor;
 
-		std::optional<Textures::Image *> baseColorTexture;
-		std::optional<Textures::Image *> ambientColorTexture;
-		std::optional<Textures::Image *> diffuseColorTexture;
-		std::optional<Textures::Image *> specularColorTexture;
-		std::optional<Textures::Image *> normalMap;
-		std::optional<Textures::Image *> metallicRoughnessTexture;
+		std::optional<Textures::ImageInfo *> baseColorTexture;
+		std::optional<Textures::ImageInfo *> ambientColorTexture;
+		std::optional<Textures::ImageInfo *> diffuseColorTexture;
+		std::optional<Textures::ImageInfo *> specularColorTexture;
+		std::optional<Textures::ImageInfo *> normalMap;
+		std::optional<Textures::ImageInfo *> metallicRoughnessTexture;
 
 		bool hasAlpha;
 	};

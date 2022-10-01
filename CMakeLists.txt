@@ -9,7 +9,7 @@ file(
     src/Devices/Device.cpp
     src/Meshes/Vertex.cpp
     src/Meshes/Vertex.cpp
-    src/Textures/Image.cpp
+    src/Textures/ImageInfo.cpp
     src/Devices/Texture.cpp
     src/Windows/Window.cpp
     src/Geometries/Plane.cpp
@@ -27,6 +27,8 @@ file(
     src/Applications/Application.cpp
     src/Loaders/AssimpLoader.cpp
     src/Common/IndexGenerator.cpp
+    src/Textures/TextureSystem.cpp
+    src/Devices/Image.cpp
 )
 
 file(
@@ -40,7 +42,7 @@ file(
     src/system.hpp
     src/Meshes/Vertex.hpp
     src/Meshes/Vertex.hpp
-    src/Textures/Image.hpp
+    src/Textures/ImageInfo.hpp
     src/Textures/TextureType.hpp
     src/Common/ComponentIndex.hpp
     src/Meshes/Mesh.hpp
@@ -74,6 +76,8 @@ file(
     src/Common/IndexGenerator.hpp
     src/Meshes/MeshGroup.hpp
     src/Objects/Relationship.hpp
+    src/Textures/TextureSystem.hpp
+    src/Devices/Image.hpp
 )
 
 add_executable(drk ${HEADERS} ${SOURCES})

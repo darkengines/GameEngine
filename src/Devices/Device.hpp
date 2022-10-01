@@ -91,6 +91,13 @@ namespace drk::Devices {
 			size_t length
 		);
 
+		static void copyBufferToImage(
+			const vk::CommandBuffer &commandBuffer,
+			const Devices::Buffer &source,
+			const vk::Image &destination,
+			const vk::BufferImageCopy &region
+		);
+
 		static vk::CommandBuffer beginSingleTimeCommands(const vk::Device &device, const vk::CommandPool &commandPool);
 
 		static void endSingleTimeCommands(
@@ -111,13 +118,13 @@ namespace drk::Devices {
 			Buffer **deviceBuffer
 		);
 
-		static Texture createTexture(
+		static Image createImage(
 			const VmaAllocator &allocator,
 			const vk::ImageCreateInfo imageCreationInfo,
 			vk::MemoryPropertyFlags properties
 		);
 
-		static Texture createVmaImage(
+		static Image createVmaImage(
 			const VmaAllocator &allocator,
 			const vk::ImageCreateInfo &imageCreationInfo,
 			const VmaAllocationCreateInfo &allocationCreationInfo
@@ -125,26 +132,14 @@ namespace drk::Devices {
 
 		static void destroyVmaImage(
 			const VmaAllocator &allocator,
-			const Texture &texture
+			const Image &image
 		);
 
-		static void destroyTexture(
+		static void destroyImage(
+			const vk::Device& device,
 			const VmaAllocator &allocator,
-			const Texture &texture
+			const Image &image
 		);
-
-		static vk::ImageView createImageView(
-			const vk::Device &device,
-			const Texture &texture,
-			vk::ImageViewCreateFlags flags,
-			vk::ImageViewType type,
-			vk::Format format,
-			vk::ImageAspectFlags aspect,
-			const vk::ComponentMapping &components,
-			const vk::ImageSubresourceRange &subresourceRange
-		);
-
-		static void destroyImageView(const vk::Device &device, const vk::ImageView &imageView);
 
 		static vk::Sampler createSampler(
 			const vk::Device &device,
@@ -177,7 +172,7 @@ namespace drk::Devices {
 		chooseSwapExtent(vk::Extent2D extent, const vk::SurfaceCapabilitiesKHR &capabilities);
 
 		static Swapchain createSwapchain(
-			const vk::Device &device,
+			const vk::Device &swapchainImage,
 			const vk::PhysicalDevice &physicalDevice,
 			const vk::SurfaceKHR &surface,
 			const vk::Extent2D &extent
@@ -192,6 +187,27 @@ namespace drk::Devices {
 		static vk::Instance createInstance(
 			const std::vector<const char *> &requiredInstanceExtensions,
 			const std::vector<const char *> &requiredLayers
+		);
+
+		static bool hasStencilComponent(vk::Format format) {
+			return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
+		}
+
+		static void transitionLayout(
+			const vk::CommandBuffer &commandBuffer,
+			const vk::Image &image,
+			vk::Format format,
+			vk::ImageLayout oldLayout,
+			vk::ImageLayout newLayout,
+			uint32_t mipLevels
+		);
+
+		static void generatedMipmaps(
+			const vk::CommandBuffer &commandBuffer,
+			const vk::Image &image,
+			int32_t width,
+			int32_t height,
+			int32_t mipLevels
 		);
 	};
 }

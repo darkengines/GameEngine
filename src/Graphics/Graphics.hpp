@@ -35,10 +35,7 @@ namespace drk::Graphics {
 		vk::PipelineLayout MainPipelineLayout;
 
 		Devices::Texture MainFramebufferTexture;
-		vk::ImageView MainFramebufferImageView;
-
 		Devices::Texture MainFramebufferDepthTexture;
-		vk::ImageView MainFramebufferDepthImageView;
 
 		std::vector<vk::Framebuffer> MainFramebuffers;
 		vk::Pipeline MainGraphicPipeline;
@@ -50,7 +47,7 @@ namespace drk::Graphics {
 		void DestroyMainFramebuffer();
 		void RecreateSwapchain(const vk::Extent2D extent);
 		void DestroySwapchain();
-		void CreateSwapchain(const vk::Extent2D& extent);
+		void CreateSwapchain(const vk::Extent2D &extent);
 		void CreateMainRenderPass();
 		void CreateMainFramebufferResources();
 		void CreateMainFramebuffers();

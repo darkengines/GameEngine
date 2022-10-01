@@ -23,7 +23,8 @@ namespace drk::Devices {
 
 		void DestroyBuffer(const Buffer &buffer) const;
 
-		Texture CreateTexture(const vk::ImageCreateInfo &imageCreationInfo, vk::MemoryPropertyFlags properties) const;
+		Image CreateImage(const vk::ImageCreateInfo &imageCreationInfo, vk::MemoryPropertyFlags properties) const;
+		void DestroyImage(const Image &image) const;
 
 		void DestroyTexture(const Texture &texture) const;
 

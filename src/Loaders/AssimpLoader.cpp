@@ -63,8 +63,8 @@ namespace drk::Loaders {
 		auto aiTextureIndex = 0u;
 		for (auto aiMaterialIndex = 0u; aiMaterialIndex < aiMaterials.size(); aiMaterialIndex++) {
 			auto aiMaterial = aiMaterials[aiMaterialIndex];
-			std::unordered_map<std::string, Textures::Image *> textureNameMap;
-			std::unordered_map<Textures::TextureType, Textures::Image *> textureTypeMap;
+			std::unordered_map<std::string, Textures::ImageInfo *> textureNameMap;
+			std::unordered_map<Textures::TextureType, Textures::ImageInfo *> textureTypeMap;
 			for (auto textureTypePair : TextureTypeMap) {
 				if (aiMaterial->GetTextureCount(textureTypePair.first)) {
 					aiString aiTexturePath;
@@ -72,30 +72,30 @@ namespace drk::Loaders {
 					if (result == aiReturn::aiReturn_SUCCESS) {
 						auto texturePath = aiTexturePath.C_Str();
 						auto texturePathPair = textureNameMap.find(texturePath);
-						std::unique_ptr<Textures::Image> image;
+						std::unique_ptr<Textures::ImageInfo> image;
 						if (texturePathPair == textureNameMap.end()) {
 							if (texturePath[0] == '*') {
 								int textureIndex = 0;
 								sscanf_s(texturePath, "*%d", &textureIndex);
 								auto aiTexture = aiTextures[textureIndex];
 								std::span<unsigned char> data((unsigned char *) aiTexture->pcData, aiTexture->mWidth);
-								image = Textures::Image::fromMemory(
+								image = Textures::ImageInfo::fromMemory(
 									std::string(texturePath),
 									data,
 									textureTypePair.second
 								);
 							} else {
 								auto texturePath = workingDirectoryPath / aiTexturePath.C_Str();
-								image = Textures::Image::fromFile(
+								image = Textures::ImageInfo::fromFile(
 									texturePath.string(),
 									texturePath.string(),
 									textureTypePair.second
 								);
 							}
 							auto textureEntity = EngineState->Registry.create();
-							EngineState->Registry.emplace<Textures::Image *>(textureEntity, image.get());
-							auto textureIndex = EngineState->IndexGenerator.Generate<Textures::Image>();
-							EngineState->Registry.emplace<Common::ComponentIndex<Textures::Image>>(
+							EngineState->Registry.emplace<Textures::ImageInfo *>(textureEntity, image.get());
+							auto textureIndex = EngineState->IndexGenerator.Generate<Textures::ImageInfo>();
+							EngineState->Registry.emplace<Common::ComponentIndex<Textures::ImageInfo>>(
 								textureEntity,
 								textureIndex
 							);
@@ -118,28 +118,28 @@ namespace drk::Loaders {
 			const auto &normalMapPair = textureTypeMap.find(Textures::TextureType::NormalMap);
 			const auto &metallicRoughnessPair = textureTypeMap.find(Textures::TextureType::RoughnessMetalnessMap);
 
-			std::optional<Textures::Image *> baseColorTexture =
+			std::optional<Textures::ImageInfo *> baseColorTexture =
 				baseColorTexturePair != textureTypeMap.end()
-				? std::optional<Textures::Image *>(baseColorTexturePair->second)
+				? std::optional<Textures::ImageInfo *>(baseColorTexturePair->second)
 				: std::nullopt;
-			std::optional<Textures::Image *> ambientColorTexture = ambientColorTexturePair != textureTypeMap.end()
-																   ? std::optional<Textures::Image *>(
+			std::optional<Textures::ImageInfo *> ambientColorTexture = ambientColorTexturePair != textureTypeMap.end()
+																   ? std::optional<Textures::ImageInfo *>(
 					ambientColorTexturePair->second
 				) : std::nullopt;
-			std::optional<Textures::Image *> diffuseColorTexture = diffuseColorTexturePair != textureTypeMap.end()
-																   ? std::optional<Textures::Image *>(
+			std::optional<Textures::ImageInfo *> diffuseColorTexture = diffuseColorTexturePair != textureTypeMap.end()
+																   ? std::optional<Textures::ImageInfo *>(
 					diffuseColorTexturePair->second
 				) : std::nullopt;
-			std::optional<Textures::Image *> specularColorTexture = specularColorTexturePair != textureTypeMap.end()
-																	? std::optional<Textures::Image *>(
+			std::optional<Textures::ImageInfo *> specularColorTexture = specularColorTexturePair != textureTypeMap.end()
+																	? std::optional<Textures::ImageInfo *>(
 					specularColorTexturePair->second
 				) : std::nullopt;
-			std::optional<Textures::Image *> normalMap =
-				normalMapPair != textureTypeMap.end() ? std::optional<Textures::Image *>(normalMapPair->second)
+			std::optional<Textures::ImageInfo *> normalMap =
+				normalMapPair != textureTypeMap.end() ? std::optional<Textures::ImageInfo *>(normalMapPair->second)
 													  : std::nullopt;
-			std::optional<Textures::Image *> metallicRoughnessTexture =
+			std::optional<Textures::ImageInfo *> metallicRoughnessTexture =
 				metallicRoughnessPair != textureTypeMap.end()
-				? std::optional<Textures::Image *>(metallicRoughnessPair->second)
+				? std::optional<Textures::ImageInfo *>(metallicRoughnessPair->second)
 				: std::nullopt;
 
 			aiColor4D ambientColor, diffuseColor, specularColor;

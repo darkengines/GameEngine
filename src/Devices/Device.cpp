@@ -501,7 +501,7 @@ namespace drk::Devices {
 		device.freeCommandBuffers(commandPool, {commandBuffer});
 	}
 
-	Texture Device::createTexture(
+	Image Device::createImage(
 		const VmaAllocator &allocator,
 		const vk::ImageCreateInfo imageCreationInfo,
 		vk::MemoryPropertyFlags properties
@@ -511,11 +511,11 @@ namespace drk::Devices {
 			.requiredFlags = (VkMemoryPropertyFlags) properties,
 		};
 
-		auto texture = Device::createVmaImage(allocator, imageCreationInfo, allocationCreationInfo);
-		return texture;
+		auto image = Device::createVmaImage(allocator, imageCreationInfo, allocationCreationInfo);
+		return image;
 	}
 
-	Texture Device::createVmaImage(
+	Image Device::createVmaImage(
 		const VmaAllocator &allocator,
 		const vk::ImageCreateInfo &imageCreationInfo,
 		const VmaAllocationCreateInfo &allocationCreationInfo
@@ -538,42 +538,17 @@ namespace drk::Devices {
 
 	void Device::destroyVmaImage(
 		const VmaAllocator &allocator,
-		const Texture &texture
+		const Image &image
 	) {
-		vmaDestroyImage(allocator, texture.image, texture.allocation);
+		vmaDestroyImage(allocator, image.image, image.allocation);
 	}
 
-	void Device::destroyTexture(
-		const VmaAllocator &allocator,
-		const Texture &texture
-	) {
-		Device::destroyVmaImage(allocator, texture);
-	}
-
-	vk::ImageView Device::createImageView(
+	void Device::destroyImage(
 		const vk::Device &device,
-		const Texture &texture,
-		vk::ImageViewCreateFlags flags,
-		vk::ImageViewType type,
-		vk::Format format,
-		vk::ImageAspectFlags aspect,
-		const vk::ComponentMapping &components,
-		const vk::ImageSubresourceRange &subresourceRange
+		const VmaAllocator &allocator,
+		const Image &image
 	) {
-		vk::ImageViewCreateInfo imageViewCreationInfo = {
-			.flags = flags,
-			.image = texture.image,
-			.viewType = type,
-			.format = format,
-			.components = components,
-			.subresourceRange = subresourceRange
-		};
-		auto imageView = device.createImageView(imageViewCreationInfo);
-		return imageView;
-	}
-
-	void Device::destroyImageView(const vk::Device &device, const vk::ImageView &imageView) {
-		device.destroyImageView(imageView);
+		Device::destroyVmaImage(allocator, image);
 	}
 
 	vk::Sampler Device::createSampler(
@@ -703,13 +678,13 @@ namespace drk::Devices {
 
 		auto vkSwapchain = device.createSwapchainKHR(swapChainCreationInfo);
 		auto swapchainImages = device.getSwapchainImagesKHR(vkSwapchain);
-		std::vector<Texture> swapchainTextures(swapchainImages.size());
+		std::vector<Image> swapchainTextures(swapchainImages.size());
 		std::transform(
 			swapchainImages.begin(),
 			swapchainImages.end(),
 			swapchainTextures.data(),
 			[](const vk::Image &vkImage) {
-				return Texture{
+				return Image{
 					.image = vkImage
 				};
 			}
@@ -719,22 +694,18 @@ namespace drk::Devices {
 			swapchainTextures.begin(),
 			swapchainTextures.end(),
 			swapchainImageViews.data(),
-			[&device, surfaceFormat](const auto &swapchainTexture) {
-				return Device::createImageView(
-					device,
-					swapchainTexture,
-					{},
-					vk::ImageViewType::e2D,
-					surfaceFormat.format,
-					vk::ImageAspectFlagBits::eColor,
-					{},
-					{
+			[&device, surfaceFormat](const auto &swapchainImage) {
+				vk::ImageViewCreateInfo imageViewCreateInfo = {
+					.image = swapchainImage.image,
+					.viewType = vk::ImageViewType::e2D,
+					.format = surfaceFormat.format,
+					.subresourceRange = {
 						.aspectMask=vk::ImageAspectFlagBits::eColor,
 						.levelCount = 1,
 						.layerCount = 1,
 					}
-
-				);
+				};
+				return device.createImageView(imageViewCreateInfo);
 			}
 		);
 
@@ -751,7 +722,7 @@ namespace drk::Devices {
 
 	void Device::destroySwapchain(const vk::Device &device, const Swapchain &swapchain) {
 		for (auto &swapchainImageView : swapchain.imageViews) {
-			Device::destroyImageView(device, swapchainImageView);
+			device.destroyImageView(swapchainImageView);
 		}
 		device.destroySwapchainKHR(swapchain.swapchain);
 	}
@@ -768,5 +739,194 @@ namespace drk::Devices {
 
 	void Device::destroyShaderModule(const vk::Device &device, const vk::ShaderModule &shaderModule) {
 		device.destroyShaderModule(shaderModule);
+	}
+
+	void Device::copyBufferToImage(
+		const vk::CommandBuffer &commandBuffer,
+		const Devices::Buffer &source,
+		const vk::Image &destination,
+		const vk::BufferImageCopy &region
+	) {
+		commandBuffer.copyBufferToImage(
+			source.buffer,
+			destination,
+			vk::ImageLayout::eTransferDstOptimal,
+			1,
+			&region
+		);
+	}
+
+	void Device::transitionLayout(
+		const vk::CommandBuffer &commandBuffer,
+		const vk::Image &image,
+		vk::Format format,
+		vk::ImageLayout oldLayout,
+		vk::ImageLayout newLayout,
+		uint32_t mipLevels
+	) {
+		vk::ImageMemoryBarrier barrier = {
+			.oldLayout = oldLayout,
+			.newLayout = newLayout,
+			.srcQueueFamilyIndex = ~0U,
+			.dstQueueFamilyIndex = ~0U,
+			.image = image,
+			.subresourceRange = {
+				.aspectMask = vk::ImageAspectFlagBits::eColor,
+				.baseMipLevel = 0,
+				.levelCount = mipLevels,
+				.baseArrayLayer = 0,
+				.layerCount = 1
+			}
+		};
+
+		vk::PipelineStageFlags source, destination;
+
+		if (newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
+			barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
+			if (hasStencilComponent(format)) {
+				barrier.subresourceRange.aspectMask |= vk::ImageAspectFlagBits::eStencil;
+			}
+		} else {
+			barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+		}
+		if (oldLayout == vk::ImageLayout::eUndefined &&
+			newLayout == vk::ImageLayout::eTransferDstOptimal) {
+			barrier.srcAccessMask = vk::AccessFlagBits::eNone;
+			barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+
+			source = vk::PipelineStageFlagBits::eTopOfPipe;
+			destination = vk::PipelineStageFlagBits::eTransfer;
+		} else if (oldLayout == vk::ImageLayout::eTransferDstOptimal &&
+				   newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+			barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+			barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+			source = vk::PipelineStageFlagBits::eTransfer;
+			destination = vk::PipelineStageFlagBits::eFragmentShader;
+		} else if (oldLayout == vk::ImageLayout::eUndefined &&
+				   newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
+			barrier.srcAccessMask = vk::AccessFlagBits::eNone;
+			barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite |
+									vk::AccessFlagBits::eDepthStencilAttachmentRead;
+			source = vk::PipelineStageFlagBits::eTopOfPipe;
+			destination = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+		} else {
+			throw std::runtime_error("Unsupported layout transition!");
+		}
+		commandBuffer.pipelineBarrier(
+			source,
+			destination,
+			{},
+			{},
+			{},
+			std::vector<vk::ImageMemoryBarrier>{barrier}
+		);
+	}
+
+	void Device::generatedMipmaps(
+		const vk::CommandBuffer &commandBuffer,
+		const vk::Image &image,
+		int32_t width,
+		int32_t height,
+		int32_t mipLevels
+	) {
+		vk::ImageMemoryBarrier barrier = {
+			.image = image,
+			.subresourceRange = {
+				.aspectMask = vk::ImageAspectFlagBits::eColor,
+				.levelCount = 1,
+				.baseArrayLayer = 0,
+				.layerCount = 1,
+			}
+		};
+
+
+		auto mipWidth = width;
+		auto mipHeight = height;
+
+		for (uint32_t mipLevel = 1; mipLevel < mipLevels; mipLevel++) {
+			barrier.subresourceRange.baseMipLevel = mipLevel - 1;
+			barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+			barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
+			barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+			barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+
+			commandBuffer.pipelineBarrier(
+				vk::PipelineStageFlagBits::eTransfer,
+				vk::PipelineStageFlagBits::eTransfer,
+				{},
+				{},
+				{},
+				{barrier}
+			);
+
+			vk::ImageBlit imageBlit = {
+				.srcSubresource = {
+					.aspectMask = vk::ImageAspectFlagBits::eColor,
+					.mipLevel = mipLevel - 1,
+					.baseArrayLayer = 0,
+					.layerCount = 1,
+				},
+				.srcOffsets = std::array<vk::Offset3D, 2>{
+					vk::Offset3D{0, 0, 0},
+					vk::Offset3D{mipWidth, mipHeight, 1}
+				},
+				.dstSubresource = {
+					.aspectMask = vk::ImageAspectFlagBits::eColor,
+					.mipLevel = mipLevel,
+					.baseArrayLayer = 0,
+					.layerCount = 1,
+				},
+				.dstOffsets = std::array<vk::Offset3D, 2>{
+					vk::Offset3D{0, 0, 0},
+					vk::Offset3D{
+						mipWidth > 1 ? mipWidth / 2 : 1,
+						mipHeight > 1 ? mipHeight / 2 : 1,
+						1
+					}
+				}
+			};
+
+
+			commandBuffer.blitImage(
+				image,
+				vk::ImageLayout::eTransferSrcOptimal,
+				image,
+				vk::ImageLayout::eTransferDstOptimal,
+				{imageBlit},
+				vk::Filter::eLinear
+			);
+
+			barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
+			barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+			barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
+			barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+
+			commandBuffer.pipelineBarrier(
+				vk::PipelineStageFlagBits::eTransfer,
+				vk::PipelineStageFlagBits::eFragmentShader,
+				{},
+				{},
+				{},
+				{barrier}
+			);
+
+			if (mipWidth > 1) mipWidth /= 2;
+			if (mipHeight > 1) mipHeight /= 2;
+		}
+
+		barrier.subresourceRange.baseMipLevel = mipLevels - 1;
+		barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+
+		commandBuffer.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTransfer,
+			vk::PipelineStageFlagBits::eFragmentShader,
+			{},
+			{},
+			{},
+			{barrier}
+		);
 	}
 }
