@@ -288,7 +288,7 @@ namespace drk::Devices {
 	Buffer Device::createVmaBuffer(
 		const VmaAllocator allocator,
 		const vk::BufferUsageFlags usage,
-		VmaAllocationCreateInfo *pAllocationCreationInfo,
+		const VmaAllocationCreateInfo *pAllocationCreationInfo,
 		vk::DeviceSize size
 	) {
 		vk::BufferCreateInfo bufferCreateInfo = {
@@ -318,13 +318,10 @@ namespace drk::Devices {
 		const VmaAllocator &allocator,
 		vk::MemoryPropertyFlags properties,
 		vk::BufferUsageFlags usage,
+		const VmaAllocationCreateInfo& vmaAllocationCreateInfo,
 		vk::DeviceSize size
 	) {
-		VmaAllocationCreateInfo vmaAllocationCreationInfo = {
-			.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
-			.requiredFlags = (VkMemoryPropertyFlags) properties,
-		};
-		auto buffer = Device::createVmaBuffer(allocator, usage, &vmaAllocationCreationInfo, size);
+		auto buffer = Device::createVmaBuffer(allocator, usage, &vmaAllocationCreateInfo, size);
 		return buffer;
 	}
 

@@ -52,9 +52,10 @@ namespace drk::Devices {
 	DeviceContext::CreateBuffer(
 		vk::MemoryPropertyFlags properties,
 		vk::BufferUsageFlags usage,
+		const VmaAllocationCreateInfo& allocationCreationInfo,
 		vk::DeviceSize size
 	) const {
-		return Device::createBuffer(Allocator, properties, usage, size);
+		return Device::createBuffer(Allocator, properties, usage, allocationCreationInfo, size);
 	}
 
 	void DeviceContext::DestroyBuffer(const Buffer &buffer) const {

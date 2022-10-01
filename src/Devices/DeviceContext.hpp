@@ -19,7 +19,7 @@ namespace drk::Devices {
 
 		~DeviceContext();
 
-		Buffer CreateBuffer(vk::MemoryPropertyFlags properties, vk::BufferUsageFlags usage, vk::DeviceSize size) const;
+		Buffer CreateBuffer(vk::MemoryPropertyFlags properties, vk::BufferUsageFlags usage, const VmaAllocationCreateInfo& allocationCreationInfo, vk::DeviceSize size) const;
 
 		void DestroyBuffer(const Buffer &buffer) const;
 

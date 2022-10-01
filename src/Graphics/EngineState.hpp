@@ -7,6 +7,8 @@
 #include "../Devices/Texture.hpp"
 #include "FrameState.hpp"
 #include "../Common/IndexGenerator.hpp"
+#include "DescriptorSetLayoutCache.hpp"
+#include "DescriptorSetAllocator.hpp"
 #include <entt/entt.hpp>
 
 namespace drk::Graphics {
@@ -14,9 +16,18 @@ namespace drk::Graphics {
 	protected:
 		const Devices::DeviceContext *DeviceContext;
 		const vk::Sampler TextureSampler;
-		static vk::Sampler CreateTextureSampler(const Devices::DeviceContext* const deviceContext);
+		DescriptorSetLayoutCache DescriptorSetLayoutCache;
+		DescriptorSetAllocator DescriptorSetAllocator;
+		static vk::Sampler CreateTextureSampler(const Devices::DeviceContext *const deviceContext);
+		static vk::DescriptorPool CreateDescriptorPool(const Devices::DeviceContext *const deviceContext);
+		static vk::DescriptorSet CreateTextureDescriptorSet(
+			const Devices::DeviceContext *const deviceContext,
+			Graphics::DescriptorSetLayoutCache &descriptorSetLayoutCache,
+			Graphics::DescriptorSetAllocator &descriptorSetAllocator
+		);
 	public:
 		EngineState(const Devices::DeviceContext *deviceContext);
+		~EngineState();
 		uint32_t FrameIndex = 0;
 		std::unordered_map<std::type_index, GenericStore> Stores;
 		std::vector<FrameState> FrameStates;

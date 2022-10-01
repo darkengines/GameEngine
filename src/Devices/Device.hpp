@@ -61,7 +61,7 @@ namespace drk::Devices {
 		static Buffer createVmaBuffer(
 			const VmaAllocator allocator,
 			const vk::BufferUsageFlags usage,
-			VmaAllocationCreateInfo *pAllocationCreationInfo,
+			const VmaAllocationCreateInfo *pAllocationCreationInfo,
 			vk::DeviceSize size
 		);
 
@@ -69,6 +69,7 @@ namespace drk::Devices {
 			const VmaAllocator &allocator,
 			vk::MemoryPropertyFlags properties,
 			vk::BufferUsageFlags usage,
+			const VmaAllocationCreateInfo& pAllocationCreationInfo,
 			vk::DeviceSize size
 		);
 

@@ -7,6 +7,7 @@
 #include "../Windows/Window.hpp"
 #include "../Graphics/EngineState.hpp"
 #include "../Loaders/AssimpLoader.hpp"
+#include "../Textures/TextureSystem.hpp"
 #include <memory>
 
 namespace drk::Applications {
@@ -20,6 +21,7 @@ namespace drk::Applications {
 		std::unique_ptr<GLFWwindow, void (*)(GLFWwindow *)> Window;
 		const std::unique_ptr<Devices::DeviceContext> DeviceContext;
 		const std::unique_ptr<Graphics::EngineState> EngineState;
+		const std::unique_ptr<Textures::TextureSystem> TextureSystem;
 		const std::unique_ptr<Loaders::AssimpLoader> Loader;
 		const std::unique_ptr<Graphics::Graphics> Graphics;
 

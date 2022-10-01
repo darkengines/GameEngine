@@ -7,15 +7,30 @@
 
 namespace drk::Graphics {
 	EngineState::EngineState(const Devices::DeviceContext *deviceContext) :
-		DeviceContext(deviceContext), Registry(entt::registry()), TextureSampler(CreateTextureSampler(DeviceContext)) {
+		DeviceContext(deviceContext), Registry(entt::registry()), TextureSampler(CreateTextureSampler(DeviceContext)),
+		DescriptorSetLayoutCache(DeviceContext->Device),
+		DescriptorSetAllocator(DeviceContext->Device),
+		TextureDescriptorSet(
+			CreateTextureDescriptorSet(
+				DeviceContext,
+				DescriptorSetLayoutCache,
+				DescriptorSetAllocator
+			)) {
 		FrameStates.push_back(std::move<Graphics::FrameState>({DeviceContext}));
 		FrameStates.push_back(std::move<Graphics::FrameState>({DeviceContext}));
 	}
 
 	Devices::Texture EngineState::UploadTexture(const Textures::ImageInfo *const imageInfo, Common::Index index) {
+		VmaAllocationCreateInfo stagingAllocationCreationInfo = {
+			.flags = VmaAllocationCreateFlagBits::VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+			.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
+			.requiredFlags = (VkMemoryPropertyFlags) (vk::MemoryPropertyFlagBits::eHostVisible |
+													  vk::MemoryPropertyFlagBits::eHostCoherent),
+		};
 		const auto stagingBuffer = DeviceContext->CreateBuffer(
-			vk::MemoryPropertyFlagBits::eHostVisible,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 			vk::BufferUsageFlagBits::eTransferSrc,
+			stagingAllocationCreationInfo,
 			imageInfo->width * imageInfo->height * 4 * sizeof(unsigned char));
 
 		unsigned char *stagingMemory;
@@ -29,12 +44,12 @@ namespace drk::Graphics {
 			.extent = {
 				.width = imageInfo->width,
 				.height = imageInfo->height,
-				.depth = imageInfo->depth
+				.depth = 1
 			},
 			.mipLevels = mipLevels,
 			.arrayLayers = 1,
 			//TODO: Use configurable sample count
-			.samples = vk::SampleCountFlagBits::e8,
+			.samples = vk::SampleCountFlagBits::e1,
 			.usage = vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst |
 					 vk::ImageUsageFlagBits::eSampled
 		};
@@ -46,7 +61,7 @@ namespace drk::Graphics {
 		vk::BufferImageCopy region = {
 			.imageSubresource = {
 				.aspectMask = vk::ImageAspectFlagBits::eColor,
-				.mipLevel = mipLevels,
+				.mipLevel = 0,
 				.baseArrayLayer = 0,
 				.layerCount = 1,
 			},
@@ -90,6 +105,13 @@ namespace drk::Graphics {
 				mipLevels
 			);
 		}
+
+		Devices::Device::endSingleTimeCommands(
+			DeviceContext->Device,
+			DeviceContext->GraphicQueue,
+			DeviceContext->CommandPool,
+			commandBuffer
+		);
 		Devices::Device::unmapBuffer(DeviceContext->Allocator, stagingBuffer);
 		DeviceContext->DestroyBuffer(stagingBuffer);
 
@@ -154,5 +176,35 @@ namespace drk::Graphics {
 		};
 		const auto sampler = deviceContext->Device.createSampler(samplerCreateInfo);
 		return sampler;
+	}
+
+	EngineState::~EngineState() {
+		for (const auto texture: Textures) {
+			DeviceContext->DestroyTexture(texture);
+		}
+		DeviceContext->Device.destroySampler(TextureSampler);
+	}
+
+	vk::DescriptorSet EngineState::CreateTextureDescriptorSet(
+		const Devices::DeviceContext *const deviceContext,
+		Graphics::DescriptorSetLayoutCache &descriptorSetLayoutCache,
+		Graphics::DescriptorSetAllocator &descriptorSetAllocator
+	) {
+		vk::DescriptorSetLayoutBinding binding = {
+			.binding = 0,
+			.descriptorType = vk::DescriptorType::eCombinedImageSampler,
+			//TODO: make descriptorCount configurable
+			.descriptorCount = 2048,
+			.stageFlags = vk::ShaderStageFlagBits::eFragment
+		};
+		vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+			.bindingCount = 1,
+			.pBindings = &binding,
+		};
+
+		auto descriptorSetLayout = descriptorSetLayoutCache.get(descriptorSetLayoutCreateInfo);
+
+		auto descriptorSet = descriptorSetAllocator.AllocateDescriptorSet({descriptorSetLayout})[0];
+		return descriptorSet;
 	}
 }

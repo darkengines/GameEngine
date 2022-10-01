@@ -17,7 +17,7 @@ namespace drk::Graphics {
 		};
 		std::vector<vk::DescriptorSet> descriptorSets;
 		try {
-			auto descriptorSets = Device.allocateDescriptorSets(descriptorSetAllocationInfo);
+			descriptorSets = Device.allocateDescriptorSets(descriptorSetAllocationInfo);
 		} catch (const vk::OutOfPoolMemoryError &error) {
 			CurrentPool = std::nullopt;
 			descriptorSetAllocationInfo.descriptorPool = GetCurrentPool();
@@ -30,6 +30,7 @@ namespace drk::Graphics {
 	vk::DescriptorPool DescriptorSetAllocator::GetCurrentPool() {
 		vk::DescriptorPool pool;
 		if (!CurrentPool.has_value()) {
+			//TODO: make descriptorCount configurable
 			std::vector<vk::DescriptorPoolSize> poolSizes{
 				{vk::DescriptorType::eStorageBuffer,        2048},
 				{vk::DescriptorType::eCombinedImageSampler, 2048},
@@ -41,6 +42,7 @@ namespace drk::Graphics {
 				.poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
 				.pPoolSizes = poolSizes.data()
 			};
+			pool = Device.createDescriptorPool(descriptorPoolCreationInfo);
 			CurrentPool = pool;
 			Pools.push_back(pool);
 		} else {
