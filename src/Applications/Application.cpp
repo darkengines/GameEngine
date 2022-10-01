@@ -39,10 +39,11 @@ namespace drk::Applications {
 			requiredValidationLayers,
 			[&window](const vk::Instance &instance) {
 				vk::SurfaceKHR surface;
-				auto result = glfwCreateWindowSurface((VkInstance) instance,
-													  window,
-													  nullptr,
-													  (VkSurfaceKHR *) &surface
+				auto result = glfwCreateWindowSurface(
+					(VkInstance) instance,
+					window,
+					nullptr,
+					(VkSurfaceKHR *) &surface
 				);
 				if (result != VK_SUCCESS) {
 					throw "Failed to create surface.";
@@ -85,7 +86,23 @@ namespace drk::Applications {
 			Graphics->Render();
 		}
 
+		WaitFences();
+	}
+
+	std::unique_ptr<Graphics::EngineState> Application::BuildEngineState(const Devices::DeviceContext *deviceContext) {
+		return std::make_unique<Graphics::EngineState>(deviceContext);
+	}
+
+	void Application::OnWindowSizeChanged(uint32_t width, uint32_t height) {
+		WaitFences();
+		Graphics->SetExtent({width, height});
+	}
+
+	void Application::WaitFences() {
 		std::vector<vk::Fence> fences;
+		for (const auto &frameState: EngineState->FrameStates) {
+			fences.push_back(frameState.Fence);
+		}
 		for (const auto &frameState: EngineState->FrameStates) {
 			fences.push_back(frameState.Fence);
 		}
@@ -94,9 +111,5 @@ namespace drk::Applications {
 			VK_TRUE,
 			UINT64_MAX
 		);
-	}
-
-	std::unique_ptr<Graphics::EngineState> Application::BuildEngineState(const Devices::DeviceContext *deviceContext) {
-		return std::make_unique<Graphics::EngineState>(deviceContext);
 	}
 }

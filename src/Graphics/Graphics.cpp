@@ -18,12 +18,7 @@ namespace drk::Graphics {
 		drk::Graphics::EngineState *engineState,
 		const vk::Extent2D extent
 	) : DeviceContext(deviceContext), EngineState(engineState) {
-		Swapchain = Devices::Device::createSwapchain(
-			DeviceContext->Device,
-			DeviceContext->PhysicalDevice,
-			DeviceContext->Surface,
-			extent
-		);
+		CreateSwapchain(extent);
 		CreateMainRenderPass();
 		CreateMainFramebufferResources();
 		CreateMainFramebuffers();
@@ -39,20 +34,59 @@ namespace drk::Graphics {
 
 		DeviceContext->Device.destroyPipeline(MainGraphicPipeline);
 
+		DestroyShaderModules();
+		DeviceContext->Device.destroyPipelineLayout(MainPipelineLayout);
+		DestroyMainFramebuffer();
+		DeviceContext->Device.destroyRenderPass(MainRenderPass);
+
+		DestroyMainFramebufferResources();
+		DestroySwapchain();
+	}
+
+	void Graphics::CreateSwapchain(const vk::Extent2D &extent) {
+		Swapchain = Devices::Device::createSwapchain(
+			DeviceContext->Device,
+			DeviceContext->PhysicalDevice,
+			DeviceContext->Surface,
+			extent
+		);
+	}
+
+	void Graphics::DestroySwapchain() {
+		Devices::Device::destroySwapchain(DeviceContext->Device, Swapchain);
+	}
+
+	void Graphics::DestroyShaderModules() {
 		DeviceContext->Device.destroyShaderModule(MainFragmentShaderModule);
 		DeviceContext->Device.destroyShaderModule(MainVertexShaderModule);
+	}
 
-		DeviceContext->Device.destroyPipelineLayout(MainPipelineLayout);
+	void Graphics::DestroyMainFramebuffer() {
 		for (const auto &framebuffer: MainFramebuffers) {
 			DeviceContext->Device.destroyFramebuffer(framebuffer);
 		}
 		MainFramebuffers.clear();
-		DeviceContext->Device.destroyRenderPass(MainRenderPass);
+	}
+
+	void Graphics::DestroyMainFramebufferResources() {
 		DeviceContext->Device.destroyImageView(MainFramebufferDepthImageView);
 		DeviceContext->DestroyTexture(MainFramebufferDepthTexture);
 		DeviceContext->Device.destroyImageView(MainFramebufferImageView);
 		DeviceContext->DestroyTexture(MainFramebufferTexture);
-		Devices::Device::destroySwapchain(DeviceContext->Device, Swapchain);
+	}
+
+	void Graphics::RecreateSwapchain(vk::Extent2D extent) {
+		DeviceContext->Device.destroyPipeline(MainGraphicPipeline);
+		DestroyMainFramebuffer();
+		DeviceContext->Device.destroyRenderPass(MainRenderPass);
+		DestroyMainFramebufferResources();
+		DestroySwapchain();
+
+		CreateSwapchain(extent);
+		CreateMainRenderPass();
+		CreateMainFramebufferResources();
+		CreateMainFramebuffers();
+		CreateMainGraphicPipeline();
 	}
 
 	vk::PipelineDepthStencilStateCreateInfo Graphics::DefaultPipelineDepthStencilStateCreateInfo() {
@@ -184,17 +218,6 @@ namespace drk::Graphics {
 			DeviceContext->Device,
 			static_cast<uint32_t>(code.size()),
 			reinterpret_cast<uint32_t *>(code.data()));
-	}
-
-	void Graphics::RecreateSwapchain(vk::Extent2D extent) {
-		Devices::Device::destroySwapchain(DeviceContext->Device, Swapchain);
-
-		Swapchain = Devices::Device::createSwapchain(
-			DeviceContext->Device,
-			DeviceContext->PhysicalDevice,
-			DeviceContext->Surface,
-			extent
-		);
 	}
 
 	void Graphics::SetExtent(const vk::Extent2D &extent) {
@@ -491,11 +514,6 @@ namespace drk::Graphics {
 			.CheckVkResultFn = nullptr
 		};
 		ImGui_ImplVulkan_Init(&infos, MainRenderPass);
-		vk::CommandBufferAllocateInfo commandBufferAllocationInfo = {
-			.commandPool = DeviceContext->CommandPool,
-			.level = vk::CommandBufferLevel::ePrimary,
-			.commandBufferCount = 1,
-		};
 		auto commandBuffer = Devices::Device::beginSingleTimeCommands(
 			DeviceContext->Device,
 			DeviceContext->CommandPool

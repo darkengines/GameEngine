@@ -25,6 +25,8 @@ file(
     src/Graphics/DescriptorSetLayoutCache.cpp
     src/Graphics/DescriptorSetAllocator.cpp
     src/Applications/Application.cpp
+    src/Loaders/AssimpLoader.cpp
+    src/Common/IndexGenerator.cpp
 )
 
 file(
@@ -40,7 +42,7 @@ file(
     src/Meshes/Vertex.hpp
     src/Textures/Image.hpp
     src/Textures/TextureType.hpp
-    src/Indexation.hpp
+    src/Common/ComponentIndex.hpp
     src/Meshes/Mesh.hpp
     src/Materials/Material.hpp
     src/Devices/Texture.hpp
@@ -67,6 +69,11 @@ file(
     src/Graphics/DescriptorSetLayoutCache.hpp
     src/Graphics/DescriptorSetAllocator.hpp
     src/Applications/Application.hpp
+    src/Loaders/AssimpLoader.hpp
+    src/Loaders/LoadResult.hpp
+    src/Common/IndexGenerator.hpp
+    src/Meshes/MeshGroup.hpp
+    src/Objects/Relationship.hpp
 )
 
 add_executable(drk ${HEADERS} ${SOURCES})

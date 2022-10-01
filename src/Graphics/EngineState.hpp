@@ -6,11 +6,14 @@
 #include "../Devices/Buffer.hpp"
 #include "../Devices/Texture.hpp"
 #include "FrameState.hpp"
+#include "../Common/IndexGenerator.hpp"
+#include <entt/entt.hpp>
 
 namespace drk::Graphics {
 	class EngineState {
 	protected:
-		const Devices::DeviceContext* DeviceContext;
+		const Devices::DeviceContext *DeviceContext;
+
 	public:
 		EngineState(const Devices::DeviceContext *deviceContext);
 		uint32_t FrameIndex = 0;
@@ -21,5 +24,7 @@ namespace drk::Graphics {
 		std::vector<vk::ImageView> ImageViews;
 		vk::DescriptorSet TextureDescriptorSet;
 		vk::DescriptorSetLayout DescriptorSetLayouts;
+		Common::IndexGenerator<uint32_t> IndexGenerator;
+		entt::registry Registry;
 	};
 }

@@ -45,7 +45,12 @@ namespace drk::Graphics {
 
 		vk::DescriptorPool ImGuiDescriptorPool;
 
+		void DestroyMainFramebufferResources();
+		void DestroyShaderModules();
+		void DestroyMainFramebuffer();
 		void RecreateSwapchain(const vk::Extent2D extent);
+		void DestroySwapchain();
+		void CreateSwapchain(const vk::Extent2D& extent);
 		void CreateMainRenderPass();
 		void CreateMainFramebufferResources();
 		void CreateMainFramebuffers();

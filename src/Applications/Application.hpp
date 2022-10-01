@@ -28,8 +28,7 @@ namespace drk::Applications {
 		static std::unique_ptr<Graphics::EngineState>
 		BuildEngineState(const Devices::DeviceContext *deviceContext);
 
-		void OnWindowSizeChanged(uint32_t width, uint32_t height) {
-			Graphics->SetExtent({width, height});
-		}
+		void OnWindowSizeChanged(uint32_t width, uint32_t height);
+		void WaitFences();
 	};
 }
