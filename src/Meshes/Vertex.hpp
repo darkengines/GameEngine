@@ -7,6 +7,7 @@
 #include <vulkan/vulkan.hpp>
 
 namespace drk::Meshes {
+	typedef uint32_t VertexIndex;
 	struct Vertex {
 		glm::vec4 position;
 		glm::vec4 normal;

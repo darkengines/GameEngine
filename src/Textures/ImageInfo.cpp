@@ -40,7 +40,7 @@ namespace drk::Textures {
 		);
 		auto pixels = stbi_load_from_memory(
 			memory.data(),
-			memory.size(),
+			(int)memory.size(),
 			(int *) &texture->width,
 			(int *) &texture->height,
 			(int *) &texture->depth,

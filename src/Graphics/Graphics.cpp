@@ -394,7 +394,7 @@ namespace drk::Graphics {
 			};
 			vk::FramebufferCreateInfo framebufferCreateInfo = {
 				.renderPass = MainRenderPass,
-				.attachmentCount = attachments.size(),
+				.attachmentCount = (uint32_t)attachments.size(),
 				.pAttachments = attachments.data(),
 				.width = Swapchain.extent.width,
 				.height = Swapchain.extent.height,
@@ -494,8 +494,8 @@ namespace drk::Graphics {
 			};
 
 		vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
-			.maxSets = 1000,
-			.poolSizeCount = std::size(poolSizes),
+			.maxSets = 1000u,
+			.poolSizeCount = (uint32_t)std::size(poolSizes),
 			.pPoolSizes = poolSizes,
 		};
 
@@ -571,7 +571,7 @@ namespace drk::Graphics {
 			.renderPass = MainRenderPass,
 			.framebuffer = MainFramebuffers[swapchainImageIndex.value],
 			.renderArea = {0, 0, Swapchain.extent},
-			.clearValueCount = clearValues.size(),
+			.clearValueCount = (uint32_t)clearValues.size(),
 			.pClearValues = clearValues.data(),
 		};
 		frameState.CommandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);

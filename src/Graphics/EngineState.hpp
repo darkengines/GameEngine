@@ -9,6 +9,8 @@
 #include "../Common/IndexGenerator.hpp"
 #include "DescriptorSetLayoutCache.hpp"
 #include "DescriptorSetAllocator.hpp"
+#include "../Meshes/MeshInfo.hpp"
+#include "MeshUploadResult.hpp"
 #include <entt/entt.hpp>
 
 namespace drk::Graphics {
@@ -38,5 +40,6 @@ namespace drk::Graphics {
 		Common::IndexGenerator<uint32_t> IndexGenerator;
 		entt::registry Registry;
 		Devices::Texture UploadTexture(const Textures::ImageInfo *const imageInfo, Common::Index index);
+		MeshUploadResult UploadMeshes(const std::vector<Meshes::MeshInfo*>& meshInfos);
 	};
 }

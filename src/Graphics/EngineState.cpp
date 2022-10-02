@@ -4,6 +4,8 @@
 #include "EngineState.hpp"
 #include "../Devices/Device.hpp"
 #include <utility>
+#include <algorithm>
+#include <span>
 
 namespace drk::Graphics {
 	EngineState::EngineState(const Devices::DeviceContext *deviceContext) :
@@ -182,6 +184,9 @@ namespace drk::Graphics {
 		for (const auto texture: Textures) {
 			DeviceContext->DestroyTexture(texture);
 		}
+		for (const auto buffer: Buffers) {
+			DeviceContext->DestroyBuffer(buffer);
+		}
 		DeviceContext->Device.destroySampler(TextureSampler);
 	}
 
@@ -206,5 +211,54 @@ namespace drk::Graphics {
 
 		auto descriptorSet = descriptorSetAllocator.AllocateDescriptorSet({descriptorSetLayout})[0];
 		return descriptorSet;
+	}
+
+	MeshUploadResult EngineState::UploadMeshes(const std::vector<Meshes::MeshInfo *> &meshInfos) {
+		std::vector<std::span<Meshes::Vertex>> vertices(meshInfos.size());
+		std::vector<std::span<Meshes::VertexIndex>> indices(meshInfos.size());
+		std::transform(
+			meshInfos.begin(), meshInfos.end(), vertices.data(), [](Meshes::MeshInfo *mesh) {
+				return std::span{mesh->vertices.data(), mesh->vertices.size()};
+			}
+		);
+		std::transform(
+			meshInfos.begin(), meshInfos.end(), indices.data(), [](Meshes::MeshInfo *mesh) {
+				return std::span{mesh->indices.data(), mesh->indices.size()};
+			}
+		);
+		auto vertexBufferUploadResult = Devices::Device::uploadBuffers(
+			DeviceContext->PhysicalDevice,
+			DeviceContext->Device,
+			DeviceContext->GraphicQueue,
+			DeviceContext->CommandPool,
+			DeviceContext->Allocator,
+			vertices,
+			vk::BufferUsageFlagBits::eVertexBuffer
+		);
+		auto indexBufferUploadResult = Devices::Device::uploadBuffers(
+			DeviceContext->PhysicalDevice,
+			DeviceContext->Device,
+			DeviceContext->GraphicQueue,
+			DeviceContext->CommandPool,
+			DeviceContext->Allocator,
+			indices,
+			vk::BufferUsageFlagBits::eIndexBuffer
+		);
+
+		MeshUploadResult result = {
+			.indexBuffer = indexBufferUploadResult.buffer,
+			.vertexBuffer = vertexBufferUploadResult.buffer
+		};
+
+		for (auto meshInfoIndex = 0u; meshInfoIndex < meshInfos.size(); meshInfoIndex++) {
+			result.meshes.push_back(
+				Meshes::Mesh{
+					.IndexBufferView = indexBufferUploadResult.bufferViews[meshInfoIndex],
+					.VertexBufferView = vertexBufferUploadResult.bufferViews[meshInfoIndex],
+				}
+			);
+		}
+
+		return result;
 	}
 }

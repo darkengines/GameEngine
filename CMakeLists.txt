@@ -29,6 +29,7 @@ file(
     src/Common/IndexGenerator.cpp
     src/Textures/TextureSystem.cpp
     src/Devices/Image.cpp
+    src/Meshes/MeshSystem.cpp
 )
 
 file(
@@ -45,7 +46,7 @@ file(
     src/Textures/ImageInfo.hpp
     src/Textures/TextureType.hpp
     src/Common/ComponentIndex.hpp
-    src/Meshes/Mesh.hpp
+    src/Meshes/MeshInfo.hpp
     src/Materials/Material.hpp
     src/Devices/Texture.hpp
     src/Devices/BufferView.hpp
@@ -78,6 +79,10 @@ file(
     src/Objects/Relationship.hpp
     src/Textures/TextureSystem.hpp
     src/Devices/Image.hpp
+    src/Meshes/MeshSystem.hpp
+    src/Devices/BufferUploadResult.hpp
+    src/Graphics/MeshUploadResult.hpp
+    src/Meshes/Mesh.hpp
 )
 
 add_executable(drk ${HEADERS} ${SOURCES})

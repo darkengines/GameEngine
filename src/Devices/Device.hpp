@@ -9,6 +9,9 @@
 #include "BufferView.hpp"
 #include "Texture.hpp"
 #include "Swapchain.hpp"
+#include "BufferUploadResult.hpp"
+#include <algorithm>
+#include <numeric>
 
 namespace drk::Devices {
 	class Device {
@@ -69,7 +72,7 @@ namespace drk::Devices {
 			const VmaAllocator &allocator,
 			vk::MemoryPropertyFlags properties,
 			vk::BufferUsageFlags usage,
-			const VmaAllocationCreateInfo& pAllocationCreationInfo,
+			const VmaAllocationCreateInfo &pAllocationCreationInfo,
 			vk::DeviceSize size
 		);
 
@@ -109,15 +112,129 @@ namespace drk::Devices {
 		);
 
 		template<typename TBuffer>
-		static std::vector<BufferView> uploadBuffers(
+		static BufferUploadResult uploadBuffers(
+			const vk::PhysicalDevice &physicalDevice,
 			const vk::Device &device,
 			const vk::Queue &queue,
 			const vk::CommandPool &commandPool,
 			const VmaAllocator &allocator,
 			std::vector<std::span<TBuffer>> buffers,
-			vk::BufferUsageFlagBits memoryUsage,
-			Buffer **deviceBuffer
-		);
+			vk::BufferUsageFlagBits memoryUsage
+		) {
+			const auto bufferCount = buffers.size();
+			const auto &properties = physicalDevice.getMemoryProperties();
+			const auto stagingMemoryTypeIterator = std::find_if(
+				properties.memoryTypes.begin(),
+				properties.memoryTypes.end(),
+				[](const auto &memoryType) {
+					return memoryType.propertyFlags & vk::MemoryPropertyFlagBits::eHostVisible;
+				}
+			);
+			const uint32_t stagingMemoryTypeIndex = std::distance(
+				properties.memoryTypes.begin(),
+				stagingMemoryTypeIterator
+			);
+			const auto stagingMemoryHeap = properties.memoryHeaps[stagingMemoryTypeIndex];
+			const auto itemSize = sizeof(TBuffer);
+			const auto bufferLength = std::accumulate(
+				buffers.begin(), buffers.end(), 0, [](size_t totalBytes, const auto &buffer) {
+					return totalBytes + buffer.size();
+				}
+			);
+			const auto bufferByteLength = bufferLength * itemSize;
+			const auto stagingBufferByteLength = std::min(stagingMemoryHeap.size, bufferByteLength);
+
+			VmaAllocationCreateInfo allocationCreationInfo = {
+				.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
+			};
+			auto buffer = Device::createBuffer(
+				allocator,
+				vk::MemoryPropertyFlagBits::eDeviceLocal,
+				memoryUsage | vk::BufferUsageFlagBits::eTransferDst,
+				allocationCreationInfo,
+				bufferByteLength
+			);
+
+			VmaAllocationCreateInfo stagingAllocationCreationInfo = {
+				.flags = VmaAllocationCreateFlagBits::VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+				.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
+				.requiredFlags = (VkMemoryPropertyFlags) (vk::MemoryPropertyFlagBits::eHostVisible |
+														  vk::MemoryPropertyFlagBits::eHostCoherent),
+			};
+			auto stagingBuffer = Device::createBuffer(
+				allocator,
+				vk::MemoryPropertyFlagBits::eHostVisible,
+				vk::BufferUsageFlagBits::eTransferSrc,
+				stagingAllocationCreationInfo,
+				stagingBufferByteLength
+			);
+
+			char *mappedStagingBufferMemory;
+			vmaMapMemory(allocator, stagingBuffer.allocation, (void**)&mappedStagingBufferMemory);
+
+			auto stagingBufferAvailableByteLength = stagingBufferByteLength;
+			auto remainingBufferByteLength = bufferByteLength;
+
+			auto bufferIndex = 0;
+			auto currentBuffer = buffers[0];
+			auto currentBufferByteLength = currentBuffer.size() * itemSize;
+			auto currentBufferByteOffset = 0;
+			auto currentBufferRemainingByteLength = currentBufferByteLength;
+			auto deviceBufferByteOffset = 0u;
+			std::vector<BufferView> bufferViews(bufferCount);
+
+			while (remainingBufferByteLength) {
+				auto availableStagingBufferByteLength = stagingBufferByteLength;
+				while (availableStagingBufferByteLength || bufferIndex < bufferCount) {
+					const auto stagingBufferByteOffset = stagingBufferByteLength - availableStagingBufferByteLength;
+					const auto writableByteLength = std::min(currentBufferByteLength, availableStagingBufferByteLength);
+					memcpy(
+						mappedStagingBufferMemory + stagingBufferByteOffset,
+						currentBuffer.data() + currentBufferByteOffset,
+						writableByteLength
+					);
+					availableStagingBufferByteLength -= writableByteLength;
+					currentBufferRemainingByteLength -= writableByteLength;
+					if (currentBufferRemainingByteLength <= 0) {
+						bufferIndex++;
+						if (bufferIndex < bufferCount) {
+							currentBuffer = buffers[bufferIndex];
+							currentBufferByteLength = currentBuffer.size() * itemSize;
+							currentBufferByteOffset = 0;
+							currentBufferRemainingByteLength = currentBufferByteLength;
+							bufferViews[bufferIndex] = {
+								buffer,
+								deviceBufferByteOffset,
+								currentBufferByteLength
+							};
+						}
+					} else {
+						currentBufferByteOffset += writableByteLength;
+					}
+				}
+				const auto writableByteLength = stagingBufferByteLength - availableStagingBufferByteLength;
+				Device::copyBuffer(
+					device,
+					queue,
+					commandPool,
+					stagingBuffer,
+					buffer,
+					0,
+					deviceBufferByteOffset,
+					writableByteLength
+				);
+				deviceBufferByteOffset += writableByteLength;
+				remainingBufferByteLength -= writableByteLength;
+			}
+
+			Device::unmapBuffer(allocator, stagingBuffer);
+			Device::destroyBuffer(allocator, stagingBuffer);
+
+			return BufferUploadResult{
+				.buffer = buffer,
+				.bufferViews = bufferViews
+			};
+		}
 
 		static Image createImage(
 			const VmaAllocator &allocator,
@@ -137,7 +254,7 @@ namespace drk::Devices {
 		);
 
 		static void destroyImage(
-			const vk::Device& device,
+			const vk::Device &device,
 			const VmaAllocator &allocator,
 			const Image &image
 		);
@@ -208,7 +325,7 @@ namespace drk::Devices {
 			const vk::Image &image,
 			int32_t width,
 			int32_t height,
-			int32_t mipLevels
+			uint32_t mipLevels
 		);
 	};
 }

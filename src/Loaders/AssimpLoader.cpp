@@ -242,23 +242,23 @@ namespace drk::Loaders {
 				};
 			}
 			std::string meshName = aiMesh->mName.C_Str();
-			auto meshIndex = EngineState->IndexGenerator.Generate<Meshes::Mesh>();
+			auto meshIndex = EngineState->IndexGenerator.Generate<Meshes::MeshInfo>();
 			auto meshMaterial = loadResult.materials[aiMesh->mMaterialIndex].get();
-			Meshes::Mesh mesh = {
+			Meshes::MeshInfo mesh = {
 				.name = meshName,
 				.vertices =vertices,
 				.indices = indices,
 				.material = meshMaterial
 			};
-			auto meshPtr = std::make_unique<Meshes::Mesh>(mesh);
+			auto meshPtr = std::make_unique<Meshes::MeshInfo>(mesh);
 			Geometries::AxisAlignedBoundingBox axisAlignedBoundingBox = Geometries::AxisAlignedBoundingBox::fromMinMax(
 				glm::vec4(AssimpLoader::toVector(aiMesh->mAABB.mMin), 1.0f),
 				glm::vec4(AssimpLoader::toVector(aiMesh->mAABB.mMax), 1.0f)
 			);
 
 			auto meshEntity = EngineState->Registry.create();
-			EngineState->Registry.emplace<Meshes::Mesh *>(meshEntity, meshPtr.get());
-			EngineState->Registry.emplace<Common::ComponentIndex<Meshes::Mesh>>(meshEntity, meshIndex);
+			EngineState->Registry.emplace<Meshes::MeshInfo *>(meshEntity, meshPtr.get());
+			EngineState->Registry.emplace<Common::ComponentIndex<Meshes::MeshInfo>>(meshEntity, meshIndex);
 			EngineState->Registry.emplace<Materials::Material *>(meshEntity, meshMaterial);
 			EngineState->Registry.emplace<Geometries::AxisAlignedBoundingBox>(meshEntity, axisAlignedBoundingBox);
 			loadResult.meshes.push_back(std::move(meshPtr));
@@ -443,7 +443,7 @@ namespace drk::Loaders {
 			for (auto meshIndex = 0u; meshIndex < aiNode->mNumMeshes; meshIndex++) {
 				auto &mesh = loadResult.meshes[aiNode->mMeshes[meshIndex]];
 				auto meshEntity = EngineState->Registry.create();
-				EngineState->Registry.emplace<Meshes::Mesh *>(meshEntity, mesh.get());
+				EngineState->Registry.emplace<Meshes::MeshInfo *>(meshEntity, mesh.get());
 				meshGroup.meshEntities.push_back(meshEntity);
 			}
 			EngineState->Registry.emplace<Meshes::MeshGroup>(entity, meshGroup);

@@ -8,6 +8,7 @@ namespace drk::Applications {
 		  DeviceContext(BuildDeviceContext(Window.get())),
 		  EngineState(Application::BuildEngineState(DeviceContext.get())),
 		  TextureSystem(std::make_unique<Textures::TextureSystem>(DeviceContext.get(), EngineState.get())),
+		  MeshSystem(std::make_unique<Meshes::MeshSystem>(DeviceContext.get(), EngineState.get())),
 		  Loader(std::make_unique<Loaders::AssimpLoader>(EngineState.get())),
 		  Graphics(BuildGraphics(Window.get(), DeviceContext.get(), EngineState.get())) {
 		glfwSetWindowUserPointer(Window.get(), this);
@@ -78,6 +79,7 @@ namespace drk::Applications {
 	void Application::Run() {
 		auto data = Loader->Load("h:/pubg.gltf");
 		TextureSystem->UploadTextures();
+		MeshSystem->UploadMeshes();
 
 		while (!glfwWindowShouldClose(Window.get())) {
 			glfwPollEvents();
