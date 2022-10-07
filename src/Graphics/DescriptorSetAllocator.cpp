@@ -9,7 +9,7 @@ namespace drk::Graphics {
 	}
 
 	std::vector<vk::DescriptorSet>
-	DescriptorSetAllocator::AllocateDescriptorSet(const std::vector<vk::DescriptorSetLayout> &descriptorSetLayouts) {
+	DescriptorSetAllocator::AllocateDescriptorSets(const std::vector<vk::DescriptorSetLayout> &descriptorSetLayouts) {
 		vk::DescriptorSetAllocateInfo descriptorSetAllocationInfo = {
 			.descriptorPool = GetCurrentPool(),
 			.descriptorSetCount = static_cast<uint32_t>(descriptorSetLayouts.size()),

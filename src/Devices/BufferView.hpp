@@ -4,7 +4,7 @@
 namespace drk::Devices {
 	struct BufferView {
 		Buffer buffer;
-		size_t offset;
-		size_t length;
+		size_t byteOffset;
+		size_t byteLength;
 	};
 }

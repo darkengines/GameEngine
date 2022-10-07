@@ -15,7 +15,7 @@ namespace drk::Graphics {
 		~DescriptorSetAllocator();
 
 		std::vector<vk::DescriptorSet>
-		AllocateDescriptorSet(const std::vector<vk::DescriptorSetLayout> &descriptorSetLayouts);
+		AllocateDescriptorSets(const std::vector<vk::DescriptorSetLayout> &descriptorSetLayouts);
 
 	protected:
 		vk::DescriptorPool GetCurrentPool();

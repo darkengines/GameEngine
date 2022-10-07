@@ -20,13 +20,8 @@ namespace drk::Loaders {
 		Assimp::Importer importer;
 		auto aiScene = importer.ReadFile(
 			scenePath.string(),
-			aiProcess_Triangulate
-			| aiProcess_JoinIdenticalVertices
-			| aiProcess_SortByPType
-			| aiProcess_GenNormals
+			aiProcess_GenNormals
 			| aiProcess_CalcTangentSpace
-			| aiProcess_OptimizeMeshes
-			| aiProcess_JoinIdenticalVertices
 			| aiProcess_FindInstances
 			| aiProcess_GenBoundingBoxes
 		);
@@ -63,8 +58,8 @@ namespace drk::Loaders {
 		auto aiTextureIndex = 0u;
 		for (auto aiMaterialIndex = 0u; aiMaterialIndex < aiMaterials.size(); aiMaterialIndex++) {
 			auto aiMaterial = aiMaterials[aiMaterialIndex];
-			std::unordered_map<std::string, Textures::ImageInfo *> textureNameMap;
-			std::unordered_map<Textures::TextureType, Textures::ImageInfo *> textureTypeMap;
+			std::unordered_map<std::string, entt::entity> textureNameMap;
+			std::unordered_map<Textures::TextureType, entt::entity> textureTypeMap;
 			for (auto textureTypePair : TextureTypeMap) {
 				if (aiMaterial->GetTextureCount(textureTypePair.first)) {
 					aiString aiTexturePath;
@@ -99,8 +94,8 @@ namespace drk::Loaders {
 								textureEntity,
 								textureIndex
 							);
-							textureNameMap[texturePath] = image.get();
-							textureTypeMap[textureTypePair.second] = image.get();
+							textureNameMap[texturePath] = textureEntity;
+							textureTypeMap[textureTypePair.second] = textureEntity;
 							loadResult.images.push_back(std::move(image));
 							aiTextureIndex++;
 						} else {
@@ -118,29 +113,29 @@ namespace drk::Loaders {
 			const auto &normalMapPair = textureTypeMap.find(Textures::TextureType::NormalMap);
 			const auto &metallicRoughnessPair = textureTypeMap.find(Textures::TextureType::RoughnessMetalnessMap);
 
-			std::optional<Textures::ImageInfo *> baseColorTexture =
+			entt::entity baseColorTexture =
 				baseColorTexturePair != textureTypeMap.end()
-				? std::optional<Textures::ImageInfo *>(baseColorTexturePair->second)
-				: std::nullopt;
-			std::optional<Textures::ImageInfo *> ambientColorTexture = ambientColorTexturePair != textureTypeMap.end()
-																   ? std::optional<Textures::ImageInfo *>(
-					ambientColorTexturePair->second
-				) : std::nullopt;
-			std::optional<Textures::ImageInfo *> diffuseColorTexture = diffuseColorTexturePair != textureTypeMap.end()
-																   ? std::optional<Textures::ImageInfo *>(
-					diffuseColorTexturePair->second
-				) : std::nullopt;
-			std::optional<Textures::ImageInfo *> specularColorTexture = specularColorTexturePair != textureTypeMap.end()
-																	? std::optional<Textures::ImageInfo *>(
-					specularColorTexturePair->second
-				) : std::nullopt;
-			std::optional<Textures::ImageInfo *> normalMap =
-				normalMapPair != textureTypeMap.end() ? std::optional<Textures::ImageInfo *>(normalMapPair->second)
-													  : std::nullopt;
-			std::optional<Textures::ImageInfo *> metallicRoughnessTexture =
+				? baseColorTexturePair->second
+				: entt::null;
+			entt::entity ambientColorTexture =
+				ambientColorTexturePair != textureTypeMap.end()
+				? ambientColorTexturePair->second
+				: entt::null;
+			entt::entity diffuseColorTexture =
+				diffuseColorTexturePair != textureTypeMap.end()
+				? diffuseColorTexturePair->second
+				: entt::null;
+			entt::entity specularColorTexture =
+				specularColorTexturePair != textureTypeMap.end()
+				? specularColorTexturePair->second : entt::null;
+			entt::entity normalMap =
+				normalMapPair != textureTypeMap.end()
+				? normalMapPair->second
+				: entt::null;
+			entt::entity metallicRoughnessTexture =
 				metallicRoughnessPair != textureTypeMap.end()
-				? std::optional<Textures::ImageInfo *>(metallicRoughnessPair->second)
-				: std::nullopt;
+				? metallicRoughnessPair->second
+				: entt::null;
 
 			aiColor4D ambientColor, diffuseColor, specularColor;
 			auto hasAmbientColor = aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_AMBIENT, &ambientColor) == AI_SUCCESS;
@@ -151,11 +146,15 @@ namespace drk::Loaders {
 			auto materialIndex = EngineState->IndexGenerator.Generate<Materials::Material>();
 			auto materialEntity = EngineState->Registry.create();
 
-			auto hasTransparency = baseColorTexture.has_value() && baseColorTexture.value()->depth > 3
-								   || ambientColorTexture.has_value() && ambientColorTexture.value()->depth > 3
-								   || diffuseColorTexture.has_value() && diffuseColorTexture.value()->depth > 3
-								   || hasAmbientColor && ambientColor.a < 1
-								   || hasDiffuseColor && diffuseColor.a < 1;
+			auto hasTransparency =
+				baseColorTexture != entt::null &&
+				EngineState->Registry.get<Textures::ImageInfo *>(baseColorTexture)->depth > 3
+				|| ambientColorTexture != entt::null &&
+				   EngineState->Registry.get<Textures::ImageInfo *>(ambientColorTexture)->depth > 3
+				|| diffuseColorTexture != entt::null &&
+				   EngineState->Registry.get<Textures::ImageInfo *>(diffuseColorTexture)->depth > 3
+				|| hasAmbientColor && ambientColor.a < 1
+				|| hasDiffuseColor && diffuseColor.a < 1;
 
 			Materials::Material material = {
 				.name = materialName,

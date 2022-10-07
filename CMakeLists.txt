@@ -20,7 +20,7 @@ file(
     src/Common/Common.cpp
     src/Graphics/EngineState.cpp
     src/Graphics/FrameState.cpp
-    src/Graphics/Store.cpp
+    src/Graphics/StoreBuffer.cpp
     src/Graphics/DescriptorSetLayoutCreateInfoEqualityComparer.cpp
     src/Graphics/DescriptorSetLayoutCache.cpp
     src/Graphics/DescriptorSetAllocator.cpp
@@ -30,6 +30,9 @@ file(
     src/Textures/TextureSystem.cpp
     src/Devices/Image.cpp
     src/Meshes/MeshSystem.cpp
+    src/Materials/MaterialSystem.cpp
+    src/Graphics/SynchronizationState.cpp
+    src/Graphics/Store.cpp
 )
 
 file(
@@ -67,7 +70,7 @@ file(
     src/Common/Common.hpp
     src/Graphics/EngineState.hpp
     src/Graphics/FrameState.hpp
-    src/Graphics/Store.hpp
+    src/Graphics/StoreBuffer.hpp
     src/Graphics/DescriptorSetLayoutCreateInfoEqualityComparer.hpp
     src/Graphics/DescriptorSetLayoutCache.hpp
     src/Graphics/DescriptorSetAllocator.hpp
@@ -80,12 +83,17 @@ file(
     src/Textures/TextureSystem.hpp
     src/Devices/Image.hpp
     src/Meshes/MeshSystem.hpp
+    src/Materials/MaterialSystem.hpp
     src/Devices/BufferUploadResult.hpp
     src/Graphics/MeshUploadResult.hpp
     src/Meshes/Mesh.hpp
+    src/Graphics/SynchronizationState.hpp
+    src/Materials/Models/Material.hpp
+    src/Graphics/StoreBufferAllocator.hpp
+    src/Graphics/Store.hpp
 )
 
-add_executable(drk ${HEADERS} ${SOURCES})
+add_executable(drk ${HEADERS} ${SOURCES} src/Graphics/StoreItem.hpp)
 
 find_package(Vulkan REQUIRED)
 find_package(unofficial-vulkan-memory-allocator REQUIRED)

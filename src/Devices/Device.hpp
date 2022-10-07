@@ -176,21 +176,26 @@ namespace drk::Devices {
 			auto remainingBufferByteLength = bufferByteLength;
 
 			auto bufferIndex = 0;
-			auto currentBuffer = buffers[0];
-			auto currentBufferByteLength = currentBuffer.size() * itemSize;
+			auto currentBuffer = (char*)buffers[0].data();
+			auto currentBufferByteLength = buffers[0].size() * itemSize;
 			auto currentBufferByteOffset = 0;
 			auto currentBufferRemainingByteLength = currentBufferByteLength;
 			auto deviceBufferByteOffset = 0u;
 			std::vector<BufferView> bufferViews(bufferCount);
+			bufferViews[bufferIndex] = {
+				buffer,
+				deviceBufferByteOffset,
+				currentBufferByteLength
+			};
 
 			while (remainingBufferByteLength) {
 				auto availableStagingBufferByteLength = stagingBufferByteLength;
-				while (availableStagingBufferByteLength || bufferIndex < bufferCount) {
+				while (availableStagingBufferByteLength && bufferIndex < bufferCount) {
 					const auto stagingBufferByteOffset = stagingBufferByteLength - availableStagingBufferByteLength;
-					const auto writableByteLength = std::min(currentBufferByteLength, availableStagingBufferByteLength);
+					const auto writableByteLength = std::min(currentBufferRemainingByteLength, availableStagingBufferByteLength);
 					memcpy(
 						mappedStagingBufferMemory + stagingBufferByteOffset,
-						currentBuffer.data() + currentBufferByteOffset,
+						currentBuffer + currentBufferByteOffset,
 						writableByteLength
 					);
 					availableStagingBufferByteLength -= writableByteLength;
@@ -198,8 +203,8 @@ namespace drk::Devices {
 					if (currentBufferRemainingByteLength <= 0) {
 						bufferIndex++;
 						if (bufferIndex < bufferCount) {
-							currentBuffer = buffers[bufferIndex];
-							currentBufferByteLength = currentBuffer.size() * itemSize;
+							currentBuffer = (char*)buffers[bufferIndex].data();
+							currentBufferByteLength = buffers[bufferIndex].size() * itemSize;
 							currentBufferByteOffset = 0;
 							currentBufferRemainingByteLength = currentBufferByteLength;
 							bufferViews[bufferIndex] = {

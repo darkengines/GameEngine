@@ -394,7 +394,7 @@ namespace drk::Graphics {
 			};
 			vk::FramebufferCreateInfo framebufferCreateInfo = {
 				.renderPass = MainRenderPass,
-				.attachmentCount = (uint32_t)attachments.size(),
+				.attachmentCount = (uint32_t) attachments.size(),
 				.pAttachments = attachments.data(),
 				.width = Swapchain.extent.width,
 				.height = Swapchain.extent.height,
@@ -495,7 +495,7 @@ namespace drk::Graphics {
 
 		vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
 			.maxSets = 1000u,
-			.poolSizeCount = (uint32_t)std::size(poolSizes),
+			.poolSizeCount = (uint32_t) std::size(poolSizes),
 			.pPoolSizes = poolSizes,
 		};
 
@@ -571,12 +571,15 @@ namespace drk::Graphics {
 			.renderPass = MainRenderPass,
 			.framebuffer = MainFramebuffers[swapchainImageIndex.value],
 			.renderArea = {0, 0, Swapchain.extent},
-			.clearValueCount = (uint32_t)clearValues.size(),
+			.clearValueCount = (uint32_t) clearValues.size(),
 			.pClearValues = clearValues.data(),
 		};
 		frameState.CommandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
-//		frameState.CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, MainGraphicPipeline);
-//		frameState.CommandBuffer.drawIndexed(0, 0, 0, 0, 0);
+		frameState.CommandBuffer.bindIndexBuffer(EngineState->Buffers[0].buffer, 0, vk::IndexType::eUint32);
+		vk::DeviceSize offset = 0u;
+		frameState.CommandBuffer.bindVertexBuffers(0, 1, &EngineState->Buffers[1].buffer, &offset);
+		frameState.CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, MainGraphicPipeline);
+		frameState.CommandBuffer.drawIndexed(23640279, 1, 0, 0, 0);
 
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), frameState.CommandBuffer);
 		frameState.CommandBuffer.endRenderPass();

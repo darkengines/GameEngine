@@ -1,17 +1,30 @@
 #include "FrameState.hpp"
+#include <memory>
 
 namespace drk::Graphics {
 
-	FrameState::FrameState(const Devices::DeviceContext *deviceContext) :
+	FrameState::FrameState(
+		const Devices::DeviceContext *deviceContext, Graphics::DescriptorSetLayoutCache *descriptorSetLayoutCache,
+		Graphics::DescriptorSetAllocator *descriptorSetAllocator
+	) :
 		DeviceContext(deviceContext),
+		DescriptorSetLayoutCache(descriptorSetLayoutCache),
+		DescriptorSetAllocator(descriptorSetAllocator),
 		CommandBuffer(FrameState::CreateCommandBuffer(DeviceContext)),
 		Fence(FrameState::CreateFence(DeviceContext)),
 		ImageReadySemaphore(FrameState::CreateSemaphore(DeviceContext)),
-		ImageRenderedSemaphore(FrameState::CreateSemaphore(DeviceContext)) {
+		ImageRenderedSemaphore(FrameState::CreateSemaphore(DeviceContext)),
+		StoreBufferAllocator(
+			std::make_unique<Graphics::StoreBufferAllocator>(
+				DeviceContext,
+				StorageBufferDescriptorSet
+			)) {
 	}
 
 	FrameState::FrameState(FrameState &&frameState) {
 		DeviceContext = frameState.DeviceContext;
+		DescriptorSetLayoutCache = frameState.DescriptorSetLayoutCache;
+		DescriptorSetAllocator = frameState.DescriptorSetAllocator;
 		CommandBuffer = frameState.CommandBuffer;
 		Fence = frameState.Fence;
 		ImageReadySemaphore = frameState.ImageReadySemaphore;
@@ -21,6 +34,8 @@ namespace drk::Graphics {
 		frameState.Fence = VK_NULL_HANDLE;
 		frameState.ImageReadySemaphore = VK_NULL_HANDLE;
 		frameState.ImageRenderedSemaphore = VK_NULL_HANDLE;
+		frameState.StorageBufferDescriptorSetLayout = VK_NULL_HANDLE;
+		frameState.StorageBufferDescriptorSet = VK_NULL_HANDLE;
 	}
 
 	FrameState::~FrameState() {
@@ -57,5 +72,20 @@ namespace drk::Graphics {
 		};
 		auto commandBuffer = deviceContext->Device.allocateCommandBuffers(commandBufferAllocateInfo);
 		return commandBuffer[0];
+	}
+
+	void FrameState::CreateStorageBufferDescriptorSet() {
+		vk::DescriptorSetLayoutBinding binding = {
+			.binding = 0,
+			.descriptorType = vk::DescriptorType::eStorageBuffer,
+			.descriptorCount = 64,
+			.stageFlags = vk::ShaderStageFlagBits::eAll
+		};
+		vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+			.bindingCount = 1,
+			.pBindings = &binding
+		};
+		StorageBufferDescriptorSetLayout = DescriptorSetLayoutCache->get(descriptorSetLayoutCreateInfo);
+		StorageBufferDescriptorSet = DescriptorSetAllocator->AllocateDescriptorSets({StorageBufferDescriptorSetLayout})[0];
 	}
 }

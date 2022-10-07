@@ -10,16 +10,25 @@
 namespace drk::Graphics {
 	EngineState::EngineState(const Devices::DeviceContext *deviceContext) :
 		DeviceContext(deviceContext), Registry(entt::registry()), TextureSampler(CreateTextureSampler(DeviceContext)),
-		DescriptorSetLayoutCache(DeviceContext->Device),
-		DescriptorSetAllocator(DeviceContext->Device),
-		TextureDescriptorSet(
-			CreateTextureDescriptorSet(
-				DeviceContext,
-				DescriptorSetLayoutCache,
-				DescriptorSetAllocator
-			)) {
-		FrameStates.push_back(std::move<Graphics::FrameState>({DeviceContext}));
-		FrameStates.push_back(std::move<Graphics::FrameState>({DeviceContext}));
+		DescriptorSetLayoutCache(std::make_unique<Graphics::DescriptorSetLayoutCache>(DeviceContext->Device)),
+		DescriptorSetAllocator(std::make_unique<Graphics::DescriptorSetAllocator>(DeviceContext->Device)) {
+		FrameStates.push_back(
+			std::move<Graphics::FrameState>(
+				{
+					DeviceContext,
+					DescriptorSetLayoutCache.get(),
+					DescriptorSetAllocator.get()
+				}
+			));
+		FrameStates.push_back(
+			std::move<Graphics::FrameState>(
+				{
+					DeviceContext,
+					DescriptorSetLayoutCache.get(),
+					DescriptorSetAllocator.get()
+				}
+			));
+		CreateTextureDescriptorSet();
 	}
 
 	Devices::Texture EngineState::UploadTexture(const Textures::ImageInfo *const imageInfo, Common::Index index) {
@@ -190,11 +199,7 @@ namespace drk::Graphics {
 		DeviceContext->Device.destroySampler(TextureSampler);
 	}
 
-	vk::DescriptorSet EngineState::CreateTextureDescriptorSet(
-		const Devices::DeviceContext *const deviceContext,
-		Graphics::DescriptorSetLayoutCache &descriptorSetLayoutCache,
-		Graphics::DescriptorSetAllocator &descriptorSetAllocator
-	) {
+	vk::DescriptorSet EngineState::CreateTextureDescriptorSet() {
 		vk::DescriptorSetLayoutBinding binding = {
 			.binding = 0,
 			.descriptorType = vk::DescriptorType::eCombinedImageSampler,
@@ -207,10 +212,8 @@ namespace drk::Graphics {
 			.pBindings = &binding,
 		};
 
-		auto descriptorSetLayout = descriptorSetLayoutCache.get(descriptorSetLayoutCreateInfo);
-
-		auto descriptorSet = descriptorSetAllocator.AllocateDescriptorSet({descriptorSetLayout})[0];
-		return descriptorSet;
+		TextureDescriptorSetLayout = DescriptorSetLayoutCache->get(descriptorSetLayoutCreateInfo);
+		TextureDescriptorSet = DescriptorSetAllocator->AllocateDescriptorSets({TextureDescriptorSetLayout})[0];
 	}
 
 	MeshUploadResult EngineState::UploadMeshes(const std::vector<Meshes::MeshInfo *> &meshInfos) {

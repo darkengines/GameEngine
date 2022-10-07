@@ -1,6 +1,7 @@
 #include "Application.hpp"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
+#include <iostream>
 
 namespace drk::Applications {
 	Application::Application()
@@ -8,6 +9,7 @@ namespace drk::Applications {
 		  DeviceContext(BuildDeviceContext(Window.get())),
 		  EngineState(Application::BuildEngineState(DeviceContext.get())),
 		  TextureSystem(std::make_unique<Textures::TextureSystem>(DeviceContext.get(), EngineState.get())),
+		  MaterialSystem(std::make_unique<Materials::MaterialSystem>(DeviceContext.get(), EngineState.get())),
 		  MeshSystem(std::make_unique<Meshes::MeshSystem>(DeviceContext.get(), EngineState.get())),
 		  Loader(std::make_unique<Loaders::AssimpLoader>(EngineState.get())),
 		  Graphics(BuildGraphics(Window.get(), DeviceContext.get(), EngineState.get())) {
@@ -77,8 +79,11 @@ namespace drk::Applications {
 	}
 
 	void Application::Run() {
-		auto data = Loader->Load("h:/pubg.gltf");
+		std::cout << "Load" << std::endl;
+		auto data = Loader->Load("H:/models/hilbre-island/source/hilbre.glb");
+		std::cout << "Loaded" << std::endl;
 		TextureSystem->UploadTextures();
+		MaterialSystem->UpdateMaterials();
 		MeshSystem->UploadMeshes();
 
 		while (!glfwWindowShouldClose(Window.get())) {
