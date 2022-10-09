@@ -80,9 +80,10 @@ namespace drk::Applications {
 
 	void Application::Run() {
 		std::cout << "Load" << std::endl;
-		auto data = Loader->Load("H:/models/hilbre-island/source/hilbre.glb");
+		auto data = Loader->Load("H:/pubg.gltf");
 		std::cout << "Loaded" << std::endl;
 		TextureSystem->UploadTextures();
+		MaterialSystem->StoreMaterials();
 		MaterialSystem->UpdateMaterials();
 		MeshSystem->UploadMeshes();
 

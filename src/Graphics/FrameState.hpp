@@ -20,8 +20,12 @@ namespace drk::Graphics {
 		static vk::CommandBuffer CreateCommandBuffer(const Devices::DeviceContext *deviceContext);
 		static vk::Fence CreateFence(const Devices::DeviceContext *deviceContext);
 		static vk::Semaphore CreateSemaphore(const Devices::DeviceContext *deviceContext);
+		static vk::DescriptorSetLayout CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache* const descriptorSetLayoutCache);
+		static vk::DescriptorSet CreateStorageBufferDescriptorSet(Graphics::DescriptorSetAllocator* const descriptorSetAllocator, const vk::DescriptorSetLayout& descriptorSetLayout);
 		DescriptorSetLayoutCache *DescriptorSetLayoutCache;
 		DescriptorSetAllocator *DescriptorSetAllocator;
+		vk::DescriptorSetLayout StorageBufferDescriptorSetLayout;
+		vk::DescriptorSet StorageBufferDescriptorSet;
 		std::unique_ptr<StoreBufferAllocator> StoreBufferAllocator;
 	public:
 		FrameState(
@@ -31,21 +35,23 @@ namespace drk::Graphics {
 		);
 		FrameState(FrameState &&frameState);
 		~FrameState();
-		void CreateStorageBufferDescriptorSet();
 
 		template<typename T>
 		StoreItemLocation<T> AddStoreItem() {
 			auto typeIndex = std::type_index(typeid(T));
 			auto keyValuePair = stores.find(typeIndex);
-			GenericStore *store = nullptr;
+			Store<T> *store = nullptr;
 			if (keyValuePair == stores.end()) {
-				auto x = std::move(GenericStore(StoreBufferAllocator.get()));
-				stores.emplace( typeIndex, std::move(x));
-				store = &stores[typeIndex];
+				auto pStore = std::make_unique<Store<T>>(StoreBufferAllocator.get());
+				store = pStore.get();
+				stores.emplace(
+					typeIndex,
+					std::move(pStore)
+				);
 			} else {
-				store = &keyValuePair->second;
+				store = reinterpret_cast<Store<T> *>(keyValuePair->second.get());
 			}
-			auto location = store->AddItem<T>();
+			auto location = store->AddItem();
 			return location;
 		}
 
@@ -53,8 +59,7 @@ namespace drk::Graphics {
 		vk::Fence Fence;
 		vk::Semaphore ImageReadySemaphore;
 		vk::Semaphore ImageRenderedSemaphore;
-		vk::DescriptorSetLayout StorageBufferDescriptorSetLayout;
-		vk::DescriptorSet StorageBufferDescriptorSet;
-		std::unordered_map<std::type_index, GenericStore> stores;
+
+		std::unordered_map<std::type_index, std::unique_ptr<GenericStore>> stores;
 	};
 }

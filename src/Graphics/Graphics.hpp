@@ -55,6 +55,7 @@ namespace drk::Graphics {
 		void CreateShaderModules();
 		void CreateMainGraphicPipeline();
 		void SetupImgui();
+		void BuildMainRenderPass();
 
 		static vk::PipelineDepthStencilStateCreateInfo DefaultPipelineDepthStencilStateCreateInfo();
 		static vk::PipelineColorBlendAttachmentState DefaultPipelineColorBlendAttachmentState();

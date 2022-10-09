@@ -45,7 +45,7 @@ namespace drk::Graphics {
 			imageInfo->width * imageInfo->height * 4 * sizeof(unsigned char));
 
 		unsigned char *stagingMemory;
-		Devices::Device::mapBuffer(DeviceContext->Allocator, stagingBuffer, &stagingMemory);
+		Devices::Device::mapBuffer(DeviceContext->Allocator, stagingBuffer, (void**)&stagingMemory);
 		const auto textureFormat = Textures::ImageInfo::TextureTypeFormatMap[imageInfo->type];
 		//TODO: Use configurable mipLevels
 		const auto mipLevels = 1u;
@@ -199,7 +199,7 @@ namespace drk::Graphics {
 		DeviceContext->Device.destroySampler(TextureSampler);
 	}
 
-	vk::DescriptorSet EngineState::CreateTextureDescriptorSet() {
+	void EngineState::CreateTextureDescriptorSet() {
 		vk::DescriptorSetLayoutBinding binding = {
 			.binding = 0,
 			.descriptorType = vk::DescriptorType::eCombinedImageSampler,

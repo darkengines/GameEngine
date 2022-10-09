@@ -33,6 +33,7 @@ file(
     src/Materials/MaterialSystem.cpp
     src/Graphics/SynchronizationState.cpp
     src/Graphics/Store.cpp
+    src/Graphics/StoreBufferAllocator.cpp
 )
 
 file(
@@ -91,9 +92,16 @@ file(
     src/Materials/Models/Material.hpp
     src/Graphics/StoreBufferAllocator.hpp
     src/Graphics/Store.hpp
+    src/Graphics/StoreItem.hpp
+    src/Graphics/Draw.hpp
+    src/Graphics/Models/Draw.hpp
+    src/Graphics/Models/StoreItemLocation.hpp
+    src/Objects/Object.hpp
+    src/Graphics/DrawCommand.hpp
+    src/Meshes/Models/Mesh.hpp
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/Graphics/StoreItem.hpp)
+add_executable(drk ${HEADERS} ${SOURCES})
 
 find_package(Vulkan REQUIRED)
 find_package(unofficial-vulkan-memory-allocator REQUIRED)

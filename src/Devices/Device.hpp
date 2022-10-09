@@ -80,7 +80,7 @@ namespace drk::Devices {
 
 		static void destroyBuffer(const VmaAllocator &allocator, const Buffer &buffer);
 
-		static void mapBuffer(const VmaAllocator &allocator, const Buffer &buffer, void *memory);
+		static void mapBuffer(const VmaAllocator &allocator, const Buffer &buffer, void **memory);
 
 		static void unmapBuffer(const VmaAllocator &allocator, const Buffer &buffer);
 

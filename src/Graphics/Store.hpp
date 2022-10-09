@@ -7,35 +7,51 @@
 #include "StoreBufferAllocator.hpp"
 
 namespace drk::Graphics {
-	struct GenericStoreItemLocation {
-		GenericStoreBuffer *pStore;
-		uint32_t index;
-		void *pItem;
-	};
 
 	template<typename T>
-	struct StoreItemLocation : public GenericStoreItemLocation {
+	struct StoreItemLocation {
 		StoreBuffer<T> *pStore;
+		uint32_t index;
 		T *pItem;
 	};
 
 	class GenericStore {
 	protected:
 		StoreBufferAllocator *const StoreAllocator;
-		std::vector<GenericStoreBuffer> Stores;
-		std::queue<GenericStoreItemLocation> AvailableLocations;
-		GenericStoreItemLocation NextLocation;
+		std::vector<std::unique_ptr<GenericStoreBuffer>> Stores;
+
 	public:
 		GenericStore(StoreBufferAllocator *const storeBufferAllocator) :
 			StoreAllocator(storeBufferAllocator) {
+
 		}
 
 		GenericStore(GenericStore &&genericStore) :
-			StoreAllocator(genericStore.StoreAllocator), Stores(std::move(genericStore.Stores)),
-			AvailableLocations(std::move(genericStore.AvailableLocations)), NextLocation(genericStore.NextLocation) {
+			StoreAllocator(genericStore.StoreAllocator), Stores(std::move(genericStore.Stores)) {
+		}
+	};
+
+	template<typename T>
+	class Store : public GenericStore {
+	protected:
+		StoreItemLocation<T> NextLocation;
+		std::queue<StoreItemLocation<T>> AvailableLocations;
+	public:
+		Store(StoreBufferAllocator *const storeBufferAllocator) : GenericStore(storeBufferAllocator) {
+			auto store = StoreAllocator->Allocate<T>(1024);
+			auto index = store->add();
+			NextLocation = {
+				.pStore = store.get(),
+				.index = index,
+				.pItem = store->mappedMemory()
+			};
+			Stores.push_back(std::move(store));
 		}
 
-		template<typename T>
+		Store(Store &&store)
+			: GenericStore(store), AvailableLocations(std::move(store.AvailableLocations)),
+			  NextLocation(store.NextLocation) {}
+
 		StoreItemLocation<T> AddItem() {
 			if (!AvailableLocations.empty()) {
 				auto genericLocation = AvailableLocations.front();
@@ -49,11 +65,19 @@ namespace drk::Graphics {
 			}
 
 			auto location = NextLocation;
+
 			if (!NextLocation.pStore->hasAvailableIndex()) {
 				auto store = StoreAllocator->Allocate<T>(1024);
+				auto index = store->add();
+				auto mappedMemory = store->mappedMemory();
+				NextLocation = {
+					.pStore = store.get(),
+					.index = index,
+					.pItem = mappedMemory
+				};
 				Stores.push_back(std::move(store));
-				NextLocation.pStore = &Stores.back();
 			}
+
 			NextLocation.index = NextLocation.pStore->add();
 
 			StoreItemLocation<T> storeItemLocation = {

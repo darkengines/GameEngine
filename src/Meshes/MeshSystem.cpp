@@ -1,5 +1,6 @@
 #include "MeshSystem.hpp"
 #include "MeshInfo.hpp"
+#include "Models/Mesh.hpp"
 
 namespace drk::Meshes {
 
@@ -8,6 +9,10 @@ namespace drk::Meshes {
 		drk::Graphics::EngineState *pState
 	)
 		: DeviceContext(pContext), EngineState(pState) {}
+
+	void MeshSystem::UpdateStoreItem(const MeshInfo *mesh, Models::Mesh &meshModel) {
+		mesh->
+	}
 
 	void MeshSystem::UploadMeshes() {
 		auto meshEntities = EngineState->Registry.view<MeshInfo *>(entt::exclude<Devices::BufferView>);
@@ -26,5 +31,20 @@ namespace drk::Meshes {
 
 		EngineState->Buffers.push_back(result.indexBuffer);
 		EngineState->Buffers.push_back(result.vertexBuffer);
+	}
+
+	void MeshSystem::StoreMeshes() {
+		EngineState->Store<MeshInfo *, Models::Mesh>();
+	}
+
+	void MeshSystem::UpdateMeshes() {
+		Graphics::SynchronizationState<Models::Mesh>::Update<MeshInfo *>(
+			EngineState->Registry,
+			EngineState->FrameIndex,
+			[=](
+				const MeshInfo *component,
+				Models::Mesh &model
+			) { UpdateStoreItem(component, model); }
+		);
 	}
 }

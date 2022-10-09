@@ -26,13 +26,11 @@ namespace drk::Graphics {
 		std::unique_ptr<DescriptorSetLayoutCache> DescriptorSetLayoutCache;
 		std::unique_ptr<DescriptorSetAllocator> DescriptorSetAllocator;
 		static vk::Sampler CreateTextureSampler(const Devices::DeviceContext *const deviceContext);
-		static vk::DescriptorPool CreateDescriptorPool(const Devices::DeviceContext *const deviceContext);
-		vk::DescriptorSet CreateTextureDescriptorSet();
+		void CreateTextureDescriptorSet();
 	public:
 		EngineState(const Devices::DeviceContext *deviceContext);
 		~EngineState();
 		uint32_t FrameIndex = 0;
-		std::unordered_map<std::type_index, GenericStoreBuffer> Stores;
 		std::vector<FrameState> FrameStates;
 		std::vector<Devices::Buffer> Buffers;
 		std::vector<Devices::Texture> Textures;
@@ -44,7 +42,7 @@ namespace drk::Graphics {
 		MeshUploadResult UploadMeshes(const std::vector<Meshes::MeshInfo *> &meshInfos);
 
 		template<typename T>
-		StoreItem<T> Store() {
+		StoreItem<T> GetStoreItem() {
 			std::vector<StoreItemLocation<T>> frameStoreItems(FrameStates.size());
 			for (auto frameStateIndex = 0u; frameStateIndex < FrameStates.size(); frameStateIndex++) {
 				auto storeItemLocation = FrameStates[frameStateIndex].AddStoreItem<T>();
@@ -55,6 +53,21 @@ namespace drk::Graphics {
 			};
 
 			return storeItem;
+		}
+
+		template<typename TComponent, typename TModel>
+		void Store() {
+			auto entities = EngineState->Registry.view<TComponent>(entt::exclude<Graphics::StoreItem<TModel>>);
+			for (const auto entity : entities) {
+				auto storeItem = EngineState->GetStoreItem<TModel>();
+				EngineState->Registry.emplace<Graphics::StoreItem<TModel>>(
+					entity,
+					storeItem
+				);
+				EngineState->Registry.emplace<Graphics::SynchronizationState<TModel>>(
+					entity,
+					EngineState->FrameStates.size());
+			}
 		}
 	};
 }

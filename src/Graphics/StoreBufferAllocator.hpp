@@ -1,7 +1,4 @@
 #pragma once
-#define VULKAN_HPP_NO_CONSTRUCTORS
-
-#include <vulkan/vulkan.hpp>
 #include "../Devices/DeviceContext.hpp"
 #include "../Devices/Device.hpp"
 #include "StoreBuffer.hpp"
@@ -11,19 +8,14 @@ namespace drk::Graphics {
 	class StoreBufferAllocator {
 	protected:
 		const Devices::DeviceContext *DeviceContext;
-		std::vector<vk::Buffer> Buffers;
+		std::vector<Devices::Buffer> Buffers;
 		vk::DescriptorSet DescriptorSet;
 	public:
-		StoreBufferAllocator(const Devices::DeviceContext *deviceContext, const vk::DescriptorSet& descriptorSet) : DeviceContext(
-			deviceContext
-		), DescriptorSet(descriptorSet) {
-
-		}
-
+		StoreBufferAllocator(const Devices::DeviceContext *deviceContext, const vk::DescriptorSet &descriptorSet);
 		~StoreBufferAllocator();
 
 		template<typename T>
-		StoreBuffer <T> Allocate(uint32_t itemCount) {
+		std::unique_ptr<StoreBuffer<T>> Allocate(uint32_t itemCount) {
 			auto itemByteLength = sizeof(T);
 			auto byteLength = itemCount * itemByteLength;
 			auto bufferIndex = static_cast<uint32_t>(Buffers.size());
@@ -40,9 +32,10 @@ namespace drk::Graphics {
 				allocationCreationInfo,
 				byteLength
 			);
+			Buffers.push_back(storageBuffer);
 
 			void *mappedMemory = nullptr;
-			Devices::Device::mapBuffer(DeviceContext->Allocator, storageBuffer, (void **) &mappedMemory);
+			Devices::Device::mapBuffer(DeviceContext->Allocator, storageBuffer, &mappedMemory);
 
 			vk::DescriptorBufferInfo descriptorBufferInfo = {
 				.buffer = storageBuffer.buffer,
@@ -61,13 +54,7 @@ namespace drk::Graphics {
 
 			DeviceContext->Device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
 
-			Devices::BufferView bufferView = {
-				.buffer = storageBuffer,
-				.byteOffset = 0,
-				.byteLength = byteLength
-			};
-
-			StoreBuffer<T> store(itemCount, reinterpret_cast<T *>(mappedMemory));
+			auto store = std::make_unique<StoreBuffer<T>>(itemCount, reinterpret_cast<T*>(mappedMemory));
 
 			return store;
 		}

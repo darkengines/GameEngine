@@ -9,16 +9,17 @@
 namespace drk::Graphics {
 	class GenericStoreBuffer {
 	protected:
+		void *const pMappedMemory;
+	public:
 		uint32_t nextIndex;
 		uint32_t maxIndexCount;
 		std::queue<uint32_t> availableIndices;
-		void *mappedMemory;
-	public:
-		GenericStoreBuffer(uint32_t maxIndexCount, void *mappedMemory)
-			: maxIndexCount(maxIndexCount), mappedMemory(mappedMemory) {
+
+		GenericStoreBuffer(uint32_t maxIndexCount, void *const pMappedMemory)
+			: maxIndexCount(maxIndexCount), pMappedMemory(pMappedMemory) {
 			nextIndex = 0;
 		}
-
+		~GenericStoreBuffer() = default;
 		uint32_t descriptorArrayElement;
 
 		bool hasAvailableIndex() {
@@ -54,9 +55,16 @@ namespace drk::Graphics {
 		}
 	};
 
-	template<typename T>
+	template<class T>
 	class StoreBuffer : public GenericStoreBuffer {
 	public:
-		T *mappedMemory;
+		StoreBuffer(uint32_t maxIndexCount, T *const mappedMemory) : GenericStoreBuffer(
+			maxIndexCount,
+			reinterpret_cast<void *>(mappedMemory)) {
+		}
+
+		T *const mappedMemory() {
+			return reinterpret_cast<T *const>(pMappedMemory);
+		};
 	};
 }

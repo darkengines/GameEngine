@@ -352,8 +352,8 @@ namespace drk::Devices {
 		Device::endSingleTimeCommands(device, queue, commandPool, commandBuffer);
 	}
 
-	void Device::mapBuffer(const VmaAllocator &allocator, const Buffer &buffer, void *memory) {
-		vmaMapMemory(allocator, buffer.allocation, &memory);
+	void Device::mapBuffer(const VmaAllocator &allocator, const Buffer &buffer, void **memory) {
+		vmaMapMemory(allocator, buffer.allocation, memory);
 	}
 
 	void Device::unmapBuffer(const VmaAllocator &allocator, const Buffer &buffer) {

@@ -14,6 +14,12 @@ namespace drk::Graphics {
 		Fence(FrameState::CreateFence(DeviceContext)),
 		ImageReadySemaphore(FrameState::CreateSemaphore(DeviceContext)),
 		ImageRenderedSemaphore(FrameState::CreateSemaphore(DeviceContext)),
+		StorageBufferDescriptorSetLayout(CreateStorageBufferDescriptorSetLayout(DescriptorSetLayoutCache)),
+		StorageBufferDescriptorSet(
+			CreateStorageBufferDescriptorSet(
+				DescriptorSetAllocator,
+				StorageBufferDescriptorSetLayout
+			)),
 		StoreBufferAllocator(
 			std::make_unique<Graphics::StoreBufferAllocator>(
 				DeviceContext,
@@ -30,6 +36,7 @@ namespace drk::Graphics {
 		ImageReadySemaphore = frameState.ImageReadySemaphore;
 		ImageRenderedSemaphore = frameState.ImageRenderedSemaphore;
 		stores = std::move(frameState.stores);
+		StoreBufferAllocator = std::move(frameState.StoreBufferAllocator);
 
 		frameState.Fence = VK_NULL_HANDLE;
 		frameState.ImageReadySemaphore = VK_NULL_HANDLE;
@@ -74,7 +81,9 @@ namespace drk::Graphics {
 		return commandBuffer[0];
 	}
 
-	void FrameState::CreateStorageBufferDescriptorSet() {
+
+	vk::DescriptorSetLayout
+	FrameState::CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache *const descriptorSetLayoutCache) {
 		vk::DescriptorSetLayoutBinding binding = {
 			.binding = 0,
 			.descriptorType = vk::DescriptorType::eStorageBuffer,
@@ -85,7 +94,13 @@ namespace drk::Graphics {
 			.bindingCount = 1,
 			.pBindings = &binding
 		};
-		StorageBufferDescriptorSetLayout = DescriptorSetLayoutCache->get(descriptorSetLayoutCreateInfo);
-		StorageBufferDescriptorSet = DescriptorSetAllocator->AllocateDescriptorSets({StorageBufferDescriptorSetLayout})[0];
+		return descriptorSetLayoutCache->get(descriptorSetLayoutCreateInfo);
+	}
+
+	vk::DescriptorSet FrameState::CreateStorageBufferDescriptorSet(
+		Graphics::DescriptorSetAllocator *const descriptorSetAllocator,
+		const vk::DescriptorSetLayout &descriptorSetLayout
+	) {
+		return descriptorSetAllocator->AllocateDescriptorSets({descriptorSetLayout})[0];
 	}
 }

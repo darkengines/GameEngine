@@ -3,6 +3,12 @@
 #include "../Common/Common.hpp"
 #include "../Devices/Device.hpp"
 #include "../Meshes/Vertex.hpp"
+#include "../Objects/Object.hpp"
+#include "../Meshes/MeshGroup.hpp"
+#include "Draw.hpp"
+#include "../Spatials/Spatial.hpp"
+#include "DrawCommand.hpp"
+#include "Models/Draw.hpp"
 #include <imgui_impl_vulkan.h>
 
 namespace drk::Graphics {
@@ -575,11 +581,11 @@ namespace drk::Graphics {
 			.pClearValues = clearValues.data(),
 		};
 		frameState.CommandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
-		frameState.CommandBuffer.bindIndexBuffer(EngineState->Buffers[0].buffer, 0, vk::IndexType::eUint32);
-		vk::DeviceSize offset = 0u;
-		frameState.CommandBuffer.bindVertexBuffers(0, 1, &EngineState->Buffers[1].buffer, &offset);
-		frameState.CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, MainGraphicPipeline);
-		frameState.CommandBuffer.drawIndexed(23640279, 1, 0, 0, 0);
+//		frameState.CommandBuffer.bindIndexBuffer(EngineState->Buffers[0].buffer, 0, vk::IndexType::eUint32);
+//		vk::DeviceSize offset = 0u;
+//		frameState.CommandBuffer.bindVertexBuffers(0, 1, &EngineState->Buffers[1].buffer, &offset);
+//		frameState.CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, MainGraphicPipeline);
+//		frameState.CommandBuffer.drawIndexed(23640279, 1, 0, 0, 0);
 
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), frameState.CommandBuffer);
 		frameState.CommandBuffer.endRenderPass();
@@ -618,5 +624,65 @@ namespace drk::Graphics {
 
 		//frameState.CommandBuffer.bindPipeline(...);
 		//frameState.CommandBuffer.drawIndexed(...);
+	}
+
+	void Graphics::BuildMainRenderPass() {
+		auto objectEntities = EngineState->Registry.view<Objects::Object, Meshes::MeshGroup>();
+		std::vector<Draw> draws;
+		for (auto objectEntity: objectEntities) {
+			const auto &object = EngineState->Registry.get<Objects::Object>(objectEntity);
+			const auto &objectSpatial = EngineState->Registry.get<Spatials::Spatial>(objectEntity);
+			const auto &meshGroup = EngineState->Registry.get<Meshes::MeshGroup>(objectEntity);
+
+			for (const auto &meshEntity : meshGroup.meshEntities) {
+				draws.push_back(
+					{
+						.meshEntity = meshEntity,
+						.objectEntity = objectEntity,
+					}
+				);
+			}
+		}
+
+		auto drawIndex = 0u;
+		Draw const *previousDraw = nullptr;
+		std::vector<DrawCommand> drawCommands;
+		std::vector<Models::Draw> drawModels;
+		const auto &gpuStore = PipeState.framesStates[PipeState.frameIndex].getStore<DrawState>()->mappedMemory;
+
+		for (auto drawIndex = 0u; drawIndex < draws.size(); drawIndex++) {
+			const auto &draw = draws[drawIndex];
+			const auto &mesh = EngineState->Registry.get<Meshes::Mesh>(draw.meshEntity);
+			const auto &meshInfo = EngineState->Registry.get<Meshes::MeshInfo *>(draw.meshEntity);
+			const auto &object = EngineState->Registry.get<Objects::Object>(draw.objectEntity);
+
+			const auto &objectIndex = EngineState->Registry.get < Index < Object >> (draw.objectEntity);
+			const auto &meshIndex = EngineState->Registry.get < Index < Mesh >> (draw.meshEntity);
+
+			if (drawIndex > 0 && previousDraw->meshEntity == draw.meshEntity) {
+				drawCommands.back().instanceCount++;
+			} else {
+				drawCommands.push_back(
+					{
+						(uint32_t) meshInfo->indices.size(),
+						1,
+						(uint32_t) mesh.IndexBufferView.byteOffset,
+						(uint32_t) mesh.VertexBufferView.byteOffset,
+						drawIndex + drawOffset
+					}
+				);
+			}
+
+			Models::Draw drawState = {
+				.meshItemLocation = ,
+				.objectItemLocation = ,
+				.drawSetItemLocation = ,
+				.hasAlpha =
+			};
+
+			drawModels.push_back(drawState);
+			gpuStore[drawIndex + drawOffset] = drawState;
+			previousDraw = &draw;
+		}
 	}
 }
