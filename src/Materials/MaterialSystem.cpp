@@ -64,7 +64,7 @@ namespace drk::Materials {
 
 
 	void MaterialSystem::StoreMaterials() {
-		EngineState->Store<Material *, Models::Material>();
+		EngineState->Store<Models::Material, Material *>();
 	}
 
 	void MaterialSystem::UpdateMaterials() {
@@ -72,9 +72,21 @@ namespace drk::Materials {
 			EngineState->Registry,
 			EngineState->FrameIndex,
 			[=](
-				const Material *component,
-				Models::Material &model
+				Models::Material &model,
+				const Material *component
 			) { UpdateStoreItem(component, model); }
 		);
+	}
+
+	void MaterialSystem::AddMaterialSystem(entt::registry &registry) {
+		registry.on_construct<Material *>().connect<MaterialSystem::OnMaterialConstruct>();
+	}
+
+	void MaterialSystem::RemoveMaterialSystem(entt::registry &registry) {
+		registry.on_construct<Material *>().disconnect<MaterialSystem::OnMaterialConstruct>();
+	}
+
+	void MaterialSystem::OnMaterialConstruct(entt::registry &registry, entt::entity materialEntity) {
+		registry.emplace<Graphics::SynchronizationState<Models::Material>>(materialEntity, 2u);
 	}
 }

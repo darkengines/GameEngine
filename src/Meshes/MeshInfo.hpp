@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <entt/entity/entity.hpp>
 #include "Vertex.hpp"
 
 namespace drk::Materials {
@@ -12,6 +13,7 @@ namespace drk::Meshes {
 		std::string name;
 		std::vector<Vertex> vertices;
 		std::vector<VertexIndex> indices;
-		Materials::Material *material;
+		Materials::Material* pMaterial;
+		entt::entity materialEntity;
 	};
 }

@@ -12,6 +12,7 @@
 #include "BufferUploadResult.hpp"
 #include <algorithm>
 #include <numeric>
+#include <iostream>
 
 namespace drk::Devices {
 	class Device {
@@ -182,11 +183,6 @@ namespace drk::Devices {
 			auto currentBufferRemainingByteLength = currentBufferByteLength;
 			auto deviceBufferByteOffset = 0u;
 			std::vector<BufferView> bufferViews(bufferCount);
-			bufferViews[bufferIndex] = {
-				buffer,
-				deviceBufferByteOffset,
-				currentBufferByteLength
-			};
 
 			while (remainingBufferByteLength) {
 				auto availableStagingBufferByteLength = stagingBufferByteLength;
@@ -201,17 +197,17 @@ namespace drk::Devices {
 					availableStagingBufferByteLength -= writableByteLength;
 					currentBufferRemainingByteLength -= writableByteLength;
 					if (currentBufferRemainingByteLength <= 0) {
+						bufferViews[bufferIndex] = {
+							buffer,
+							deviceBufferByteOffset + stagingBufferByteOffset,
+							currentBufferByteLength
+						};
 						bufferIndex++;
 						if (bufferIndex < bufferCount) {
 							currentBuffer = (char*)buffers[bufferIndex].data();
 							currentBufferByteLength = buffers[bufferIndex].size() * itemSize;
 							currentBufferByteOffset = 0;
 							currentBufferRemainingByteLength = currentBufferByteLength;
-							bufferViews[bufferIndex] = {
-								buffer,
-								deviceBufferByteOffset,
-								currentBufferByteLength
-							};
 						}
 					} else {
 						currentBufferByteOffset += writableByteLength;

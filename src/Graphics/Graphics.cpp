@@ -10,6 +10,12 @@
 #include "DrawCommand.hpp"
 #include "Models/Draw.hpp"
 #include <imgui_impl_vulkan.h>
+#include "../Objects/Models/Object.hpp"
+#include "../Meshes/Models/Mesh.hpp"
+#include "../Spatials/Models/Spatial.hpp"
+#include <algorithm>
+#include <vector>
+#include "../Meshes/Vertex.hpp"
 
 namespace drk::Graphics {
 	std::vector<const char *> Graphics::RequiredInstanceExtensions = Windows::Window::getVulkanInstanceExtension();
@@ -476,8 +482,8 @@ namespace drk::Graphics {
 
 	void Graphics::CreateMainPipelineLayout() {
 		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
-			.setLayoutCount = 0,
-			.pSetLayouts = nullptr,
+			.setLayoutCount = static_cast<uint32_t>(EngineState->DescriptorSetLayouts.size()),
+			.pSetLayouts = EngineState->DescriptorSetLayouts.data(),
 		};
 		MainPipelineLayout = DeviceContext->Device.createPipelineLayout(pipelineLayoutCreateInfo);
 	}
@@ -552,6 +558,8 @@ namespace drk::Graphics {
 		const auto &imageReadySemaphore = frameState.ImageReadySemaphore;
 		const auto &imageRenderedSemaphore = frameState.ImageRenderedSemaphore;
 
+		const auto drawContext = BuildMainRenderPass();
+
 		const auto &waitForFenceResult = DeviceContext->Device.waitForFences(1, &fence, VK_TRUE, UINT64_MAX);
 		//Todo: Handle suboptimal and out of date results
 		auto swapchainImageIndex = DeviceContext->Device.acquireNextImageKHR(
@@ -573,6 +581,17 @@ namespace drk::Graphics {
 			.depthStencil = {1.0f, 0}
 		};
 		std::array<vk::ClearValue, 3> clearValues{colorClearValue, depthClearValue, colorClearValue};
+
+		frameState.CommandBuffer.bindDescriptorSets(
+			vk::PipelineBindPoint::eGraphics,
+			MainPipelineLayout,
+			0,
+			frameState.DescriptorSets.size(),
+			frameState.DescriptorSets.data(),
+			0,
+			nullptr
+		);
+
 		vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
 			.renderPass = MainRenderPass,
 			.framebuffer = MainFramebuffers[swapchainImageIndex.value],
@@ -581,13 +600,28 @@ namespace drk::Graphics {
 			.pClearValues = clearValues.data(),
 		};
 		frameState.CommandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
-//		frameState.CommandBuffer.bindIndexBuffer(EngineState->Buffers[0].buffer, 0, vk::IndexType::eUint32);
-//		vk::DeviceSize offset = 0u;
-//		frameState.CommandBuffer.bindVertexBuffers(0, 1, &EngineState->Buffers[1].buffer, &offset);
-//		frameState.CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, MainGraphicPipeline);
-//		frameState.CommandBuffer.drawIndexed(23640279, 1, 0, 0, 0);
+
+		for (auto drawSetIndex = 0u; drawSetIndex < drawContext.drawSets.size(); drawSetIndex++) {
+			const auto &drawSet = drawContext.drawSets[drawSetIndex];
+
+			vk::DeviceSize offset = 0u;
+			frameState.CommandBuffer.bindIndexBuffer(drawSet.indexBuffer.buffer, 0, vk::IndexType::eUint32);
+			frameState.CommandBuffer.bindVertexBuffers(0, 1, &drawSet.vertexBuffer.buffer, &offset);
+			frameState.CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, MainGraphicPipeline);
+			for (auto drawIndex = 0u; drawIndex < drawSet.drawCommands.size(); drawIndex++) {
+				const auto &drawCommand = drawSet.drawCommands[drawIndex];
+				frameState.CommandBuffer.drawIndexed(
+					drawCommand.indexCount,
+					drawCommand.instanceCount,
+					drawCommand.firstIndex,
+					drawCommand.vertexOffset,
+					drawCommand.firstInstance
+				);
+			}
+		}
 
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), frameState.CommandBuffer);
+
 		frameState.CommandBuffer.endRenderPass();
 		frameState.CommandBuffer.end();
 
@@ -617,72 +651,109 @@ namespace drk::Graphics {
 		//Todo: make "frame in flight" count configurable
 		EngineState->FrameIndex = (EngineState->FrameIndex + 1) % 2;
 		const auto &presentResult = DeviceContext->PresentQueue.presentKHR(presentInfoKHR);
-
-		//frameState.CommandBuffer.bindIndexBuffer(...);
-		//frameState.CommandBuffer.bindVertexBuffers(...);
-		//frameState.CommandBuffer.bindDescriptorSets(...);
-
-		//frameState.CommandBuffer.bindPipeline(...);
-		//frameState.CommandBuffer.drawIndexed(...);
 	}
 
-	void Graphics::BuildMainRenderPass() {
-		auto objectEntities = EngineState->Registry.view<Objects::Object, Meshes::MeshGroup>();
+	DrawContext Graphics::BuildMainRenderPass() {
+		auto objectEntities = EngineState->Registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup>();
 		std::vector<Draw> draws;
-		for (auto objectEntity: objectEntities) {
-			const auto &object = EngineState->Registry.get<Objects::Object>(objectEntity);
-			const auto &objectSpatial = EngineState->Registry.get<Spatials::Spatial>(objectEntity);
-			const auto &meshGroup = EngineState->Registry.get<Meshes::MeshGroup>(objectEntity);
-
-			for (const auto &meshEntity : meshGroup.meshEntities) {
-				draws.push_back(
-					{
-						.meshEntity = meshEntity,
-						.objectEntity = objectEntity,
-					}
-				);
+		objectEntities.each(
+			[&](
+				entt::entity objectEntity,
+				auto &objectStoreItem,
+				auto &meshGroup
+			) {
+				const auto &objectStoreItemLocation = objectStoreItem.frameStoreItems[EngineState->FrameIndex];
+				for (const auto &meshEntity : meshGroup.meshEntities) {
+					Meshes::MeshInfo *meshInfo = EngineState->Registry.get<Meshes::MeshInfo *>(meshEntity);
+					const Meshes::Mesh mesh = EngineState->Registry.get<Meshes::Mesh>(meshEntity);
+					const Stores::StoreItem<Meshes::Models::Mesh> meshStoreItem = EngineState->Registry.get<Stores::StoreItem<Meshes::Models::Mesh>>(
+						meshEntity
+					);
+					const auto &meshStoreItemLocation = meshStoreItem.frameStoreItems[EngineState->FrameIndex];
+					Draw draw = {
+						.meshInfo = meshInfo,
+						.mesh = mesh,
+						.meshStoreItem = {
+							.storeIndex = 69,
+							.itemIndex = 70
+						},
+						.objectLocation = {
+							.storeIndex = 1337,
+							.itemIndex = 45
+						}
+					};
+					draws.push_back(draw);
+				}
 			}
-		}
+		);
 
-		auto drawIndex = 0u;
-		Draw const *previousDraw = nullptr;
-		std::vector<DrawCommand> drawCommands;
-		std::vector<Models::Draw> drawModels;
-		const auto &gpuStore = PipeState.framesStates[PipeState.frameIndex].getStore<DrawState>()->mappedMemory;
+		std::sort(
+			draws.begin(), draws.end(), [](const Draw &leftDraw, const Draw &rightDraw) {
+				return leftDraw.meshInfo < rightDraw.meshInfo;
+			}
+		);
+
+		std::stable_sort(
+			draws.begin(), draws.end(), [](const Draw &leftDraw, const Draw &rightDraw) {
+				return leftDraw.mesh.IndexBufferView.buffer.buffer < rightDraw.mesh.IndexBufferView.buffer.buffer;
+			}
+		);
+
+		auto drawStore = EngineState->FrameStates[EngineState->FrameIndex].DrawStore.get();
+		Draw *previousDraw = nullptr;
+		DrawSet *currentDrawSet = nullptr;
+		DrawContext drawContext;
 
 		for (auto drawIndex = 0u; drawIndex < draws.size(); drawIndex++) {
-			const auto &draw = draws[drawIndex];
-			const auto &mesh = EngineState->Registry.get<Meshes::Mesh>(draw.meshEntity);
-			const auto &meshInfo = EngineState->Registry.get<Meshes::MeshInfo *>(draw.meshEntity);
-			const auto &object = EngineState->Registry.get<Objects::Object>(draw.objectEntity);
+			auto &draw = draws[drawIndex];
 
-			const auto &objectIndex = EngineState->Registry.get < Index < Object >> (draw.objectEntity);
-			const auto &meshIndex = EngineState->Registry.get < Index < Mesh >> (draw.meshEntity);
-
-			if (drawIndex > 0 && previousDraw->meshEntity == draw.meshEntity) {
-				drawCommands.back().instanceCount++;
+			if (drawIndex > 0 && previousDraw->meshInfo == draw.meshInfo) {
+				drawContext.drawSets.back().drawCommands.back().instanceCount++;
 			} else {
-				drawCommands.push_back(
-					{
-						(uint32_t) meshInfo->indices.size(),
-						1,
-						(uint32_t) mesh.IndexBufferView.byteOffset,
-						(uint32_t) mesh.VertexBufferView.byteOffset,
-						drawIndex + drawOffset
+				if (drawIndex > 0 &&
+					draw.mesh.IndexBufferView.buffer.buffer == previousDraw->mesh.IndexBufferView.buffer.buffer) {
+					drawContext.drawSets.back().drawCommands.push_back(
+						{
+							.indexCount = (uint32_t) draw.meshInfo->indices.size(),
+							.instanceCount = 1,
+							.firstIndex = static_cast<uint32_t>(draw.mesh.IndexBufferView.byteOffset / sizeof(Meshes::VertexIndex)),
+							.vertexOffset = static_cast<uint32_t>(draw.mesh.VertexBufferView.byteOffset / sizeof(Meshes::Vertex)),
+							.firstInstance = drawIndex
+						}
+					);
+				} else {
+					if (drawIndex == 0) {
+						drawContext.drawSets.push_back(
+							{
+								.indexBuffer = draw.mesh.IndexBufferView.buffer,
+								.vertexBuffer = draw.mesh.VertexBufferView.buffer,
+							}
+						);
 					}
-				);
+					drawContext.drawSets.back().drawCommands.push_back(
+						{
+							.indexCount = (uint32_t) draw.meshInfo->indices.size(),
+							.instanceCount = 1,
+							.firstIndex = static_cast<uint32_t>(draw.mesh.IndexBufferView.byteOffset / sizeof(Meshes::VertexIndex)),
+							.vertexOffset = static_cast<uint32_t>(draw.mesh.VertexBufferView.byteOffset / sizeof(Meshes::Vertex)),
+							.firstInstance = drawIndex
+						}
+					);
+				}
 			}
+			const auto drawItemLocation = drawStore->Get(drawIndex);
 
-			Models::Draw drawState = {
-				.meshItemLocation = ,
-				.objectItemLocation = ,
-				.drawSetItemLocation = ,
-				.hasAlpha =
+			const Models::Draw drawModel = {
+				.meshItemLocation = draw.meshStoreItem,
+				.objectItemLocation = draw.objectLocation,
+				.hasAlpha = 0
 			};
 
-			drawModels.push_back(drawState);
-			gpuStore[drawIndex + drawOffset] = drawState;
+			*drawItemLocation.pItem = drawModel;
+
 			previousDraw = &draw;
 		}
+
+		return drawContext;
 	}
 }

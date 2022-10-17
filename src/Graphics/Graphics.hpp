@@ -6,6 +6,7 @@
 #include "../Devices/DeviceContext.hpp"
 #include "../Devices/Swapchain.hpp"
 #include "EngineState.hpp"
+#include "DrawContext.hpp"
 
 namespace drk::Graphics {
 	class Graphics {
@@ -55,7 +56,7 @@ namespace drk::Graphics {
 		void CreateShaderModules();
 		void CreateMainGraphicPipeline();
 		void SetupImgui();
-		void BuildMainRenderPass();
+		DrawContext BuildMainRenderPass();
 
 		static vk::PipelineDepthStencilStateCreateInfo DefaultPipelineDepthStencilStateCreateInfo();
 		static vk::PipelineColorBlendAttachmentState DefaultPipelineColorBlendAttachmentState();

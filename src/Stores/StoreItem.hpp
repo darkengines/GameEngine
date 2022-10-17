@@ -3,7 +3,7 @@
 #include <vector>
 #include "Store.hpp"
 
-namespace drk::Graphics {
+namespace drk::Stores {
 	template<typename T>
 	struct StoreItem {
 		std::vector<StoreItemLocation<T>> frameStoreItems;

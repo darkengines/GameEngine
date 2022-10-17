@@ -20,7 +20,7 @@ file(
     src/Common/Common.cpp
     src/Graphics/EngineState.cpp
     src/Graphics/FrameState.cpp
-    src/Graphics/StoreBuffer.cpp
+    src/Stores/StoreBuffer.cpp
     src/Graphics/DescriptorSetLayoutCreateInfoEqualityComparer.cpp
     src/Graphics/DescriptorSetLayoutCache.cpp
     src/Graphics/DescriptorSetAllocator.cpp
@@ -31,9 +31,14 @@ file(
     src/Devices/Image.cpp
     src/Meshes/MeshSystem.cpp
     src/Materials/MaterialSystem.cpp
+    src/Spatials/SpatialSystem.cpp
+    src/Objects/ObjectSystem.cpp
     src/Graphics/SynchronizationState.cpp
-    src/Graphics/Store.cpp
-    src/Graphics/StoreBufferAllocator.cpp
+    src/Stores/Store.cpp
+    src/Stores/StoreBufferAllocator.cpp
+    src/Objects/Dirty.cpp
+    src/Cameras/CameraSystem.cpp
+    src/Relationships/RelationshipSystem.cpp
 )
 
 file(
@@ -71,7 +76,7 @@ file(
     src/Common/Common.hpp
     src/Graphics/EngineState.hpp
     src/Graphics/FrameState.hpp
-    src/Graphics/StoreBuffer.hpp
+    src/Stores/StoreBuffer.hpp
     src/Graphics/DescriptorSetLayoutCreateInfoEqualityComparer.hpp
     src/Graphics/DescriptorSetLayoutCache.hpp
     src/Graphics/DescriptorSetAllocator.hpp
@@ -90,18 +95,52 @@ file(
     src/Meshes/Mesh.hpp
     src/Graphics/SynchronizationState.hpp
     src/Materials/Models/Material.hpp
-    src/Graphics/StoreBufferAllocator.hpp
-    src/Graphics/Store.hpp
-    src/Graphics/StoreItem.hpp
+    src/Stores/StoreBufferAllocator.hpp
+    src/Stores/Store.hpp
+    src/Stores/StoreItem.hpp
     src/Graphics/Draw.hpp
     src/Graphics/Models/Draw.hpp
     src/Graphics/Models/StoreItemLocation.hpp
     src/Objects/Object.hpp
     src/Graphics/DrawCommand.hpp
     src/Meshes/Models/Mesh.hpp
+    src/Objects/Models/Object.hpp
+    src/Objects/ObjectSystem.hpp
+    src/Spatials/SpatialSystem.hpp
+    src/Spatials/Models/Spatial.hpp
+    src/Objects/Dirty.hpp
+    src/Graphics/DrawSet.hpp
+    src/Graphics/DrawContext.hpp
+    src/Cameras/CameraSystem.hpp
+    src/Cameras/Models/Camera.hpp
+    src/Relationships/RelationshipSystem.hpp
+    src/Stores/StoreItemLocation.hpp
+)
+
+file(
+    GLOB GLSL_SOURCES
+    "src/Graphics/Shaders/main.vert"
+    "src/Graphics/Shaders/main.frag"
+)
+
+foreach(GLSL ${GLSL_SOURCES})
+    get_filename_component(FILE_NAME ${GLSL} NAME)
+    set(SPIRV "${PROJECT_BINARY_DIR}/shaders/spv/${FILE_NAME}.spv")
+    add_custom_command(
+        OUTPUT ${SPIRV}
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/shaders/spv/"
+        COMMAND glslc --target-env=vulkan1.3 ${GLSL} -o ${SPIRV}
+        DEPENDS ${GLSL})
+    list(APPEND SPIRV_BINARIES ${SPIRV})
+endforeach(GLSL)
+
+add_custom_target(
+    Shaders
+    DEPENDS ${SPIRV_BINARIES}
 )
 
 add_executable(drk ${HEADERS} ${SOURCES})
+add_dependencies(drk Shaders)
 
 find_package(Vulkan REQUIRED)
 find_package(unofficial-vulkan-memory-allocator REQUIRED)

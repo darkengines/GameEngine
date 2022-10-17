@@ -175,6 +175,7 @@ namespace drk::Loaders {
 			EngineState->Registry.emplace<Materials::Material *>(materialEntity, materialPtr.get());
 			EngineState->Registry.emplace<Common::ComponentIndex<Materials::Material >>(materialEntity, materialIndex);
 			loadResult.materials.push_back(std::move(materialPtr));
+			loadResult.materialIdEntityMap[aiMaterialIndex] = materialEntity;
 		}
 	}
 
@@ -243,11 +244,13 @@ namespace drk::Loaders {
 			std::string meshName = aiMesh->mName.C_Str();
 			auto meshIndex = EngineState->IndexGenerator.Generate<Meshes::MeshInfo>();
 			auto meshMaterial = loadResult.materials[aiMesh->mMaterialIndex].get();
+			auto materialEntity = loadResult.materialIdEntityMap[aiMesh->mMaterialIndex];
 			Meshes::MeshInfo mesh = {
 				.name = meshName,
 				.vertices =vertices,
 				.indices = indices,
-				.material = meshMaterial
+				.pMaterial = meshMaterial,
+				.materialEntity = materialEntity
 			};
 			auto meshPtr = std::make_unique<Meshes::MeshInfo>(mesh);
 			Geometries::AxisAlignedBoundingBox axisAlignedBoundingBox = Geometries::AxisAlignedBoundingBox::fromMinMax(
@@ -258,8 +261,9 @@ namespace drk::Loaders {
 			auto meshEntity = EngineState->Registry.create();
 			EngineState->Registry.emplace<Meshes::MeshInfo *>(meshEntity, meshPtr.get());
 			EngineState->Registry.emplace<Common::ComponentIndex<Meshes::MeshInfo>>(meshEntity, meshIndex);
-			EngineState->Registry.emplace<Materials::Material *>(meshEntity, meshMaterial);
 			EngineState->Registry.emplace<Geometries::AxisAlignedBoundingBox>(meshEntity, axisAlignedBoundingBox);
+
+			loadResult.meshIdEntityMap[aiMeshIndex] = meshEntity;
 			loadResult.meshes.push_back(std::move(meshPtr));
 		}
 	}
@@ -376,7 +380,7 @@ namespace drk::Loaders {
 		const aiNode *aiNode,
 		const std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>> &lightMap,
 		const std::unordered_map<std::string, entt::entity> &cameraMap,
-		const LoadResult &loadResult
+		LoadResult &loadResult
 	) {
 		auto nodeName = std::string(aiNode->mName.C_Str());
 		aiVector3D aiScale, aiPosition;
@@ -440,17 +444,13 @@ namespace drk::Loaders {
 		if (aiNode->mNumMeshes) {
 			Meshes::MeshGroup meshGroup;
 			for (auto meshIndex = 0u; meshIndex < aiNode->mNumMeshes; meshIndex++) {
-				auto &mesh = loadResult.meshes[aiNode->mMeshes[meshIndex]];
-				auto meshEntity = EngineState->Registry.create();
-				EngineState->Registry.emplace<Meshes::MeshInfo *>(meshEntity, mesh.get());
+				auto meshEntity = loadResult.meshIdEntityMap[aiNode->mMeshes[meshIndex]];
 				meshGroup.meshEntities.push_back(meshEntity);
 			}
 			EngineState->Registry.emplace<Meshes::MeshGroup>(entity, meshGroup);
 		}
 
-		auto spatialIndex = EngineState->IndexGenerator.Generate<Spatials::Spatial>();
 		EngineState->Registry.emplace<Spatials::Spatial>(entity, spatial);
-		EngineState->Registry.emplace<Common::ComponentIndex<Spatials::Spatial >>(entity, spatialIndex);
 
 		Objects::Relationship relationship;
 		Objects::Relationship *previousRelationship = nullptr;
@@ -474,8 +474,6 @@ namespace drk::Loaders {
 				childRelationship.parent = entity;
 				previousSibling = childEntity;
 				previousRelationship = &childRelationship;
-
-				childIndex++;
 			}
 		}
 

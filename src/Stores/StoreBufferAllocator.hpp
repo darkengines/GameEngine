@@ -4,7 +4,7 @@
 #include "StoreBuffer.hpp"
 #include <vector>
 
-namespace drk::Graphics {
+namespace drk::Stores {
 	class StoreBufferAllocator {
 	protected:
 		const Devices::DeviceContext *DeviceContext;
@@ -54,7 +54,7 @@ namespace drk::Graphics {
 
 			DeviceContext->Device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
 
-			auto store = std::make_unique<StoreBuffer<T>>(itemCount, reinterpret_cast<T*>(mappedMemory));
+			auto store = std::make_unique<StoreBuffer<T>>(itemCount, bufferIndex, reinterpret_cast<T*>(mappedMemory));
 
 			return store;
 		}

@@ -2,7 +2,10 @@
 
 #include <cstdint>
 #include <vector>
+#include <functional>
 #include <entt/entity/registry.hpp>
+#include "../Stores/Store.hpp"
+#include "../Stores/StoreItem.hpp"
 
 namespace drk::Graphics {
 	template<typename TModel>
@@ -22,26 +25,29 @@ namespace drk::Graphics {
 			return RemainingCount;
 		};
 
-		template<typename TComponent>
+		template<typename ...TComponents>
 		static void Update(
 			entt::registry &registry,
 			uint32_t frameIndex,
-			std::function<void(const TComponent &component, TModel &model)> updater
+			std::function<void(TModel &model, const TComponents &... components)> updater
 		) {
-			auto entities = registry.view<TComponent, Graphics::StoreItem<TModel>, Graphics::SynchronizationState<TModel>>();
-			for (auto entity: entities) {
-				auto &component = registry.get<TComponent>(entity);
-				auto &storeItem = registry.get<Graphics::StoreItem<TModel>>(entity);
-				auto &synchronizationState = registry.get<Graphics::SynchronizationState<TModel>>(
-					entity
-				);
-
-				if (!synchronizationState.Update(frameIndex)) {
-					registry.remove<Graphics::SynchronizationState<TModel>>(entity);
+			auto entities =
+				registry.view<Stores::StoreItem<TModel>, SynchronizationState<TModel>, TComponents...>();
+			entities.each(
+				[&registry, &frameIndex, &updater](
+					const auto entity,
+					const auto &storeItem,
+					auto &synchronizationState,
+					const TComponents &...
+					components
+				) {
+					if (!synchronizationState.Update(frameIndex)) {
+						registry.remove<SynchronizationState<TModel >>(entity);
+					}
+					auto model = storeItem.frameStoreItems[frameIndex].pItem;
+					updater(*model, components...);
 				}
-				auto model = storeItem.frameStoreItems[frameIndex].pItem;
-				updater(component, *model);
-			}
+			);
 		}
 
 	protected:

@@ -10,6 +10,9 @@
 #include "../Textures/TextureSystem.hpp"
 #include "../Meshes/MeshSystem.hpp"
 #include "../Materials/MaterialSystem.hpp"
+#include "../Spatials/SpatialSystem.hpp"
+#include "../Objects/ObjectSystem.hpp"
+#include "../Cameras/CameraSystem.hpp"
 #include <memory>
 
 namespace drk::Applications {
@@ -26,13 +29,20 @@ namespace drk::Applications {
 		const std::unique_ptr<Textures::TextureSystem> TextureSystem;
 		const std::unique_ptr<Materials::MaterialSystem> MaterialSystem;
 		const std::unique_ptr<Meshes::MeshSystem> MeshSystem;
+		const std::unique_ptr<Spatials::SpatialSystem> SpatialSystem;
+		const std::unique_ptr<Objects::ObjectSystem> ObjectSystem;
+		const std::unique_ptr<Cameras::CameraSystem> CameraSystem;
 		const std::unique_ptr<Loaders::AssimpLoader> Loader;
 		const std::unique_ptr<Graphics::Graphics> Graphics;
 
 		static std::unique_ptr<GLFWwindow, void (*)(GLFWwindow *)> BuildWindow();
 		static std::unique_ptr<Devices::DeviceContext> BuildDeviceContext(GLFWwindow *window);
 		static std::unique_ptr<Graphics::Graphics>
-		BuildGraphics(GLFWwindow *window, const Devices::DeviceContext *deviceContext, Graphics::EngineState* engineState);
+		BuildGraphics(
+			GLFWwindow *window,
+			const Devices::DeviceContext *deviceContext,
+			Graphics::EngineState *engineState
+		);
 		static std::unique_ptr<Graphics::EngineState>
 		BuildEngineState(const Devices::DeviceContext *deviceContext);
 

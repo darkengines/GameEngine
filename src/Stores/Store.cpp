@@ -2,6 +2,6 @@
 
 #include "Store.hpp"
 
-namespace drk::Graphics {
+namespace drk::Stores {
 
 }

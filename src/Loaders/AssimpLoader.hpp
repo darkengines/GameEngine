@@ -39,7 +39,7 @@ namespace drk::Loaders {
 			const aiNode *aiNode,
 			const std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>> &lightMap,
 			const std::unordered_map<std::string, entt::entity> &cameraMap,
-			const LoadResult& loadResult
+			LoadResult& loadResult
 		);
 
 		static glm::vec3 &toVector(const aiVector3D &aiVector);

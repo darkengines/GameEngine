@@ -1,6 +1,7 @@
 #include "MeshSystem.hpp"
 #include "MeshInfo.hpp"
 #include "Models/Mesh.hpp"
+#include "../Materials/Models/Material.hpp"
 
 namespace drk::Meshes {
 
@@ -11,11 +12,19 @@ namespace drk::Meshes {
 		: DeviceContext(pContext), EngineState(pState) {}
 
 	void MeshSystem::UpdateStoreItem(const MeshInfo *mesh, Models::Mesh &meshModel) {
-		mesh->
+		auto materialEntity = mesh->materialEntity;
+		auto materialStoreItem = EngineState->Registry.get<Stores::StoreItem<Materials::Models::Material>>(
+			materialEntity
+		);
+		Graphics::Models::StoreItemLocation materialStoreItemLocation = {
+			.storeIndex = materialStoreItem.frameStoreItems[EngineState->FrameIndex].pStore->descriptorArrayElement,
+			.itemIndex = materialStoreItem.frameStoreItems[EngineState->FrameIndex].index
+		};
+		meshModel.materialItemLocation = materialStoreItemLocation;
 	}
 
 	void MeshSystem::UploadMeshes() {
-		auto meshEntities = EngineState->Registry.view<MeshInfo *>(entt::exclude<Devices::BufferView>);
+		auto meshEntities = EngineState->Registry.view<MeshInfo *>(entt::exclude<Mesh>);
 		std::vector<entt::entity> processedMeshEntities;
 		std::vector<Meshes::MeshInfo *> meshes;
 		meshEntities.each(
@@ -34,7 +43,7 @@ namespace drk::Meshes {
 	}
 
 	void MeshSystem::StoreMeshes() {
-		EngineState->Store<MeshInfo *, Models::Mesh>();
+		EngineState->Store<Models::Mesh, MeshInfo *>();
 	}
 
 	void MeshSystem::UpdateMeshes() {
@@ -42,9 +51,21 @@ namespace drk::Meshes {
 			EngineState->Registry,
 			EngineState->FrameIndex,
 			[=](
-				const MeshInfo *component,
-				Models::Mesh &model
+				Models::Mesh &model,
+				const MeshInfo *component
 			) { UpdateStoreItem(component, model); }
 		);
+	}
+
+	void MeshSystem::AddMeshSystem(entt::registry &registry) {
+		registry.on_construct<MeshInfo *>().connect<MeshSystem::OnMeshConstruct>();
+	}
+
+	void MeshSystem::RemoveMeshSystem(entt::registry &registry) {
+		registry.on_construct<MeshInfo *>().disconnect<MeshSystem::OnMeshConstruct>();
+	}
+
+	void MeshSystem::OnMeshConstruct(entt::registry &registry, entt::entity meshEntity) {
+		registry.emplace<Graphics::SynchronizationState<Models::Mesh>>(meshEntity, 2u);
 	}
 }

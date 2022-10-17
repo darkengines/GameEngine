@@ -11,6 +11,9 @@ namespace drk::Applications {
 		  TextureSystem(std::make_unique<Textures::TextureSystem>(DeviceContext.get(), EngineState.get())),
 		  MaterialSystem(std::make_unique<Materials::MaterialSystem>(DeviceContext.get(), EngineState.get())),
 		  MeshSystem(std::make_unique<Meshes::MeshSystem>(DeviceContext.get(), EngineState.get())),
+		  SpatialSystem(std::make_unique<Spatials::SpatialSystem>(DeviceContext.get(), EngineState.get())),
+		  ObjectSystem(std::make_unique<Objects::ObjectSystem>(DeviceContext.get(), EngineState.get())),
+		  CameraSystem(std::make_unique<Cameras::CameraSystem>(DeviceContext.get(), EngineState.get())),
 		  Loader(std::make_unique<Loaders::AssimpLoader>(EngineState.get())),
 		  Graphics(BuildGraphics(Window.get(), DeviceContext.get(), EngineState.get())) {
 		glfwSetWindowUserPointer(Window.get(), this);
@@ -80,12 +83,30 @@ namespace drk::Applications {
 
 	void Application::Run() {
 		std::cout << "Load" << std::endl;
+		MaterialSystem->AddMaterialSystem(EngineState->Registry);
+		MeshSystem->AddMeshSystem(EngineState->Registry);
+		SpatialSystem->AddSpatialSystem(EngineState->Registry);
+		ObjectSystem->AddObjectSystem(EngineState->Registry);
+		CameraSystem->AddCameraSystem(EngineState->Registry);
+
 		auto data = Loader->Load("H:/pubg.gltf");
 		std::cout << "Loaded" << std::endl;
 		TextureSystem->UploadTextures();
-		MaterialSystem->StoreMaterials();
-		MaterialSystem->UpdateMaterials();
 		MeshSystem->UploadMeshes();
+
+		MaterialSystem->StoreMaterials();
+		MeshSystem->StoreMeshes();
+		SpatialSystem->StoreSpatials();
+		ObjectSystem->StoreObjects();
+		CameraSystem->StoreCameras();
+
+		SpatialSystem->PropagateChanges();
+
+		MaterialSystem->UpdateMaterials();
+		MeshSystem->UpdateMeshes();
+		SpatialSystem->UpdateSpatials();
+		ObjectSystem->UpdateObjects();
+		CameraSystem->UpdateCameras();
 
 		while (!glfwWindowShouldClose(Window.get())) {
 			glfwPollEvents();

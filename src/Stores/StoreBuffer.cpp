@@ -1,5 +1,5 @@
 #include "StoreBuffer.hpp"
 
-namespace drk::Graphics {
+namespace drk::Stores {
 
 }

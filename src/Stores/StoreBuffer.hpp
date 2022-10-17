@@ -6,7 +6,7 @@
 #include "../Devices/BufferView.hpp"
 #include "../Common/IndexGenerator.hpp"
 
-namespace drk::Graphics {
+namespace drk::Stores {
 	class GenericStoreBuffer {
 	protected:
 		void *const pMappedMemory;
@@ -14,13 +14,13 @@ namespace drk::Graphics {
 		uint32_t nextIndex;
 		uint32_t maxIndexCount;
 		std::queue<uint32_t> availableIndices;
+		uint32_t descriptorArrayElement;
 
-		GenericStoreBuffer(uint32_t maxIndexCount, void *const pMappedMemory)
-			: maxIndexCount(maxIndexCount), pMappedMemory(pMappedMemory) {
+		GenericStoreBuffer(uint32_t maxIndexCount, uint32_t descriptorArrayElement, void *const pMappedMemory)
+			: maxIndexCount(maxIndexCount), descriptorArrayElement(descriptorArrayElement), pMappedMemory(pMappedMemory) {
 			nextIndex = 0;
 		}
 		~GenericStoreBuffer() = default;
-		uint32_t descriptorArrayElement;
 
 		bool hasAvailableIndex() {
 			return nextIndex < maxIndexCount || !availableIndices.empty();
@@ -58,8 +58,9 @@ namespace drk::Graphics {
 	template<class T>
 	class StoreBuffer : public GenericStoreBuffer {
 	public:
-		StoreBuffer(uint32_t maxIndexCount, T *const mappedMemory) : GenericStoreBuffer(
+		StoreBuffer(uint32_t maxIndexCount, uint32_t descriptorArrayElement, T *const mappedMemory) : GenericStoreBuffer(
 			maxIndexCount,
+			descriptorArrayElement,
 			reinterpret_cast<void *>(mappedMemory)) {
 		}
 

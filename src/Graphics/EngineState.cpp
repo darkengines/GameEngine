@@ -11,24 +11,36 @@ namespace drk::Graphics {
 	EngineState::EngineState(const Devices::DeviceContext *deviceContext) :
 		DeviceContext(deviceContext), Registry(entt::registry()), TextureSampler(CreateTextureSampler(DeviceContext)),
 		DescriptorSetLayoutCache(std::make_unique<Graphics::DescriptorSetLayoutCache>(DeviceContext->Device)),
-		DescriptorSetAllocator(std::make_unique<Graphics::DescriptorSetAllocator>(DeviceContext->Device)) {
-		FrameStates.push_back(
-			std::move<Graphics::FrameState>(
-				{
-					DeviceContext,
-					DescriptorSetLayoutCache.get(),
-					DescriptorSetAllocator.get()
-				}
-			));
-		FrameStates.push_back(
-			std::move<Graphics::FrameState>(
-				{
-					DeviceContext,
-					DescriptorSetLayoutCache.get(),
-					DescriptorSetAllocator.get()
-				}
-			));
+		DescriptorSetAllocator(std::make_unique<Graphics::DescriptorSetAllocator>(DeviceContext->Device)),
+		StorageBufferDescriptorSetLayout(CreateStorageBufferDescriptorSetLayout(DescriptorSetLayoutCache.get())),
+		DrawStorageBufferDescriptorSetLayout(CreateStorageBufferDescriptorSetLayout(DescriptorSetLayoutCache.get())) {
+
 		CreateTextureDescriptorSet();
+
+		DescriptorSetLayouts.push_back(TextureDescriptorSetLayout);
+		DescriptorSetLayouts.push_back(StorageBufferDescriptorSetLayout);
+		DescriptorSetLayouts.push_back(DrawStorageBufferDescriptorSetLayout);
+
+		FrameStates.push_back(
+			std::move<Graphics::FrameState>(
+				{
+					DeviceContext,
+					StorageBufferDescriptorSetLayout,
+					DrawStorageBufferDescriptorSetLayout,
+					DescriptorSetAllocator.get(),
+					TextureDescriptorSet
+				}
+			));
+		FrameStates.push_back(
+			std::move<Graphics::FrameState>(
+				{
+					DeviceContext,
+					StorageBufferDescriptorSetLayout,
+					DrawStorageBufferDescriptorSetLayout,
+					DescriptorSetAllocator.get(),
+					TextureDescriptorSet
+				}
+			));
 	}
 
 	Devices::Texture EngineState::UploadTexture(const Textures::ImageInfo *const imageInfo, Common::Index index) {
@@ -45,7 +57,7 @@ namespace drk::Graphics {
 			imageInfo->width * imageInfo->height * 4 * sizeof(unsigned char));
 
 		unsigned char *stagingMemory;
-		Devices::Device::mapBuffer(DeviceContext->Allocator, stagingBuffer, (void**)&stagingMemory);
+		Devices::Device::mapBuffer(DeviceContext->Allocator, stagingBuffer, (void **) &stagingMemory);
 		const auto textureFormat = Textures::ImageInfo::TextureTypeFormatMap[imageInfo->type];
 		//TODO: Use configurable mipLevels
 		const auto mipLevels = 1u;
@@ -263,5 +275,20 @@ namespace drk::Graphics {
 		}
 
 		return result;
+	}
+
+	vk::DescriptorSetLayout
+	EngineState::CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache *const descriptorSetLayoutCache) {
+		vk::DescriptorSetLayoutBinding binding = {
+			.binding = 0,
+			.descriptorType = vk::DescriptorType::eStorageBuffer,
+			.descriptorCount = 64,
+			.stageFlags = vk::ShaderStageFlagBits::eAll
+		};
+		vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+			.bindingCount = 1,
+			.pBindings = &binding
+		};
+		return descriptorSetLayoutCache->get(descriptorSetLayoutCreateInfo);
 	}
 }

@@ -16,7 +16,7 @@
 #include <entt/entt.hpp>
 #include <functional>
 #include <memory>
-#include "StoreItem.hpp"
+#include "../Stores/StoreItem.hpp"
 
 namespace drk::Graphics {
 	class EngineState {
@@ -26,6 +26,8 @@ namespace drk::Graphics {
 		std::unique_ptr<DescriptorSetLayoutCache> DescriptorSetLayoutCache;
 		std::unique_ptr<DescriptorSetAllocator> DescriptorSetAllocator;
 		static vk::Sampler CreateTextureSampler(const Devices::DeviceContext *const deviceContext);
+		static vk::DescriptorSetLayout
+		CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache *const descriptorSetLayoutCache);
 		void CreateTextureDescriptorSet();
 	public:
 		EngineState(const Devices::DeviceContext *deviceContext);
@@ -34,7 +36,11 @@ namespace drk::Graphics {
 		std::vector<FrameState> FrameStates;
 		std::vector<Devices::Buffer> Buffers;
 		std::vector<Devices::Texture> Textures;
+		std::vector<vk::DescriptorSetLayout> DescriptorSetLayouts;
 		vk::DescriptorSetLayout TextureDescriptorSetLayout;
+		vk::DescriptorSetLayout StorageBufferDescriptorSetLayout;
+		vk::DescriptorSetLayout DrawStorageBufferDescriptorSetLayout;
+
 		vk::DescriptorSet TextureDescriptorSet;
 		Common::IndexGenerator<uint32_t> IndexGenerator;
 		entt::registry Registry;
@@ -42,31 +48,28 @@ namespace drk::Graphics {
 		MeshUploadResult UploadMeshes(const std::vector<Meshes::MeshInfo *> &meshInfos);
 
 		template<typename T>
-		StoreItem<T> GetStoreItem() {
-			std::vector<StoreItemLocation<T>> frameStoreItems(FrameStates.size());
+		Stores::StoreItem<T> GetStoreItem() {
+			std::vector<Stores::StoreItemLocation<T>> frameStoreItems(FrameStates.size());
 			for (auto frameStateIndex = 0u; frameStateIndex < FrameStates.size(); frameStateIndex++) {
 				auto storeItemLocation = FrameStates[frameStateIndex].AddStoreItem<T>();
 				frameStoreItems[frameStateIndex] = storeItemLocation;
 			}
-			StoreItem<T> storeItem = {
+			Stores::StoreItem<T> storeItem = {
 				.frameStoreItems = std::move(frameStoreItems)
 			};
 
 			return storeItem;
 		}
 
-		template<typename TComponent, typename TModel>
+		template<typename TModel, typename ...TComponents>
 		void Store() {
-			auto entities = EngineState->Registry.view<TComponent>(entt::exclude<Graphics::StoreItem<TModel>>);
+			auto entities = Registry.view<TComponents...>(entt::exclude<Stores::StoreItem<TModel>>);
 			for (const auto entity : entities) {
-				auto storeItem = EngineState->GetStoreItem<TModel>();
-				EngineState->Registry.emplace<Graphics::StoreItem<TModel>>(
+				auto storeItem = GetStoreItem<TModel>();
+				Registry.emplace<Stores::StoreItem<TModel>>(
 					entity,
 					storeItem
 				);
-				EngineState->Registry.emplace<Graphics::SynchronizationState<TModel>>(
-					entity,
-					EngineState->FrameStates.size());
 			}
 		}
 	};

@@ -5,13 +5,17 @@
 #include <typeindex>
 #include <unordered_map>
 #include <vulkan/vulkan.hpp>
-#include "StoreBuffer.hpp"
+#include "../Stores/StoreBuffer.hpp"
 #include "../Devices/DeviceContext.hpp"
 #include "DescriptorSetLayoutCache.hpp"
 #include "DescriptorSetAllocator.hpp"
 #include "../Common/IndexGenerator.hpp"
 #include "../Devices/Device.hpp"
-#include "Store.hpp"
+#include "../Stores/Store.hpp"
+#include "Models/Draw.hpp"
+#include "../Stores/StoreBufferAllocator.hpp"
+#include "../Stores/Store.hpp"
+#include "../Stores/StoreItem.hpp"
 
 namespace drk::Graphics {
 	class FrameState {
@@ -20,39 +24,67 @@ namespace drk::Graphics {
 		static vk::CommandBuffer CreateCommandBuffer(const Devices::DeviceContext *deviceContext);
 		static vk::Fence CreateFence(const Devices::DeviceContext *deviceContext);
 		static vk::Semaphore CreateSemaphore(const Devices::DeviceContext *deviceContext);
-		static vk::DescriptorSetLayout CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache* const descriptorSetLayoutCache);
-		static vk::DescriptorSet CreateStorageBufferDescriptorSet(Graphics::DescriptorSetAllocator* const descriptorSetAllocator, const vk::DescriptorSetLayout& descriptorSetLayout);
-		DescriptorSetLayoutCache *DescriptorSetLayoutCache;
+		static vk::DescriptorSet CreateStorageBufferDescriptorSet(
+			Graphics::DescriptorSetAllocator *const descriptorSetAllocator,
+			const vk::DescriptorSetLayout &descriptorSetLayout
+		);
 		DescriptorSetAllocator *DescriptorSetAllocator;
 		vk::DescriptorSetLayout StorageBufferDescriptorSetLayout;
 		vk::DescriptorSet StorageBufferDescriptorSet;
-		std::unique_ptr<StoreBufferAllocator> StoreBufferAllocator;
+
+		vk::DescriptorSetLayout DrawStorageBufferDescriptorSetLayout;
+		vk::DescriptorSet DrawStorageBufferDescriptorSet;
+
+		std::unique_ptr<Stores::StoreBufferAllocator> StoreBufferAllocator;
+		std::unique_ptr<Stores::StoreBufferAllocator> DrawStoreBufferAllocator;
 	public:
 		FrameState(
 			const Devices::DeviceContext *deviceContext,
-			Graphics::DescriptorSetLayoutCache *descriptorSetLayoutCache,
-			Graphics::DescriptorSetAllocator *descriptorSetAllocator
+			const vk::DescriptorSetLayout &storageBufferDescriptorSetLayout,
+			const vk::DescriptorSetLayout &drawBufferDescriptorSetLayout,
+			Graphics::DescriptorSetAllocator *descriptorSetAllocator,
+			const vk::DescriptorSet &textureDescriptorSet
 		);
 		FrameState(FrameState &&frameState);
 		~FrameState();
 
 		template<typename T>
-		StoreItemLocation<T> AddStoreItem() {
+		Stores::StoreItemLocation<T> AddStoreItem() {
 			auto typeIndex = std::type_index(typeid(T));
-			auto keyValuePair = stores.find(typeIndex);
-			Store<T> *store = nullptr;
-			if (keyValuePair == stores.end()) {
-				auto pStore = std::make_unique<Store<T>>(StoreBufferAllocator.get());
+			auto keyValuePair = Stores.find(typeIndex);
+			Stores::Store<T> *store = nullptr;
+			if (keyValuePair == Stores.end()) {
+				auto pStore = std::make_unique<Stores::Store < T>>
+				(StoreBufferAllocator.get());
 				store = pStore.get();
-				stores.emplace(
+				Stores.emplace(
 					typeIndex,
 					std::move(pStore)
 				);
 			} else {
-				store = reinterpret_cast<Store<T> *>(keyValuePair->second.get());
+				store = reinterpret_cast<Stores::Store<T> *>(keyValuePair->second.get());
 			}
 			auto location = store->AddItem();
 			return location;
+		}
+
+		template<typename TModel>
+		Stores::Store<TModel> *GetStore() {
+			auto typeIndex = std::type_index(typeid(TModel));
+			auto keyValuePair = Stores.find(typeIndex);
+			Stores::Store<TModel> *store = nullptr;
+			if (keyValuePair == Stores.end()) {
+				auto pStore = std::make_unique<Stores::Store<TModel>>
+					(StoreBufferAllocator.get());
+				store = pStore.get();
+				Stores.emplace(
+					typeIndex,
+					std::move(pStore)
+				);
+			} else {
+				store = reinterpret_cast<Stores::Store<TModel> *>(keyValuePair->second.get());
+			}
+			return store;
 		}
 
 		vk::CommandBuffer CommandBuffer;
@@ -60,6 +92,9 @@ namespace drk::Graphics {
 		vk::Semaphore ImageReadySemaphore;
 		vk::Semaphore ImageRenderedSemaphore;
 
-		std::unordered_map<std::type_index, std::unique_ptr<GenericStore>> stores;
+		std::unordered_map<std::type_index, std::unique_ptr<Stores::GenericStore>> Stores;
+		std::unique_ptr<Stores::Store<Models::Draw>> DrawStore;
+		std::vector<vk::DescriptorSet> DescriptorSets;
+		vk::DescriptorSet TextureDescriptorSet;
 	};
 }

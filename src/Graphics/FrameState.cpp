@@ -4,45 +4,72 @@
 namespace drk::Graphics {
 
 	FrameState::FrameState(
-		const Devices::DeviceContext *deviceContext, Graphics::DescriptorSetLayoutCache *descriptorSetLayoutCache,
-		Graphics::DescriptorSetAllocator *descriptorSetAllocator
+		const Devices::DeviceContext *deviceContext,
+		const vk::DescriptorSetLayout &storageBufferDescriptorSetLayout,
+		const vk::DescriptorSetLayout &drawBufferDescriptorSetLayout,
+		Graphics::DescriptorSetAllocator *descriptorSetAllocator, const vk::DescriptorSet &textureDescriptorSet
 	) :
 		DeviceContext(deviceContext),
-		DescriptorSetLayoutCache(descriptorSetLayoutCache),
 		DescriptorSetAllocator(descriptorSetAllocator),
+		TextureDescriptorSet(textureDescriptorSet),
 		CommandBuffer(FrameState::CreateCommandBuffer(DeviceContext)),
 		Fence(FrameState::CreateFence(DeviceContext)),
 		ImageReadySemaphore(FrameState::CreateSemaphore(DeviceContext)),
 		ImageRenderedSemaphore(FrameState::CreateSemaphore(DeviceContext)),
-		StorageBufferDescriptorSetLayout(CreateStorageBufferDescriptorSetLayout(DescriptorSetLayoutCache)),
+		StorageBufferDescriptorSetLayout(storageBufferDescriptorSetLayout),
 		StorageBufferDescriptorSet(
 			CreateStorageBufferDescriptorSet(
 				DescriptorSetAllocator,
 				StorageBufferDescriptorSetLayout
 			)),
-		StoreBufferAllocator(
-			std::make_unique<Graphics::StoreBufferAllocator>(
+		DrawStorageBufferDescriptorSetLayout(drawBufferDescriptorSetLayout),
+		DrawStorageBufferDescriptorSet(
+			CreateStorageBufferDescriptorSet(
+				DescriptorSetAllocator,
+				DrawStorageBufferDescriptorSetLayout
+			)),
+		DrawStoreBufferAllocator(
+			std::make_unique<Stores::StoreBufferAllocator>(
 				DeviceContext,
 				StorageBufferDescriptorSet
-			)) {
+			)),
+		StoreBufferAllocator(
+			std::make_unique<Stores::StoreBufferAllocator>(
+				DeviceContext,
+				StorageBufferDescriptorSet
+			)),
+		DrawStore(std::make_unique<Stores::Store<Models::Draw>>(DrawStoreBufferAllocator.get())) {
+
+		DescriptorSets.push_back(TextureDescriptorSet);
+		DescriptorSets.push_back(StorageBufferDescriptorSet);
+		DescriptorSets.push_back(DrawStorageBufferDescriptorSet);
 	}
 
 	FrameState::FrameState(FrameState &&frameState) {
 		DeviceContext = frameState.DeviceContext;
-		DescriptorSetLayoutCache = frameState.DescriptorSetLayoutCache;
 		DescriptorSetAllocator = frameState.DescriptorSetAllocator;
 		CommandBuffer = frameState.CommandBuffer;
 		Fence = frameState.Fence;
 		ImageReadySemaphore = frameState.ImageReadySemaphore;
 		ImageRenderedSemaphore = frameState.ImageRenderedSemaphore;
-		stores = std::move(frameState.stores);
+		Stores = std::move(frameState.Stores);
 		StoreBufferAllocator = std::move(frameState.StoreBufferAllocator);
+		DrawStoreBufferAllocator = std::move(frameState.DrawStoreBufferAllocator);
+		DrawStore = std::move(frameState.DrawStore);
+		StorageBufferDescriptorSetLayout = frameState.StorageBufferDescriptorSetLayout;
+		DrawStorageBufferDescriptorSetLayout = frameState.DrawStorageBufferDescriptorSetLayout;
+		TextureDescriptorSet = frameState.TextureDescriptorSet;
+		DescriptorSets = std::move(frameState.DescriptorSets);
+		StorageBufferDescriptorSet = frameState.StorageBufferDescriptorSet;
+		DrawStorageBufferDescriptorSet = frameState.DrawStorageBufferDescriptorSet;
 
 		frameState.Fence = VK_NULL_HANDLE;
 		frameState.ImageReadySemaphore = VK_NULL_HANDLE;
 		frameState.ImageRenderedSemaphore = VK_NULL_HANDLE;
 		frameState.StorageBufferDescriptorSetLayout = VK_NULL_HANDLE;
 		frameState.StorageBufferDescriptorSet = VK_NULL_HANDLE;
+		frameState.DrawStorageBufferDescriptorSetLayout = VK_NULL_HANDLE;
+		frameState.DrawStorageBufferDescriptorSet = VK_NULL_HANDLE;
 	}
 
 	FrameState::~FrameState() {
@@ -79,22 +106,6 @@ namespace drk::Graphics {
 		};
 		auto commandBuffer = deviceContext->Device.allocateCommandBuffers(commandBufferAllocateInfo);
 		return commandBuffer[0];
-	}
-
-
-	vk::DescriptorSetLayout
-	FrameState::CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache *const descriptorSetLayoutCache) {
-		vk::DescriptorSetLayoutBinding binding = {
-			.binding = 0,
-			.descriptorType = vk::DescriptorType::eStorageBuffer,
-			.descriptorCount = 64,
-			.stageFlags = vk::ShaderStageFlagBits::eAll
-		};
-		vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
-			.bindingCount = 1,
-			.pBindings = &binding
-		};
-		return descriptorSetLayoutCache->get(descriptorSetLayoutCreateInfo);
 	}
 
 	vk::DescriptorSet FrameState::CreateStorageBufferDescriptorSet(

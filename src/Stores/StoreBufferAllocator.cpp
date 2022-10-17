@@ -5,7 +5,7 @@
 
 #include "StoreBufferAllocator.hpp"
 
-namespace drk::Graphics {
+namespace drk::Stores {
 	StoreBufferAllocator::StoreBufferAllocator(
 		const Devices::DeviceContext *deviceContext,
 		const vk::DescriptorSet &descriptorSet

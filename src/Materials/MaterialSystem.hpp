@@ -14,6 +14,9 @@ namespace drk::Materials {
 		void UpdateStoreItem(const Material *material, Models::Material &storedMaterial);
 	public:
 		MaterialSystem(Devices::DeviceContext *pContext, Graphics::EngineState *pState);
+		static void AddMaterialSystem(entt::registry &registry);
+		static void RemoveMaterialSystem(entt::registry &registry);
+		static void OnMaterialConstruct(entt::registry &registry, entt::entity materialEntity);
 		void UpdateMaterials();
 		void StoreMaterials();
 	};
