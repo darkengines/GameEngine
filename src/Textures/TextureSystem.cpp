@@ -14,7 +14,7 @@ namespace drk::Textures {
 			const auto[imageInfo, componentIndex] = EngineState->Registry.get<Textures::ImageInfo *, Common::ComponentIndex<ImageInfo>>(
 				imageEntity
 			);
-			const auto &texture = EngineState->UploadTexture(imageInfo, componentIndex.Index);
+			const auto &texture = EngineState->UploadTexture(imageInfo);
 			EngineState->Registry.emplace<Devices::Texture>(imageEntity, texture);
 		}
 	}

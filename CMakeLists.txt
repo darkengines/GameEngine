@@ -139,7 +139,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES})
+add_executable(drk ${HEADERS} ${SOURCES} src/Graphics/Models/Global.hpp src/Stores/TextureStore.cpp src/Stores/TextureStore.hpp)
 add_dependencies(drk Shaders)
 
 find_package(Vulkan REQUIRED)

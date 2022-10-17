@@ -16,6 +16,7 @@
 #include "../Stores/StoreBufferAllocator.hpp"
 #include "../Stores/Store.hpp"
 #include "../Stores/StoreItem.hpp"
+#include "Models/Global.hpp"
 
 namespace drk::Graphics {
 	class FrameState {
@@ -24,7 +25,12 @@ namespace drk::Graphics {
 		static vk::CommandBuffer CreateCommandBuffer(const Devices::DeviceContext *deviceContext);
 		static vk::Fence CreateFence(const Devices::DeviceContext *deviceContext);
 		static vk::Semaphore CreateSemaphore(const Devices::DeviceContext *deviceContext);
+		static Devices::Buffer CreateUnitormBuffer(const Devices::DeviceContext *deviceContext, const vk::DescriptorSet& descriptorSet, Models::Global** global);
 		static vk::DescriptorSet CreateStorageBufferDescriptorSet(
+			Graphics::DescriptorSetAllocator *const descriptorSetAllocator,
+			const vk::DescriptorSetLayout &descriptorSetLayout
+		);
+		static vk::DescriptorSet CreateGlobalUniformBufferDescriptorSet(
 			Graphics::DescriptorSetAllocator *const descriptorSetAllocator,
 			const vk::DescriptorSetLayout &descriptorSetLayout
 		);
@@ -35,13 +41,19 @@ namespace drk::Graphics {
 		vk::DescriptorSetLayout DrawStorageBufferDescriptorSetLayout;
 		vk::DescriptorSet DrawStorageBufferDescriptorSet;
 
+		vk::DescriptorSetLayout GlobalUniformBufferDescriptorSetLayout;
+		vk::DescriptorSet GlobalUniformBufferDescriptorSet;
+
 		std::unique_ptr<Stores::StoreBufferAllocator> StoreBufferAllocator;
 		std::unique_ptr<Stores::StoreBufferAllocator> DrawStoreBufferAllocator;
+
+		Devices::Buffer GlobalUniformBuffer;
 	public:
 		FrameState(
 			const Devices::DeviceContext *deviceContext,
 			const vk::DescriptorSetLayout &storageBufferDescriptorSetLayout,
 			const vk::DescriptorSetLayout &drawBufferDescriptorSetLayout,
+			const vk::DescriptorSetLayout &globalUniformBufferDescriptorSetLayout,
 			Graphics::DescriptorSetAllocator *descriptorSetAllocator,
 			const vk::DescriptorSet &textureDescriptorSet
 		);
@@ -96,5 +108,6 @@ namespace drk::Graphics {
 		std::unique_ptr<Stores::Store<Models::Draw>> DrawStore;
 		std::vector<vk::DescriptorSet> DescriptorSets;
 		vk::DescriptorSet TextureDescriptorSet;
+		Models::Global* Global;
 	};
 }

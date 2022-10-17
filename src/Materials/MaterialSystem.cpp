@@ -31,34 +31,34 @@ namespace drk::Materials {
 		storedMaterial.hasMetallicRoughnessMap = hasMetallicRoughnessMap;
 
 		if (hasBaseColorTexture) {
-			storedMaterial.baseColorTextureIndex = EngineState->Registry.get<Common::ComponentIndex<Textures::ImageInfo>>(
+			storedMaterial.baseColorTextureIndex = EngineState->Registry.get<Devices::Texture>(
 				material->baseColorTexture
-			);
+			).index;
 		}
 		if (hasAmbientColorTexture) {
-			storedMaterial.ambientColorTextureIndex = EngineState->Registry.get<Common::ComponentIndex<Textures::ImageInfo>>(
+			storedMaterial.ambientColorTextureIndex = EngineState->Registry.get<Devices::Texture>(
 				material->ambientColorTexture
-			);
+			).index;
 		}
 		if (hasDiffuseColorTexture) {
-			storedMaterial.diffuseColorTextureIndex = EngineState->Registry.get<Common::ComponentIndex<Textures::ImageInfo>>(
+			storedMaterial.diffuseColorTextureIndex = EngineState->Registry.get<Devices::Texture>(
 				material->diffuseColorTexture
-			);
+			).index;
 		}
 		if (hasSpecularColorTexture) {
-			storedMaterial.specularColorTextureIndex = EngineState->Registry.get<Common::ComponentIndex<Textures::ImageInfo>>(
+			storedMaterial.specularColorTextureIndex = EngineState->Registry.get<Devices::Texture>(
 				material->specularColorTexture
-			);
+			).index;
 		}
 		if (hasNormalMap) {
-			storedMaterial.normalMapIndex = EngineState->Registry.get<Common::ComponentIndex<Textures::ImageInfo>>(
+			storedMaterial.normalMapIndex = EngineState->Registry.get<Devices::Texture>(
 				material->normalMap
-			);
+			).index;
 		}
 		if (hasMetallicRoughnessMap) {
-			storedMaterial.metallicRoughnessTextureIndex = EngineState->Registry.get<Common::ComponentIndex<Textures::ImageInfo>>(
+			storedMaterial.metallicRoughnessTextureIndex = EngineState->Registry.get<Devices::Texture>(
 				material->metallicRoughnessTexture
-			);
+			).index;
 		}
 	}
 

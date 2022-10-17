@@ -17,6 +17,7 @@
 #include <functional>
 #include <memory>
 #include "../Stores/StoreItem.hpp"
+#include "../Stores/TextureStore.hpp"
 
 namespace drk::Graphics {
 	class EngineState {
@@ -25,9 +26,12 @@ namespace drk::Graphics {
 		const vk::Sampler TextureSampler;
 		std::unique_ptr<DescriptorSetLayoutCache> DescriptorSetLayoutCache;
 		std::unique_ptr<DescriptorSetAllocator> DescriptorSetAllocator;
+
 		static vk::Sampler CreateTextureSampler(const Devices::DeviceContext *const deviceContext);
 		static vk::DescriptorSetLayout
 		CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache *const descriptorSetLayoutCache);
+		static vk::DescriptorSetLayout
+		CreateGlobalUniformBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache *const descriptorSetLayoutCache);
 		void CreateTextureDescriptorSet();
 	public:
 		EngineState(const Devices::DeviceContext *deviceContext);
@@ -35,16 +39,17 @@ namespace drk::Graphics {
 		uint32_t FrameIndex = 0;
 		std::vector<FrameState> FrameStates;
 		std::vector<Devices::Buffer> Buffers;
-		std::vector<Devices::Texture> Textures;
 		std::vector<vk::DescriptorSetLayout> DescriptorSetLayouts;
 		vk::DescriptorSetLayout TextureDescriptorSetLayout;
 		vk::DescriptorSetLayout StorageBufferDescriptorSetLayout;
 		vk::DescriptorSetLayout DrawStorageBufferDescriptorSetLayout;
-
+		vk::DescriptorSetLayout GlobalUniformBufferDescriptorSetLayout;
 		vk::DescriptorSet TextureDescriptorSet;
-		Common::IndexGenerator<uint32_t> IndexGenerator;
 		entt::registry Registry;
-		Devices::Texture UploadTexture(const Textures::ImageInfo *const imageInfo, Common::Index index);
+		std::unique_ptr<Stores::TextureStore> TextureStore;
+		Common::IndexGenerator<uint32_t> IndexGenerator;
+		Devices::Texture UploadTexture(const Textures::ImageInfo *const imageInfo);
+		std::vector<Devices::Texture> UploadTextures(std::vector<const Textures::ImageInfo *> imageInfos);
 		MeshUploadResult UploadMeshes(const std::vector<Meshes::MeshInfo *> &meshInfos);
 
 		template<typename T>

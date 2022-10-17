@@ -18,13 +18,13 @@ namespace drk::Common {
 		template<typename T>
 		ComponentIndex<T, TIndex> Generate() {
 			const auto typeIndex = std::type_index(typeid(T));
-			const auto indexationPair = Indexations.find(typeIndex);
+			const auto& indexationPair = Indexations.find(typeIndex);
 			if (indexationPair == Indexations.end()) {
 				Indexation<TIndex> indexation = {.NextIndex = 1u, .AvailableIndices = {}};
 				Indexations[typeIndex] = indexation;
 				return ComponentIndex<T, TIndex>(0);
 			}
-			auto indexation = indexationPair->second;
+			auto& indexation = indexationPair->second;
 			if (!indexation.AvailableIndices.empty()) {
 				auto index = indexation.AvailableIndices.front();
 				indexation.AvailableIndices.pop();

@@ -1,6 +1,8 @@
 #include "Application.hpp"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
+#include "../Cameras/Models/Camera.hpp"
+#include "../Stores/StoreItem.hpp"
 #include <iostream>
 
 namespace drk::Applications {
@@ -101,6 +103,22 @@ namespace drk::Applications {
 		CameraSystem->StoreCameras();
 
 		SpatialSystem->PropagateChanges();
+
+		auto cameraEntities = EngineState->Registry.view<Stores::StoreItem<Cameras::Models::Camera>>();
+		auto firstCameraEntity = cameraEntities[0];
+		const auto &camera = EngineState->Registry.get<Stores::StoreItem<Cameras::Models::Camera>>(firstCameraEntity);
+
+		Graphics::Models::StoreItemLocation cameraItemLocation1 = {
+			.storeIndex = camera.frameStoreItems[0].pStore->descriptorArrayElement,
+			.itemIndex = camera.frameStoreItems[0].index
+		};
+		EngineState->FrameStates[0].Global->cameraItemLocation = cameraItemLocation1;
+
+		Graphics::Models::StoreItemLocation cameraItemLocation2 = {
+			.storeIndex = camera.frameStoreItems[1].pStore->descriptorArrayElement,
+			.itemIndex = camera.frameStoreItems[1].index
+		};
+		EngineState->FrameStates[1].Global->cameraItemLocation = cameraItemLocation2;
 
 		while (!glfwWindowShouldClose(Window.get())) {
 			glfwPollEvents();
