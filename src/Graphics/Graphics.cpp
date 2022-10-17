@@ -674,12 +674,12 @@ namespace drk::Graphics {
 						.meshInfo = meshInfo,
 						.mesh = mesh,
 						.meshStoreItem = {
-							.storeIndex = 69,
-							.itemIndex = 70
+							.storeIndex = meshStoreItemLocation.pStore->descriptorArrayElement,
+							.itemIndex = meshStoreItemLocation.index
 						},
 						.objectLocation = {
-							.storeIndex = 1337,
-							.itemIndex = 45
+							.storeIndex = objectStoreItemLocation.pStore->descriptorArrayElement,
+							.itemIndex = objectStoreItemLocation.index
 						}
 					};
 					draws.push_back(draw);
