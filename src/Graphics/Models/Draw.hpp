@@ -5,8 +5,7 @@
 
 namespace drk::Graphics::Models {
 	struct Draw {
-		StoreItemLocation meshItemLocation;
-		StoreItemLocation objectItemLocation;
-		uint32_t hasAlpha;
+		alignas(8) StoreItemLocation meshItemLocation;
+		alignas(8) StoreItemLocation objectItemLocation;
 	};
 }

@@ -279,6 +279,15 @@ namespace drk::Graphics {
 
 	vk::DescriptorSetLayout
 	EngineState::CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache *const descriptorSetLayoutCache) {
+
+		auto bindFlags =
+			vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateAfterBind;
+
+		vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo = {
+			.bindingCount = 1u,
+			.pBindingFlags = &bindFlags
+		};
+
 		vk::DescriptorSetLayoutBinding binding = {
 			.binding = 0,
 			.descriptorType = vk::DescriptorType::eStorageBuffer,
@@ -286,9 +295,12 @@ namespace drk::Graphics {
 			.stageFlags = vk::ShaderStageFlagBits::eAll
 		};
 		vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+			.pNext = &extendedInfo,
+			.flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool,
 			.bindingCount = 1,
-			.pBindings = &binding
+			.pBindings = &binding,
 		};
+
 		return descriptorSetLayoutCache->get(descriptorSetLayoutCreateInfo);
 	}
 }

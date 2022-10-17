@@ -149,6 +149,7 @@ namespace drk::Devices {
 
 		vk::PhysicalDeviceDescriptorIndexingFeatures indexingFeatures = {
 			.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE,
+			.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE,
 			.descriptorBindingPartiallyBound = VK_TRUE,
 			.runtimeDescriptorArray = VK_TRUE,
 		};

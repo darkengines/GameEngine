@@ -22,7 +22,6 @@ namespace drk::Spatials {
 	}
 
 	void SpatialSystem::OnSpatialConstruct(entt::registry &registry, entt::entity spatialEntity) {
-		registry.emplace<Graphics::SynchronizationState<Models::Spatial>>(spatialEntity, 2u);
 		registry.emplace<Objects::Dirty<Spatial>>(spatialEntity);
 	}
 

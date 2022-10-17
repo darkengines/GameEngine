@@ -16,11 +16,9 @@ namespace drk::Meshes {
 		auto materialStoreItem = EngineState->Registry.get<Stores::StoreItem<Materials::Models::Material>>(
 			materialEntity
 		);
-		Graphics::Models::StoreItemLocation materialStoreItemLocation = {
-			.storeIndex = materialStoreItem.frameStoreItems[EngineState->FrameIndex].pStore->descriptorArrayElement,
-			.itemIndex = materialStoreItem.frameStoreItems[EngineState->FrameIndex].index
-		};
-		meshModel.materialItemLocation = materialStoreItemLocation;
+
+		meshModel.materialItemLocation.storeIndex = materialStoreItem.frameStoreItems[EngineState->FrameIndex].pStore->descriptorArrayElement;
+		meshModel.materialItemLocation.itemIndex = materialStoreItem.frameStoreItems[EngineState->FrameIndex].index;
 	}
 
 	void MeshSystem::UploadMeshes() {
@@ -66,6 +64,6 @@ namespace drk::Meshes {
 	}
 
 	void MeshSystem::OnMeshConstruct(entt::registry &registry, entt::entity meshEntity) {
-		registry.emplace<Graphics::SynchronizationState<Models::Mesh>>(meshEntity, 2u);
+
 	}
 }

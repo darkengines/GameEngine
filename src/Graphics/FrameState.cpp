@@ -31,7 +31,7 @@ namespace drk::Graphics {
 		DrawStoreBufferAllocator(
 			std::make_unique<Stores::StoreBufferAllocator>(
 				DeviceContext,
-				StorageBufferDescriptorSet
+				DrawStorageBufferDescriptorSet
 			)),
 		StoreBufferAllocator(
 			std::make_unique<Stores::StoreBufferAllocator>(

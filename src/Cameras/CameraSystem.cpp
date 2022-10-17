@@ -46,6 +46,6 @@ namespace drk::Cameras {
 	}
 
 	void CameraSystem::OnCameraConstruct(entt::registry &registry, entt::entity cameraEntity) {
-		registry.emplace<Graphics::SynchronizationState<Models::Camera>>(cameraEntity, 2u);
+
 	}
 }

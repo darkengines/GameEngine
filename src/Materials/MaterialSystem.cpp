@@ -87,6 +87,6 @@ namespace drk::Materials {
 	}
 
 	void MaterialSystem::OnMaterialConstruct(entt::registry &registry, entt::entity materialEntity) {
-		registry.emplace<Graphics::SynchronizationState<Models::Material>>(materialEntity, 2u);
+
 	}
 }

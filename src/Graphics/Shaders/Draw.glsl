@@ -3,5 +3,4 @@
 struct Draw {
     StoreItemLocation meshItemLocation;
     StoreItemLocation objectItemLocation;
-    uint hasAlpha;
 };

@@ -1,6 +1,5 @@
-#include "../../Geometries/Shaders/AxisAlignedBoundingBox.glsl"
+#include "../../Graphics/Shaders/StoreItemLocation.glsl"
 
 struct Mesh {
-	AxisAlignedBoundingBox axisAlignedBoundingBox;
-	uint materialIndex;
+	StoreItemLocation materialItemLocation;
 };

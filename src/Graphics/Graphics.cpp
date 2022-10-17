@@ -746,10 +746,12 @@ namespace drk::Graphics {
 			const Models::Draw drawModel = {
 				.meshItemLocation = draw.meshStoreItem,
 				.objectItemLocation = draw.objectLocation,
-				.hasAlpha = 0
 			};
 
-			*drawItemLocation.pItem = drawModel;
+			drawItemLocation.pItem->meshItemLocation.storeIndex = drawModel.meshItemLocation.storeIndex;
+			drawItemLocation.pItem->meshItemLocation.itemIndex = drawModel.meshItemLocation.itemIndex;
+			drawItemLocation.pItem->objectItemLocation.storeIndex = drawModel.objectItemLocation.storeIndex;
+			drawItemLocation.pItem->objectItemLocation.itemIndex = drawModel.objectItemLocation.itemIndex;
 
 			previousDraw = &draw;
 		}

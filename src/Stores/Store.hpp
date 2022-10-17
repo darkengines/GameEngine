@@ -139,6 +139,7 @@ namespace drk::Stores {
 			}
 
 			NextLocation.index = NextLocation.pStore->add();
+			NextLocation.pItem = &NextLocation.pStore->mappedMemory()[NextLocation.index];
 
 			StoreItemLocation<T> storeItemLocation = {
 				.pStore = reinterpret_cast<StoreBuffer<T> *>(location.pStore),

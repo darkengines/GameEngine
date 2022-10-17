@@ -70,6 +70,7 @@ namespace drk::Graphics {
 					entity,
 					storeItem
 				);
+				Registry.emplace<Graphics::SynchronizationState<TModel>>(entity, 2u);
 			}
 		}
 	};

@@ -102,12 +102,6 @@ namespace drk::Applications {
 
 		SpatialSystem->PropagateChanges();
 
-		MaterialSystem->UpdateMaterials();
-		MeshSystem->UpdateMeshes();
-		SpatialSystem->UpdateSpatials();
-		ObjectSystem->UpdateObjects();
-		CameraSystem->UpdateCameras();
-
 		while (!glfwWindowShouldClose(Window.get())) {
 			glfwPollEvents();
 
@@ -116,6 +110,12 @@ namespace drk::Applications {
 			ImGui::NewFrame();
 			ImGui::ShowDemoWindow();
 			ImGui::EndFrame();
+
+			MaterialSystem->UpdateMaterials();
+			MeshSystem->UpdateMeshes();
+			SpatialSystem->UpdateSpatials();
+			ObjectSystem->UpdateObjects();
+			CameraSystem->UpdateCameras();
 
 			Graphics->Render();
 		}

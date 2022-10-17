@@ -13,8 +13,7 @@ namespace drk::Objects {
 		Devices::DeviceContext *DeviceContext;
 		Graphics::EngineState *EngineState;
 		void UpdateStoreItem(
-			Models::Object &objectModel, const Stores::StoreItem<Spatials::Models::Spatial> &spatialStoreItem,
-			const Stores::StoreItem<Meshes::Models::Mesh> &meshStoreItem
+			Models::Object &objectModel, const Stores::StoreItem<Spatials::Models::Spatial> &spatialStoreItem
 		);
 
 	public:
