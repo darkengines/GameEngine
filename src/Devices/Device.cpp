@@ -202,7 +202,14 @@ namespace drk::Devices {
 			.apiVersion = VK_API_VERSION_1_3,
 		};
 
+		const auto enabledValidationFeature = vk::ValidationFeatureEnableEXT::eGpuAssisted;
+		vk::ValidationFeaturesEXT validationFeaturesEXT = {
+			.enabledValidationFeatureCount = 1,
+			.pEnabledValidationFeatures = &enabledValidationFeature
+		};
+
 		vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreationInfo = {
+			//.pNext = &validationFeaturesEXT,
 			.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose
 							   | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo
 							   | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning

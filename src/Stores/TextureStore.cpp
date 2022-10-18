@@ -149,7 +149,7 @@ namespace drk::Stores {
 		vk::WriteDescriptorSet write = {
 			.dstSet = DescriptorSet,
 			.dstBinding = 0,
-			.dstArrayElement = static_cast<uint32_t>(Textures.size()),
+			.dstArrayElement = static_cast<uint32_t>(textureIndexOffset),
 			.descriptorCount = static_cast<uint32_t>(descriptorImageInfos.size()),
 			.descriptorType = vk::DescriptorType::eCombinedImageSampler,
 			.pImageInfo = descriptorImageInfos.data(),

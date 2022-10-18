@@ -49,10 +49,9 @@ void main() {
     Spatial spatial = spatialBuffer[object.spatialItemLocation.storeIndex].spatials[object.spatialItemLocation.itemIndex];
     Camera camera = cameraBuffer[globalBuffer.global.cameraItemLocation.storeIndex].cameras[globalBuffer.global.cameraItemLocation.itemIndex];
 
-    vec4 normalMap = vec4(texture(textures[material.normalMapIndex], point.texCoord).xyz, 0) * 2.0f - 1.0;
-    vec4 metallicRoughnessMap = vec4(texture(textures[material.metallicRoughnessTextureIndex], point.texCoord).xyz, 0);
     vec4 normal = point.normal;
     if (material.hasNormalMap) {
+        vec4 normalMap = vec4(texture(textures[material.normalMapIndex], point.texCoord).xyz, 0) * 2.0f - 1.0;
         normal = vec4(normalize(mat3(point.TBN) * normalMap.xyz), 0);
     }
 
@@ -60,6 +59,7 @@ void main() {
     float metallic = 0.0;
 
     if (material.hasMetallicRoughnessTexture) {
+        vec4 metallicRoughnessMap = vec4(texture(textures[material.metallicRoughnessTextureIndex], point.texCoord).xyz, 0);
         roughness = metallicRoughnessMap.g;
         metallic = metallicRoughnessMap.r;
     }
