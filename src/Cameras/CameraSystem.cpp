@@ -15,26 +15,24 @@ namespace drk::Cameras {
 			EngineState->FrameIndex,
 			[=](
 				Models::Camera &model,
-				const Camera& component
+				const Camera &component
 			) { UpdateStoreItem(component, model); }
 		);
 	}
 
-	void CameraSystem::UpdateStoreItem(const Camera& camera, Models::Camera &cameraModel) {
-		cameraModel = {
-			.perspective = camera.perspective,
-			.view = camera.view,
-			.relativePosition = camera.relativePosition,
-			.relativeFront = camera.relativeFront,
-			.relativeUp = camera.relativeUp,
-			.absolutePosition = camera.absolutePosition,
-			.absoluteFront = camera.absoluteFront,
-			.absoluteUp = camera.absoluteUp,
-			.verticalFov = camera.verticalFov,
-			.aspectRatio = camera.aspectRatio,
-			.near = camera.near,
-			.far = camera.far,
-		};
+	void CameraSystem::UpdateStoreItem(const Camera &camera, Models::Camera &cameraModel) {
+		cameraModel.perspective = camera.perspective;
+		cameraModel.view = camera.view;
+		cameraModel.relativePosition = camera.relativePosition;
+		cameraModel.relativeFront = camera.relativeFront;
+		cameraModel.relativeUp = camera.relativeUp;
+		cameraModel.absolutePosition = camera.absolutePosition;
+		cameraModel.absoluteFront = camera.absoluteFront;
+		cameraModel.absoluteUp = camera.absoluteUp;
+		cameraModel.verticalFov = camera.verticalFov;
+		cameraModel.aspectRatio = camera.aspectRatio;
+		cameraModel.near = camera.near;
+		cameraModel.far = camera.far;
 	}
 
 	void CameraSystem::AddCameraSystem(entt::registry &registry) {

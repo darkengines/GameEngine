@@ -17,6 +17,16 @@ namespace drk::Graphics {
 			}
 		};
 
+		void Reset() {
+			for (auto storeIndex = 0u; storeIndex < Stores.size(); storeIndex++) {
+				Stores[storeIndex] = false;
+			}
+		}
+
+		bool ShouldUpdate(uint32_t frameIndex) {
+			return !Stores[frameIndex];
+		}
+
 		bool Update(uint32_t index) {
 			if (!Stores[index]) {
 				Stores[index] = true;

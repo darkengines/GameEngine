@@ -13,6 +13,7 @@
 #include "../Spatials/SpatialSystem.hpp"
 #include "../Objects/ObjectSystem.hpp"
 #include "../Cameras/CameraSystem.hpp"
+#include "../Graphics/GlobalSystem.hpp"
 #include <memory>
 
 namespace drk::Applications {
@@ -32,6 +33,7 @@ namespace drk::Applications {
 		const std::unique_ptr<Spatials::SpatialSystem> SpatialSystem;
 		const std::unique_ptr<Objects::ObjectSystem> ObjectSystem;
 		const std::unique_ptr<Cameras::CameraSystem> CameraSystem;
+		const std::unique_ptr<Graphics::GlobalSystem> GlobalSystem;
 		const std::unique_ptr<Loaders::AssimpLoader> Loader;
 		const std::unique_ptr<Graphics::Graphics> Graphics;
 

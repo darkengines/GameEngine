@@ -7,5 +7,4 @@ struct Spatial {
 	vec4 absolutePosition;
 	mat4 relativeModel;
 	mat4 absoluteModel;
-	bool hasParentModel;
 };

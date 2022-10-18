@@ -26,16 +26,14 @@ namespace drk::Spatials {
 	}
 
 	void SpatialSystem::UpdateStoreItem(const Spatial &spatial, Models::Spatial &spatialModel) {
-		spatialModel = {
-			.relativeScale = spatial.relativeScale,
-			.relativeRotation = spatial.relativeRotation,
-			.relativePosition = spatial.relativePosition,
-			.absoluteScale = spatial.absoluteScale,
-			.absoluteRotation = spatial.absoluteRotation,
-			.absolutePosition = spatial.absolutePosition,
-			.relativeModel = spatial.relativeModel,
-			.absoluteModel = spatial.absoluteModel
-		};
+		spatialModel.relativeScale = spatial.relativeScale;
+		spatialModel.relativeRotation = spatial.relativeRotation;
+		spatialModel.relativePosition = spatial.relativePosition;
+		spatialModel.absoluteScale = spatial.absoluteScale;
+		spatialModel.absoluteRotation = spatial.absoluteRotation;
+		spatialModel.absolutePosition = spatial.absolutePosition;
+		spatialModel.relativeModel = spatial.relativeModel;
+		spatialModel.absoluteModel = spatial.absoluteModel;
 	}
 
 	void SpatialSystem::StoreSpatials() {

@@ -5,6 +5,6 @@
 
 namespace drk::Graphics::Models {
 	struct Global {
-		StoreItemLocation cameraItemLocation;
+		alignas(16) StoreItemLocation cameraItemLocation;
 	};
 }

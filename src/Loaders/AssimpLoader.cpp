@@ -346,13 +346,15 @@ namespace drk::Loaders {
 			auto relativeFront = relativeLookAt - relativePosition;
 			auto relativeUp = glm::vec4{aiCamera->mUp.x, aiCamera->mUp.y, aiCamera->mUp.z, 1.0f};
 			auto cameraIndex = EngineState->IndexGenerator.Generate<Cameras::Camera>();
+			auto perspective = glm::perspectiveZO(
+				aiCamera->mHorizontalFOV,
+				aiCamera->mAspect,
+				aiCamera->mClipPlaneNear,
+				aiCamera->mClipPlaneFar
+			);
+			perspective[1][1] *= -1.0f;
 			Cameras::Camera camera{
-				glm::perspective(
-					aiCamera->mHorizontalFOV,
-					aiCamera->mAspect,
-					aiCamera->mClipPlaneNear,
-					aiCamera->mClipPlaneFar
-				),
+				perspective,
 				glm::lookAt(
 					glm::make_vec3(relativePosition),
 					glm::make_vec3(relativeLookAt),
