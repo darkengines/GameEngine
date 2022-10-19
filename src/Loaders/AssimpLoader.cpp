@@ -332,19 +332,18 @@ namespace drk::Loaders {
 
 	void AssimpLoader::loadCameras(
 		std::span<aiCamera *> aiCameras,
-		std::unordered_map<std::string, entt::entity> cameraNameMap
+		std::unordered_map<std::string, entt::entity>& cameraNameMap
 	) {
 		for (auto aiCamera : aiCameras) {
 			auto cameraName = std::string(aiCamera->mName.C_Str());
-			auto relativeLookAt = glm::vec4{aiCamera->mLookAt.x, aiCamera->mLookAt.y, aiCamera->mLookAt.z, 1.0f};
 			auto relativePosition = glm::vec4{
 				aiCamera->mPosition.x,
 				aiCamera->mPosition.y,
 				aiCamera->mPosition.z,
 				1.0f
 			};
-			auto relativeFront = relativeLookAt - relativePosition;
-			auto relativeUp = glm::vec4{aiCamera->mUp.x, aiCamera->mUp.y, aiCamera->mUp.z, 1.0f};
+			auto relativeFront = glm::vec4{aiCamera->mLookAt.x, aiCamera->mLookAt.y, aiCamera->mLookAt.z, 0.0f};
+			auto relativeUp = glm::vec4{aiCamera->mUp.x, aiCamera->mUp.y, aiCamera->mUp.z, 0.0f};
 			auto cameraIndex = EngineState->IndexGenerator.Generate<Cameras::Camera>();
 			auto perspective = glm::perspectiveZO(
 				aiCamera->mHorizontalFOV,
@@ -357,7 +356,7 @@ namespace drk::Loaders {
 				perspective,
 				glm::lookAt(
 					glm::make_vec3(relativePosition),
-					glm::make_vec3(relativeLookAt),
+					glm::make_vec3(relativePosition + relativeFront),
 					glm::make_vec3(relativeUp)),
 				relativePosition,
 				relativeFront,
@@ -433,12 +432,6 @@ namespace drk::Loaders {
 		auto cameraEntity = cameraMap.find(nodeName);
 		if (cameraEntity != cameraMap.end()) {
 			entity = cameraEntity->second;
-			auto camera = EngineState->Registry.get<Cameras::Camera>(entity);
-			spatial.relativeRotation = spatial.relativeRotation * glm::quatLookAt(
-				glm::vec3(camera.relativeFront),
-				glm::vec3(camera.relativeUp)
-			);
-			spatial.relativePosition = spatial.relativePosition + camera.relativePosition;
 		}
 
 		if (entity == entt::null) entity = EngineState->Registry.create();
@@ -507,4 +500,4 @@ namespace drk::Loaders {
 	};
 
 	glm::vec3 &AssimpLoader::toVector(const aiVector3D &aiVector) { return (*(glm::vec3 *) &aiVector); }
-}
+}                                                                                                                                                                                                                                                                                                                   

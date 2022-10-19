@@ -33,7 +33,7 @@ namespace drk::Loaders {
 		);
 		void loadCameras(
 			std::span<aiCamera *> aiCameras,
-			std::unordered_map<std::string, entt::entity> cameraNameMap
+			std::unordered_map<std::string, entt::entity>& cameraNameMap
 		);
 		entt::entity loadNode(
 			const aiNode *aiNode,

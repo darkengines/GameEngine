@@ -21,5 +21,6 @@ namespace drk::Cameras {
 		void UpdateStoreItem(const Camera &camera, Models::Camera &cameraModel);
 		void StoreCameras();
 		void UpdateCameras();
+		void ProcessDirtyItems();
 	};
 }

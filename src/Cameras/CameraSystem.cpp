@@ -1,4 +1,8 @@
 #include "CameraSystem.hpp"
+#include "../Objects/Dirty.hpp"
+#include "../Spatials/Spatial.hpp"
+#include <entt/entt.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace drk::Cameras {
 
@@ -33,6 +37,39 @@ namespace drk::Cameras {
 		cameraModel.aspectRatio = camera.aspectRatio;
 		cameraModel.near = camera.near;
 		cameraModel.far = camera.far;
+	}
+
+	void CameraSystem::ProcessDirtyItems() {
+		auto dirtyCameraView = EngineState->Registry.view<Camera, Spatials::Spatial, Objects::Dirty<Spatials::Spatial>>();
+		dirtyCameraView.each(
+			[&](
+				entt::entity cameraEntity,
+				Camera &camera,
+				Spatials::Spatial &spatial,
+				Objects::Dirty<Spatials::Spatial> &dirty
+			) {
+				camera.absolutePosition = spatial.absolutePosition;
+				auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
+				camera.absoluteFront =  absoluteRotation * camera.relativeFront;
+				camera.absoluteUp =  absoluteRotation * camera.relativeUp;
+				camera.view = glm::lookAt(
+					glm::make_vec3(camera.absolutePosition),
+					glm::make_vec3(camera.absolutePosition + camera.absoluteFront),
+					glm::make_vec3(camera.absoluteUp));
+				camera.perspective = glm::perspectiveZO(
+					camera.verticalFov,
+					camera.aspectRatio,
+					camera.near,
+					camera.far
+				);
+				camera.perspective[1][1] *= -1.0f;
+
+				EngineState->Registry.emplace_or_replace<Graphics::SynchronizationState<Models::Camera>>(
+					cameraEntity,
+					static_cast<uint32_t>(EngineState->FrameStates.size())
+				);
+			}
+		);
 	}
 
 	void CameraSystem::AddCameraSystem(entt::registry &registry) {

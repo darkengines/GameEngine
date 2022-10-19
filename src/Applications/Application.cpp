@@ -1,4 +1,5 @@
 #include "Application.hpp"
+#include "../Objects/Dirty.hpp"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 #include <iostream>
@@ -16,7 +17,9 @@ namespace drk::Applications {
 		  CameraSystem(std::make_unique<Cameras::CameraSystem>(DeviceContext.get(), EngineState.get())),
 		  GlobalSystem(std::make_unique<Graphics::GlobalSystem>(EngineState.get())),
 		  Loader(std::make_unique<Loaders::AssimpLoader>(EngineState.get())),
-		  Graphics(BuildGraphics(Window.get(), DeviceContext.get(), EngineState.get())) {
+		  Graphics(BuildGraphics(Window.get(), DeviceContext.get(), EngineState.get())),
+		  FlyCamController(std::make_unique<Controllers::FlyCamController>(&EngineState->Registry)) {
+		glfwSetInputMode(Window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		glfwSetWindowUserPointer(Window.get(), this);
 		glfwSetWindowSizeCallback(
 			Window.get(), [](GLFWwindow *window, int width, int height) {
@@ -24,6 +27,8 @@ namespace drk::Applications {
 				application->OnWindowSizeChanged(width, height);
 			}
 		);
+		glfwSetCursorPosCallback(Window.get(), CursorPosCallback);
+		glfwSetKeyCallback(Window.get(), SetKeyCallback);
 		ImGui_ImplGlfw_InitForVulkan(Window.get(), true);
 	}
 
@@ -102,9 +107,13 @@ namespace drk::Applications {
 		CameraSystem->StoreCameras();
 
 		SpatialSystem->PropagateChanges();
+		CameraSystem->ProcessDirtyItems();
+
+		EngineState->Registry.clear<Objects::Dirty<Spatials::Spatial>>();
 
 		auto cameraEntities = EngineState->Registry.view<Stores::StoreItem<Cameras::Models::Camera>>();
 		auto firstCameraEntity = cameraEntities[0];
+		FlyCamController->Attach(firstCameraEntity);
 
 		GlobalSystem->SetCamera(firstCameraEntity);
 
@@ -117,12 +126,19 @@ namespace drk::Applications {
 			ImGui::ShowDemoWindow();
 			ImGui::EndFrame();
 
+			FlyCamController->Step();
+
+			SpatialSystem->PropagateChanges();
+			CameraSystem->ProcessDirtyItems();
+
 			MaterialSystem->UpdateMaterials();
 			MeshSystem->UpdateMeshes();
 			SpatialSystem->UpdateSpatials();
 			ObjectSystem->UpdateObjects();
 			CameraSystem->UpdateCameras();
 			GlobalSystem->Update();
+
+			EngineState->Registry.clear<Objects::Dirty<Spatials::Spatial>>();
 
 			Graphics->Render();
 		}
@@ -152,5 +168,15 @@ namespace drk::Applications {
 			VK_TRUE,
 			UINT64_MAX
 		);
+	}
+
+	void Application::SetKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+		auto application = reinterpret_cast<Application *>(glfwGetWindowUserPointer(window));
+		application->FlyCamController->OnKeyboardEvent(key, scancode, action, mods);
+	}
+
+	void Application::CursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
+		auto application = reinterpret_cast<Application *>(glfwGetWindowUserPointer(window));
+		application->FlyCamController->OnCursorPositionEvent(xpos, ypos);
 	}
 }

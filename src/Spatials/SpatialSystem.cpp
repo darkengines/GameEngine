@@ -61,17 +61,18 @@ namespace drk::Spatials {
 			auto scalingMatrix = glm::scale(glm::identity<glm::mat4>(), glm::vec3(spatial.relativeScale));
 			spatial.relativeModel = translationMatrix * rotationMatrix * scalingMatrix;
 
-			std::optional<glm::mat4> parentAbsoluteModel = std::nullopt;
-			auto worldModel = spatial.relativeModel;
 			if (relationship.parent != entt::null) {
 				auto &parentSpatial = EngineState->Registry.get<Spatial>(relationship.parent);
-				parentAbsoluteModel = parentSpatial.absoluteModel;
+				spatial.absoluteRotation = parentSpatial.absoluteRotation * spatial.relativeRotation;
+				spatial.absolutePosition = parentSpatial.absoluteModel * spatial.relativePosition;
+				spatial.absoluteScale = parentSpatial.absoluteScale * spatial.relativeScale;
+				spatial.absoluteModel = parentSpatial.absoluteModel * spatial.relativeModel;
+			} else {
+				spatial.absoluteRotation = spatial.relativeRotation;
+				spatial.absolutePosition = spatial.relativePosition;
+				spatial.absoluteScale = spatial.relativeScale;
+				spatial.absoluteModel = spatial.relativeModel;
 			}
-
-			spatial.absoluteModel = parentAbsoluteModel.has_value() ? parentAbsoluteModel.value() *
-																	  spatial.relativeModel : spatial.relativeModel;
-
-			EngineState->Registry.remove<Objects::Dirty<Spatial>>(entity);
 			EngineState->Registry.emplace_or_replace<Graphics::SynchronizationState<Models::Spatial>>(
 				entity,
 				(uint32_t) EngineState->FrameStates.size());
