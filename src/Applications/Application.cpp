@@ -95,7 +95,7 @@ namespace drk::Applications {
 		ObjectSystem->AddObjectSystem(EngineState->Registry);
 		CameraSystem->AddCameraSystem(EngineState->Registry);
 
-		auto data = Loader->Load("H:/pubg.gltf");
+		auto data = Loader->Load("H:/hilbre.gltf");
 		std::cout << "Loaded" << std::endl;
 		TextureSystem->UploadTextures();
 		MeshSystem->UploadMeshes();
@@ -120,16 +120,21 @@ namespace drk::Applications {
 		while (!glfwWindowShouldClose(Window.get())) {
 			glfwPollEvents();
 
-			ImGui_ImplVulkan_NewFrame();
-			ImGui_ImplGlfw_NewFrame();
-			ImGui::NewFrame();
-			ImGui::ShowDemoWindow();
-			ImGui::EndFrame();
+			const auto &frameState = EngineState->FrameStates[EngineState->FrameIndex];
+			const auto &fence = frameState.Fence;
+
+			const auto &waitForFenceResult = DeviceContext->Device.waitForFences(1, &fence, VK_TRUE, UINT64_MAX);
 
 			FlyCamController->Step();
 
 			SpatialSystem->PropagateChanges();
 			CameraSystem->ProcessDirtyItems();
+
+			ImGui_ImplVulkan_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+			//ImGui::ShowDemoWindow();
+			ImGui::EndFrame();
 
 			MaterialSystem->UpdateMaterials();
 			MeshSystem->UpdateMeshes();
@@ -151,15 +156,17 @@ namespace drk::Applications {
 	}
 
 	void Application::OnWindowSizeChanged(uint32_t width, uint32_t height) {
-		WaitFences();
+
+		while (width == 0 || height == 0) {
+			glfwGetFramebufferSize(Window.get(), reinterpret_cast<int *>(&width), reinterpret_cast<int *>(&height));
+			glfwWaitEvents();
+		}
+
 		Graphics->SetExtent({width, height});
 	}
 
 	void Application::WaitFences() {
 		std::vector<vk::Fence> fences;
-		for (const auto &frameState: EngineState->FrameStates) {
-			fences.push_back(frameState.Fence);
-		}
 		for (const auto &frameState: EngineState->FrameStates) {
 			fences.push_back(frameState.Fence);
 		}

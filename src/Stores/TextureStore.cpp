@@ -40,7 +40,7 @@ namespace drk::Stores {
 
 			const auto textureFormat = Textures::ImageInfo::TextureTypeFormatMap[imageInfo->type];
 			//TODO: Use configurable mipLevels
-			const auto mipLevels = 1u;
+			const auto mipLevels = imageInfo->mipLevels();
 			vk::ImageCreateInfo imageCreationInfo = {
 				.imageType = vk::ImageType::e2D,
 				.format = textureFormat,

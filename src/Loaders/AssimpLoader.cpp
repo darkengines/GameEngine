@@ -20,9 +20,7 @@ namespace drk::Loaders {
 		Assimp::Importer importer;
 		auto aiScene = importer.ReadFile(
 			scenePath.string(),
-			aiProcess_GenNormals
-			| aiProcess_CalcTangentSpace
-			| aiProcess_FindInstances
+			aiProcess_FindInstances
 			| aiProcess_GenBoundingBoxes
 		);
 

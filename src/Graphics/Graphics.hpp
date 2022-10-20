@@ -28,6 +28,8 @@ namespace drk::Graphics {
 	protected:
 		vk::ShaderModule CreateShaderModule(const std::string &shaderPath) const;
 		const Devices::DeviceContext *DeviceContext;
+		bool ExtentChanged = false;
+		vk::Extent2D Extent;
 		EngineState *EngineState;
 		Devices::Swapchain Swapchain;
 		vk::ShaderModule MainVertexShaderModule;
@@ -71,5 +73,7 @@ namespace drk::Graphics {
 			std::vector<vk::VertexInputBindingDescription> &vertexInputBindingDescriptions,
 			std::vector<vk::VertexInputAttributeDescription> &vertexInputAttributeDescriptions
 		);
+		void WaitFences();
+		void ResetFences();
 	};
 }

@@ -74,4 +74,8 @@ namespace drk::Textures {
 		{ TextureType::ShininessMap, vk::Format::eR8G8B8A8Unorm },
 		{ TextureType::SpecularColor, vk::Format::eR8G8B8A8Srgb },
 	};
+
+	uint32_t ImageInfo::mipLevels() const {
+		return std::floor(std::log2(std::max(width, height)));
+	}
 }

@@ -137,13 +137,13 @@ namespace drk::Devices {
 			);
 			const auto stagingMemoryHeap = properties.memoryHeaps[stagingMemoryTypeIndex];
 			const auto itemSize = sizeof(TBuffer);
-			const auto bufferLength = std::accumulate(
+			vk::DeviceSize bufferLength = std::accumulate(
 				buffers.begin(), buffers.end(), 0, [](size_t totalBytes, const auto &buffer) {
 					return totalBytes + buffer.size();
 				}
 			);
-			const auto bufferByteLength = bufferLength * itemSize;
-			const auto stagingBufferByteLength = std::min(stagingMemoryHeap.size, bufferByteLength);
+			vk::DeviceSize bufferByteLength = bufferLength * itemSize;
+			vk::DeviceSize stagingBufferByteLength = std::min(stagingMemoryHeap.size, bufferByteLength);
 
 			VmaAllocationCreateInfo allocationCreationInfo = {
 				.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
@@ -173,20 +173,26 @@ namespace drk::Devices {
 			char *mappedStagingBufferMemory;
 			vmaMapMemory(allocator, stagingBuffer.allocation, (void**)&mappedStagingBufferMemory);
 
-			auto stagingBufferAvailableByteLength = stagingBufferByteLength;
-			auto remainingBufferByteLength = bufferByteLength;
+			vk::DeviceSize remainingBufferByteLength = bufferByteLength;
 
 			auto bufferIndex = 0;
 			auto currentBuffer = (char*)buffers[0].data();
-			auto currentBufferByteLength = buffers[0].size() * itemSize;
-			auto currentBufferByteOffset = 0;
-			auto currentBufferRemainingByteLength = currentBufferByteLength;
-			auto deviceBufferByteOffset = 0u;
+			vk::DeviceSize currentBufferByteLength = buffers[0].size() * itemSize;
+			vk::DeviceSize currentBufferByteOffset = 0;
+			vk::DeviceSize currentBufferRemainingByteLength = currentBufferByteLength;
+			vk::DeviceSize deviceBufferByteOffset = 0u;
 			std::vector<BufferView> bufferViews(bufferCount);
 
 			while (remainingBufferByteLength) {
 				auto availableStagingBufferByteLength = stagingBufferByteLength;
 				while (availableStagingBufferByteLength && bufferIndex < bufferCount) {
+					if (currentBufferByteOffset == 0) {
+						bufferViews[bufferIndex] = {
+							buffer,
+							deviceBufferByteOffset + stagingBufferByteLength - availableStagingBufferByteLength,
+							currentBufferByteLength
+						};
+					}
 					const auto stagingBufferByteOffset = stagingBufferByteLength - availableStagingBufferByteLength;
 					const auto writableByteLength = std::min(currentBufferRemainingByteLength, availableStagingBufferByteLength);
 					memcpy(
@@ -197,11 +203,6 @@ namespace drk::Devices {
 					availableStagingBufferByteLength -= writableByteLength;
 					currentBufferRemainingByteLength -= writableByteLength;
 					if (currentBufferRemainingByteLength <= 0) {
-						bufferViews[bufferIndex] = {
-							buffer,
-							deviceBufferByteOffset + stagingBufferByteOffset,
-							currentBufferByteLength
-						};
 						bufferIndex++;
 						if (bufferIndex < bufferCount) {
 							currentBuffer = (char*)buffers[bufferIndex].data();

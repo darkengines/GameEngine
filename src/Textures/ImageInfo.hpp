@@ -25,5 +25,6 @@ namespace drk::Textures {
 		fromMemory(const std::string &name, const std::span<unsigned char> memory, TextureType type);
 
 		static std::unordered_map<TextureType, vk::Format> TextureTypeFormatMap;
+		uint32_t mipLevels() const;
 	};
 }

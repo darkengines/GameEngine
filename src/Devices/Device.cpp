@@ -574,6 +574,7 @@ namespace drk::Devices {
 		swapChainCreationInfo.oldSwapchain = VK_NULL_HANDLE;
 
 		auto vkSwapchain = device.createSwapchainKHR(swapChainCreationInfo);
+
 		auto swapchainImages = device.getSwapchainImagesKHR(vkSwapchain);
 		std::vector<Image> swapchainTextures(swapchainImages.size());
 		std::transform(

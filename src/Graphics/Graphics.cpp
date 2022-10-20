@@ -29,8 +29,8 @@ namespace drk::Graphics {
 		const Devices::DeviceContext *deviceContext,
 		drk::Graphics::EngineState *engineState,
 		const vk::Extent2D extent
-	) : DeviceContext(deviceContext), EngineState(engineState) {
-		CreateSwapchain(extent);
+	) : DeviceContext(deviceContext), EngineState(engineState), Extent(extent) {
+		CreateSwapchain(Extent);
 		CreateMainRenderPass();
 		CreateMainFramebufferResources();
 		CreateMainFramebuffers();
@@ -86,6 +86,8 @@ namespace drk::Graphics {
 	}
 
 	void Graphics::RecreateSwapchain(vk::Extent2D extent) {
+		DeviceContext->Device.waitIdle();
+
 		DeviceContext->Device.destroyPipeline(MainGraphicPipeline);
 		DestroyMainFramebuffer();
 		DeviceContext->Device.destroyRenderPass(MainRenderPass);
@@ -97,6 +99,8 @@ namespace drk::Graphics {
 		CreateMainFramebufferResources();
 		CreateMainFramebuffers();
 		CreateMainGraphicPipeline();
+
+		DeviceContext->Device.waitIdle();
 	}
 
 	vk::PipelineDepthStencilStateCreateInfo Graphics::DefaultPipelineDepthStencilStateCreateInfo() {
@@ -231,7 +235,8 @@ namespace drk::Graphics {
 	}
 
 	void Graphics::SetExtent(const vk::Extent2D &extent) {
-		RecreateSwapchain(extent);
+		Extent = extent;
+		ExtentChanged = true;
 	}
 
 	void Graphics::CreateMainRenderPass() {
@@ -560,14 +565,20 @@ namespace drk::Graphics {
 
 		const auto drawContext = BuildMainRenderPass();
 
-		const auto &waitForFenceResult = DeviceContext->Device.waitForFences(1, &fence, VK_TRUE, UINT64_MAX);
-		//Todo: Handle suboptimal and out of date results
+		//const auto &waitForFenceResult = DeviceContext->Device.waitForFences(1, &fence, VK_TRUE, UINT64_MAX);
+
 		auto swapchainImageIndex = DeviceContext->Device.acquireNextImageKHR(
 			Swapchain.swapchain,
 			UINT64_MAX,
 			frameState.ImageReadySemaphore,
 			VK_NULL_HANDLE
 		);
+		if (swapchainImageIndex.result == vk::Result::eSuboptimalKHR ||
+			swapchainImageIndex.result == vk::Result::eErrorOutOfDateKHR || ExtentChanged) {
+			ExtentChanged = false;
+			RecreateSwapchain(Extent);
+			return;
+		}
 		const auto &resetFenceResult = DeviceContext->Device.resetFences(1, &fence);
 
 		frameState.CommandBuffer.reset();
@@ -651,6 +662,12 @@ namespace drk::Graphics {
 		//Todo: make "frame in flight" count configurable
 		EngineState->FrameIndex = (EngineState->FrameIndex + 1) % 2;
 		const auto &presentResult = DeviceContext->PresentQueue.presentKHR(presentInfoKHR);
+		if (presentResult == vk::Result::eSuboptimalKHR || presentResult == vk::Result::eErrorOutOfDateKHR ||
+			ExtentChanged) {
+			ExtentChanged = false;
+			RecreateSwapchain(Extent);
+			return;
+		}
 	}
 
 	DrawContext Graphics::BuildMainRenderPass() {
@@ -716,8 +733,10 @@ namespace drk::Graphics {
 						{
 							.indexCount = (uint32_t) draw.meshInfo->indices.size(),
 							.instanceCount = 1,
-							.firstIndex = static_cast<uint32_t>(draw.mesh.IndexBufferView.byteOffset / sizeof(Meshes::VertexIndex)),
-							.vertexOffset = static_cast<uint32_t>(draw.mesh.VertexBufferView.byteOffset / sizeof(Meshes::Vertex)),
+							.firstIndex = static_cast<uint32_t>(draw.mesh.IndexBufferView.byteOffset /
+																sizeof(Meshes::VertexIndex)),
+							.vertexOffset = static_cast<uint32_t>(draw.mesh.VertexBufferView.byteOffset /
+																  sizeof(Meshes::Vertex)),
 							.firstInstance = drawIndex
 						}
 					);
@@ -734,8 +753,10 @@ namespace drk::Graphics {
 						{
 							.indexCount = (uint32_t) draw.meshInfo->indices.size(),
 							.instanceCount = 1,
-							.firstIndex = static_cast<uint32_t>(draw.mesh.IndexBufferView.byteOffset / sizeof(Meshes::VertexIndex)),
-							.vertexOffset = static_cast<uint32_t>(draw.mesh.VertexBufferView.byteOffset / sizeof(Meshes::Vertex)),
+							.firstIndex = static_cast<uint32_t>(draw.mesh.IndexBufferView.byteOffset /
+																sizeof(Meshes::VertexIndex)),
+							.vertexOffset = static_cast<uint32_t>(draw.mesh.VertexBufferView.byteOffset /
+																  sizeof(Meshes::Vertex)),
 							.firstInstance = drawIndex
 						}
 					);
@@ -757,5 +778,25 @@ namespace drk::Graphics {
 		}
 
 		return drawContext;
+	}
+	void Graphics::WaitFences() {
+		std::vector<vk::Fence> fences;
+		for (const auto &frameState: EngineState->FrameStates) {
+			fences.push_back(frameState.Fence);
+		}
+		auto waitFenceResult = DeviceContext->Device.waitForFences(
+			fences,
+			VK_TRUE,
+			UINT64_MAX
+		);
+	}
+	void Graphics::ResetFences() {
+		std::vector<vk::Fence> fences;
+		for (const auto &frameState: EngineState->FrameStates) {
+			fences.push_back(frameState.Fence);
+		}
+		DeviceContext->Device.resetFences(
+			fences
+		);
 	}
 }
