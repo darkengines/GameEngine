@@ -75,5 +75,6 @@ namespace drk::Graphics {
 		);
 		void WaitFences();
 		void ResetFences();
+		void PopulateDrawContext(DrawContext &drawContext, const std::vector<Draw> &draws, uint32_t drawOffset);
 	};
 }

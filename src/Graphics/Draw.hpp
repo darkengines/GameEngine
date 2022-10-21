@@ -3,6 +3,7 @@
 #include "Models/StoreItemLocation.hpp"
 #include "../Meshes/Mesh.hpp"
 #include "../Meshes/MeshInfo.hpp"
+#include "../Spatials/Spatial.hpp"
 
 namespace drk::Graphics {
 	struct Draw {
@@ -10,5 +11,7 @@ namespace drk::Graphics {
 		Meshes::Mesh mesh;
 		Models::StoreItemLocation meshStoreItem;
 		Models::StoreItemLocation objectLocation;
+		Spatials::Spatial spatial;
+		bool hasTransparency;
 	};
 }

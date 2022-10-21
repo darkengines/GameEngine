@@ -10,7 +10,7 @@ namespace drk::Devices {
 		const std::function<vk::SurfaceKHR(const vk::Instance &)> &surfaceProvider,
 		bool enableValidationLayer
 	) {
-		Instance = drk::Devices::Device::createInstance(requiredInstanceExtensions, requiredValidationLayers);
+		Instance = drk::Devices::Device::createInstance(requiredInstanceExtensions, enableValidationLayer ? requiredValidationLayers : std::vector<const char*>{});
 		Surface = surfaceProvider(Instance);
 		PhysicalDevice = drk::Devices::Device::pickPhysicalDevice(
 			Instance,

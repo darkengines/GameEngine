@@ -166,7 +166,7 @@ namespace drk::Loaders {
 				.specularColorTexture = specularColorTexture,
 				.normalMap = normalMap,
 				.metallicRoughnessTexture = metallicRoughnessTexture,
-				.hasAlpha = hasTransparency
+				.hasTransparency = hasTransparency
 			};
 
 			auto materialPtr = std::make_unique<Materials::Material>(material);

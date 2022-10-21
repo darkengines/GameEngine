@@ -39,6 +39,13 @@ file(
     src/Objects/Dirty.cpp
     src/Cameras/CameraSystem.cpp
     src/Relationships/RelationshipSystem.cpp
+    src/Lights/SpotlightSystem.cpp
+    src/Stores/TextureStore.cpp
+    src/Graphics/GlobalSystem.cpp
+    src/Controllers/FlyCamController.cpp
+    src/Lights/DirectionalLightSystem.cpp
+    src/Lights/LightSystem.cpp
+    src/Lights/PointLightSystem.cpp
 )
 
 file(
@@ -115,6 +122,14 @@ file(
     src/Cameras/Models/Camera.hpp
     src/Relationships/RelationshipSystem.hpp
     src/Stores/StoreItemLocation.hpp
+    src/Graphics/Models/Global.hpp
+    src/Lights/SpotlightSystem.hpp
+    src/Stores/TextureStore.hpp
+    src/Graphics/GlobalSystem.hpp
+    src/Controllers/FlyCamController.hpp
+    src/Lights/DirectionalLightSystem.hpp
+    src/Lights/LightSystem.hpp
+    src/Lights/PointLightSystem.hpp
 )
 
 file(
@@ -140,7 +155,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/Graphics/Models/Global.hpp src/Stores/TextureStore.cpp src/Stores/TextureStore.hpp src/Graphics/GlobalSystem.cpp src/Graphics/GlobalSystem.hpp src/Controllers/FlyCamController.cpp src/Controllers/FlyCamController.hpp)
+add_executable(drk ${HEADERS} ${SOURCES})
 add_dependencies(drk Shaders)
 
 find_package(Vulkan REQUIRED)

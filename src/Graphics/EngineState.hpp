@@ -48,6 +48,7 @@ namespace drk::Graphics {
 		entt::registry Registry;
 		std::unique_ptr<Stores::TextureStore> TextureStore;
 		Common::IndexGenerator<uint32_t> IndexGenerator;
+		entt::entity CameraEntity = entt::null;
 		Devices::Texture UploadTexture(const Textures::ImageInfo *const imageInfo);
 		std::vector<Devices::Texture> UploadTextures(std::vector<const Textures::ImageInfo *> imageInfos);
 		MeshUploadResult UploadMeshes(const std::vector<Meshes::MeshInfo *> &meshInfos);

@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <vector>
 #include "../Meshes/Vertex.hpp"
+#include "../Materials/Material.hpp"
+#include "../Cameras/Camera.hpp"
 
 namespace drk::Graphics {
 	std::vector<const char *> Graphics::RequiredInstanceExtensions = Windows::Window::getVulkanInstanceExtension();
@@ -671,13 +673,15 @@ namespace drk::Graphics {
 	}
 
 	DrawContext Graphics::BuildMainRenderPass() {
-		auto objectEntities = EngineState->Registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup>();
+		auto objectEntities = EngineState->Registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Spatial>();
 		std::vector<Draw> draws;
+		std::vector<Draw> transparencyDraws;
 		objectEntities.each(
 			[&](
 				entt::entity objectEntity,
 				auto &objectStoreItem,
-				auto &meshGroup
+				auto &meshGroup,
+				auto &spatial
 			) {
 				const auto &objectStoreItemLocation = objectStoreItem.frameStoreItems[EngineState->FrameIndex];
 				for (const auto &meshEntity : meshGroup.meshEntities) {
@@ -697,9 +701,15 @@ namespace drk::Graphics {
 						.objectLocation = {
 							.storeIndex = objectStoreItemLocation.pStore->descriptorArrayElement,
 							.itemIndex = objectStoreItemLocation.index
-						}
+						},
+						.spatial = spatial,
+						.hasTransparency = meshInfo->pMaterial->hasTransparency
 					};
-					draws.push_back(draw);
+					if (draw.hasTransparency) {
+						transparencyDraws.push_back(draw);
+					} else {
+						draws.push_back(draw);
+					}
 				}
 			}
 		);
@@ -716,10 +726,40 @@ namespace drk::Graphics {
 			}
 		);
 
-		auto drawStore = EngineState->FrameStates[EngineState->FrameIndex].DrawStore.get();
-		Draw *previousDraw = nullptr;
-		DrawSet *currentDrawSet = nullptr;
+		std::sort(
+			transparencyDraws.begin(), transparencyDraws.end(), [](const Draw &leftDraw, const Draw &rightDraw) {
+				return leftDraw.meshInfo < rightDraw.meshInfo;
+			}
+		);
+
+		std::stable_sort(
+			transparencyDraws.begin(), transparencyDraws.end(), [](const Draw &leftDraw, const Draw &rightDraw) {
+				return leftDraw.mesh.IndexBufferView.buffer.buffer < rightDraw.mesh.IndexBufferView.buffer.buffer;
+			}
+		);
+
+		auto cameraEntity = EngineState->CameraEntity;
+		auto camera = EngineState->Registry.get<Cameras::Camera>(cameraEntity);
+
+		std::stable_sort(
+			transparencyDraws.begin(), transparencyDraws.end(), [&camera](const Draw &leftDraw, const Draw &rightDraw) {
+				auto leftDistance = glm::distance(camera.absolutePosition, leftDraw.spatial.absolutePosition);
+				auto rightDistance = glm::distance(camera.absolutePosition, rightDraw.spatial.absolutePosition);
+				return leftDistance > rightDistance;
+			}
+		);
+
 		DrawContext drawContext;
+
+		PopulateDrawContext(drawContext, draws, 0u);
+		PopulateDrawContext(drawContext, transparencyDraws, draws.size());
+
+		return drawContext;
+	}
+
+	void Graphics::PopulateDrawContext(DrawContext &drawContext, const std::vector<Draw> &draws, uint32_t drawOffset) {
+		auto drawStore = EngineState->FrameStates[EngineState->FrameIndex].DrawStore.get();
+		const Draw *previousDraw = nullptr;
 
 		for (auto drawIndex = 0u; drawIndex < draws.size(); drawIndex++) {
 			auto &draw = draws[drawIndex];
@@ -727,42 +767,28 @@ namespace drk::Graphics {
 			if (drawIndex > 0 && previousDraw->meshInfo == draw.meshInfo) {
 				drawContext.drawSets.back().drawCommands.back().instanceCount++;
 			} else {
-				if (drawIndex > 0 &&
-					draw.mesh.IndexBufferView.buffer.buffer == previousDraw->mesh.IndexBufferView.buffer.buffer) {
-					drawContext.drawSets.back().drawCommands.push_back(
+				if (drawIndex == 0 ||
+					draw.mesh.IndexBufferView.buffer.buffer != previousDraw->mesh.IndexBufferView.buffer.buffer) {
+					drawContext.drawSets.push_back(
 						{
-							.indexCount = (uint32_t) draw.meshInfo->indices.size(),
-							.instanceCount = 1,
-							.firstIndex = static_cast<uint32_t>(draw.mesh.IndexBufferView.byteOffset /
-																sizeof(Meshes::VertexIndex)),
-							.vertexOffset = static_cast<uint32_t>(draw.mesh.VertexBufferView.byteOffset /
-																  sizeof(Meshes::Vertex)),
-							.firstInstance = drawIndex
-						}
-					);
-				} else {
-					if (drawIndex == 0) {
-						drawContext.drawSets.push_back(
-							{
-								.indexBuffer = draw.mesh.IndexBufferView.buffer,
-								.vertexBuffer = draw.mesh.VertexBufferView.buffer,
-							}
-						);
-					}
-					drawContext.drawSets.back().drawCommands.push_back(
-						{
-							.indexCount = (uint32_t) draw.meshInfo->indices.size(),
-							.instanceCount = 1,
-							.firstIndex = static_cast<uint32_t>(draw.mesh.IndexBufferView.byteOffset /
-																sizeof(Meshes::VertexIndex)),
-							.vertexOffset = static_cast<uint32_t>(draw.mesh.VertexBufferView.byteOffset /
-																  sizeof(Meshes::Vertex)),
-							.firstInstance = drawIndex
+							.indexBuffer = draw.mesh.IndexBufferView.buffer,
+							.vertexBuffer = draw.mesh.VertexBufferView.buffer,
 						}
 					);
 				}
+				drawContext.drawSets.back().drawCommands.push_back(
+					{
+						.indexCount = (uint32_t) draw.meshInfo->indices.size(),
+						.instanceCount = 1,
+						.firstIndex = static_cast<uint32_t>(draw.mesh.IndexBufferView.byteOffset /
+															sizeof(Meshes::VertexIndex)),
+						.vertexOffset = static_cast<uint32_t>(draw.mesh.VertexBufferView.byteOffset /
+															  sizeof(Meshes::Vertex)),
+						.firstInstance = drawIndex + drawOffset
+					}
+				);
 			}
-			const auto drawItemLocation = drawStore->Get(drawIndex);
+			const auto drawItemLocation = drawStore->Get(drawIndex + drawOffset);
 
 			const Models::Draw drawModel = {
 				.meshItemLocation = draw.meshStoreItem,
@@ -776,9 +802,8 @@ namespace drk::Graphics {
 
 			previousDraw = &draw;
 		}
-
-		return drawContext;
 	}
+
 	void Graphics::WaitFences() {
 		std::vector<vk::Fence> fences;
 		for (const auto &frameState: EngineState->FrameStates) {
@@ -790,6 +815,7 @@ namespace drk::Graphics {
 			UINT64_MAX
 		);
 	}
+
 	void Graphics::ResetFences() {
 		std::vector<vk::Fence> fences;
 		for (const auto &frameState: EngineState->FrameStates) {

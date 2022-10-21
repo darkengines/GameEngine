@@ -8,6 +8,7 @@ namespace drk::Graphics {
 
 	void GlobalSystem::SetCamera(entt::entity cameraEntity) {
 		CameraEntity = cameraEntity;
+		EngineState->CameraEntity = CameraEntity;
 		GlobalSynchronizationState.Reset();
 	}
 

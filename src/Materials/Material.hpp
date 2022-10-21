@@ -25,6 +25,6 @@ namespace drk::Materials {
 		entt::entity normalMap = entt::null;
 		entt::entity metallicRoughnessTexture = entt::null;
 
-		bool hasAlpha;
+		bool hasTransparency;
 	};
 }
