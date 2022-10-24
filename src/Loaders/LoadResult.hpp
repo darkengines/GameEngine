@@ -4,10 +4,17 @@
 #include <memory>
 #include "../Meshes/MeshInfo.hpp"
 #include "../Materials/Material.hpp"
-#include "../Devices/Texture.hpp"
+#include "../Textures/ImageInfo.hpp"
+#include <entt/entt.hpp>
+#include <unordered_map>
 
 namespace drk::Loaders {
 	struct LoadResult {
+		LoadResult() = default;
+		LoadResult(LoadResult&& x) = default;
+		LoadResult(const LoadResult& x) = delete;
+		LoadResult& operator=(const LoadResult& other) = delete;
+
 		std::vector<std::unique_ptr<Meshes::MeshInfo>> meshes;
 		std::vector<std::unique_ptr<Materials::Material>> materials;
 		std::vector<std::unique_ptr<Textures::ImageInfo>> images;

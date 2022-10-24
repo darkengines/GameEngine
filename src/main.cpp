@@ -2,7 +2,6 @@
 #include "Devices/Device.hpp"
 #include "Windows/Window.hpp"
 #include "Graphics/Graphics.hpp"
-#include <format>
 #include <GLFW/glfw3.h>
 #include "Applications/Application.hpp"
 

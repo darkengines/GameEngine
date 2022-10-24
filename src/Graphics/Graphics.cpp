@@ -18,13 +18,15 @@
 #include "../Meshes/Vertex.hpp"
 #include "../Materials/Material.hpp"
 #include "../Cameras/Camera.hpp"
+#include <stdexcept>
 
 namespace drk::Graphics {
 	std::vector<const char *> Graphics::RequiredInstanceExtensions = Windows::Window::getVulkanInstanceExtension();
 	std::vector<const char *> Graphics::RequiredDeviceExtensions = {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
-		VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
+		VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME,
+		VK_NV_MESH_SHADER_EXTENSION_NAME
 	};
 
 	Graphics::Graphics(
@@ -482,7 +484,7 @@ namespace drk::Graphics {
 
 		auto result = DeviceContext->Device.createGraphicsPipeline(VK_NULL_HANDLE, graphicsPipelineCreateInfo);
 		if ((VkResult) result.result != VK_SUCCESS) {
-			throw new std::exception("Failed to create main graphic pipeline.");
+			throw new std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		MainGraphicPipeline = result.value;
 	}
@@ -499,17 +501,17 @@ namespace drk::Graphics {
 
 		vk::DescriptorPoolSize poolSizes[] =
 			{
-				{vk::DescriptorType::eSampler,              1000},
+				{vk::DescriptorType::eSampler, 1000},
 				{vk::DescriptorType::eCombinedImageSampler, 1000},
-				{vk::DescriptorType::eSampledImage,         1000},
-				{vk::DescriptorType::eStorageImage,         1000},
-				{vk::DescriptorType::eUniformTexelBuffer,   1000},
-				{vk::DescriptorType::eStorageTexelBuffer,   1000},
-				{vk::DescriptorType::eUniformBuffer,        1000},
-				{vk::DescriptorType::eStorageBuffer,        1000},
+				{vk::DescriptorType::eSampledImage, 1000},
+				{vk::DescriptorType::eStorageImage, 1000},
+				{vk::DescriptorType::eUniformTexelBuffer, 1000},
+				{vk::DescriptorType::eStorageTexelBuffer, 1000},
+				{vk::DescriptorType::eUniformBuffer, 1000},
+				{vk::DescriptorType::eStorageBuffer, 1000},
 				{vk::DescriptorType::eUniformBufferDynamic, 1000},
 				{vk::DescriptorType::eStorageBufferDynamic, 1000},
-				{vk::DescriptorType::eInputAttachment,      1000}
+				{vk::DescriptorType::eInputAttachment, 1000}
 			};
 
 		vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
@@ -760,14 +762,16 @@ namespace drk::Graphics {
 	void Graphics::PopulateDrawContext(DrawContext &drawContext, const std::vector<Draw> &draws, uint32_t drawOffset) {
 		auto drawStore = EngineState->FrameStates[EngineState->FrameIndex].DrawStore.get();
 		const Draw *previousDraw = nullptr;
+		if (!drawContext.drawSets.empty() && !drawContext.drawSets.back().draws.empty())
+			previousDraw = &drawContext.drawSets.back().draws.back();
 
 		for (auto drawIndex = 0u; drawIndex < draws.size(); drawIndex++) {
 			auto &draw = draws[drawIndex];
 
-			if (drawIndex > 0 && previousDraw->meshInfo == draw.meshInfo) {
+			if (previousDraw != nullptr && previousDraw->meshInfo == draw.meshInfo) {
 				drawContext.drawSets.back().drawCommands.back().instanceCount++;
 			} else {
-				if (drawIndex == 0 ||
+				if (previousDraw == nullptr ||
 					draw.mesh.IndexBufferView.buffer.buffer != previousDraw->mesh.IndexBufferView.buffer.buffer) {
 					drawContext.drawSets.push_back(
 						{
@@ -788,6 +792,9 @@ namespace drk::Graphics {
 					}
 				);
 			}
+
+			drawContext.drawSets.back().draws.push_back(draw);
+
 			const auto drawItemLocation = drawStore->Get(drawIndex + drawOffset);
 
 			const Models::Draw drawModel = {

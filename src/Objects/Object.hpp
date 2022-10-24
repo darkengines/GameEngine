@@ -5,6 +5,6 @@
 
 namespace drk::Objects {
 	struct Object {
-		Spatials::Spatial spatial;
+		std::string Name;
 	};
 }

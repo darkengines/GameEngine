@@ -1,6 +1,9 @@
 #include <iostream>
 #include <set>
 #include "Device.hpp"
+#include <vector>
+#include <stdexcept>
+#include <iostream>
 
 
 namespace drk::Devices {
@@ -114,13 +117,13 @@ namespace drk::Devices {
 		const std::vector<const char *> &requiredExtensions
 	) {
 		auto devices = instance.enumeratePhysicalDevices();
-		if (devices.empty()) throw std::exception("Failed to find GPU with Vulkan support.");
+		if (devices.empty()) throw std::runtime_error("Failed to find GPU with Vulkan support.");
 		for (const auto &device : devices) {
 			if (Device::isDeviceSuitable(device, surface, requiredExtensions)) {
 				return device;
 			}
 		}
-		throw std::exception("Failed to find a suitable GPU.");
+		throw std::runtime_error("Failed to find a suitable GPU.");
 	}
 
 	VulkanLogicalDeviceInfo Device::createLogicalDevice(
@@ -263,10 +266,10 @@ namespace drk::Devices {
 					   (formatProperties.optimalTilingFeatures & features) == features) {
 				return format;
 			} else {
-				throw std::exception("Failed to find any supported format.");
+				throw std::runtime_error("Failed to find any supported format.");
 			}
 		}
-		throw std::exception("Failed to find any supported format.");
+		throw std::runtime_error("Failed to find any supported format.");
 	}
 
 	VmaAllocator Device::createAllocator(
@@ -316,7 +319,7 @@ namespace drk::Devices {
 			&allocation,
 			&allocationInfo
 		);
-		if (result != VK_SUCCESS) throw std::exception("Failed to create buffer.");
+		if (result != VK_SUCCESS) throw std::runtime_error("Failed to create buffer.");
 
 		return {buffer, allocation, allocationInfo};
 	}
@@ -429,7 +432,7 @@ namespace drk::Devices {
 			&allocation,
 			&allocationInfo
 		);
-		if (result != VkResult::VK_SUCCESS) throw std::exception("Failed to create image.");
+		if (result != VkResult::VK_SUCCESS) throw std::runtime_error("Failed to create image.");
 		return {image, allocation, allocationInfo};
 	}
 

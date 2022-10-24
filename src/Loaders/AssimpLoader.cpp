@@ -8,13 +8,14 @@
 #include "../Spatials/Spatial.hpp"
 #include "../Meshes/MeshGroup.hpp"
 #include "../Objects/Relationship.hpp"
+#include "../Objects/Object.hpp"
 #include <assimp/postprocess.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 namespace drk::Loaders {
-	AssimpLoader::AssimpLoader(Graphics::EngineState *const engineState) : EngineState(engineState) {}
+	AssimpLoader::AssimpLoader(Graphics::EngineState* const engineState) : EngineState(engineState) {}
 
 	LoadResult AssimpLoader::Load(std::filesystem::path scenePath) {
 		Assimp::Importer importer;
@@ -22,15 +23,19 @@ namespace drk::Loaders {
 			scenePath.string(),
 			aiProcess_FindInstances
 			| aiProcess_GenBoundingBoxes
+			| aiProcess_Triangulate
 		);
 
-		std::span<aiMaterial *> aiMaterials(aiScene->mMaterials, aiScene->mNumMaterials);
-		std::span<aiTexture *> aiTextures(aiScene->mTextures, aiScene->mNumTextures);
-		std::span<aiMesh *> aiMeshes(aiScene->mMeshes, aiScene->mNumMeshes);
-		std::span<aiLight *> aiLights(aiScene->mLights, aiScene->mNumLights);
-		std::span<aiCamera *> aiCameras(aiScene->mCameras, aiScene->mNumCameras);
+		std::span<aiMaterial*> aiMaterials(aiScene->mMaterials, aiScene->mNumMaterials);
+		std::span<aiTexture*> aiTextures(aiScene->mTextures, aiScene->mNumTextures);
+		std::span<aiMesh*> aiMeshes(aiScene->mMeshes, aiScene->mNumMeshes);
+		std::span<aiLight*> aiLights(aiScene->mLights, aiScene->mNumLights);
+		std::span<aiCamera*> aiCameras(aiScene->mCameras, aiScene->mNumCameras);
 
 		LoadResult loadResult;
+		loadResult.meshes.resize(aiMeshes.size());
+		loadResult.materials.resize(aiMaterials.size());
+
 		const auto workingDirectoryPath = scenePath.parent_path();
 		loadMaterials(aiMaterials, aiTextures, workingDirectoryPath, loadResult);
 		loadMeshes(aiMeshes, loadResult);
@@ -48,10 +53,10 @@ namespace drk::Loaders {
 	}
 
 	void AssimpLoader::loadMaterials(
-		std::span<aiMaterial *> aiMaterials,
-		std::span<aiTexture *> aiTextures,
+		std::span<aiMaterial*> aiMaterials,
+		std::span<aiTexture*> aiTextures,
 		std::filesystem::path workingDirectoryPath,
-		LoadResult &loadResult
+		LoadResult& loadResult
 	) {
 		auto aiTextureIndex = 0u;
 		for (auto aiMaterialIndex = 0u; aiMaterialIndex < aiMaterials.size(); aiMaterialIndex++) {
@@ -71,22 +76,22 @@ namespace drk::Loaders {
 								int textureIndex = 0;
 								sscanf_s(texturePath, "*%d", &textureIndex);
 								auto aiTexture = aiTextures[textureIndex];
-								std::span<unsigned char> data((unsigned char *) aiTexture->pcData, aiTexture->mWidth);
+								std::span<unsigned char> data((unsigned char*) aiTexture->pcData, aiTexture->mWidth);
 								image = Textures::ImageInfo::fromMemory(
 									std::string(texturePath),
 									data,
 									textureTypePair.second
 								);
 							} else {
-								auto texturePath = workingDirectoryPath / aiTexturePath.C_Str();
+								auto textureFileSystemPath = workingDirectoryPath.make_preferred() / std::filesystem::path(texturePath).make_preferred().relative_path();
 								image = Textures::ImageInfo::fromFile(
-									texturePath.string(),
-									texturePath.string(),
+									textureFileSystemPath.string(),
+									textureFileSystemPath.string(),
 									textureTypePair.second
 								);
 							}
 							auto textureEntity = EngineState->Registry.create();
-							EngineState->Registry.emplace<Textures::ImageInfo *>(textureEntity, image.get());
+							EngineState->Registry.emplace<Textures::ImageInfo*>(textureEntity, image.get());
 							auto textureIndex = EngineState->IndexGenerator.Generate<Textures::ImageInfo>();
 							EngineState->Registry.emplace<Common::ComponentIndex<Textures::ImageInfo>>(
 								textureEntity,
@@ -104,12 +109,12 @@ namespace drk::Loaders {
 			}
 			std::string materialName = aiMaterial->GetName().C_Str();
 
-			const auto &baseColorTexturePair = textureTypeMap.find(Textures::TextureType::BaseColor);
-			const auto &ambientColorTexturePair = textureTypeMap.find(Textures::TextureType::AmbientColor);
-			const auto &diffuseColorTexturePair = textureTypeMap.find(Textures::TextureType::DiffuseColor);
-			const auto &specularColorTexturePair = textureTypeMap.find(Textures::TextureType::SpecularColor);
-			const auto &normalMapPair = textureTypeMap.find(Textures::TextureType::NormalMap);
-			const auto &metallicRoughnessPair = textureTypeMap.find(Textures::TextureType::RoughnessMetalnessMap);
+			const auto& baseColorTexturePair = textureTypeMap.find(Textures::TextureType::BaseColor);
+			const auto& ambientColorTexturePair = textureTypeMap.find(Textures::TextureType::AmbientColor);
+			const auto& diffuseColorTexturePair = textureTypeMap.find(Textures::TextureType::DiffuseColor);
+			const auto& specularColorTexturePair = textureTypeMap.find(Textures::TextureType::SpecularColor);
+			const auto& normalMapPair = textureTypeMap.find(Textures::TextureType::NormalMap);
+			const auto& metallicRoughnessPair = textureTypeMap.find(Textures::TextureType::RoughnessMetalnessMap);
 
 			entt::entity baseColorTexture =
 				baseColorTexturePair != textureTypeMap.end()
@@ -146,11 +151,11 @@ namespace drk::Loaders {
 
 			auto hasTransparency =
 				baseColorTexture != entt::null &&
-				EngineState->Registry.get<Textures::ImageInfo *>(baseColorTexture)->depth > 3
+				EngineState->Registry.get<Textures::ImageInfo*>(baseColorTexture)->depth > 3
 				|| ambientColorTexture != entt::null &&
-				   EngineState->Registry.get<Textures::ImageInfo *>(ambientColorTexture)->depth > 3
+				   EngineState->Registry.get<Textures::ImageInfo*>(ambientColorTexture)->depth > 3
 				|| diffuseColorTexture != entt::null &&
-				   EngineState->Registry.get<Textures::ImageInfo *>(diffuseColorTexture)->depth > 3
+				   EngineState->Registry.get<Textures::ImageInfo*>(diffuseColorTexture)->depth > 3
 				|| hasAmbientColor && ambientColor.a < 1
 				|| hasDiffuseColor && diffuseColor.a < 1;
 
@@ -170,16 +175,16 @@ namespace drk::Loaders {
 			};
 
 			auto materialPtr = std::make_unique<Materials::Material>(material);
-			EngineState->Registry.emplace<Materials::Material *>(materialEntity, materialPtr.get());
+			EngineState->Registry.emplace<Materials::Material*>(materialEntity, materialPtr.get());
 			EngineState->Registry.emplace<Common::ComponentIndex<Materials::Material >>(materialEntity, materialIndex);
-			loadResult.materials.push_back(std::move(materialPtr));
+			loadResult.materials[aiMaterialIndex] = std::move(materialPtr);
 			loadResult.materialIdEntityMap[aiMaterialIndex] = materialEntity;
 		}
 	}
 
-	void AssimpLoader::loadMeshes(std::span<aiMesh *> aiMeshes, LoadResult &loadResult) {
+	void AssimpLoader::loadMeshes(std::span<aiMesh*> aiMeshes, LoadResult& loadResult) {
 		for (auto aiMeshIndex = 0u; aiMeshIndex < aiMeshes.size(); aiMeshIndex++) {
-			const auto &aiMesh = aiMeshes[aiMeshIndex];
+			const auto& aiMesh = aiMeshes[aiMeshIndex];
 			std::vector<uint32_t> indices(aiMesh->mNumFaces * 3);
 			for (uint32_t faceIndex = 0u; faceIndex < aiMesh->mNumFaces; faceIndex++) {
 				memcpy(
@@ -257,18 +262,18 @@ namespace drk::Loaders {
 			);
 
 			auto meshEntity = EngineState->Registry.create();
-			EngineState->Registry.emplace<Meshes::MeshInfo *>(meshEntity, meshPtr.get());
+			EngineState->Registry.emplace<Meshes::MeshInfo*>(meshEntity, meshPtr.get());
 			EngineState->Registry.emplace<Common::ComponentIndex<Meshes::MeshInfo>>(meshEntity, meshIndex);
 			EngineState->Registry.emplace<Geometries::AxisAlignedBoundingBox>(meshEntity, axisAlignedBoundingBox);
 
 			loadResult.meshIdEntityMap[aiMeshIndex] = meshEntity;
-			loadResult.meshes.push_back(std::move(meshPtr));
+			loadResult.meshes[aiMeshIndex] = std::move(meshPtr);
 		}
 	}
 
 	void AssimpLoader::loadLights(
-		std::span<aiLight *> aiLights,
-		std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>> &lightNameMap
+		std::span<aiLight*> aiLights,
+		std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightNameMap
 	) {
 		for (auto aiLight : aiLights) {
 			auto entity = EngineState->Registry.create();
@@ -329,7 +334,7 @@ namespace drk::Loaders {
 	}
 
 	void AssimpLoader::loadCameras(
-		std::span<aiCamera *> aiCameras,
+		std::span<aiCamera*> aiCameras,
 		std::unordered_map<std::string, entt::entity>& cameraNameMap
 	) {
 		for (auto aiCamera : aiCameras) {
@@ -376,10 +381,10 @@ namespace drk::Loaders {
 	}
 
 	entt::entity AssimpLoader::loadNode(
-		const aiNode *aiNode,
-		const std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>> &lightMap,
-		const std::unordered_map<std::string, entt::entity> &cameraMap,
-		LoadResult &loadResult
+		const aiNode* aiNode,
+		const std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightMap,
+		const std::unordered_map<std::string, entt::entity>& cameraMap,
+		LoadResult& loadResult
 	) {
 		auto nodeName = std::string(aiNode->mName.C_Str());
 		aiVector3D aiScale, aiPosition;
@@ -410,16 +415,16 @@ namespace drk::Loaders {
 			entity = std::get<0>(light->second);
 			auto lightType = std::get<1>(light->second);
 			if (lightType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
-				auto &directionalLight = EngineState->Registry.get<Lights::DirectionalLight>(entity);
+				auto& directionalLight = EngineState->Registry.get<Lights::DirectionalLight>(entity);
 				spatial.relativeRotation = spatial.relativeRotation * glm::quatLookAt(
 					glm::vec3(directionalLight.relativeDirection),
 					glm::vec3(directionalLight.relativeUp)
 				);
 			} else if (lightType == aiLightSourceType::aiLightSource_POINT) {
-				auto &pointLight = EngineState->Registry.get<Lights::PointLight>(entity);
+				auto& pointLight = EngineState->Registry.get<Lights::PointLight>(entity);
 				spatial.relativePosition = spatial.relativePosition + pointLight.relativePosition;
 			} else if (lightType == aiLightSourceType::aiLightSource_SPOT) {
-				auto &spotlight = EngineState->Registry.get<Lights::Spotlight>(entity);
+				auto& spotlight = EngineState->Registry.get<Lights::Spotlight>(entity);
 				spatial.relativeRotation = spatial.relativeRotation * glm::quatLookAt(
 					glm::vec3(spotlight.relativeDirection),
 					glm::vec3(spotlight.relativeUp)
@@ -433,6 +438,7 @@ namespace drk::Loaders {
 		}
 
 		if (entity == entt::null) entity = EngineState->Registry.create();
+		EngineState->Registry.emplace<Objects::Object>(entity, aiNode->mName.C_Str());
 
 		if (aiNode->mNumMeshes) {
 			Meshes::MeshGroup meshGroup;
@@ -446,7 +452,7 @@ namespace drk::Loaders {
 		EngineState->Registry.emplace<Spatials::Spatial>(entity, spatial);
 
 		Objects::Relationship relationship;
-		Objects::Relationship *previousRelationship = nullptr;
+		Objects::Relationship* previousRelationship = nullptr;
 		entt::entity previousSibling{entt::null};
 
 		if (aiNode->mNumChildren) {
@@ -458,7 +464,7 @@ namespace drk::Loaders {
 					cameraMap,
 					loadResult
 				);
-				auto &childRelationship = EngineState->Registry.get<Objects::Relationship>(childEntity);
+				auto& childRelationship = EngineState->Registry.get<Objects::Relationship>(childEntity);
 				if (childIndex == 0) relationship.firstChild = childEntity;
 				if (childIndex > 0) {
 					childRelationship.previousSibling = previousSibling;
@@ -497,5 +503,6 @@ namespace drk::Loaders {
 		{aiTextureType::aiTextureType_UNKNOWN,           Textures::TextureType::RoughnessMetalnessMap}
 	};
 
-	glm::vec3 &AssimpLoader::toVector(const aiVector3D &aiVector) { return (*(glm::vec3 *) &aiVector); }
-}                                                                                                                                                                                                                                                                                                                   
+	glm::vec3& AssimpLoader::toVector(const aiVector3D& aiVector) { return (*(glm::vec3*) &aiVector); }
+}
+                                                                                                                                                                                                                                                                                                                

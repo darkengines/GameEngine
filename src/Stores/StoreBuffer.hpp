@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cstdint>
-#include <format>
 #include <vulkan/vulkan.hpp>
 #include "../Devices/BufferView.hpp"
 #include "../Common/IndexGenerator.hpp"
+#include <fmt/format.h>
 
 namespace drk::Stores {
 	class GenericStoreBuffer {
@@ -34,7 +34,7 @@ namespace drk::Stores {
 			}
 			if (nextIndex > maxIndexCount)
 				throw std::runtime_error(
-					std::format(
+					fmt::format(
 						"Failed to yield new index: maximum index count reached ({0}).",
 						maxIndexCount
 					));
@@ -45,13 +45,14 @@ namespace drk::Stores {
 			if (index >= nextIndex) {
 				if (nextIndex > maxIndexCount)
 					throw std::runtime_error(
-						std::format(
+						fmt::format(
 							"Failed to release index {0}: must be lower than the next available index ({1}).",
 							index,
 							maxIndexCount
 						));
 				availableIndices.push(index);
 			}
+			return 0;
 		}
 	};
 

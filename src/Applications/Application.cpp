@@ -1,24 +1,27 @@
 #include "Application.hpp"
 #include "../Objects/Dirty.hpp"
+#include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 #include <iostream>
+#include <imfilebrowser.h>
 
 namespace drk::Applications {
 	Application::Application()
 		: Window(BuildWindow()),
-		DeviceContext(BuildDeviceContext(Window.get())),
-		EngineState(Application::BuildEngineState(DeviceContext.get())),
-		TextureSystem(std::make_unique<Textures::TextureSystem>(DeviceContext.get(), EngineState.get())),
-		MaterialSystem(std::make_unique<Materials::MaterialSystem>(DeviceContext.get(), EngineState.get())),
-		MeshSystem(std::make_unique<Meshes::MeshSystem>(DeviceContext.get(), EngineState.get())),
-		SpatialSystem(std::make_unique<Spatials::SpatialSystem>(DeviceContext.get(), EngineState.get())),
-		ObjectSystem(std::make_unique<Objects::ObjectSystem>(DeviceContext.get(), EngineState.get())),
-		CameraSystem(std::make_unique<Cameras::CameraSystem>(DeviceContext.get(), EngineState.get())),
-		GlobalSystem(std::make_unique<Graphics::GlobalSystem>(EngineState.get())),
-		Loader(std::make_unique<Loaders::AssimpLoader>(EngineState.get())),
-		Graphics(BuildGraphics(Window.get(), DeviceContext.get(), EngineState.get())),
-		FlyCamController(std::make_unique<Controllers::FlyCamController>(&EngineState->Registry)) {
+		  DeviceContext(BuildDeviceContext(Window.get())),
+		  EngineState(Application::BuildEngineState(DeviceContext.get())),
+		  TextureSystem(std::make_unique<Textures::TextureSystem>(DeviceContext.get(), EngineState.get())),
+		  MaterialSystem(std::make_unique<Materials::MaterialSystem>(DeviceContext.get(), EngineState.get())),
+		  MeshSystem(std::make_unique<Meshes::MeshSystem>(DeviceContext.get(), EngineState.get())),
+		  SpatialSystem(std::make_unique<Spatials::SpatialSystem>(DeviceContext.get(), EngineState.get())),
+		  ObjectSystem(std::make_unique<Objects::ObjectSystem>(DeviceContext.get(), EngineState.get())),
+		  CameraSystem(std::make_unique<Cameras::CameraSystem>(DeviceContext.get(), EngineState.get())),
+		  GlobalSystem(std::make_unique<Graphics::GlobalSystem>(EngineState.get())),
+		  Loader(std::make_unique<Loaders::AssimpLoader>(EngineState.get())),
+		  Graphics(BuildGraphics(Window.get(), DeviceContext.get(), EngineState.get())),
+		  FlyCamController(std::make_unique<Controllers::FlyCamController>(&EngineState->Registry)),
+		  UserInterface(std::make_unique<UserInterfaces::UserInterface>(Window.get())) {
 		glfwSetInputMode(Window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		glfwSetWindowUserPointer(Window.get(), this);
 		glfwSetWindowSizeCallback(
@@ -45,83 +48,77 @@ namespace drk::Applications {
 		requiredInstanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		requiredInstanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
-		const std::vector<const char*> requiredValidationLayers = { "VK_LAYER_KHRONOS_validation" };
+		const std::vector<const char*> requiredValidationLayers = {"VK_LAYER_KHRONOS_validation"};
 
 #ifdef NDEBUG
 		bool enableValidationLayers = false;
-#else 
+#else
 		bool enableValidationLayers = true;
 #endif
 
-			auto deviceContext = std::make_unique<Devices::DeviceContext>(
-				requiredInstanceExtensions,
-				drk::Graphics::Graphics::RequiredDeviceExtensions,
-				requiredValidationLayers,
-				[&window](const vk::Instance& instance) {
-					vk::SurfaceKHR surface;
-					auto result = glfwCreateWindowSurface(
-						(VkInstance)instance,
-						window,
-						nullptr,
-						(VkSurfaceKHR*)&surface
-					);
-					if (result != VK_SUCCESS) {
-						throw "Failed to create surface.";
-					}
-					return surface;
-				},
-				enableValidationLayers
-					);
+		auto deviceContext = std::make_unique<Devices::DeviceContext>(
+			requiredInstanceExtensions,
+			drk::Graphics::Graphics::RequiredDeviceExtensions,
+			requiredValidationLayers,
+			[&window](const vk::Instance& instance) {
+				vk::SurfaceKHR surface;
+				auto result = glfwCreateWindowSurface(
+					(VkInstance) instance,
+					window,
+					nullptr,
+					(VkSurfaceKHR*) &surface
+				);
+				if (result != VK_SUCCESS) {
+					throw "Failed to create surface.";
+				}
+				return surface;
+			},
+			enableValidationLayers
+		);
 		return deviceContext;
 	}
 
 	std::unique_ptr<Graphics::Graphics>
-		Application::BuildGraphics(
-			GLFWwindow* window,
-			const Devices::DeviceContext* deviceContext,
-			Graphics::EngineState* engineState
-		) {
+	Application::BuildGraphics(
+		GLFWwindow* window,
+		const Devices::DeviceContext* deviceContext,
+		Graphics::EngineState* engineState
+	) {
 		vk::Extent2D actualExtent;
-		glfwGetWindowSize(window, (int*)&actualExtent.width, (int*)&actualExtent.height);
+		glfwGetWindowSize(window, (int*) &actualExtent.width, (int*) &actualExtent.height);
 
 		auto graphics = std::make_unique<Graphics::Graphics>(
 			deviceContext,
 			engineState,
 			actualExtent
-			);
+		);
 
 		return graphics;
 	}
 
 	void Application::Run() {
-		std::cout << "Load" << std::endl;
 		MaterialSystem->AddMaterialSystem(EngineState->Registry);
 		MeshSystem->AddMeshSystem(EngineState->Registry);
 		SpatialSystem->AddSpatialSystem(EngineState->Registry);
 		ObjectSystem->AddObjectSystem(EngineState->Registry);
 		CameraSystem->AddCameraSystem(EngineState->Registry);
 
-		auto data = Loader->Load("H:/transparency.gltf");
-		std::cout << "Loaded" << std::endl;
-		TextureSystem->UploadTextures();
-		MeshSystem->UploadMeshes();
+		std::vector<Loaders::LoadResult> loadResults;
 
-		MaterialSystem->StoreMaterials();
-		MeshSystem->StoreMeshes();
-		SpatialSystem->StoreSpatials();
-		ObjectSystem->StoreObjects();
-		CameraSystem->StoreCameras();
+		auto defaultCamera = CameraSystem->CreateCamera(
+			glm::zero<glm::vec4>(),
+			glm::vec4{1.0f, 0.0f, 0.0f, 0.0f},
+			glm::vec4{0.0f, 1.0f, 0.0f, 0.0f},
+			glm::radians(65.0f),
+			16.0f / 9.0f,
+			0.1f,
+			1000.0f
+		);
 
-		SpatialSystem->PropagateChanges();
-		CameraSystem->ProcessDirtyItems();
+		FlyCamController->Attach(defaultCamera);
+		GlobalSystem->SetCamera(defaultCamera);
 
-		EngineState->Registry.clear<Objects::Dirty<Spatials::Spatial>>();
-
-		auto cameraEntities = EngineState->Registry.view<Stores::StoreItem<Cameras::Models::Camera>>();
-		auto firstCameraEntity = cameraEntities[0];
-		FlyCamController->Attach(firstCameraEntity);
-
-		GlobalSystem->SetCamera(firstCameraEntity);
+		ImGui::FileBrowser fileBrowser;
 
 		while (!glfwWindowShouldClose(Window.get())) {
 			glfwPollEvents();
@@ -131,16 +128,52 @@ namespace drk::Applications {
 
 			const auto& waitForFenceResult = DeviceContext->Device.waitForFences(1, &fence, VK_TRUE, UINT64_MAX);
 
+			ImGui_ImplVulkan_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+			if (UserInterface->IsVisible()) {
+				auto open = true;
+				ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
+				if (ImGui::BeginMenuBar()) {
+					if (ImGui::BeginMenu("File")) {
+						if (ImGui::MenuItem("Open", "ctrl + o")) {
+							fileBrowser.Open();
+						}
+						if (ImGui::MenuItem("Save", "ctrl + s")) {
+
+						}
+						if (ImGui::MenuItem("Close", "alt + f4")) {
+
+						}
+						ImGui::EndMenu();
+					}
+					ImGui::EndMenuBar();
+				}
+				ImGui::End();
+
+				fileBrowser.Display();
+				if (fileBrowser.HasSelected()) {
+					auto loadResult = Loader->Load(fileBrowser.GetSelected());
+					loadResults.emplace_back(std::move(loadResult));
+					fileBrowser.ClearSelected();
+				}
+				//ImGui::ShowDemoWindow();
+			}
+			ImGui::EndFrame();
+
+			TextureSystem->UploadTextures();
+			MeshSystem->UploadMeshes();
+
+			MaterialSystem->StoreMaterials();
+			MeshSystem->StoreMeshes();
+			SpatialSystem->StoreSpatials();
+			ObjectSystem->StoreObjects();
+			CameraSystem->StoreCameras();
+
 			FlyCamController->Step();
 
 			SpatialSystem->PropagateChanges();
 			CameraSystem->ProcessDirtyItems();
-
-			ImGui_ImplVulkan_NewFrame();
-			ImGui_ImplGlfw_NewFrame();
-			ImGui::NewFrame();
-			//ImGui::ShowDemoWindow();
-			ImGui::EndFrame();
 
 			MaterialSystem->UpdateMaterials();
 			MeshSystem->UpdateMeshes();
@@ -168,7 +201,7 @@ namespace drk::Applications {
 			glfwWaitEvents();
 		}
 
-		Graphics->SetExtent({ width, height });
+		Graphics->SetExtent({width, height});
 	}
 
 	void Application::WaitFences() {
@@ -186,6 +219,7 @@ namespace drk::Applications {
 	void Application::SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 		auto application = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
 		application->FlyCamController->OnKeyboardEvent(key, scancode, action, mods);
+		application->UserInterface->OnKeyboardEvent(key, scancode, action, mods);
 	}
 
 	void Application::CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {

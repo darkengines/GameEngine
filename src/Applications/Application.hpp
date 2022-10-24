@@ -15,6 +15,7 @@
 #include "../Cameras/CameraSystem.hpp"
 #include "../Graphics/GlobalSystem.hpp"
 #include "../Controllers/FlyCamController.hpp"
+#include "../UserInterfaces/UserInterface.hpp"
 #include <memory>
 
 namespace drk::Applications {
@@ -38,6 +39,7 @@ namespace drk::Applications {
 		const std::unique_ptr<Loaders::AssimpLoader> Loader;
 		const std::unique_ptr<Graphics::Graphics> Graphics;
 		const std::unique_ptr<Controllers::FlyCamController> FlyCamController;
+		const std::unique_ptr<UserInterfaces::UserInterface> UserInterface;
 
 		static std::unique_ptr<GLFWwindow, void (*)(GLFWwindow *)> BuildWindow();
 		static std::unique_ptr<Devices::DeviceContext> BuildDeviceContext(GLFWwindow *window);

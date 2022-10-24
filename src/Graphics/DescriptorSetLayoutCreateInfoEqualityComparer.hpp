@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
-#include <numeric>
 
 namespace drk::Graphics {
 	class DescriptorSetLayoutCreateInfoEqualityComparer {

@@ -11,6 +11,7 @@
 		"assimp",
 		"entt",
 		"vulkan-memory-allocator",
-		"stb"
+		"stb",
+		"fmt"
 	]
 }

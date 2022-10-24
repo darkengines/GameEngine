@@ -1,16 +1,18 @@
 #include "MaterialSystem.hpp"
 #include "Material.hpp"
+#include "Models/Material.hpp"
+#include "../Graphics/SynchronizationState.hpp"
 #include <functional>
 
 namespace drk::Materials {
 
 	MaterialSystem::MaterialSystem(
-		drk::Devices::DeviceContext *pContext,
-		drk::Graphics::EngineState *pState
+		drk::Devices::DeviceContext* pContext,
+		drk::Graphics::EngineState* pState
 	)
 		: DeviceContext(pContext), EngineState(pState) {}
 
-	void MaterialSystem::UpdateStoreItem(const Material *material, Models::Material &storedMaterial) {
+	void MaterialSystem::UpdateStoreItem(const Material* material, Models::Material& storedMaterial) {
 		storedMaterial.baseColor = material->baseColor;
 		storedMaterial.ambientColor = material->ambientColor;
 		storedMaterial.diffuseColor = material->diffuseColor;
@@ -64,29 +66,29 @@ namespace drk::Materials {
 
 
 	void MaterialSystem::StoreMaterials() {
-		EngineState->Store<Models::Material, Material *>();
+		EngineState->Store<Models::Material, Material*>();
 	}
 
 	void MaterialSystem::UpdateMaterials() {
-		Graphics::SynchronizationState<Models::Material>::Update<Material *>(
+		Graphics::SynchronizationState<Models::Material>::Update<Material*>(
 			EngineState->Registry,
 			EngineState->FrameIndex,
-			[=](
-				Models::Material &model,
-				const Material *component
-			) { UpdateStoreItem(component, model); }
+			std::function<void(Models::Material&, Material *const&)>([&](
+				Models::Material& model,
+				Material *const& component
+			) { UpdateStoreItem(component, model); })
 		);
 	}
 
-	void MaterialSystem::AddMaterialSystem(entt::registry &registry) {
-		registry.on_construct<Material *>().connect<MaterialSystem::OnMaterialConstruct>();
+	void MaterialSystem::AddMaterialSystem(entt::registry& registry) {
+		registry.on_construct<Material*>().connect<MaterialSystem::OnMaterialConstruct>();
 	}
 
-	void MaterialSystem::RemoveMaterialSystem(entt::registry &registry) {
-		registry.on_construct<Material *>().disconnect<MaterialSystem::OnMaterialConstruct>();
+	void MaterialSystem::RemoveMaterialSystem(entt::registry& registry) {
+		registry.on_construct<Material*>().disconnect<MaterialSystem::OnMaterialConstruct>();
 	}
 
-	void MaterialSystem::OnMaterialConstruct(entt::registry &registry, entt::entity materialEntity) {
+	void MaterialSystem::OnMaterialConstruct(entt::registry& registry, entt::entity materialEntity) {
 
 	}
 }

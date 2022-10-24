@@ -2,22 +2,22 @@
 // Created by root on 27/09/2022.
 //
 
+#include <numeric>
 #include "DescriptorSetLayoutCreateInfoEqualityComparer.hpp"
 
 size_t
 drk::Graphics::DescriptorSetLayoutCreateInfoEqualityComparer::operator()(const vk::DescriptorSetLayoutCreateInfo &descriptorSetLayoutCreateInfo) const {
 	auto hasher = std::hash<size_t>();
-	auto hash = hasher(descriptorSetLayoutCreateInfo.bindingCount);
+	size_t hash = hasher(descriptorSetLayoutCreateInfo.bindingCount);
 	hash = std::reduce(
 		descriptorSetLayoutCreateInfo.pBindings,
 		descriptorSetLayoutCreateInfo.pBindings + descriptorSetLayoutCreateInfo.bindingCount,
 		hash,
-		[&hasher](size_t hash, const vk::DescriptorSetLayoutBinding binding) {
+		[&hasher](const size_t& hash, const vk::DescriptorSetLayoutBinding& binding) {
 			size_t bindingHash =
 				binding.binding | binding.descriptorCount << 8 | (uint32_t) binding.descriptorType << 16 |
 				(uint32_t) binding.stageFlags << 24;
-			hash ^= hasher(bindingHash);
-			return hash;
+			return hash ^ hasher(bindingHash);
 		}
 	);
 	return hash;

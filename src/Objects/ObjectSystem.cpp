@@ -6,15 +6,15 @@
 namespace drk::Objects {
 
 	ObjectSystem::ObjectSystem(
-		drk::Devices::DeviceContext *pContext,
-		drk::Graphics::EngineState *pState
+		drk::Devices::DeviceContext* pContext,
+		drk::Graphics::EngineState* pState
 	)
 		: DeviceContext(pContext), EngineState(pState) {}
 
 	void ObjectSystem::UpdateStoreItem(
-		Models::Object &objectModel, const Stores::StoreItem<Spatials::Models::Spatial> &spatialStoreItem
+		Models::Object& objectModel, const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem
 	) {
-		const auto &spatialItemLocation = spatialStoreItem.frameStoreItems[EngineState->FrameIndex];
+		const auto& spatialItemLocation = spatialStoreItem.frameStoreItems[EngineState->FrameIndex];
 		objectModel.spatialItemLocation.storeIndex = spatialItemLocation.pStore->descriptorArrayElement;
 		objectModel.spatialItemLocation.itemIndex = spatialItemLocation.index;
 	}
@@ -27,22 +27,24 @@ namespace drk::Objects {
 		Graphics::SynchronizationState<Models::Object>::Update<Stores::StoreItem<Spatials::Models::Spatial>>(
 			EngineState->Registry,
 			EngineState->FrameIndex,
-			[=](
-				Models::Object &model,
-				const Stores::StoreItem<Spatials::Models::Spatial> &spatialStoreItem
-			) { UpdateStoreItem(model, spatialStoreItem); }
+			std::function<void(Models::Object&, const Stores::StoreItem<Spatials::Models::Spatial>&)>(
+				[=](
+					Models::Object& model,
+					const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem
+				) { UpdateStoreItem(model, spatialStoreItem); }
+			)
 		);
 	}
 
-	void ObjectSystem::AddObjectSystem(entt::registry &registry) {
+	void ObjectSystem::AddObjectSystem(entt::registry& registry) {
 		registry.on_construct<Object>().connect<ObjectSystem::OnObjectConstruct>();
 	}
 
-	void ObjectSystem::RemoveObjectSystem(entt::registry &registry) {
+	void ObjectSystem::RemoveObjectSystem(entt::registry& registry) {
 		registry.on_construct<Object>().disconnect<ObjectSystem::OnObjectConstruct>();
 	}
 
-	void ObjectSystem::OnObjectConstruct(entt::registry &registry, entt::entity objectEntity) {
+	void ObjectSystem::OnObjectConstruct(entt::registry& registry, entt::entity objectEntity) {
 
 	}
 }

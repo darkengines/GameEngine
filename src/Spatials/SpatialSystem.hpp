@@ -21,5 +21,8 @@ namespace drk::Spatials {
 		void UpdateSpatials();
 		void StoreSpatials();
 		void PropagateChanges();
+		bool IsParent(entt::entity left, entt::entity right);
+		std::string GetPath(entt::entity entity);
+		uint32_t GetDepth(entt::entity entity);
 	};
 }

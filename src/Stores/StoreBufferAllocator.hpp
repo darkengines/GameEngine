@@ -1,7 +1,10 @@
 #pragma once
+#define VULKAN_HPP_NO_CONSTRUCTORS
+#include <vulkan/vulkan.hpp>
 #include "../Devices/DeviceContext.hpp"
 #include "../Devices/Device.hpp"
 #include "StoreBuffer.hpp"
+#include "../Devices/Buffer.hpp"
 #include <vector>
 
 namespace drk::Stores {
@@ -37,20 +40,19 @@ namespace drk::Stores {
 			void *mappedMemory = nullptr;
 			Devices::Device::mapBuffer(DeviceContext->Allocator, storageBuffer, &mappedMemory);
 
-			vk::DescriptorBufferInfo descriptorBufferInfo = {
-				.buffer = storageBuffer.buffer,
-				.offset = 0,
-				.range = VK_WHOLE_SIZE
-			};
+			vk::DescriptorBufferInfo descriptorBufferInfo {};
+			descriptorBufferInfo.buffer = storageBuffer.buffer;
+			descriptorBufferInfo.offset = 0u;
+			descriptorBufferInfo.range = VK_WHOLE_SIZE;
 
-			vk::WriteDescriptorSet writeDescriptorSet = {
-				.dstSet = DescriptorSet,
-				.dstBinding = 0,
-				.dstArrayElement = bufferIndex,
-				.descriptorCount = 1,
-				.descriptorType = vk::DescriptorType::eStorageBuffer,
-				.pBufferInfo = &descriptorBufferInfo
-			};
+
+			vk::WriteDescriptorSet writeDescriptorSet = {};
+			writeDescriptorSet.dstSet = DescriptorSet;
+			writeDescriptorSet.dstBinding = 0;
+			writeDescriptorSet.dstArrayElement = bufferIndex;
+			writeDescriptorSet.descriptorCount = 1;
+			writeDescriptorSet.descriptorType = vk::DescriptorType::eStorageBuffer;
+			writeDescriptorSet.pBufferInfo = &descriptorBufferInfo;
 
 			DeviceContext->Device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
 

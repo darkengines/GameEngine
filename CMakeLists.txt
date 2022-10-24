@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 project(drk CXX)
+add_subdirectory(dependencies)
 set(CMAKE_CXX_STANDARD 20)
 
 file(
@@ -155,7 +156,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES})
+add_executable(drk ${HEADERS} ${SOURCES} src/UserInterfaces/UserInterface.cpp src/UserInterfaces/UserInterface.hpp)
 add_dependencies(drk Shaders)
 
 find_package(Vulkan REQUIRED)
@@ -166,9 +167,11 @@ find_package(glm REQUIRED)
 find_package(assimp REQUIRED)
 find_package(imgui REQUIRED)
 find_package(stb REQUIRED)
+find_package(fmt REQUIRED)
 
 target_include_directories(drk PUBLIC ${Vulkan_INCLUDE_DIRS})
 target_include_directories(drk PUBLIC ${stb_INCLUDE_DIRS})
+target_include_directories(drk PUBLIC ${imgui-filebrowser})
 
 target_link_libraries(drk PRIVATE ${Vulkan_LIBRARIES})
 target_link_libraries(drk PRIVATE unofficial::vulkan-memory-allocator::vulkan-memory-allocator)
@@ -177,3 +180,4 @@ target_link_libraries(drk PRIVATE EnTT::EnTT)
 target_link_libraries(drk PRIVATE glm::glm)
 target_link_libraries(drk PRIVATE assimp::assimp)
 target_link_libraries(drk PRIVATE imgui::imgui)
+target_link_libraries(drk PRIVATE fmt::fmt)

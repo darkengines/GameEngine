@@ -6,9 +6,6 @@
 #include <optional>
 #include <entt/entt.hpp>
 
-namespace drk::Textures {
-	struct ImageInfo;
-}
 namespace drk::Materials {
 	struct Material {
 		std::string name;

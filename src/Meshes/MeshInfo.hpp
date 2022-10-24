@@ -4,10 +4,8 @@
 #include <vector>
 #include <entt/entity/entity.hpp>
 #include "Vertex.hpp"
+#include "../Materials/Material.hpp"
 
-namespace drk::Materials {
-	struct Material;
-}
 namespace drk::Meshes {
 	struct MeshInfo {
 		std::string name;

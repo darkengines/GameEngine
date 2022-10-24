@@ -22,5 +22,15 @@ namespace drk::Cameras {
 		void StoreCameras();
 		void UpdateCameras();
 		void ProcessDirtyItems();
+
+		entt::entity CreateCamera(
+			glm::vec4 position,
+			glm::vec4 front,
+			glm::vec4 up,
+			float verticalFov,
+			float aspectRatio,
+			float near,
+			float far
+		);
 	};
 }
