@@ -1,16 +1,20 @@
 #include "DeviceContext.hpp"
 #include "Device.hpp"
+#include "../Common/Common.hpp"
 
 namespace drk::Devices {
 
 	DeviceContext::DeviceContext(
-		const std::vector<const char *> &requiredInstanceExtensions,
-		const std::vector<const char *> &requiredDeviceExtensions,
-		const std::vector<const char *> &requiredValidationLayers,
-		const std::function<vk::SurfaceKHR(const vk::Instance &)> &surfaceProvider,
+		const std::vector<const char*>& requiredInstanceExtensions,
+		const std::vector<const char*>& requiredDeviceExtensions,
+		const std::vector<const char*>& requiredValidationLayers,
+		const std::function<vk::SurfaceKHR(const vk::Instance&)>& surfaceProvider,
 		bool enableValidationLayer
 	) {
-		Instance = drk::Devices::Device::createInstance(requiredInstanceExtensions, enableValidationLayer ? requiredValidationLayers : std::vector<const char*>{});
+		Instance = drk::Devices::Device::createInstance(requiredInstanceExtensions,
+														enableValidationLayer ? requiredValidationLayers
+																			  : std::vector<const char*>{}
+		);
 		Surface = surfaceProvider(Instance);
 		PhysicalDevice = drk::Devices::Device::pickPhysicalDevice(
 			Instance,
@@ -58,24 +62,31 @@ namespace drk::Devices {
 		return Device::createBuffer(Allocator, properties, usage, allocationCreationInfo, size);
 	}
 
-	void DeviceContext::DestroyBuffer(const Buffer &buffer) const {
+	void DeviceContext::DestroyBuffer(const Buffer& buffer) const {
 		Device::destroyBuffer(Allocator, buffer);
 	}
 
 	Image
 	DeviceContext::CreateImage(
-		const vk::ImageCreateInfo &imageCreationInfo,
+		const vk::ImageCreateInfo& imageCreationInfo,
 		vk::MemoryPropertyFlags properties
 	) const {
 		return Device::createImage(Allocator, imageCreationInfo, properties);
 	}
 
-	void DeviceContext::DestroyImage(const Image &image) const {
+	void DeviceContext::DestroyImage(const Image& image) const {
 		Device::destroyImage(Device, Allocator, image);
 	}
 
-	void DeviceContext::DestroyTexture(const Texture &texture) const {
+	void DeviceContext::DestroyTexture(const Texture& texture) const {
 		Device.destroyImageView(texture.imageView);
 		Device::destroyImage(Device, Allocator, texture.image);
+	}
+	vk::ShaderModule DeviceContext::CreateShaderModule(const std::string& shaderPath) const {
+		auto code = Common::ReadFile(shaderPath);
+		return Devices::Device::createShaderModules(
+			Device,
+			static_cast<uint32_t>(code.size()),
+			reinterpret_cast<uint32_t*>(code.data()));
 	}
 }

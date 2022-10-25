@@ -4,14 +4,11 @@
 	"dependencies": [
 		"glfw3",
 		"glm",
-		{
-			"name": "imgui",
-			"features": ["vulkan-binding", "glfw-binding"]
-		},
 		"assimp",
 		"entt",
 		"vulkan-memory-allocator",
 		"stb",
-		"fmt"
+		"fmt",
+		"libuv"
 	]
 }

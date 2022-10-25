@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 
 project(drk CXX)
-add_subdirectory(dependencies)
 set(CMAKE_CXX_STANDARD 20)
-
+add_subdirectory(dependencies)
 file(
     GLOB SOURCES
     src/main.cpp
@@ -47,6 +46,8 @@ file(
     src/Lights/DirectionalLightSystem.cpp
     src/Lights/LightSystem.cpp
     src/Lights/PointLightSystem.cpp
+    src/ImGui/imgui_impl_vulkan.cpp
+    src/ImGui/imgui_impl_glfw.cpp
 )
 
 file(
@@ -139,7 +140,7 @@ file(
     "src/Graphics/Shaders/main.frag"
 )
 
-foreach(GLSL ${GLSL_SOURCES})
+foreach (GLSL ${GLSL_SOURCES})
     get_filename_component(FILE_NAME ${GLSL} NAME)
     set(SPIRV "${PROJECT_BINARY_DIR}/shaders/spv/${FILE_NAME}.spv")
     add_custom_command(
@@ -149,14 +150,14 @@ foreach(GLSL ${GLSL_SOURCES})
         COMMAND glslc --target-env=vulkan1.3 ${GLSL} -o ${SPIRV}
         DEPENDS ${GLSL})
     list(APPEND SPIRV_BINARIES ${SPIRV})
-endforeach(GLSL)
+endforeach (GLSL)
 
 add_custom_target(
     Shaders
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/UserInterfaces/UserInterface.cpp src/UserInterfaces/UserInterface.hpp)
+add_executable(drk ${HEADERS} ${SOURCES} src/UserInterfaces/UserInterface.cpp src/UserInterfaces/UserInterface.hpp src/Graphics/MainRenderContext.cpp src/Graphics/MainRenderContext.hpp)
 add_dependencies(drk Shaders)
 
 find_package(Vulkan REQUIRED)
@@ -165,12 +166,13 @@ find_package(entt REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 find_package(assimp REQUIRED)
-find_package(imgui REQUIRED)
 find_package(stb REQUIRED)
 find_package(fmt REQUIRED)
+find_package(libuv REQUIRED)
 
 target_include_directories(drk PUBLIC ${Vulkan_INCLUDE_DIRS})
 target_include_directories(drk PUBLIC ${stb_INCLUDE_DIRS})
+target_include_directories(drk PUBLIC ${IMGUI_INCLUDE_DIR} ${IMGUI_INCLUDE_DIR}/backends)
 target_include_directories(drk PUBLIC ${imgui-filebrowser})
 
 target_link_libraries(drk PRIVATE ${Vulkan_LIBRARIES})
@@ -179,5 +181,6 @@ target_link_libraries(drk PRIVATE glfw)
 target_link_libraries(drk PRIVATE EnTT::EnTT)
 target_link_libraries(drk PRIVATE glm::glm)
 target_link_libraries(drk PRIVATE assimp::assimp)
-target_link_libraries(drk PRIVATE imgui::imgui)
+target_link_libraries(drk PRIVATE imgui)
 target_link_libraries(drk PRIVATE fmt::fmt)
+target_link_libraries(drk PRIVATE uv)

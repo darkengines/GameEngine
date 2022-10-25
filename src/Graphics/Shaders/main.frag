@@ -72,5 +72,8 @@ void main() {
         albedo = texture(textures[material.diffuseColorTextureIndex], point.texCoord);
     }
 
+    if (albedo.a < 0.33f) {
+        discard;
+    }
     outColor = albedo;
 }

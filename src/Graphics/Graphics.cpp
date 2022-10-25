@@ -21,17 +21,16 @@
 #include <stdexcept>
 
 namespace drk::Graphics {
-	std::vector<const char *> Graphics::RequiredInstanceExtensions = Windows::Window::getVulkanInstanceExtension();
-	std::vector<const char *> Graphics::RequiredDeviceExtensions = {
+	std::vector<const char*> Graphics::RequiredInstanceExtensions = Windows::Window::getVulkanInstanceExtension();
+	std::vector<const char*> Graphics::RequiredDeviceExtensions = {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
-		VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME,
-		VK_NV_MESH_SHADER_EXTENSION_NAME
+		VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
 	};
 
 	Graphics::Graphics(
-		const Devices::DeviceContext *deviceContext,
-		drk::Graphics::EngineState *engineState,
+		const Devices::DeviceContext* deviceContext,
+		drk::Graphics::EngineState* engineState,
 		const vk::Extent2D extent
 	) : DeviceContext(deviceContext), EngineState(engineState), Extent(extent) {
 		CreateSwapchain(Extent);
@@ -59,7 +58,7 @@ namespace drk::Graphics {
 		DestroySwapchain();
 	}
 
-	void Graphics::CreateSwapchain(const vk::Extent2D &extent) {
+	void Graphics::CreateSwapchain(const vk::Extent2D& extent) {
 		Swapchain = Devices::Device::createSwapchain(
 			DeviceContext->Device,
 			DeviceContext->PhysicalDevice,
@@ -78,7 +77,7 @@ namespace drk::Graphics {
 	}
 
 	void Graphics::DestroyMainFramebuffer() {
-		for (const auto &framebuffer: MainFramebuffers) {
+		for (const auto& framebuffer: MainFramebuffers) {
 			DeviceContext->Device.destroyFramebuffer(framebuffer);
 		}
 		MainFramebuffers.clear();
@@ -136,7 +135,7 @@ namespace drk::Graphics {
 	}
 
 	vk::PipelineColorBlendStateCreateInfo
-	Graphics::DefaultPipelineColorBlendStateCreateInfo(vk::PipelineColorBlendAttachmentState &pipelineColorBlendAttachmentState) {
+	Graphics::DefaultPipelineColorBlendStateCreateInfo(vk::PipelineColorBlendAttachmentState& pipelineColorBlendAttachmentState) {
 		pipelineColorBlendAttachmentState = DefaultPipelineColorBlendAttachmentState();
 		vk::PipelineColorBlendStateCreateInfo colorBlending = {
 			.logicOpEnable = false,
@@ -150,7 +149,7 @@ namespace drk::Graphics {
 
 	vk::PipelineMultisampleStateCreateInfo Graphics::DefaultPipelineMultisampleStateCreateInfo() {
 		vk::PipelineMultisampleStateCreateInfo multisampling = {
-			.rasterizationSamples = vk::SampleCountFlagBits::e1,
+			.rasterizationSamples = vk::SampleCountFlagBits::e8,
 			.sampleShadingEnable = false,
 			.minSampleShading = 1.0f,
 			.alphaToCoverageEnable = false,
@@ -177,9 +176,9 @@ namespace drk::Graphics {
 	}
 
 	vk::PipelineViewportStateCreateInfo Graphics::DefaultPipelineViewportStateCreateInfo(
-		const vk::Extent2D &extent,
-		vk::Viewport &viewport,
-		vk::Rect2D &scissor
+		const vk::Extent2D& extent,
+		vk::Viewport& viewport,
+		vk::Rect2D& scissor
 	) {
 		viewport = vk::Viewport{
 			.x = 0.0f,
@@ -214,8 +213,8 @@ namespace drk::Graphics {
 	}
 
 	vk::PipelineVertexInputStateCreateInfo Graphics::DefaultPipelineVertexInputStateCreateInfo(
-		std::vector<vk::VertexInputBindingDescription> &vertexInputBindingDescriptions,
-		std::vector<vk::VertexInputAttributeDescription> &vertexInputAttributeDescriptions
+		std::vector<vk::VertexInputBindingDescription>& vertexInputBindingDescriptions,
+		std::vector<vk::VertexInputAttributeDescription>& vertexInputAttributeDescriptions
 	) {
 		vertexInputBindingDescriptions = Meshes::Vertex::getBindingDescription();
 		vertexInputAttributeDescriptions = Meshes::Vertex::getAttributeDescriptions();
@@ -230,15 +229,7 @@ namespace drk::Graphics {
 		return vertexInputInfo;
 	}
 
-	vk::ShaderModule Graphics::CreateShaderModule(const std::string &shaderPath) const {
-		auto code = Common::ReadFile(shaderPath);
-		return Devices::Device::createShaderModules(
-			DeviceContext->Device,
-			static_cast<uint32_t>(code.size()),
-			reinterpret_cast<uint32_t *>(code.data()));
-	}
-
-	void Graphics::SetExtent(const vk::Extent2D &extent) {
+	void Graphics::SetExtent(const vk::Extent2D& extent) {
 		Extent = extent;
 		ExtentChanged = true;
 	}
@@ -339,7 +330,7 @@ namespace drk::Graphics {
 			.extent = {Swapchain.extent.width, Swapchain.extent.height, 1},
 			.mipLevels = 1,
 			.arrayLayers = 1,
-			.samples = DeviceContext->MaxSampleCount,
+			.samples = vk::SampleCountFlagBits::e8,
 			.usage = vk::ImageUsageFlagBits::eColorAttachment,
 			.sharingMode = vk::SharingMode::eExclusive,
 		};
@@ -371,7 +362,7 @@ namespace drk::Graphics {
 			.extent = {Swapchain.extent.width, Swapchain.extent.height, 1},
 			.mipLevels = 1,
 			.arrayLayers = 1,
-			.samples = DeviceContext->MaxSampleCount,
+			.samples = vk::SampleCountFlagBits::e8,
 			.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
 			.sharingMode = vk::SharingMode::eExclusive,
 		};
@@ -407,7 +398,7 @@ namespace drk::Graphics {
 	}
 
 	void Graphics::CreateMainFramebuffers() {
-		for (const auto &swapChainImageView: Swapchain.imageViews) {
+		for (const auto& swapChainImageView: Swapchain.imageViews) {
 			std::array<vk::ImageView, 3> attachments{
 				MainFramebufferTexture.imageView,
 				MainFramebufferDepthTexture.imageView,
@@ -449,24 +440,24 @@ namespace drk::Graphics {
 		vk::Viewport viewport;
 		vk::Rect2D scissor;
 
-		const auto &pipelineVertexInputStateCreateInfo = DefaultPipelineVertexInputStateCreateInfo(
+		const auto& pipelineVertexInputStateCreateInfo = DefaultPipelineVertexInputStateCreateInfo(
 			vertexInputBindingDescriptions,
 			vertexInputAttributeDescriptions
 		);
-		const auto &pipelineInputAssemblyStateCreateInfo = DefaultPipelineInputAssemblyStateCreateInfo();
-		const auto &pipelineViewportStateCreateInfo = DefaultPipelineViewportStateCreateInfo(
+		const auto& pipelineInputAssemblyStateCreateInfo = DefaultPipelineInputAssemblyStateCreateInfo();
+		const auto& pipelineViewportStateCreateInfo = DefaultPipelineViewportStateCreateInfo(
 			Swapchain.extent,
 			viewport,
 			scissor
 		);
-		const auto &pipelineRasterizationStateCreateInfo = DefaultPipelineRasterizationStateCreateInfo();
+		const auto& pipelineRasterizationStateCreateInfo = DefaultPipelineRasterizationStateCreateInfo();
 		auto pipelineMultisampleStateCreateInfo = DefaultPipelineMultisampleStateCreateInfo();
 		//TODO: Use configurable sample count
 		pipelineMultisampleStateCreateInfo.rasterizationSamples = vk::SampleCountFlagBits::e8;
-		const auto &pipelineColorBlendStateCreateInfo = DefaultPipelineColorBlendStateCreateInfo(
+		const auto& pipelineColorBlendStateCreateInfo = DefaultPipelineColorBlendStateCreateInfo(
 			pipelineColorBlendAttachmentState
 		);
-		const auto &pipelineDepthStencilStateCreateInfo = DefaultPipelineDepthStencilStateCreateInfo();
+		const auto& pipelineDepthStencilStateCreateInfo = DefaultPipelineDepthStencilStateCreateInfo();
 
 		vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo = {
 			.stageCount = static_cast<uint32_t>(pipelineShaderStageCreateInfos.size()),
@@ -501,17 +492,17 @@ namespace drk::Graphics {
 
 		vk::DescriptorPoolSize poolSizes[] =
 			{
-				{vk::DescriptorType::eSampler, 1000},
+				{vk::DescriptorType::eSampler,              1000},
 				{vk::DescriptorType::eCombinedImageSampler, 1000},
-				{vk::DescriptorType::eSampledImage, 1000},
-				{vk::DescriptorType::eStorageImage, 1000},
-				{vk::DescriptorType::eUniformTexelBuffer, 1000},
-				{vk::DescriptorType::eStorageTexelBuffer, 1000},
-				{vk::DescriptorType::eUniformBuffer, 1000},
-				{vk::DescriptorType::eStorageBuffer, 1000},
+				{vk::DescriptorType::eSampledImage,         1000},
+				{vk::DescriptorType::eStorageImage,         1000},
+				{vk::DescriptorType::eUniformTexelBuffer,   1000},
+				{vk::DescriptorType::eStorageTexelBuffer,   1000},
+				{vk::DescriptorType::eUniformBuffer,        1000},
+				{vk::DescriptorType::eStorageBuffer,        1000},
 				{vk::DescriptorType::eUniformBufferDynamic, 1000},
 				{vk::DescriptorType::eStorageBufferDynamic, 1000},
-				{vk::DescriptorType::eInputAttachment, 1000}
+				{vk::DescriptorType::eInputAttachment,      1000}
 			};
 
 		vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
@@ -521,8 +512,6 @@ namespace drk::Graphics {
 		};
 
 		ImGuiDescriptorPool = DeviceContext->Device.createDescriptorPool(descriptorPoolCreateInfo);
-
-		ImGui::CreateContext();
 
 		ImGui_ImplVulkan_InitInfo infos{
 			.Instance = DeviceContext->Instance,
@@ -556,16 +545,17 @@ namespace drk::Graphics {
 	}
 
 	void Graphics::CreateShaderModules() {
-		MainVertexShaderModule = CreateShaderModule("shaders/spv/main.vert.spv");
-		MainFragmentShaderModule = CreateShaderModule("shaders/spv/main.frag.spv");
+		MainVertexShaderModule = DeviceContext->CreateShaderModule("shaders/spv/main.vert.spv");
+		MainFragmentShaderModule = DeviceContext->CreateShaderModule("shaders/spv/main.frag.spv");
 	}
 
 	void Graphics::Render() {
 		ImGui::Render();
-		const auto &frameState = EngineState->FrameStates[EngineState->FrameIndex];
-		const auto &fence = frameState.Fence;
-		const auto &imageReadySemaphore = frameState.ImageReadySemaphore;
-		const auto &imageRenderedSemaphore = frameState.ImageRenderedSemaphore;
+
+		const auto& frameState = EngineState->FrameStates[EngineState->FrameIndex];
+		const auto& fence = frameState.Fence;
+		const auto& imageReadySemaphore = frameState.ImageReadySemaphore;
+		const auto& imageRenderedSemaphore = frameState.ImageRenderedSemaphore;
 
 		const auto drawContext = BuildMainRenderPass();
 
@@ -583,12 +573,12 @@ namespace drk::Graphics {
 			RecreateSwapchain(Extent);
 			return;
 		}
-		const auto &resetFenceResult = DeviceContext->Device.resetFences(1, &fence);
+		const auto& resetFenceResult = DeviceContext->Device.resetFences(1, &fence);
 
 		frameState.CommandBuffer.reset();
 
 		vk::CommandBufferBeginInfo commandBufferBeginInfo = {};
-		const auto &result = frameState.CommandBuffer.begin(&commandBufferBeginInfo);
+		const auto& result = frameState.CommandBuffer.begin(&commandBufferBeginInfo);
 		vk::ClearValue colorClearValue = {
 			.color = {std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}
 		};
@@ -614,17 +604,16 @@ namespace drk::Graphics {
 			.clearValueCount = (uint32_t) clearValues.size(),
 			.pClearValues = clearValues.data(),
 		};
+		frameState.CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, MainGraphicPipeline);
 		frameState.CommandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
-
 		for (auto drawSetIndex = 0u; drawSetIndex < drawContext.drawSets.size(); drawSetIndex++) {
-			const auto &drawSet = drawContext.drawSets[drawSetIndex];
+			const auto& drawSet = drawContext.drawSets[drawSetIndex];
 
 			vk::DeviceSize offset = 0u;
 			frameState.CommandBuffer.bindIndexBuffer(drawSet.indexBuffer.buffer, 0, vk::IndexType::eUint32);
 			frameState.CommandBuffer.bindVertexBuffers(0, 1, &drawSet.vertexBuffer.buffer, &offset);
-			frameState.CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, MainGraphicPipeline);
 			for (auto drawIndex = 0u; drawIndex < drawSet.drawCommands.size(); drawIndex++) {
-				const auto &drawCommand = drawSet.drawCommands[drawIndex];
+				const auto& drawCommand = drawSet.drawCommands[drawIndex];
 				frameState.CommandBuffer.drawIndexed(
 					drawCommand.indexCount,
 					drawCommand.instanceCount,
@@ -665,8 +654,15 @@ namespace drk::Graphics {
 
 		//Todo: make "frame in flight" count configurable
 		EngineState->FrameIndex = (EngineState->FrameIndex + 1) % 2;
-		const auto &presentResult = DeviceContext->PresentQueue.presentKHR(presentInfoKHR);
-		if (presentResult == vk::Result::eSuboptimalKHR || presentResult == vk::Result::eErrorOutOfDateKHR ||
+
+		vk::Result presentResult;
+		bool outOfDate = false;
+		try {
+			presentResult = DeviceContext->PresentQueue.presentKHR(presentInfoKHR);
+		} catch (const vk::OutOfDateKHRError& e) {
+			outOfDate = true;
+		}
+		if (outOfDate || presentResult == vk::Result::eSuboptimalKHR ||
 			ExtentChanged) {
 			ExtentChanged = false;
 			RecreateSwapchain(Extent);
@@ -681,18 +677,18 @@ namespace drk::Graphics {
 		objectEntities.each(
 			[&](
 				entt::entity objectEntity,
-				auto &objectStoreItem,
-				auto &meshGroup,
-				auto &spatial
+				auto& objectStoreItem,
+				auto& meshGroup,
+				auto& spatial
 			) {
-				const auto &objectStoreItemLocation = objectStoreItem.frameStoreItems[EngineState->FrameIndex];
-				for (const auto &meshEntity : meshGroup.meshEntities) {
-					Meshes::MeshInfo *meshInfo = EngineState->Registry.get<Meshes::MeshInfo *>(meshEntity);
+				const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[EngineState->FrameIndex];
+				for (const auto& meshEntity : meshGroup.meshEntities) {
+					Meshes::MeshInfo* meshInfo = EngineState->Registry.get<Meshes::MeshInfo*>(meshEntity);
 					const Meshes::Mesh mesh = EngineState->Registry.get<Meshes::Mesh>(meshEntity);
 					const Stores::StoreItem<Meshes::Models::Mesh> meshStoreItem = EngineState->Registry.get<Stores::StoreItem<Meshes::Models::Mesh>>(
 						meshEntity
 					);
-					const auto &meshStoreItemLocation = meshStoreItem.frameStoreItems[EngineState->FrameIndex];
+					const auto& meshStoreItemLocation = meshStoreItem.frameStoreItems[EngineState->FrameIndex];
 					Draw draw = {
 						.meshInfo = meshInfo,
 						.mesh = mesh,
@@ -717,25 +713,25 @@ namespace drk::Graphics {
 		);
 
 		std::sort(
-			draws.begin(), draws.end(), [](const Draw &leftDraw, const Draw &rightDraw) {
+			draws.begin(), draws.end(), [](const Draw& leftDraw, const Draw& rightDraw) {
 				return leftDraw.meshInfo < rightDraw.meshInfo;
 			}
 		);
 
 		std::stable_sort(
-			draws.begin(), draws.end(), [](const Draw &leftDraw, const Draw &rightDraw) {
+			draws.begin(), draws.end(), [](const Draw& leftDraw, const Draw& rightDraw) {
 				return leftDraw.mesh.IndexBufferView.buffer.buffer < rightDraw.mesh.IndexBufferView.buffer.buffer;
 			}
 		);
 
 		std::sort(
-			transparencyDraws.begin(), transparencyDraws.end(), [](const Draw &leftDraw, const Draw &rightDraw) {
+			transparencyDraws.begin(), transparencyDraws.end(), [](const Draw& leftDraw, const Draw& rightDraw) {
 				return leftDraw.meshInfo < rightDraw.meshInfo;
 			}
 		);
 
 		std::stable_sort(
-			transparencyDraws.begin(), transparencyDraws.end(), [](const Draw &leftDraw, const Draw &rightDraw) {
+			transparencyDraws.begin(), transparencyDraws.end(), [](const Draw& leftDraw, const Draw& rightDraw) {
 				return leftDraw.mesh.IndexBufferView.buffer.buffer < rightDraw.mesh.IndexBufferView.buffer.buffer;
 			}
 		);
@@ -744,7 +740,7 @@ namespace drk::Graphics {
 		auto camera = EngineState->Registry.get<Cameras::Camera>(cameraEntity);
 
 		std::stable_sort(
-			transparencyDraws.begin(), transparencyDraws.end(), [&camera](const Draw &leftDraw, const Draw &rightDraw) {
+			transparencyDraws.begin(), transparencyDraws.end(), [&camera](const Draw& leftDraw, const Draw& rightDraw) {
 				auto leftDistance = glm::distance(camera.absolutePosition, leftDraw.spatial.absolutePosition);
 				auto rightDistance = glm::distance(camera.absolutePosition, rightDraw.spatial.absolutePosition);
 				return leftDistance > rightDistance;
@@ -759,14 +755,14 @@ namespace drk::Graphics {
 		return drawContext;
 	}
 
-	void Graphics::PopulateDrawContext(DrawContext &drawContext, const std::vector<Draw> &draws, uint32_t drawOffset) {
+	void Graphics::PopulateDrawContext(DrawContext& drawContext, const std::vector<Draw>& draws, uint32_t drawOffset) {
 		auto drawStore = EngineState->FrameStates[EngineState->FrameIndex].DrawStore.get();
-		const Draw *previousDraw = nullptr;
+		const Draw* previousDraw = nullptr;
 		if (!drawContext.drawSets.empty() && !drawContext.drawSets.back().draws.empty())
 			previousDraw = &drawContext.drawSets.back().draws.back();
 
 		for (auto drawIndex = 0u; drawIndex < draws.size(); drawIndex++) {
-			auto &draw = draws[drawIndex];
+			auto& draw = draws[drawIndex];
 
 			if (previousDraw != nullptr && previousDraw->meshInfo == draw.meshInfo) {
 				drawContext.drawSets.back().drawCommands.back().instanceCount++;
@@ -813,7 +809,7 @@ namespace drk::Graphics {
 
 	void Graphics::WaitFences() {
 		std::vector<vk::Fence> fences;
-		for (const auto &frameState: EngineState->FrameStates) {
+		for (const auto& frameState: EngineState->FrameStates) {
 			fences.push_back(frameState.Fence);
 		}
 		auto waitFenceResult = DeviceContext->Device.waitForFences(
@@ -825,7 +821,7 @@ namespace drk::Graphics {
 
 	void Graphics::ResetFences() {
 		std::vector<vk::Fence> fences;
-		for (const auto &frameState: EngineState->FrameStates) {
+		for (const auto& frameState: EngineState->FrameStates) {
 			fences.push_back(frameState.Fence);
 		}
 		DeviceContext->Device.resetFences(

@@ -24,6 +24,8 @@ namespace drk::Loaders {
 			aiProcess_FindInstances
 			| aiProcess_GenBoundingBoxes
 			| aiProcess_Triangulate
+			| aiProcess_GenNormals
+			| aiProcess_CalcTangentSpace
 		);
 
 		std::span<aiMaterial*> aiMaterials(aiScene->mMaterials, aiScene->mNumMaterials);
@@ -83,7 +85,8 @@ namespace drk::Loaders {
 									textureTypePair.second
 								);
 							} else {
-								auto textureFileSystemPath = workingDirectoryPath.make_preferred() / std::filesystem::path(texturePath).make_preferred().relative_path();
+								auto textureFileSystemPath = workingDirectoryPath.make_preferred() /
+															 std::filesystem::path(texturePath).make_preferred().relative_path();
 								image = Textures::ImageInfo::fromFile(
 									textureFileSystemPath.string(),
 									textureFileSystemPath.string(),

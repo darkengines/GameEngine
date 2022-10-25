@@ -1,3 +1,6 @@
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
 #include "Window.hpp"
 
 namespace drk::Windows {
@@ -10,6 +13,13 @@ namespace drk::Windows {
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 		const auto window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, APPLICATION_NAME, nullptr, nullptr);
+
+		ImGui::CreateContext();
+		auto& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+		ImGui_ImplGlfw_InitForVulkan(window, true);
 		return window;
 	}
 

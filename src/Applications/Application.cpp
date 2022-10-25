@@ -5,6 +5,8 @@
 #include <imgui_impl_vulkan.h>
 #include <iostream>
 #include <imfilebrowser.h>
+#include <uv.h>
+#include <GLFW/glfw3.h>
 
 namespace drk::Applications {
 	Application::Application()
@@ -22,7 +24,6 @@ namespace drk::Applications {
 		  Graphics(BuildGraphics(Window.get(), DeviceContext.get(), EngineState.get())),
 		  FlyCamController(std::make_unique<Controllers::FlyCamController>(&EngineState->Registry)),
 		  UserInterface(std::make_unique<UserInterfaces::UserInterface>(Window.get())) {
-		glfwSetInputMode(Window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		glfwSetWindowUserPointer(Window.get(), this);
 		glfwSetWindowSizeCallback(
 			Window.get(), [](GLFWwindow* window, int width, int height) {
@@ -32,7 +33,6 @@ namespace drk::Applications {
 		);
 		glfwSetCursorPosCallback(Window.get(), CursorPosCallback);
 		glfwSetKeyCallback(Window.get(), SetKeyCallback);
-		ImGui_ImplGlfw_InitForVulkan(Window.get(), true);
 	}
 
 	std::unique_ptr<GLFWwindow, void (*)(GLFWwindow*)> Application::BuildWindow() {
@@ -131,7 +131,7 @@ namespace drk::Applications {
 			ImGui_ImplVulkan_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
-			if (UserInterface->IsVisible()) {
+			if (true || UserInterface->IsVisible()) {
 				auto open = true;
 				ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
 				if (ImGui::BeginMenuBar()) {
@@ -157,7 +157,7 @@ namespace drk::Applications {
 					loadResults.emplace_back(std::move(loadResult));
 					fileBrowser.ClearSelected();
 				}
-				//ImGui::ShowDemoWindow();
+				ImGui::ShowDemoWindow();
 			}
 			ImGui::EndFrame();
 
@@ -185,9 +185,14 @@ namespace drk::Applications {
 			EngineState->Registry.clear<Objects::Dirty<Spatials::Spatial>>();
 
 			Graphics->Render();
+
+			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+				ImGui::UpdatePlatformWindows();
+				ImGui::RenderPlatformWindowsDefault();
+			}
 		}
 
-		WaitFences();
+		DeviceContext->Device.waitIdle();
 	}
 
 	std::unique_ptr<Graphics::EngineState> Application::BuildEngineState(const Devices::DeviceContext* deviceContext) {
@@ -224,6 +229,7 @@ namespace drk::Applications {
 
 	void Application::CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
 		auto application = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+		ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
 		application->FlyCamController->OnCursorPositionEvent(xpos, ypos);
 	}
 }

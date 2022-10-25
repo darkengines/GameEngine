@@ -10,23 +10,28 @@ namespace drk::Devices {
 	class DeviceContext {
 	public:
 		DeviceContext(
-			const std::vector<const char *> &requiredInstanceExtensions,
-			const std::vector<const char *> &requiredDeviceExtensions,
-			const std::vector<const char *> &requiredValidationLayers,
-			const std::function<vk::SurfaceKHR(const vk::Instance &instance)> &surfaceProvider,
+			const std::vector<const char*>& requiredInstanceExtensions,
+			const std::vector<const char*>& requiredDeviceExtensions,
+			const std::vector<const char*>& requiredValidationLayers,
+			const std::function<vk::SurfaceKHR(const vk::Instance& instance)>& surfaceProvider,
 			bool enableValidationLayer
 		);
 
 		~DeviceContext();
 
-		Buffer CreateBuffer(vk::MemoryPropertyFlags properties, vk::BufferUsageFlags usage, const VmaAllocationCreateInfo& allocationCreationInfo, vk::DeviceSize size) const;
+		Buffer CreateBuffer(
+			vk::MemoryPropertyFlags properties,
+			vk::BufferUsageFlags usage,
+			const VmaAllocationCreateInfo& allocationCreationInfo,
+			vk::DeviceSize size
+		) const;
+		void DestroyBuffer(const Buffer& buffer) const;
 
-		void DestroyBuffer(const Buffer &buffer) const;
+		Image CreateImage(const vk::ImageCreateInfo& imageCreationInfo, vk::MemoryPropertyFlags properties) const;
+		void DestroyImage(const Image& image) const;
+		void DestroyTexture(const Texture& texture) const;
 
-		Image CreateImage(const vk::ImageCreateInfo &imageCreationInfo, vk::MemoryPropertyFlags properties) const;
-		void DestroyImage(const Image &image) const;
-
-		void DestroyTexture(const Texture &texture) const;
+		vk::ShaderModule CreateShaderModule(const std::string& shaderPath) const;
 
 		vk::Instance Instance;
 		vk::SurfaceKHR Surface;
