@@ -7,23 +7,24 @@
 namespace drk::Meshes {
 
 	MeshSystem::MeshSystem(
-		drk::Devices::DeviceContext* pContext,
-		drk::Graphics::EngineState* pState
+		const Devices::DeviceContext& deviceContext,
+		Graphics::EngineState& engineState,
+		entt::registry& registry
 	)
-		: DeviceContext(pContext), EngineState(pState) {}
+		: DeviceContext(deviceContext), EngineState(engineState), Registry(registry) {}
 
 	void MeshSystem::UpdateStoreItem(const MeshInfo* mesh, Models::Mesh& meshModel) {
 		auto materialEntity = mesh->materialEntity;
-		auto materialStoreItem = EngineState->Registry.get<Stores::StoreItem<Materials::Models::Material>>(
+		auto materialStoreItem = Registry.get<Stores::StoreItem<Materials::Models::Material>>(
 			materialEntity
 		);
 
-		meshModel.materialItemLocation.storeIndex = materialStoreItem.frameStoreItems[EngineState->FrameIndex].pStore->descriptorArrayElement;
-		meshModel.materialItemLocation.itemIndex = materialStoreItem.frameStoreItems[EngineState->FrameIndex].index;
+		meshModel.materialItemLocation.storeIndex = materialStoreItem.frameStoreItems[EngineState.FrameIndex].pStore->descriptorArrayElement;
+		meshModel.materialItemLocation.itemIndex = materialStoreItem.frameStoreItems[EngineState.FrameIndex].index;
 	}
 
 	void MeshSystem::UploadMeshes() {
-		auto meshEntities = EngineState->Registry.view<MeshInfo*>(entt::exclude<Mesh>);
+		auto meshEntities = Registry.view<MeshInfo*>(entt::exclude<Mesh>);
 		std::vector<entt::entity> processedMeshEntities;
 		std::vector<Meshes::MeshInfo*> meshes;
 		meshEntities.each(
@@ -33,30 +34,30 @@ namespace drk::Meshes {
 			}
 		);
 		if (!meshes.empty()) {
-			const auto result = EngineState->UploadMeshes(meshes);
+			const auto result = EngineState.UploadMeshes(meshes);
 			for (auto meshIndex = 0u; meshIndex < processedMeshEntities.size(); meshIndex++) {
-				EngineState->Registry.emplace<Mesh>(processedMeshEntities[meshIndex], result.meshes[meshIndex]);
+				Registry.emplace<Mesh>(processedMeshEntities[meshIndex], result.meshes[meshIndex]);
 			}
 
-			EngineState->Buffers.push_back(result.indexBuffer);
-			EngineState->Buffers.push_back(result.vertexBuffer);
+			EngineState.Buffers.push_back(result.indexBuffer);
+			EngineState.Buffers.push_back(result.vertexBuffer);
 		}
 	}
 
 	void MeshSystem::StoreMeshes() {
-		EngineState->Store<Models::Mesh, MeshInfo*>();
+		EngineState.Store<Models::Mesh, MeshInfo*>();
 	}
 
 	void MeshSystem::UpdateMeshes() {
 		Graphics::SynchronizationState<Models::Mesh>::Update<MeshInfo*>(
-			EngineState->Registry,
-			EngineState->FrameIndex,
-			std::function<void(Models::Mesh&, MeshInfo* const&)>(
-				[&](
-					Models::Mesh& model,
-					MeshInfo* const& component
-				) { UpdateStoreItem(component, model); }
-			)
+			Registry,
+			EngineState.FrameIndex,
+			std::function < void(Models::Mesh & , MeshInfo * const&)>(
+			[&](
+				Models::Mesh& model,
+				MeshInfo* const& component
+			) { UpdateStoreItem(component, model); }
+		)
 		);
 	}
 

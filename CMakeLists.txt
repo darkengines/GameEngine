@@ -157,8 +157,9 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/UserInterfaces/UserInterface.cpp src/UserInterfaces/UserInterface.hpp src/Graphics/MainRenderContext.cpp src/Graphics/MainRenderContext.hpp)
+add_executable(drk ${HEADERS} ${SOURCES} src/UserInterfaces/UserInterface.cpp src/UserInterfaces/UserInterface.hpp src/Graphics/MainRenderContext.cpp src/Graphics/MainRenderContext.hpp src/Devices/Extensions.hpp src/Windows/Extensions.hpp src/Configuration/Extensions.hpp src/Windows/WindowConfiguration.hpp src/Devices/VulkanInstanceConfiguration.hpp src/Devices/VulkanInstanceConfiguration.cpp src/Graphics/Extentions.hpp src/Applications/Extentions.hpp src/Cameras/Extensions.hpp src/Lights/Extensions.hpp src/Loaders/Extensions.hpp src/Materials/Extensions.hpp src/Meshes/Extensions.hpp src/Objects/Extensions.hpp src/Relationships/Extensions.hpp src/Spatials/Extensions.hpp src/Textures/Extensions.hpp src/Controllers/Extensions.hpp src/UserInterfaces/Extensions.hpp)
 add_dependencies(drk Shaders)
+configure_file(settings.json settings.json COPYONLY)
 
 find_package(Vulkan REQUIRED)
 find_package(unofficial-vulkan-memory-allocator REQUIRED)
@@ -169,11 +170,15 @@ find_package(assimp REQUIRED)
 find_package(stb REQUIRED)
 find_package(fmt REQUIRED)
 find_package(libuv REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(nameof REQUIRED)
 
 target_include_directories(drk PUBLIC ${Vulkan_INCLUDE_DIRS})
 target_include_directories(drk PUBLIC ${stb_INCLUDE_DIRS})
 target_include_directories(drk PUBLIC ${IMGUI_INCLUDE_DIR} ${IMGUI_INCLUDE_DIR}/backends)
 target_include_directories(drk PUBLIC ${imgui-filebrowser})
+target_include_directories(drk PUBLIC ${nlohmann_json_INCLUDE_DIRS})
+target_include_directories(drk PUBLIC ${nameof_INCLUDE_DIRS})
 
 target_link_libraries(drk PRIVATE ${Vulkan_LIBRARIES})
 target_link_libraries(drk PRIVATE unofficial::vulkan-memory-allocator::vulkan-memory-allocator)
@@ -184,3 +189,4 @@ target_link_libraries(drk PRIVATE assimp::assimp)
 target_link_libraries(drk PRIVATE imgui)
 target_link_libraries(drk PRIVATE fmt::fmt)
 target_link_libraries(drk PRIVATE uv)
+target_link_libraries(drk PRIVATE nlohmann_json)

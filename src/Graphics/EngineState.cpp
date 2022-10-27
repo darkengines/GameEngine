@@ -2,16 +2,15 @@
 
 #include <vulkan/vulkan.hpp>
 #include "EngineState.hpp"
-#include "../Devices/Device.hpp"
 #include <utility>
 #include <algorithm>
 #include <span>
 
 namespace drk::Graphics {
-	EngineState::EngineState(const Devices::DeviceContext *deviceContext) :
-		DeviceContext(deviceContext), Registry(entt::registry()), TextureSampler(CreateTextureSampler(DeviceContext)),
-		DescriptorSetLayoutCache(std::make_unique<Graphics::DescriptorSetLayoutCache>(DeviceContext->Device)),
-		DescriptorSetAllocator(std::make_unique<Graphics::DescriptorSetAllocator>(DeviceContext->Device)),
+	EngineState::EngineState(const Devices::DeviceContext& deviceContext, entt::registry& registry) :
+		DeviceContext(deviceContext), Registry(registry), TextureSampler(CreateTextureSampler(DeviceContext)),
+		DescriptorSetLayoutCache(std::make_unique<Graphics::DescriptorSetLayoutCache>(DeviceContext.Device)),
+		DescriptorSetAllocator(std::make_unique<Graphics::DescriptorSetAllocator>(DeviceContext.Device)),
 		StorageBufferDescriptorSetLayout(CreateStorageBufferDescriptorSetLayout(DescriptorSetLayoutCache.get())),
 		DrawStorageBufferDescriptorSetLayout(CreateStorageBufferDescriptorSetLayout(DescriptorSetLayoutCache.get())),
 		GlobalUniformBufferDescriptorSetLayout(CreateGlobalUniformBufferDescriptorSetLayout(DescriptorSetLayoutCache.get())) {
@@ -48,15 +47,15 @@ namespace drk::Graphics {
 			));
 	}
 
-	Devices::Texture EngineState::UploadTexture(const Textures::ImageInfo *const imageInfo) {
+	Devices::Texture EngineState::UploadTexture(const Textures::ImageInfo* const imageInfo) {
 		return TextureStore->UploadTextures({imageInfo})[0];
 	}
 
-	std::vector<Devices::Texture> EngineState::UploadTextures(std::vector<const Textures::ImageInfo *> imageInfos) {
+	std::vector<Devices::Texture> EngineState::UploadTextures(std::vector<const Textures::ImageInfo*> imageInfos) {
 		return TextureStore->UploadTextures(imageInfos);
 	}
 
-	vk::Sampler EngineState::CreateTextureSampler(const Devices::DeviceContext *const deviceContext) {
+	vk::Sampler EngineState::CreateTextureSampler(const Devices::DeviceContext& deviceContext) {
 		vk::SamplerCreateInfo samplerCreateInfo{
 			.magFilter = vk::Filter::eLinear,
 			.minFilter = vk::Filter::eLinear,
@@ -75,15 +74,15 @@ namespace drk::Graphics {
 			.borderColor = vk::BorderColor::eIntOpaqueBlack,
 			.unnormalizedCoordinates = VK_FALSE
 		};
-		const auto sampler = deviceContext->Device.createSampler(samplerCreateInfo);
+		const auto sampler = deviceContext.Device.createSampler(samplerCreateInfo);
 		return sampler;
 	}
 
 	EngineState::~EngineState() {
 		for (const auto buffer: Buffers) {
-			DeviceContext->DestroyBuffer(buffer);
+			DeviceContext.DestroyBuffer(buffer);
 		}
-		DeviceContext->Device.destroySampler(TextureSampler);
+		DeviceContext.Device.destroySampler(TextureSampler);
 	}
 
 	void EngineState::CreateTextureDescriptorSet() {
@@ -114,34 +113,34 @@ namespace drk::Graphics {
 		TextureDescriptorSet = DescriptorSetAllocator->AllocateDescriptorSets({TextureDescriptorSetLayout})[0];
 	}
 
-	MeshUploadResult EngineState::UploadMeshes(const std::vector<Meshes::MeshInfo *> &meshInfos) {
+	MeshUploadResult EngineState::UploadMeshes(const std::vector<Meshes::MeshInfo*>& meshInfos) {
 		std::vector<std::span<Meshes::Vertex>> vertices(meshInfos.size());
 		std::vector<std::span<Meshes::VertexIndex>> indices(meshInfos.size());
 		std::transform(
-			meshInfos.begin(), meshInfos.end(), vertices.data(), [](Meshes::MeshInfo *mesh) {
+			meshInfos.begin(), meshInfos.end(), vertices.data(), [](Meshes::MeshInfo* mesh) {
 				return std::span{mesh->vertices.data(), mesh->vertices.size()};
 			}
 		);
 		std::transform(
-			meshInfos.begin(), meshInfos.end(), indices.data(), [](Meshes::MeshInfo *mesh) {
+			meshInfos.begin(), meshInfos.end(), indices.data(), [](Meshes::MeshInfo* mesh) {
 				return std::span{mesh->indices.data(), mesh->indices.size()};
 			}
 		);
 		auto vertexBufferUploadResult = Devices::Device::uploadBuffers(
-			DeviceContext->PhysicalDevice,
-			DeviceContext->Device,
-			DeviceContext->GraphicQueue,
-			DeviceContext->CommandPool,
-			DeviceContext->Allocator,
+			DeviceContext.PhysicalDevice,
+			DeviceContext.Device,
+			DeviceContext.GraphicQueue,
+			DeviceContext.CommandPool,
+			DeviceContext.Allocator,
 			vertices,
 			vk::BufferUsageFlagBits::eVertexBuffer
 		);
 		auto indexBufferUploadResult = Devices::Device::uploadBuffers(
-			DeviceContext->PhysicalDevice,
-			DeviceContext->Device,
-			DeviceContext->GraphicQueue,
-			DeviceContext->CommandPool,
-			DeviceContext->Allocator,
+			DeviceContext.PhysicalDevice,
+			DeviceContext.Device,
+			DeviceContext.GraphicQueue,
+			DeviceContext.CommandPool,
+			DeviceContext.Allocator,
 			indices,
 			vk::BufferUsageFlagBits::eIndexBuffer
 		);
@@ -164,7 +163,7 @@ namespace drk::Graphics {
 	}
 
 	vk::DescriptorSetLayout
-	EngineState::CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache *const descriptorSetLayoutCache) {
+	EngineState::CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache* const descriptorSetLayoutCache) {
 
 		auto bindFlags =
 			vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateAfterBind;
@@ -191,7 +190,7 @@ namespace drk::Graphics {
 	}
 
 	vk::DescriptorSetLayout
-	EngineState::CreateGlobalUniformBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache *const descriptorSetLayoutCache) {
+	EngineState::CreateGlobalUniformBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache* const descriptorSetLayoutCache) {
 
 		vk::DescriptorSetLayoutBinding binding = {
 			.binding = 0,
@@ -206,4 +205,5 @@ namespace drk::Graphics {
 
 		return descriptorSetLayoutCache->get(descriptorSetLayoutCreateInfo);
 	}
+	vk::Sampler EngineState::GetDefaultTextureSampler() const { return TextureSampler; }
 }

@@ -12,9 +12,7 @@
 
 namespace drk::Controllers {
 
-	FlyCamController::FlyCamController(entt::registry *registry) : Registry(registry) {
-
-	}
+	FlyCamController::FlyCamController(entt::registry& registry) : Registry(registry) {	}
 
 	void FlyCamController::Attach(entt::entity cameraEntity) {
 		CameraEntity = cameraEntity;
@@ -92,8 +90,8 @@ namespace drk::Controllers {
 	}
 
 	void FlyCamController::Step() {
-		auto &camera = Registry->get<Cameras::Camera>(CameraEntity);
-		auto &cameraSpatial = Registry->get<Spatials::Spatial>(CameraEntity);
+		auto &camera = Registry.get<Cameras::Camera>(CameraEntity);
+		auto &cameraSpatial = Registry.get<Spatials::Spatial>(CameraEntity);
 		auto up = camera.absoluteUp;
 		auto front = camera.absoluteFront;
 		auto side = GlmExtensions::cross(front, up);
@@ -142,8 +140,8 @@ namespace drk::Controllers {
 			hasUpdate = true;
 		}
 		if (hasUpdate) {
-			Registry->emplace_or_replace<Graphics::SynchronizationState<Spatials::Models::Spatial>>(CameraEntity, 2u);
-			Registry->emplace_or_replace<Objects::Dirty<Spatials::Spatial>>(CameraEntity);
+			Registry.emplace_or_replace<Graphics::SynchronizationState<Spatials::Models::Spatial>>(CameraEntity, 2u);
+			Registry.emplace_or_replace<Objects::Dirty<Spatials::Spatial>>(CameraEntity);
 		}
 	}
 }

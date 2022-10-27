@@ -16,10 +16,10 @@ namespace drk::Controllers {
 		std::optional<glm::vec2> LastMousePosition = std::nullopt;
 		glm::vec2 MousePositionDelta = {0.0f, 0.0f};
 		entt::entity CameraEntity = entt::null;
-		entt::registry *Registry;
+		entt::registry& Registry;
 
 	public:
-		FlyCamController(entt::registry *registry);
+		FlyCamController(entt::registry& registry);
 		void Attach(entt::entity cameraEntity);;
 		void OnKeyboardEvent(int key, int scancode, int action, int mods);
 		void OnCursorPositionEvent(double xpos, double ypos);

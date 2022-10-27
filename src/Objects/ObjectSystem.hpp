@@ -10,14 +10,15 @@
 namespace drk::Objects {
 	class ObjectSystem {
 	protected:
-		Devices::DeviceContext *DeviceContext;
-		Graphics::EngineState *EngineState;
+		const Devices::DeviceContext& DeviceContext;
+		Graphics::EngineState& EngineState;
+		entt::registry& Registry;
 		void UpdateStoreItem(
 			Models::Object &objectModel, const Stores::StoreItem<Spatials::Models::Spatial> &spatialStoreItem
 		);
 
 	public:
-		ObjectSystem(Devices::DeviceContext *pContext, Graphics::EngineState *pState);
+		ObjectSystem(const Devices::DeviceContext& deviceContext, Graphics::EngineState& engineState, entt::registry& registry);
 		static void AddObjectSystem(entt::registry &registry);
 		static void RemoveObjectSystem(entt::registry &registry);
 		static void OnObjectConstruct(entt::registry &registry, entt::entity objectEntity);

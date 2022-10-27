@@ -9,6 +9,9 @@
 		"vulkan-memory-allocator",
 		"stb",
 		"fmt",
-		"libuv"
+		"libuv",
+		"bext-di",
+		"nlohmann-json",
+		"nameof"
 	]
 }

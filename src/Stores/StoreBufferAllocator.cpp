@@ -3,8 +3,8 @@
 
 namespace drk::Stores {
 	StoreBufferAllocator::StoreBufferAllocator(
-		const Devices::DeviceContext *deviceContext,
-		const vk::DescriptorSet &descriptorSet
+		const Devices::DeviceContext& deviceContext,
+		const vk::DescriptorSet& descriptorSet
 	)
 		: DeviceContext(
 		deviceContext
@@ -14,8 +14,8 @@ namespace drk::Stores {
 
 	StoreBufferAllocator::~StoreBufferAllocator() {
 		for (const auto buffer: Buffers) {
-			Devices::Device::unmapBuffer(DeviceContext->Allocator, buffer);
-			DeviceContext->DestroyBuffer(buffer);
+			Devices::Device::unmapBuffer(DeviceContext.Allocator, buffer);
+			DeviceContext.DestroyBuffer(buffer);
 		}
 	}
 }

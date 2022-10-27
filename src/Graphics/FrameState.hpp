@@ -21,11 +21,11 @@
 namespace drk::Graphics {
 	class FrameState {
 	protected:
-		const Devices::DeviceContext *DeviceContext;
-		static vk::CommandBuffer CreateCommandBuffer(const Devices::DeviceContext *deviceContext);
-		static vk::Fence CreateFence(const Devices::DeviceContext *deviceContext);
-		static vk::Semaphore CreateSemaphore(const Devices::DeviceContext *deviceContext);
-		static Devices::Buffer CreateUnitormBuffer(const Devices::DeviceContext *deviceContext, const vk::DescriptorSet& descriptorSet, Models::Global** global);
+		const Devices::DeviceContext& DeviceContext;
+		static vk::CommandBuffer CreateCommandBuffer(const Devices::DeviceContext& deviceContext);
+		static vk::Fence CreateFence(const Devices::DeviceContext& deviceContext);
+		static vk::Semaphore CreateSemaphore(const Devices::DeviceContext& deviceContext);
+		static Devices::Buffer CreateUnitormBuffer(const Devices::DeviceContext& deviceContext, const vk::DescriptorSet& descriptorSet, Models::Global** global);
 		static vk::DescriptorSet CreateStorageBufferDescriptorSet(
 			Graphics::DescriptorSetAllocator *const descriptorSetAllocator,
 			const vk::DescriptorSetLayout &descriptorSetLayout
@@ -50,7 +50,7 @@ namespace drk::Graphics {
 		Devices::Buffer GlobalUniformBuffer;
 	public:
 		FrameState(
-			const Devices::DeviceContext *deviceContext,
+			const Devices::DeviceContext& deviceContext,
 			const vk::DescriptorSetLayout &storageBufferDescriptorSetLayout,
 			const vk::DescriptorSetLayout &drawBufferDescriptorSetLayout,
 			const vk::DescriptorSetLayout &globalUniformBufferDescriptorSetLayout,

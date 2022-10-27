@@ -13,5 +13,7 @@ namespace drk::Devices {
 		Image image;
 		vk::ImageView imageView;
 		Common::Index index;
+		vk::Format Format;
+		vk::Extent2D Extent;
 	};
 }

@@ -10,23 +10,28 @@
 
 namespace drk::Cameras {
 
-	CameraSystem::CameraSystem(drk::Devices::DeviceContext* pContext, drk::Graphics::EngineState* pState)
-		: DeviceContext(pContext), EngineState(pState) {}
+	CameraSystem::CameraSystem(
+		const Devices::DeviceContext& deviceContext,
+		Graphics::EngineState& engineState,
+		entt::registry& registry
+	)
+		: DeviceContext(deviceContext), EngineState(engineState), Registry(registry) {}
 
 	void CameraSystem::StoreCameras() {
-		EngineState->Store<Models::Camera, Camera>();
+		EngineState.Store<Models::Camera, Camera>();
 	}
 
 	void CameraSystem::UpdateCameras() {
 		Graphics::SynchronizationState<Models::Camera>::Update<Camera>(
-			EngineState->Registry,
-			EngineState->FrameIndex,
-			std::function<void(Models::Camera&, const Camera&)>(
-				[=](
-					Models::Camera& model,
-					const Camera& component
-				) { UpdateStoreItem(component, model); }
-			)
+			Registry,
+			EngineState.FrameIndex,
+			std::function < void(Models::Camera & ,
+		const Camera&)>(
+			[=](
+				Models::Camera& model,
+				const Camera& component
+			) { UpdateStoreItem(component, model); }
+		)
 		);
 	}
 
@@ -46,7 +51,7 @@ namespace drk::Cameras {
 	}
 
 	void CameraSystem::ProcessDirtyItems() {
-		auto dirtyCameraView = EngineState->Registry.view<Camera, Spatials::Spatial, Objects::Dirty<Spatials::Spatial>>();
+		auto dirtyCameraView = Registry.view<Camera, Spatials::Spatial, Objects::Dirty<Spatials::Spatial>>();
 		dirtyCameraView.each(
 			[&](
 				entt::entity cameraEntity,
@@ -70,9 +75,9 @@ namespace drk::Cameras {
 				);
 				camera.perspective[1][1] *= -1.0f;
 
-				EngineState->Registry.emplace_or_replace<Graphics::SynchronizationState<Models::Camera>>(
+				Registry.emplace_or_replace<Graphics::SynchronizationState<Models::Camera>>(
 					cameraEntity,
-					static_cast<uint32_t>(EngineState->FrameStates.size())
+					static_cast<uint32_t>(EngineState.FrameStates.size())
 				);
 			}
 		);
@@ -98,8 +103,8 @@ namespace drk::Cameras {
 		float aspectRatio,
 		float near,
 		float far
-	) {
-		auto cameraEntity = EngineState->Registry.create();
+	) const {
+		auto cameraEntity = Registry.create();
 		Camera camera = {
 			.relativePosition = position,
 			.relativeFront = front,
@@ -125,10 +130,10 @@ namespace drk::Cameras {
 			.Name = "Default camera"
 		};
 
-		EngineState->Registry.emplace<Camera>(cameraEntity, std::move(camera));
-		EngineState->Registry.emplace<Spatials::Spatial>(cameraEntity, std::move(cameraSpatial));
-		EngineState->Registry.emplace<Objects::Relationship>(cameraEntity, std::move(cameraRelationship));
-		EngineState->Registry.emplace<Objects::Object>(cameraEntity, std::move(cameraObject));
+		Registry.emplace<Camera>(cameraEntity, std::move(camera));
+		Registry.emplace<Spatials::Spatial>(cameraEntity, std::move(cameraSpatial));
+		Registry.emplace<Objects::Relationship>(cameraEntity, std::move(cameraRelationship));
+		Registry.emplace<Objects::Object>(cameraEntity, std::move(cameraObject));
 
 		return cameraEntity;
 	}

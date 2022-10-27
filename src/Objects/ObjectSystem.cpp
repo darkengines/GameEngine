@@ -5,28 +5,25 @@
 
 namespace drk::Objects {
 
-	ObjectSystem::ObjectSystem(
-		drk::Devices::DeviceContext* pContext,
-		drk::Graphics::EngineState* pState
-	)
-		: DeviceContext(pContext), EngineState(pState) {}
+	ObjectSystem::ObjectSystem(const Devices::DeviceContext& deviceContext, Graphics::EngineState& engineState, entt::registry& registry)
+		: DeviceContext(deviceContext), EngineState(engineState), Registry(registry) {}
 
 	void ObjectSystem::UpdateStoreItem(
 		Models::Object& objectModel, const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem
 	) {
-		const auto& spatialItemLocation = spatialStoreItem.frameStoreItems[EngineState->FrameIndex];
+		const auto& spatialItemLocation = spatialStoreItem.frameStoreItems[EngineState.FrameIndex];
 		objectModel.spatialItemLocation.storeIndex = spatialItemLocation.pStore->descriptorArrayElement;
 		objectModel.spatialItemLocation.itemIndex = spatialItemLocation.index;
 	}
 
 	void ObjectSystem::StoreObjects() {
-		EngineState->Store<Models::Object, Stores::StoreItem<Spatials::Models::Spatial>, Meshes::MeshGroup>();
+		EngineState.Store<Models::Object, Stores::StoreItem<Spatials::Models::Spatial>, Meshes::MeshGroup>();
 	}
 
 	void ObjectSystem::UpdateObjects() {
 		Graphics::SynchronizationState<Models::Object>::Update<Stores::StoreItem<Spatials::Models::Spatial>>(
-			EngineState->Registry,
-			EngineState->FrameIndex,
+			Registry,
+			EngineState.FrameIndex,
 			std::function<void(Models::Object&, const Stores::StoreItem<Spatials::Models::Spatial>&)>(
 				[=](
 					Models::Object& model,

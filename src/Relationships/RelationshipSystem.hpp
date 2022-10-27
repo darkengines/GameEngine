@@ -6,11 +6,12 @@
 namespace drk::Relationships {
 	class RelationshipSystem {
 	protected:
-		Devices::DeviceContext *DeviceContext;
-		Graphics::EngineState *EngineState;
+		const Devices::DeviceContext& DeviceContext;
+		Graphics::EngineState& EngineState;
+		entt::registry& Registry;
 
 	public:
-		RelationshipSystem(Devices::DeviceContext *pContext, Graphics::EngineState *pState);
+		RelationshipSystem(const Devices::DeviceContext& deviceContext, Graphics::EngineState& engineState, entt::registry& registry);
 		static void AddSpatialSystem(entt::registry &registry);
 		static void RemoveSpatialSystem(entt::registry &registry);
 		static void OnSpatialConstruct(entt::registry &registry, entt::entity spatialEntity);

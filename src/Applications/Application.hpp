@@ -1,6 +1,5 @@
 #pragma once
 #define GLFW_INCLUDE_VULKAN
-
 #include <GLFW/glfw3.h>
 #include "../Devices/DeviceContext.hpp"
 #include "../Graphics/Graphics.hpp"
@@ -16,45 +15,70 @@
 #include "../Graphics/GlobalSystem.hpp"
 #include "../Controllers/FlyCamController.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
+#include "../Graphics/MainRenderContext.hpp"
 #include <memory>
 
 namespace drk::Applications {
 	class Application {
 	public:
-		Application();
+		using boost_di_inject__ = boost::di::inject<
+			const Windows::Window&,
+			const Devices::DeviceContext&,
+			const Graphics::EngineState&,
+			Textures::TextureSystem&,
+			Materials::MaterialSystem&,
+			Meshes::MeshSystem&,
+			Spatials::SpatialSystem&,
+			Objects::ObjectSystem&,
+			Cameras::CameraSystem&,
+			Graphics::GlobalSystem&,
+			const Loaders::AssimpLoader&,
+			Graphics::Graphics&,
+			Controllers::FlyCamController&,
+			UserInterfaces::UserInterface&
+		>;
+
+		Application(
+			const Windows::Window& window,
+			const Devices::DeviceContext& deviceContext,
+			const Graphics::EngineState& engineState,
+			Textures::TextureSystem& textureSystem,
+			Materials::MaterialSystem& materialSystem,
+			Meshes::MeshSystem& meshSystem,
+			Spatials::SpatialSystem& spatialSystem,
+			Objects::ObjectSystem& objectSystem,
+			Cameras::CameraSystem& cameraSystem,
+			Graphics::GlobalSystem& globalSystem,
+			const Loaders::AssimpLoader& loader,
+			Graphics::Graphics& graphics,
+			Controllers::FlyCamController& flyCamController,
+			UserInterfaces::UserInterface& userInterface
+		);
+		~Application();
 
 		void Run();
 
 	protected:
-		std::unique_ptr<GLFWwindow, void (*)(GLFWwindow *)> Window;
-		const std::unique_ptr<Devices::DeviceContext> DeviceContext;
-		const std::unique_ptr<Graphics::EngineState> EngineState;
-		const std::unique_ptr<Textures::TextureSystem> TextureSystem;
-		const std::unique_ptr<Materials::MaterialSystem> MaterialSystem;
-		const std::unique_ptr<Meshes::MeshSystem> MeshSystem;
-		const std::unique_ptr<Spatials::SpatialSystem> SpatialSystem;
-		const std::unique_ptr<Objects::ObjectSystem> ObjectSystem;
-		const std::unique_ptr<Cameras::CameraSystem> CameraSystem;
-		const std::unique_ptr<Graphics::GlobalSystem> GlobalSystem;
-		const std::unique_ptr<Loaders::AssimpLoader> Loader;
-		const std::unique_ptr<Graphics::Graphics> Graphics;
-		const std::unique_ptr<Controllers::FlyCamController> FlyCamController;
-		const std::unique_ptr<UserInterfaces::UserInterface> UserInterface;
-
-		static std::unique_ptr<GLFWwindow, void (*)(GLFWwindow *)> BuildWindow();
-		static std::unique_ptr<Devices::DeviceContext> BuildDeviceContext(GLFWwindow *window);
-		static std::unique_ptr<Graphics::Graphics>
-		BuildGraphics(
-			GLFWwindow *window,
-			const Devices::DeviceContext *deviceContext,
-			Graphics::EngineState *engineState
-		);
-		static std::unique_ptr<Graphics::EngineState>
-		BuildEngineState(const Devices::DeviceContext *deviceContext);
+		const Windows::Window& Window;
+		const Devices::DeviceContext& DeviceContext;
+		const Graphics::EngineState& EngineState;
+		Textures::TextureSystem& TextureSystem;
+		Materials::MaterialSystem& MaterialSystem;
+		Meshes::MeshSystem& MeshSystem;
+		Spatials::SpatialSystem& SpatialSystem;
+		Objects::ObjectSystem& ObjectSystem;
+		Cameras::CameraSystem& CameraSystem;
+		Graphics::GlobalSystem& GlobalSystem;
+		const Loaders::AssimpLoader& Loader;
+		Graphics::Graphics& Graphics;
+		Graphics::MainRenderContext MainRenderContext;
+		Controllers::FlyCamController& FlyCamController;
+		UserInterfaces::UserInterface& UserInterface;
 
 		void OnWindowSizeChanged(uint32_t width, uint32_t height);
 		void WaitFences();
-		static void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
-		static void SetKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
+		static void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
+		static void SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+		void RenderEntityTree(entt::entity);
 	};
 }

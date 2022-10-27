@@ -7,12 +7,13 @@
 namespace drk::Meshes {
 	class MeshSystem {
 	protected:
-		Devices::DeviceContext *DeviceContext;
-		Graphics::EngineState *EngineState;
+		const Devices::DeviceContext& DeviceContext;
+		Graphics::EngineState& EngineState;
+		entt::registry& Registry;
 		void UpdateStoreItem(const MeshInfo *mesh, Models::Mesh &meshModel);
 
 	public:
-		MeshSystem(Devices::DeviceContext *pContext, Graphics::EngineState *pState);
+		MeshSystem(const Devices::DeviceContext& deviceContext, Graphics::EngineState& engineState, entt::registry& registry);
 		static void AddMeshSystem(entt::registry &registry);
 		static void RemoveMeshSystem(entt::registry &registry);
 		static void OnMeshConstruct(entt::registry &registry, entt::entity meshEntity);

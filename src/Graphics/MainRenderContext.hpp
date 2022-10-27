@@ -2,24 +2,26 @@
 #include "../Devices/Device.hpp"
 #include "../Devices/DeviceContext.hpp"
 #include "EngineState.hpp"
+#include "DrawContext.hpp"
 
 namespace drk::Graphics {
 	class MainRenderContext {
+	public:
 		MainRenderContext(
-			const Devices::DeviceContext* deviceContext,
-			EngineState* engineState,
-			const vk::Extent2D extent
+			const Devices::DeviceContext& deviceContext,
+			const EngineState& engineState,
+			Devices::Texture target
 		);
 		~MainRenderContext();
 
 		void SetExtent(const vk::Extent2D& extent);
+		void Render(const vk::CommandBuffer& commandBuffer) const;
 
 	protected:
-		const Devices::DeviceContext* DeviceContext;
+		const Devices::DeviceContext& DeviceContext;
 		bool ExtentChanged = false;
-		vk::Extent2D Extent;
-		EngineState* EngineState;
-		Devices::Swapchain Swapchain;
+		const EngineState& EngineState;
+		Devices::Texture TargetTexture;
 		vk::ShaderModule MainVertexShaderModule;
 		vk::ShaderModule MainFragmentShaderModule;
 		vk::RenderPass MainRenderPass;
@@ -34,14 +36,13 @@ namespace drk::Graphics {
 		void DestroyMainFramebufferResources();
 		void DestroyShaderModules();
 		void DestroyMainFramebuffer();
-		void RecreateSwapchain(const vk::Extent2D extent);
-		void DestroySwapchain();
-		void CreateSwapchain(const vk::Extent2D& extent);
 		void CreateMainRenderPass();
 		void CreateMainFramebufferResources();
 		void CreateMainFramebuffers();
 		void CreateMainPipelineLayout();
 		void CreateShaderModules();
 		void CreateMainGraphicPipeline();
+		drk::Graphics::DrawContext BuildMainRenderPass() const;
+		void PopulateDrawContext(DrawContext& drawContext, const std::vector<Draw>& draws, uint32_t drawOffset) const;
 	};
 }

@@ -10,11 +10,11 @@
 namespace drk::Stores {
 	class StoreBufferAllocator {
 	protected:
-		const Devices::DeviceContext *DeviceContext;
+		const Devices::DeviceContext& DeviceContext;
 		std::vector<Devices::Buffer> Buffers;
 		vk::DescriptorSet DescriptorSet;
 	public:
-		StoreBufferAllocator(const Devices::DeviceContext *deviceContext, const vk::DescriptorSet &descriptorSet);
+		StoreBufferAllocator(const Devices::DeviceContext& deviceContext, const vk::DescriptorSet &descriptorSet);
 		~StoreBufferAllocator();
 
 		template<typename T>
@@ -29,7 +29,7 @@ namespace drk::Stores {
 														  vk::MemoryPropertyFlagBits::eHostCoherent),
 			};
 			auto storageBuffer = Devices::Device::createBuffer(
-				DeviceContext->Allocator,
+				DeviceContext.Allocator,
 				vk::MemoryPropertyFlagBits::eHostVisible,
 				vk::BufferUsageFlagBits::eStorageBuffer,
 				allocationCreationInfo,
@@ -38,7 +38,7 @@ namespace drk::Stores {
 			Buffers.push_back(storageBuffer);
 
 			void *mappedMemory = nullptr;
-			Devices::Device::mapBuffer(DeviceContext->Allocator, storageBuffer, &mappedMemory);
+			Devices::Device::mapBuffer(DeviceContext.Allocator, storageBuffer, &mappedMemory);
 
 			vk::DescriptorBufferInfo descriptorBufferInfo {};
 			descriptorBufferInfo.buffer = storageBuffer.buffer;
@@ -54,7 +54,7 @@ namespace drk::Stores {
 			writeDescriptorSet.descriptorType = vk::DescriptorType::eStorageBuffer;
 			writeDescriptorSet.pBufferInfo = &descriptorBufferInfo;
 
-			DeviceContext->Device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
+			DeviceContext.Device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
 
 			auto store = std::make_unique<StoreBuffer<T>>(itemCount, bufferIndex, reinterpret_cast<T*>(mappedMemory));
 

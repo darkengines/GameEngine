@@ -3,7 +3,7 @@
 namespace drk::Stores {
 
 	TextureStore::TextureStore(
-		const Devices::DeviceContext *deviceContext,
+		const Devices::DeviceContext& deviceContext,
 		const vk::DescriptorSet &descriptorSet,
 		const vk::Sampler &textureSampler
 	) :
@@ -26,7 +26,7 @@ namespace drk::Stores {
 														  vk::MemoryPropertyFlagBits::eHostCoherent),
 			};
 			const auto imageByteLength = imageInfo->width * imageInfo->height * 4 * sizeof(unsigned char);
-			const auto stagingBuffer = DeviceContext->CreateBuffer(
+			const auto stagingBuffer = DeviceContext.CreateBuffer(
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 				vk::BufferUsageFlagBits::eTransferSrc,
 				stagingAllocationCreationInfo,
@@ -34,7 +34,7 @@ namespace drk::Stores {
 			);
 
 			unsigned char *stagingMemory;
-			Devices::Device::mapBuffer(DeviceContext->Allocator, stagingBuffer, (void **) &stagingMemory);
+			Devices::Device::mapBuffer(DeviceContext.Allocator, stagingBuffer, (void **) &stagingMemory);
 
 			memcpy(stagingMemory, imageInfo->pixels.data(), imageByteLength);
 
@@ -56,7 +56,7 @@ namespace drk::Stores {
 				.usage = vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst |
 						 vk::ImageUsageFlagBits::eSampled
 			};
-			const auto image = DeviceContext->CreateImage(
+			const auto image = DeviceContext.CreateImage(
 				imageCreationInfo,
 				vk::MemoryPropertyFlagBits::eDeviceLocal
 			);
@@ -73,8 +73,8 @@ namespace drk::Stores {
 			};
 
 			auto commandBuffer = Devices::Device::beginSingleTimeCommands(
-				DeviceContext->Device,
-				DeviceContext->CommandPool
+				DeviceContext.Device,
+				DeviceContext.CommandPool
 			);
 			Devices::Device::transitionLayout(
 				commandBuffer,
@@ -110,13 +110,13 @@ namespace drk::Stores {
 			}
 
 			Devices::Device::endSingleTimeCommands(
-				DeviceContext->Device,
-				DeviceContext->GraphicQueue,
-				DeviceContext->CommandPool,
+				DeviceContext.Device,
+				DeviceContext.GraphicQueue,
+				DeviceContext.CommandPool,
 				commandBuffer
 			);
-			Devices::Device::unmapBuffer(DeviceContext->Allocator, stagingBuffer);
-			DeviceContext->DestroyBuffer(stagingBuffer);
+			Devices::Device::unmapBuffer(DeviceContext.Allocator, stagingBuffer);
+			DeviceContext.DestroyBuffer(stagingBuffer);
 
 			vk::ImageViewCreateInfo imageViewCreateInfo = {
 				.image = image.image,
@@ -130,7 +130,7 @@ namespace drk::Stores {
 					.layerCount = 1
 				}
 			};
-			const auto imageView = DeviceContext->Device.createImageView(imageViewCreateInfo);
+			const auto imageView = DeviceContext.Device.createImageView(imageViewCreateInfo);
 			const Devices::Texture texture = {
 				.image = image,
 				.imageView = imageView,
@@ -156,7 +156,7 @@ namespace drk::Stores {
 			.pBufferInfo = nullptr,
 		};
 
-		DeviceContext->Device.updateDescriptorSets(std::array<vk::WriteDescriptorSet, 1>{write}, {});
+		DeviceContext.Device.updateDescriptorSets(std::array<vk::WriteDescriptorSet, 1>{write}, {});
 
 		return uploadedTextures;
 	}

@@ -8,12 +8,14 @@
 namespace drk::Cameras {
 	class CameraSystem {
 	protected:
-		Devices::DeviceContext *DeviceContext;
-		Graphics::EngineState *EngineState;
+		const Devices::DeviceContext& DeviceContext;
+		Graphics::EngineState& EngineState;
+		entt::registry& Registry;
 	public:
 		CameraSystem(
-			drk::Devices::DeviceContext *pContext,
-			drk::Graphics::EngineState *pState
+			const Devices::DeviceContext& deviceContext,
+			Graphics::EngineState& engineState,
+			entt::registry& registry
 		);
 		static void AddCameraSystem(entt::registry &registry);
 		static void RemoveCameraSystem(entt::registry &registry);
@@ -31,6 +33,6 @@ namespace drk::Cameras {
 			float aspectRatio,
 			float near,
 			float far
-		);
+		) const;
 	};
 }

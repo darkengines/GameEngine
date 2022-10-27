@@ -2,26 +2,27 @@
 
 namespace drk::Graphics {
 
-	GlobalSystem::GlobalSystem(Graphics::EngineState *engineState) : EngineState(engineState), GlobalSynchronizationState(EngineState->FrameStates.size()) {
+	GlobalSystem::GlobalSystem(Graphics::EngineState& engineState, entt::registry& registry)
+		: EngineState(engineState), Registry(registry), GlobalSynchronizationState(EngineState.FrameStates.size()) {
 
 	}
 
 	void GlobalSystem::SetCamera(entt::entity cameraEntity) {
 		CameraEntity = cameraEntity;
-		EngineState->CameraEntity = CameraEntity;
+		EngineState.CameraEntity = CameraEntity;
 		GlobalSynchronizationState.Reset();
 	}
 
 	void GlobalSystem::Update() {
-		if (GlobalSynchronizationState.ShouldUpdate(EngineState->FrameIndex)) {
-			const auto &camera = EngineState->Registry.get<Stores::StoreItem<Cameras::Models::Camera>>(CameraEntity);
+		if (GlobalSynchronizationState.ShouldUpdate(EngineState.FrameIndex)) {
+			const auto& camera = Registry.get<Stores::StoreItem<Cameras::Models::Camera>>(CameraEntity);
 
 			Graphics::Models::StoreItemLocation cameraItemLocation = {
-				.storeIndex = camera.frameStoreItems[EngineState->FrameIndex].pStore->descriptorArrayElement,
-				.itemIndex = camera.frameStoreItems[EngineState->FrameIndex].index
+				.storeIndex = camera.frameStoreItems[EngineState.FrameIndex].pStore->descriptorArrayElement,
+				.itemIndex = camera.frameStoreItems[EngineState.FrameIndex].index
 			};
-			EngineState->FrameStates[EngineState->FrameIndex].Global->cameraItemLocation = cameraItemLocation;
-			GlobalSynchronizationState.Update(EngineState->FrameIndex);
+			EngineState.FrameStates[EngineState.FrameIndex].Global->cameraItemLocation = cameraItemLocation;
+			GlobalSynchronizationState.Update(EngineState.FrameIndex);
 		}
 	}
 }

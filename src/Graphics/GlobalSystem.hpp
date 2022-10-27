@@ -8,11 +8,12 @@
 namespace drk::Graphics {
 	class GlobalSystem {
 	protected:
-		EngineState *EngineState;
+		EngineState& EngineState;
+		entt::registry& Registry;
 		entt::entity CameraEntity;
 		SynchronizationState<Models::Global> GlobalSynchronizationState;
 	public:
-		GlobalSystem(drk::Graphics::EngineState *engineState);
+		GlobalSystem(drk::Graphics::EngineState& engineState, entt::registry& registry);
 
 		void SetCamera(entt::entity cameraEntity);
 

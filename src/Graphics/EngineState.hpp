@@ -18,23 +18,24 @@
 #include <memory>
 #include "../Stores/StoreItem.hpp"
 #include "../Stores/TextureStore.hpp"
+#include "../Devices/DeviceContext.hpp"
 
 namespace drk::Graphics {
 	class EngineState {
 	protected:
-		const Devices::DeviceContext *DeviceContext;
+		const Devices::DeviceContext& DeviceContext;
 		const vk::Sampler TextureSampler;
 		std::unique_ptr<DescriptorSetLayoutCache> DescriptorSetLayoutCache;
 		std::unique_ptr<DescriptorSetAllocator> DescriptorSetAllocator;
 
-		static vk::Sampler CreateTextureSampler(const Devices::DeviceContext *const deviceContext);
+		static vk::Sampler CreateTextureSampler(const Devices::DeviceContext& deviceContext);
 		static vk::DescriptorSetLayout
-		CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache *const descriptorSetLayoutCache);
+		CreateStorageBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache* const descriptorSetLayoutCache);
 		static vk::DescriptorSetLayout
-		CreateGlobalUniformBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache *const descriptorSetLayoutCache);
+		CreateGlobalUniformBufferDescriptorSetLayout(Graphics::DescriptorSetLayoutCache* const descriptorSetLayoutCache);
 		void CreateTextureDescriptorSet();
 	public:
-		EngineState(const Devices::DeviceContext *deviceContext);
+		EngineState(const Devices::DeviceContext& deviceContext, entt::registry& registry);
 		~EngineState();
 		uint32_t FrameIndex = 0;
 		std::vector<FrameState> FrameStates;
@@ -45,13 +46,13 @@ namespace drk::Graphics {
 		vk::DescriptorSetLayout DrawStorageBufferDescriptorSetLayout;
 		vk::DescriptorSetLayout GlobalUniformBufferDescriptorSetLayout;
 		vk::DescriptorSet TextureDescriptorSet;
-		entt::registry Registry;
+		entt::registry& Registry;
 		std::unique_ptr<Stores::TextureStore> TextureStore;
 		Common::IndexGenerator<uint32_t> IndexGenerator;
 		entt::entity CameraEntity = entt::null;
-		Devices::Texture UploadTexture(const Textures::ImageInfo *const imageInfo);
-		std::vector<Devices::Texture> UploadTextures(std::vector<const Textures::ImageInfo *> imageInfos);
-		MeshUploadResult UploadMeshes(const std::vector<Meshes::MeshInfo *> &meshInfos);
+		Devices::Texture UploadTexture(const Textures::ImageInfo* const imageInfo);
+		std::vector<Devices::Texture> UploadTextures(std::vector<const Textures::ImageInfo*> imageInfos);
+		MeshUploadResult UploadMeshes(const std::vector<Meshes::MeshInfo*>& meshInfos);
 
 		template<typename T>
 		Stores::StoreItem<T> GetStoreItem() {
@@ -79,5 +80,6 @@ namespace drk::Graphics {
 				Registry.emplace<Graphics::SynchronizationState<TModel>>(entity, FrameStates.size());
 			}
 		}
+		vk::Sampler GetDefaultTextureSampler() const;
 	};
 }

@@ -8,12 +8,13 @@
 namespace drk::Spatials {
 	class SpatialSystem {
 	protected:
-		Devices::DeviceContext *DeviceContext;
-		Graphics::EngineState *EngineState;
+		const Devices::DeviceContext& DeviceContext;
+		Graphics::EngineState& EngineState;
+		entt::registry& Registry;
 		static void UpdateStoreItem(const Spatial& spatial, Models::Spatial &spatialModel);
 
 	public:
-		SpatialSystem(Devices::DeviceContext *pContext, Graphics::EngineState *pState);
+		SpatialSystem(const Devices::DeviceContext& deviceContext, Graphics::EngineState& engineState, entt::registry& registry);
 		static void AddSpatialSystem(entt::registry &registry);
 		static void RemoveSpatialSystem(entt::registry &registry);
 		static void OnSpatialConstruct(entt::registry &registry, entt::entity spatialEntity);

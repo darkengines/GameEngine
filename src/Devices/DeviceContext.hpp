@@ -3,18 +3,26 @@
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #include "Buffer.hpp"
 #include "Texture.hpp"
+#include "../Configuration/Extensions.hpp"
+#include "../Windows/Window.hpp"
 #include <vulkan/vulkan.hpp>
 #include <vk_mem_alloc.h>
 
 namespace drk::Devices {
 	class DeviceContext {
 	public:
-		DeviceContext(
+		explicit DeviceContext(
 			const std::vector<const char*>& requiredInstanceExtensions,
 			const std::vector<const char*>& requiredDeviceExtensions,
 			const std::vector<const char*>& requiredValidationLayers,
 			const std::function<vk::SurfaceKHR(const vk::Instance& instance)>& surfaceProvider,
 			bool enableValidationLayer
+		);
+
+		DeviceContext(
+			const Configuration::Configuration& configuration,
+			const Windows::Window& window,
+			...
 		);
 
 		~DeviceContext();

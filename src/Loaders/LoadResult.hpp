@@ -20,5 +20,6 @@ namespace drk::Loaders {
 		std::vector<std::unique_ptr<Textures::ImageInfo>> images;
 		std::unordered_map<uint32_t, entt::entity> materialIdEntityMap;
 		std::unordered_map<uint32_t, entt::entity> meshIdEntityMap;
+		entt::entity rootEntity = entt::null;
 	};
 }

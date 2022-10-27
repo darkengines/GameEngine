@@ -5,7 +5,7 @@
 namespace drk::Graphics {
 
 	FrameState::FrameState(
-		const Devices::DeviceContext *deviceContext,
+		const Devices::DeviceContext& deviceContext,
 		const vk::DescriptorSetLayout &storageBufferDescriptorSetLayout,
 		const vk::DescriptorSetLayout &drawBufferDescriptorSetLayout,
 		const vk::DescriptorSetLayout &globalUniformBufferDescriptorSetLayout,
@@ -54,8 +54,7 @@ namespace drk::Graphics {
 		DescriptorSets.push_back(GlobalUniformBufferDescriptorSet);
 	}
 
-	FrameState::FrameState(FrameState &&frameState) {
-		DeviceContext = frameState.DeviceContext;
+	FrameState::FrameState(FrameState &&frameState): DeviceContext(frameState.DeviceContext) {
 		DescriptorSetAllocator = frameState.DescriptorSetAllocator;
 		CommandBuffer = frameState.CommandBuffer;
 		Fence = frameState.Fence;
@@ -88,41 +87,41 @@ namespace drk::Graphics {
 
 	FrameState::~FrameState() {
 		if ((VkFence) Fence != VK_NULL_HANDLE) {
-			DeviceContext->Device.destroyFence(Fence);
+			DeviceContext.Device.destroyFence(Fence);
 		}
 		if ((VkSemaphore) ImageReadySemaphore != VK_NULL_HANDLE) {
-			DeviceContext->Device.destroySemaphore(ImageReadySemaphore);
+			DeviceContext.Device.destroySemaphore(ImageReadySemaphore);
 		}
 		if ((VkSemaphore) ImageRenderedSemaphore != VK_NULL_HANDLE) {
-			DeviceContext->Device.destroySemaphore(ImageRenderedSemaphore);
+			DeviceContext.Device.destroySemaphore(ImageRenderedSemaphore);
 		}
 		if ((VkBuffer) GlobalUniformBuffer.buffer != VK_NULL_HANDLE) {
-			Devices::Device::unmapBuffer(DeviceContext->Allocator, GlobalUniformBuffer);
-			DeviceContext->DestroyBuffer(GlobalUniformBuffer);
+			Devices::Device::unmapBuffer(DeviceContext.Allocator, GlobalUniformBuffer);
+			DeviceContext.DestroyBuffer(GlobalUniformBuffer);
 		}
 	}
 
-	vk::Semaphore FrameState::CreateSemaphore(const Devices::DeviceContext *deviceContext) {
+	vk::Semaphore FrameState::CreateSemaphore(const Devices::DeviceContext& deviceContext) {
 		vk::SemaphoreCreateInfo semaphoreCreateInfo = {};
-		auto semaphore = deviceContext->Device.createSemaphore(semaphoreCreateInfo);
+		auto semaphore = deviceContext.Device.createSemaphore(semaphoreCreateInfo);
 		return semaphore;
 	}
 
-	vk::Fence FrameState::CreateFence(const Devices::DeviceContext *deviceContext) {
+	vk::Fence FrameState::CreateFence(const Devices::DeviceContext &deviceContext) {
 		vk::FenceCreateInfo fenceCreateInfo = {
 			.flags = vk::FenceCreateFlagBits::eSignaled
 		};
-		auto fence = deviceContext->Device.createFence(fenceCreateInfo);
+		auto fence = deviceContext.Device.createFence(fenceCreateInfo);
 		return fence;
 	}
 
-	vk::CommandBuffer FrameState::CreateCommandBuffer(const Devices::DeviceContext *deviceContext) {
+	vk::CommandBuffer FrameState::CreateCommandBuffer(const Devices::DeviceContext& deviceContext) {
 		vk::CommandBufferAllocateInfo commandBufferAllocateInfo = {
-			.commandPool = deviceContext->CommandPool,
+			.commandPool = deviceContext.CommandPool,
 			.level = vk::CommandBufferLevel::ePrimary,
 			.commandBufferCount = 1
 		};
-		auto commandBuffer = deviceContext->Device.allocateCommandBuffers(commandBufferAllocateInfo);
+		auto commandBuffer = deviceContext.Device.allocateCommandBuffers(commandBufferAllocateInfo);
 		return commandBuffer[0];
 	}
 
@@ -141,7 +140,7 @@ namespace drk::Graphics {
 	}
 
 	Devices::Buffer FrameState::CreateUnitormBuffer(
-		const Devices::DeviceContext *deviceContext,
+		const Devices::DeviceContext& deviceContext,
 		const vk::DescriptorSet &descriptorSet,
 		Models::Global **global
 	) {
@@ -155,14 +154,14 @@ namespace drk::Graphics {
 													  vk::MemoryPropertyFlagBits::eHostCoherent),
 		};
 		auto uniformBuffer = Devices::Device::createBuffer(
-			deviceContext->Allocator,
+			deviceContext.Allocator,
 			vk::MemoryPropertyFlagBits::eHostVisible,
 			vk::BufferUsageFlagBits::eUniformBuffer,
 			allocationCreationInfo,
 			byteLength
 		);
 
-		Devices::Device::mapBuffer(deviceContext->Allocator, uniformBuffer, (void **) global);
+		Devices::Device::mapBuffer(deviceContext.Allocator, uniformBuffer, (void **) global);
 
 		vk::DescriptorBufferInfo descriptorBufferInfo = {
 			.buffer = uniformBuffer.buffer,
@@ -179,7 +178,7 @@ namespace drk::Graphics {
 			.pBufferInfo = &descriptorBufferInfo
 		};
 
-		deviceContext->Device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
+		deviceContext.Device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
 
 		return uniformBuffer;
 	}

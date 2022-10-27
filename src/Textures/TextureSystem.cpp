@@ -3,19 +3,20 @@
 namespace drk::Textures {
 
 	TextureSystem::TextureSystem(
-		drk::Devices::DeviceContext *pContext,
-		drk::Graphics::EngineState *pState
+		const Devices::DeviceContext& deviceContext,
+		Graphics::EngineState& engineState,
+		entt::registry& registry
 	)
-		: DeviceContext(pContext), EngineState(pState) {}
+		: DeviceContext(deviceContext), EngineState(engineState), Registry(registry) {}
 
 	void TextureSystem::UploadTextures() {
-		auto imageEntities = EngineState->Registry.view<Textures::ImageInfo *>(entt::exclude<Devices::Texture>);
-		for (const auto &imageEntity: imageEntities) {
-			const auto[imageInfo, componentIndex] = EngineState->Registry.get<Textures::ImageInfo *, Common::ComponentIndex<ImageInfo>>(
+		auto imageEntities = Registry.view<Textures::ImageInfo*>(entt::exclude<Devices::Texture>);
+		for (const auto& imageEntity: imageEntities) {
+			const auto[imageInfo, componentIndex] = Registry.get<Textures::ImageInfo*, Common::ComponentIndex<ImageInfo>>(
 				imageEntity
 			);
-			const auto &texture = EngineState->UploadTexture(imageInfo);
-			EngineState->Registry.emplace<Devices::Texture>(imageEntity, texture);
+			const auto& texture = EngineState.UploadTexture(imageInfo);
+			EngineState.Registry.emplace<Devices::Texture>(imageEntity, texture);
 		}
 	}
 }

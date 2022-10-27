@@ -8,11 +8,12 @@
 namespace drk::Textures {
 	class TextureSystem {
 	protected:
-		Devices::DeviceContext *DeviceContext;
-		Graphics::EngineState *EngineState;
+		const Devices::DeviceContext& DeviceContext;
+		Graphics::EngineState& EngineState;
+		entt::registry& Registry;
 
 	public:
-		TextureSystem(Devices::DeviceContext *pContext, Graphics::EngineState *pState);
+		TextureSystem(const Devices::DeviceContext& deviceContext, Graphics::EngineState& engineState, entt::registry& registry);
 		void UploadTextures();
 	};
 }
