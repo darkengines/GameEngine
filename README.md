@@ -1,6 +1,6 @@
-#GameEngine
+# GameEngine
 
-##How to build
+## How to build
 
 Install the [Vulkan SDK](https://vulkan.lunarg.com/).  
 Set **VULKAN_SDK** environment variable to the vulkan SDK root directory path.  
