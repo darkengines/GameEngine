@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../Graphics/Models/StoreItemLocation.hpp"
+#include "../../Stores/Models/StoreItemLocation.hpp"
 
 namespace drk::Meshes::Models {
 	struct Mesh {
-		Graphics::Models::StoreItemLocation materialItemLocation;
+		 Stores::Models::StoreItemLocation materialItemLocation;
 	};
 }

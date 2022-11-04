@@ -18,4 +18,9 @@ namespace drk::Stores {
 			DeviceContext.DestroyBuffer(buffer);
 		}
 	}
+	StoreBufferAllocator::StoreBufferAllocator(StoreBufferAllocator&& storeBufferAllocator) : DeviceContext(
+		storeBufferAllocator.DeviceContext
+	), DescriptorSet(storeBufferAllocator.DescriptorSet), Buffers(std::move(Buffers)) {
+		storeBufferAllocator.Buffers.clear();
+	}
 }

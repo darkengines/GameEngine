@@ -16,7 +16,7 @@ namespace drk::Meshes {
 		glm::vec4 diffuseColor;
 		glm::vec2 textureCoordinates;
 
-		static std::vector<vk::VertexInputBindingDescription> getBindingDescription();
+		static std::vector<vk::VertexInputBindingDescription> getBindingDescriptions();
 		static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions();
 	};
 }

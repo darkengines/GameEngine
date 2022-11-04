@@ -7,16 +7,16 @@
 #include <span>
 #include <glm/vec3.hpp>
 #include "LoadResult.hpp"
-#include "../Graphics/EngineState.hpp"
+#include "../Engine/EngineState.hpp"
 
 namespace drk::Loaders {
 	class AssimpLoader {
 	public:
-		AssimpLoader(entt::registry& registry, Graphics::EngineState& engineState);
+		AssimpLoader(entt::registry& registry, Engine::EngineState& engineState);
 		LoadResult Load(std::filesystem::path scenePath) const;
 	protected:
-		entt::registry& Registry;
-		Graphics::EngineState& EngineState;
+		entt::registry& registry;
+		Engine::EngineState& EngineState;
 		void loadMaterials(
 			std::span<aiMaterial *> aiMaterials,
 			std::span<aiTexture *> aiTextures,

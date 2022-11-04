@@ -1,3 +1,6 @@
+#define VULKAN_HPP_NO_CONSTRUCTORS
+#include <vulkan/vulkan.hpp>
+
 #include "MainRenderContext.hpp"
 #include "Graphics.hpp"
 #include "../Objects/Models/Object.hpp"
@@ -8,53 +11,51 @@
 namespace drk::Graphics {
 	MainRenderContext::MainRenderContext(
 		const Devices::DeviceContext& deviceContext,
-		const drk::Graphics::EngineState& engineState,
-		Devices::Texture target
+		drk::Engine::EngineState& engineState,
+		entt::registry& registry,
+		const Engine::DescriptorSetLayouts& descriptorSetLayouts
 	)
-		: DeviceContext(deviceContext), EngineState(engineState), TargetTexture(target) {
-		CreateMainRenderPass();
-		CreateMainFramebufferResources();
-		CreateMainFramebuffers();
-		CreateMainPipelineLayout();
-		CreateShaderModules();
-		CreateMainGraphicPipeline();
+		: registry(registry),
+		  deviceContext(deviceContext),
+		  engineState(engineState),
+		  descriptorSetLayouts{
+			  descriptorSetLayouts.textureDescriptorSetLayout,
+			  descriptorSetLayouts.storeDescriptorSetLayout,
+			  descriptorSetLayouts.globalDescriptorSetLayout,
+			  descriptorSetLayouts.storeDescriptorSetLayout,
+		  },
+		  pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)) {
+		createShaderModules();
 	}
 
 	MainRenderContext::~MainRenderContext() {
-		DeviceContext.Device.destroyPipeline(MainGraphicPipeline);
+		deviceContext.device.destroyPipeline(pipeline);
 
-		DestroyShaderModules();
-		DeviceContext.Device.destroyPipelineLayout(MainPipelineLayout);
-		DestroyMainFramebuffer();
-		DeviceContext.Device.destroyRenderPass(MainRenderPass);
+		destroyShaderModules();
+		deviceContext.device.destroyPipelineLayout(pipelineLayout);
+		destroyFramebuffer();
+		deviceContext.device.destroyRenderPass(renderPass);
 
-		DestroyMainFramebufferResources();
+		destroyFramebufferResources();
 	}
 
-	void MainRenderContext::DestroyShaderModules() {
-		DeviceContext.Device.destroyShaderModule(MainFragmentShaderModule);
-		DeviceContext.Device.destroyShaderModule(MainVertexShaderModule);
+	void MainRenderContext::destroyShaderModules() {
+		deviceContext.device.destroyShaderModule(mainFragmentShaderModule);
+		deviceContext.device.destroyShaderModule(mainVertexShaderModule);
 	}
 
-	void MainRenderContext::DestroyMainFramebuffer() {
-		for (const auto& framebuffer: MainFramebuffers) {
-			DeviceContext.Device.destroyFramebuffer(framebuffer);
-		}
-		MainFramebuffers.clear();
+	void MainRenderContext::destroyFramebuffer() {
+		deviceContext.device.destroyFramebuffer(framebuffer);
 	}
 
-	void MainRenderContext::DestroyMainFramebufferResources() {
-		DeviceContext.DestroyTexture(MainFramebufferDepthTexture);
-		DeviceContext.DestroyTexture(MainFramebufferTexture);
+	void MainRenderContext::destroyFramebufferResources() {
+		deviceContext.destroyTexture(depthTexture);
+		deviceContext.destroyTexture(colorTexture);
 	}
 
-	void MainRenderContext::SetExtent(const vk::Extent2D& extent) {
-		ExtentChanged = true;
-	}
-
-	void MainRenderContext::CreateMainRenderPass() {
+	void MainRenderContext::createRenderPass() {
 		vk::AttachmentDescription colorAttachment = {
-			.format = TargetTexture.Format,
+			.format = targetTexture->imageCreateInfo.format,
 			//TODO: Use configurable sample count
 			.samples = vk::SampleCountFlagBits::e8,
 			.loadOp = vk::AttachmentLoadOp::eClear,
@@ -71,7 +72,7 @@ namespace drk::Graphics {
 		};
 
 		vk::AttachmentDescription depthAttachment = {
-			.format = DeviceContext.DepthFormat,
+			.format = deviceContext.DepthFormat,
 			//TODO: Use configurable sample count
 			.samples = vk::SampleCountFlagBits::e8,
 			.loadOp = vk::AttachmentLoadOp::eClear,
@@ -88,7 +89,7 @@ namespace drk::Graphics {
 		};
 
 		vk::AttachmentDescription resolvedColorAttachment = {
-			.format = TargetTexture.Format,
+			.format = targetTexture->imageViewCreateInfo.format,
 			.samples = vk::SampleCountFlagBits::e1,
 			.loadOp = vk::AttachmentLoadOp::eClear,
 			.storeOp = vk::AttachmentStoreOp::eStore,
@@ -137,22 +138,21 @@ namespace drk::Graphics {
 			.pDependencies = &dependency,
 		};
 
-		auto renderPass = DeviceContext.Device.createRenderPass(renderPassCreationInfo);
-		MainRenderPass = renderPass;
+		renderPass = deviceContext.device.createRenderPass(renderPassCreationInfo);
 	}
 
-	void MainRenderContext::CreateMainFramebufferResources() {
+	void MainRenderContext::createFramebufferResources() {
 		vk::ImageCreateInfo imageCreateInfo{
 			.imageType = vk::ImageType::e2D,
-			.format = TargetTexture.Format,
-			.extent = {TargetTexture.Extent.width, TargetTexture.Extent.height, 1},
+			.format = targetTexture->imageViewCreateInfo.format,
+			.extent = {targetTexture->imageCreateInfo.extent.width, targetTexture->imageCreateInfo.extent.height, 1},
 			.mipLevels = 1,
 			.arrayLayers = 1,
-			.samples = DeviceContext.MaxSampleCount,
+			.samples = deviceContext.MaxSampleCount,
 			.usage = vk::ImageUsageFlagBits::eColorAttachment,
 			.sharingMode = vk::SharingMode::eExclusive,
 		};
-		auto mainFramebufferImage = DeviceContext.CreateImage(
+		auto mainFramebufferImage = deviceContext.createImage(
 			imageCreateInfo,
 			vk::MemoryPropertyFlagBits::eDeviceLocal
 		);
@@ -168,23 +168,23 @@ namespace drk::Graphics {
 		vk::ImageViewCreateInfo imageViewCreateInfo = {
 			.image = mainFramebufferImage.image,
 			.viewType = vk::ImageViewType::e2D,
-			.format = TargetTexture.Format,
+			.format = targetTexture->imageViewCreateInfo.format,
 			.subresourceRange = subresourceRange
 		};
 
-		auto mainFramebufferImageView = DeviceContext.Device.createImageView(imageViewCreateInfo);
+		auto mainFramebufferImageView = deviceContext.device.createImageView(imageViewCreateInfo);
 
 		vk::ImageCreateInfo depthImageCreateInfo{
 			.imageType = vk::ImageType::e2D,
-			.format = DeviceContext.DepthFormat,
-			.extent = {TargetTexture.Extent.width, TargetTexture.Extent.height, 1},
+			.format = deviceContext.DepthFormat,
+			.extent = {targetTexture->imageCreateInfo.extent.width, targetTexture->imageCreateInfo.extent.height, 1},
 			.mipLevels = 1,
 			.arrayLayers = 1,
-			.samples = DeviceContext.MaxSampleCount,
+			.samples = deviceContext.MaxSampleCount,
 			.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
 			.sharingMode = vk::SharingMode::eExclusive,
 		};
-		auto mainFramebufferDepthImage = DeviceContext.CreateImage(
+		auto mainFramebufferDepthImage = deviceContext.createImage(
 			depthImageCreateInfo,
 			vk::MemoryPropertyFlagBits::eDeviceLocal
 		);
@@ -200,48 +200,48 @@ namespace drk::Graphics {
 		vk::ImageViewCreateInfo depthImageViewCreateInfo = {
 			.image = mainFramebufferDepthImage.image,
 			.viewType = vk::ImageViewType::e2D,
-			.format = DeviceContext.DepthFormat,
+			.format = deviceContext.DepthFormat,
 			.subresourceRange = depthSubresourceRange
 		};
 
-		auto mainFramebufferDepthImageView = DeviceContext.Device.createImageView(depthImageViewCreateInfo);
-		MainFramebufferTexture = {
+		auto mainFramebufferDepthImageView = deviceContext.device.createImageView(depthImageViewCreateInfo);
+		colorTexture = {
 			.image = mainFramebufferImage,
 			.imageView = mainFramebufferImageView
 		};
-		MainFramebufferDepthTexture = {
+		depthTexture = {
 			.image = mainFramebufferDepthImage,
 			.imageView = mainFramebufferDepthImageView
 		};
+
 	}
 
-	void MainRenderContext::CreateMainFramebuffers() {
+	void MainRenderContext::createFramebuffer() {
 		std::array<vk::ImageView, 3> attachments{
-			MainFramebufferTexture.imageView,
-			MainFramebufferDepthTexture.imageView,
-			TargetTexture.imageView
+			colorTexture.imageView,
+			depthTexture.imageView,
+			targetTexture->imageView
 		};
 		vk::FramebufferCreateInfo framebufferCreateInfo = {
-			.renderPass = MainRenderPass,
+			.renderPass = renderPass,
 			.attachmentCount = (uint32_t) attachments.size(),
 			.pAttachments = attachments.data(),
-			.width = TargetTexture.Extent.width,
-			.height = TargetTexture.Extent.height,
+			.width = targetTexture->imageCreateInfo.extent.width,
+			.height = targetTexture->imageCreateInfo.extent.height,
 			.layers = 1
 		};
-		auto framebuffer = DeviceContext.Device.createFramebuffer(framebufferCreateInfo);
-		MainFramebuffers.push_back(framebuffer);
+		framebuffer = deviceContext.device.createFramebuffer(framebufferCreateInfo);
 	}
 
-	void MainRenderContext::CreateMainGraphicPipeline() {
+	void MainRenderContext::createPipeline() {
 		vk::PipelineShaderStageCreateInfo vertexPipelineShaderStageCreateInfo = {
 			.stage = vk::ShaderStageFlagBits::eVertex,
-			.module = MainVertexShaderModule,
+			.module = mainVertexShaderModule,
 			.pName = "main"
 		};
 		vk::PipelineShaderStageCreateInfo fragmentPipelineShaderStageCreateInfo = {
 			.stage = vk::ShaderStageFlagBits::eFragment,
-			.module = MainFragmentShaderModule,
+			.module = mainFragmentShaderModule,
 			.pName = "main"
 		};
 
@@ -251,8 +251,8 @@ namespace drk::Graphics {
 		};
 
 		vk::PipelineColorBlendAttachmentState pipelineColorBlendAttachmentState;
-		std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions;
-		std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions;
+		std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions = Meshes::Vertex::getBindingDescriptions();
+		std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions = Meshes::Vertex::getAttributeDescriptions();
 		vk::Viewport viewport;
 		vk::Rect2D scissor;
 
@@ -262,7 +262,7 @@ namespace drk::Graphics {
 		);
 		const auto& pipelineInputAssemblyStateCreateInfo = Graphics::DefaultPipelineInputAssemblyStateCreateInfo();
 		const auto& pipelineViewportStateCreateInfo = Graphics::DefaultPipelineViewportStateCreateInfo(
-			TargetTexture.Extent,
+			{targetTexture->imageCreateInfo.extent.width, targetTexture->imageCreateInfo.extent.height},
 			viewport,
 			scissor
 		);
@@ -285,75 +285,105 @@ namespace drk::Graphics {
 			.pMultisampleState = &pipelineMultisampleStateCreateInfo,
 			.pDepthStencilState = &pipelineDepthStencilStateCreateInfo,
 			.pColorBlendState = &pipelineColorBlendStateCreateInfo,
-			.layout = MainPipelineLayout,
-			.renderPass = MainRenderPass,
+			.layout = pipelineLayout,
+			.renderPass = renderPass,
 		};
 
-		auto result = DeviceContext.Device.createGraphicsPipeline(VK_NULL_HANDLE, graphicsPipelineCreateInfo);
+		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicsPipelineCreateInfo);
 		if ((VkResult) result.result != VK_SUCCESS) {
 			throw new std::runtime_error("Failed to create main graphic pipeline.");
 		}
-		MainGraphicPipeline = result.value;
+		pipeline = result.value;
 	}
 
-	void MainRenderContext::CreateMainPipelineLayout() {
+	vk::PipelineLayout
+	MainRenderContext::createPipelineLayout(
+		const Devices::DeviceContext& deviceContext,
+		const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+	) {
 		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
-			.setLayoutCount = static_cast<uint32_t>(EngineState.DescriptorSetLayouts.size()),
-			.pSetLayouts = EngineState.DescriptorSetLayouts.data(),
+			.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
+			.pSetLayouts = descriptorSetLayouts.data(),
 		};
-		MainPipelineLayout = DeviceContext.Device.createPipelineLayout(pipelineLayoutCreateInfo);
+		return deviceContext.device.createPipelineLayout(pipelineLayoutCreateInfo);
 	}
 
-	void MainRenderContext::CreateShaderModules() {
-		MainVertexShaderModule = DeviceContext.CreateShaderModule("shaders/spv/main.vert.spv");
-		MainFragmentShaderModule = DeviceContext.CreateShaderModule("shaders/spv/main.frag.spv");
+	void MainRenderContext::createShaderModules() {
+		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/main.vert.spv");
+		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/main.frag.spv");
 	}
 
-	void MainRenderContext::Render(const vk::CommandBuffer& commandBuffer) const {
-		const auto& frameState = EngineState.FrameStates[EngineState.FrameIndex];
+	void MainRenderContext::render(const vk::CommandBuffer& commandBuffer) const {
+		auto& frameState = engineState.getCurrentFrameState();
 
 		const auto drawContext = BuildMainRenderPass();
 
-		vk::ClearValue colorClearValue = {
-			.color = {std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}
-		};
-		vk::ClearValue depthClearValue{
-			.depthStencil = {1.0f, 0}
-		};
-		std::array<vk::ClearValue, 3> clearValues{colorClearValue, depthClearValue, colorClearValue};
+		if (!drawContext.drawSets.empty()) {
 
-		vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
-			.renderPass = MainRenderPass,
-			.framebuffer = MainFramebuffers[0],
-			.renderArea = {0, 0, TargetTexture.Extent},
-			.clearValueCount = (uint32_t) clearValues.size(),
-			.pClearValues = clearValues.data(),
-		};
-		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, MainGraphicPipeline);
-		commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
-		for (auto drawSetIndex = 0u; drawSetIndex < drawContext.drawSets.size(); drawSetIndex++) {
-			const auto& drawSet = drawContext.drawSets[drawSetIndex];
+			const auto& drawDescriptorSet = frameState.getUniformStore<Models::Draw>().descriptorSet;
+			std::array<vk::DescriptorSet, 4> descriptorSets{
+				engineState.textureDescriptorSet,
+				drawDescriptorSet,
+				frameState.globalDescriptorSet,
+				frameState.storeDescriptorSet
+			};
+			frameState.commandBuffer.bindDescriptorSets(
+				vk::PipelineBindPoint::eGraphics,
+				pipelineLayout,
+				0,
+				descriptorSets.size(),
+				descriptorSets.data(),
+				0,
+				nullptr
+			);
 
-			vk::DeviceSize offset = 0u;
-			commandBuffer.bindIndexBuffer(drawSet.indexBuffer.buffer, 0, vk::IndexType::eUint32);
-			commandBuffer.bindVertexBuffers(0, 1, &drawSet.vertexBuffer.buffer, &offset);
-			for (auto drawIndex = 0u; drawIndex < drawSet.drawCommands.size(); drawIndex++) {
-				const auto& drawCommand = drawSet.drawCommands[drawIndex];
-				commandBuffer.drawIndexed(
-					drawCommand.indexCount,
-					drawCommand.instanceCount,
-					drawCommand.firstIndex,
-					drawCommand.vertexOffset,
-					drawCommand.firstInstance
-				);
+			vk::ClearValue colorClearValue = {
+				.color = {std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}
+			};
+			vk::ClearValue depthClearValue{
+				.depthStencil = {1.0f, 0}
+			};
+			std::array<vk::ClearValue, 3> clearValues{colorClearValue, depthClearValue, colorClearValue};
+
+			vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
+				.renderPass = renderPass,
+				.framebuffer = framebuffer,
+				.renderArea = {
+					0,
+					0,
+					{
+						targetTexture->imageCreateInfo.extent.width,
+						targetTexture->imageCreateInfo.extent.height
+					}},
+				.clearValueCount = (uint32_t) clearValues.size(),
+				.pClearValues = clearValues.data(),
+			};
+			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+			commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
+			for (auto drawSetIndex = 0u; drawSetIndex < drawContext.drawSets.size(); drawSetIndex++) {
+				const auto& drawSet = drawContext.drawSets[drawSetIndex];
+
+				vk::DeviceSize offset = 0u;
+				commandBuffer.bindIndexBuffer(drawSet.indexBuffer.buffer, 0, vk::IndexType::eUint32);
+				commandBuffer.bindVertexBuffers(0, 1, &drawSet.vertexBuffer.buffer, &offset);
+				for (auto drawIndex = 0u; drawIndex < drawSet.drawCommands.size(); drawIndex++) {
+					const auto& drawCommand = drawSet.drawCommands[drawIndex];
+					commandBuffer.drawIndexed(
+						drawCommand.indexCount,
+						drawCommand.instanceCount,
+						drawCommand.firstIndex,
+						drawCommand.vertexOffset,
+						drawCommand.firstInstance
+					);
+				}
 			}
-		}
 
-		commandBuffer.endRenderPass();
+			commandBuffer.endRenderPass();
+		}
 	}
 
 	DrawContext MainRenderContext::BuildMainRenderPass() const {
-		auto objectEntities = EngineState.Registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Spatial>();
+		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Spatial>();
 		std::vector<Draw> draws;
 		std::vector<Draw> transparencyDraws;
 		objectEntities.each(
@@ -363,14 +393,14 @@ namespace drk::Graphics {
 				auto& meshGroup,
 				auto& spatial
 			) {
-				const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[EngineState.FrameIndex];
+				const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
 				for (const auto& meshEntity : meshGroup.meshEntities) {
-					Meshes::MeshInfo* meshInfo = EngineState.Registry.get<Meshes::MeshInfo*>(meshEntity);
-					const Meshes::Mesh mesh = EngineState.Registry.get<Meshes::Mesh>(meshEntity);
-					const Stores::StoreItem<Meshes::Models::Mesh> meshStoreItem = EngineState.Registry.get<Stores::StoreItem<Meshes::Models::Mesh>>(
+					Meshes::MeshInfo* meshInfo = registry.get<Meshes::MeshInfo*>(meshEntity);
+					const Meshes::Mesh mesh = registry.get<Meshes::Mesh>(meshEntity);
+					const Stores::StoreItem<Meshes::Models::Mesh> meshStoreItem = registry.get<Stores::StoreItem<Meshes::Models::Mesh>>(
 						meshEntity
 					);
-					const auto& meshStoreItemLocation = meshStoreItem.frameStoreItems[EngineState.FrameIndex];
+					const auto& meshStoreItemLocation = meshStoreItem.frameStoreItems[engineState.getFrameIndex()];
 					Draw draw = {
 						.meshInfo = meshInfo,
 						.mesh = mesh,
@@ -418,8 +448,8 @@ namespace drk::Graphics {
 			}
 		);
 
-		auto cameraEntity = EngineState.CameraEntity;
-		auto camera = EngineState.Registry.get<Cameras::Camera>(cameraEntity);
+		auto cameraEntity = engineState.CameraEntity;
+		auto camera = registry.get<Cameras::Camera>(cameraEntity);
 
 		std::stable_sort(
 			transparencyDraws.begin(), transparencyDraws.end(), [&camera](const Draw& leftDraw, const Draw& rightDraw) {
@@ -442,7 +472,8 @@ namespace drk::Graphics {
 		const std::vector<Draw>& draws,
 		uint32_t drawOffset
 	) const {
-		auto drawStore = EngineState.FrameStates[EngineState.FrameIndex].DrawStore.get();
+		auto& frameState = engineState.getCurrentFrameState();
+		auto& drawStore = frameState.getUniformStore<Models::Draw>();
 		const Draw* previousDraw = nullptr;
 		if (!drawContext.drawSets.empty() && !drawContext.drawSets.back().draws.empty())
 			previousDraw = &drawContext.drawSets.back().draws.back();
@@ -477,7 +508,7 @@ namespace drk::Graphics {
 
 			drawContext.drawSets.back().draws.push_back(draw);
 
-			const auto drawItemLocation = drawStore->Get(drawIndex + drawOffset);
+			const auto drawItemLocation = drawStore.get(drawIndex + drawOffset);
 
 			const Models::Draw drawModel = {
 				.meshItemLocation = draw.meshStoreItem,
@@ -491,5 +522,24 @@ namespace drk::Graphics {
 
 			previousDraw = &draw;
 		}
+	}
+	void MainRenderContext::recreatePipeLine() {
+		if ((VkPipeline) pipeline != VK_NULL_HANDLE) {
+			deviceContext.device.destroyPipeline(pipeline);
+			deviceContext.device.destroyRenderPass(renderPass);
+			destroyFramebuffer();
+			destroyFramebufferResources();
+		}
+
+		createRenderPass();
+		createFramebufferResources();
+		createFramebuffer();
+		createPipeline();
+	}
+	void MainRenderContext::setTarget(const Devices::Texture& texture) {
+		targetTexture = texture;
+		deviceContext.device.waitIdle();
+		recreatePipeLine();
+		deviceContext.device.waitIdle();
 	}
 }

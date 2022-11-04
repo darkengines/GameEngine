@@ -10,7 +10,11 @@
 
 namespace drk::Spatials {
 
-	SpatialSystem::SpatialSystem(const Devices::DeviceContext& deviceContext, Graphics::EngineState& engineState, entt::registry& registry)
+	SpatialSystem::SpatialSystem(
+		const Devices::DeviceContext& deviceContext,
+		Engine::EngineState& engineState,
+		entt::registry& registry
+	)
 		: DeviceContext(deviceContext), EngineState(engineState), Registry(registry) {}
 
 	void SpatialSystem::AddSpatialSystem(entt::registry& registry) {
@@ -100,7 +104,7 @@ namespace drk::Spatials {
 				}
 				Registry.emplace_or_replace<Graphics::SynchronizationState<Models::Spatial>>(
 					entity,
-					(uint32_t) EngineState.FrameStates.size());
+					(uint32_t) EngineState.getFrameCount());
 			}
 		);
 	}
@@ -108,13 +112,14 @@ namespace drk::Spatials {
 	void SpatialSystem::UpdateSpatials() {
 		Graphics::SynchronizationState<Models::Spatial>::Update<Spatial>(
 			Registry,
-			EngineState.FrameIndex,
-			std::function<void(Models::Spatial&, const Spatial&)>(
-				[=](
-					Models::Spatial& model,
-					const Spatial component
-				) { UpdateStoreItem(component, model); }
-			)
+			EngineState.getFrameIndex(),
+			std::function < void(Models::Spatial & ,
+		const Spatial&)>(
+			[=](
+				Models::Spatial& model,
+				const Spatial component
+			) { UpdateStoreItem(component, model); }
+		)
 		);
 	}
 }

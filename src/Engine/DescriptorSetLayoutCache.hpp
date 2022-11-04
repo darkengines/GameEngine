@@ -3,15 +3,16 @@
 #include <unordered_map>
 #include <vulkan/vulkan.hpp>
 #include "DescriptorSetLayoutCreateInfoEqualityComparer.hpp"
+#include "../Devices/DeviceContext.hpp"
 
-namespace drk::Graphics {
+namespace drk::Engine {
 	class DescriptorSetLayoutCache {
 	public:
-		DescriptorSetLayoutCache(const vk::Device &device);
+		DescriptorSetLayoutCache(const Devices::DeviceContext& deviceContext);
 		~DescriptorSetLayoutCache();
 		vk::DescriptorSetLayout get(const vk::DescriptorSetLayoutCreateInfo &descriptorSetLayoutCreateInfo);
 	protected:
-		const vk::Device Device;
+		const Devices::DeviceContext& deviceContext;
 		std::unordered_map<vk::DescriptorSetLayoutCreateInfo, vk::DescriptorSetLayout, DescriptorSetLayoutCreateInfoEqualityComparer, DescriptorSetLayoutCreateInfoEqualityComparer> Layouts;
 	};
 }

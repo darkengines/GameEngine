@@ -1,17 +1,17 @@
 #pragma once
 
 #include "../Devices/DeviceContext.hpp"
-#include "../Graphics/EngineState.hpp"
+#include "../Engine/EngineState.hpp"
 
 namespace drk::Relationships {
 	class RelationshipSystem {
 	protected:
 		const Devices::DeviceContext& DeviceContext;
-		Graphics::EngineState& EngineState;
-		entt::registry& Registry;
+		Engine::EngineState& EngineState;
+		entt::registry& registry;
 
 	public:
-		RelationshipSystem(const Devices::DeviceContext& deviceContext, Graphics::EngineState& engineState, entt::registry& registry);
+		RelationshipSystem(const Devices::DeviceContext& deviceContext, Engine::EngineState& engineState, entt::registry& registry);
 		static void AddSpatialSystem(entt::registry &registry);
 		static void RemoveSpatialSystem(entt::registry &registry);
 		static void OnSpatialConstruct(entt::registry &registry, entt::entity spatialEntity);

@@ -5,13 +5,13 @@
 
 namespace drk::Objects {
 
-	ObjectSystem::ObjectSystem(const Devices::DeviceContext& deviceContext, Graphics::EngineState& engineState, entt::registry& registry)
+	ObjectSystem::ObjectSystem(const Devices::DeviceContext& deviceContext, Engine::EngineState& engineState, entt::registry& registry)
 		: DeviceContext(deviceContext), EngineState(engineState), Registry(registry) {}
 
 	void ObjectSystem::UpdateStoreItem(
 		Models::Object& objectModel, const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem
 	) {
-		const auto& spatialItemLocation = spatialStoreItem.frameStoreItems[EngineState.FrameIndex];
+		const auto& spatialItemLocation = spatialStoreItem.frameStoreItems[EngineState.getFrameIndex()];
 		objectModel.spatialItemLocation.storeIndex = spatialItemLocation.pStore->descriptorArrayElement;
 		objectModel.spatialItemLocation.itemIndex = spatialItemLocation.index;
 	}
@@ -23,7 +23,7 @@ namespace drk::Objects {
 	void ObjectSystem::UpdateObjects() {
 		Graphics::SynchronizationState<Models::Object>::Update<Stores::StoreItem<Spatials::Models::Spatial>>(
 			Registry,
-			EngineState.FrameIndex,
+			EngineState.getFrameIndex(),
 			std::function<void(Models::Object&, const Stores::StoreItem<Spatials::Models::Spatial>&)>(
 				[=](
 					Models::Object& model,

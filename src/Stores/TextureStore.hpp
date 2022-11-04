@@ -20,7 +20,7 @@ namespace drk::Stores {
 
 		~TextureStore() {
 			for (const auto& texture: Textures) {
-				DeviceContext.DestroyTexture(texture);
+				DeviceContext.destroyTexture(texture);
 			}
 		}
 

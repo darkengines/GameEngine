@@ -15,8 +15,8 @@
 #include <glm/gtx/quaternion.hpp>
 
 namespace drk::Loaders {
-	AssimpLoader::AssimpLoader(entt::registry& registry, Graphics::EngineState& engineState)
-		: Registry(registry), EngineState(engineState) {}
+	AssimpLoader::AssimpLoader(entt::registry& registry, Engine::EngineState& engineState)
+		: registry(registry), EngineState(engineState) {}
 
 	LoadResult AssimpLoader::Load(std::filesystem::path scenePath) const {
 		Assimp::Importer importer;
@@ -94,10 +94,10 @@ namespace drk::Loaders {
 									textureTypePair.second
 								);
 							}
-							auto textureEntity = Registry.create();
-							Registry.emplace<Textures::ImageInfo*>(textureEntity, image.get());
+							auto textureEntity = registry.create();
+							registry.emplace<Textures::ImageInfo*>(textureEntity, image.get());
 							auto textureIndex = EngineState.IndexGenerator.Generate<Textures::ImageInfo>();
-							Registry.emplace<Common::ComponentIndex<Textures::ImageInfo>>(
+							registry.emplace<Common::ComponentIndex<Textures::ImageInfo>>(
 								textureEntity,
 								textureIndex
 							);
@@ -151,15 +151,15 @@ namespace drk::Loaders {
 				aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_SPECULAR, &specularColor) == AI_SUCCESS;
 
 			auto materialIndex = EngineState.IndexGenerator.Generate<Materials::Material>();
-			auto materialEntity = EngineState.Registry.create();
+			auto materialEntity = registry.create();
 
 			auto hasTransparency =
 				baseColorTexture != entt::null &&
-				EngineState.Registry.get<Textures::ImageInfo*>(baseColorTexture)->depth > 3
+				registry.get<Textures::ImageInfo*>(baseColorTexture)->depth > 3
 				|| ambientColorTexture != entt::null &&
-				   EngineState.Registry.get<Textures::ImageInfo*>(ambientColorTexture)->depth > 3
+				   registry.get<Textures::ImageInfo*>(ambientColorTexture)->depth > 3
 				|| diffuseColorTexture != entt::null &&
-				   EngineState.Registry.get<Textures::ImageInfo*>(diffuseColorTexture)->depth > 3
+				   registry.get<Textures::ImageInfo*>(diffuseColorTexture)->depth > 3
 				|| hasAmbientColor && ambientColor.a < 1
 				|| hasDiffuseColor && diffuseColor.a < 1;
 
@@ -179,8 +179,8 @@ namespace drk::Loaders {
 			};
 
 			auto materialPtr = std::make_unique<Materials::Material>(material);
-			EngineState.Registry.emplace<Materials::Material*>(materialEntity, materialPtr.get());
-			EngineState.Registry.emplace<Common::ComponentIndex<Materials::Material >>(materialEntity, materialIndex);
+			registry.emplace<Materials::Material*>(materialEntity, materialPtr.get());
+			registry.emplace<Common::ComponentIndex<Materials::Material >>(materialEntity, materialIndex);
 			loadResult.materials[aiMaterialIndex] = std::move(materialPtr);
 			loadResult.materialIdEntityMap[aiMaterialIndex] = materialEntity;
 		}
@@ -265,10 +265,10 @@ namespace drk::Loaders {
 				glm::vec4(AssimpLoader::toVector(aiMesh->mAABB.mMax), 1.0f)
 			);
 
-			auto meshEntity = EngineState.Registry.create();
-			EngineState.Registry.emplace<Meshes::MeshInfo*>(meshEntity, meshPtr.get());
-			EngineState.Registry.emplace<Common::ComponentIndex<Meshes::MeshInfo>>(meshEntity, meshIndex);
-			EngineState.Registry.emplace<Geometries::AxisAlignedBoundingBox>(meshEntity, axisAlignedBoundingBox);
+			auto meshEntity = registry.create();
+			registry.emplace<Meshes::MeshInfo*>(meshEntity, meshPtr.get());
+			registry.emplace<Common::ComponentIndex<Meshes::MeshInfo>>(meshEntity, meshIndex);
+			registry.emplace<Geometries::AxisAlignedBoundingBox>(meshEntity, axisAlignedBoundingBox);
 
 			loadResult.meshIdEntityMap[aiMeshIndex] = meshEntity;
 			loadResult.meshes[aiMeshIndex] = std::move(meshPtr);
@@ -280,7 +280,7 @@ namespace drk::Loaders {
 		std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightNameMap
 	) const {
 		for (auto aiLight : aiLights) {
-			auto entity = EngineState.Registry.create();
+			auto entity = registry.create();
 			auto lightName = std::string(aiLight->mName.C_Str());
 			if (aiLight->mType == aiLightSourceType::aiLightSource_POINT) {
 				auto pointLightIndex = EngineState.IndexGenerator.Generate<Lights::PointLight>();
@@ -290,8 +290,8 @@ namespace drk::Loaders {
 				pointLight.quadraticAttenuation = aiLight->mAttenuationQuadratic;
 				pointLight.relativePosition = {aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1};
 
-				EngineState.Registry.emplace<Lights::PointLight>(entity, pointLight);
-				EngineState.Registry.emplace<Common::ComponentIndex<Lights::PointLight>>(entity, pointLightIndex);
+				registry.emplace<Lights::PointLight>(entity, pointLight);
+				registry.emplace<Common::ComponentIndex<Lights::PointLight>>(entity, pointLightIndex);
 			}
 			if (aiLight->mType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
 				auto directionalLightIndex = EngineState.IndexGenerator.Generate<Lights::DirectionalLight>();
@@ -304,8 +304,8 @@ namespace drk::Loaders {
 				};
 				directionalLight.relativeUp = {aiLight->mUp.x, aiLight->mUp.y, aiLight->mUp.z, 0};
 
-				EngineState.Registry.emplace<Lights::DirectionalLight>(entity, directionalLight);
-				EngineState.Registry.emplace<Common::ComponentIndex<Lights::DirectionalLight >>(
+				registry.emplace<Lights::DirectionalLight>(entity, directionalLight);
+				registry.emplace<Common::ComponentIndex<Lights::DirectionalLight >>(
 					entity,
 					directionalLightIndex
 				);
@@ -322,8 +322,8 @@ namespace drk::Loaders {
 				spotlight.innerConeAngle = aiLight->mAngleInnerCone;
 				spotlight.outerConeAngle = aiLight->mAngleOuterCone;
 
-				EngineState.Registry.emplace<Lights::Spotlight>(entity, spotlight);
-				EngineState.Registry.emplace<Common::ComponentIndex<Lights::Spotlight >>(entity, spotlightIndex);
+				registry.emplace<Lights::Spotlight>(entity, spotlight);
+				registry.emplace<Common::ComponentIndex<Lights::Spotlight >>(entity, spotlightIndex);
 			}
 			auto lightIndex = EngineState.IndexGenerator.Generate<Lights::Light>();
 			Lights::Light light = {
@@ -331,8 +331,8 @@ namespace drk::Loaders {
 				{aiLight->mColorDiffuse.r,  aiLight->mColorDiffuse.g,  aiLight->mColorDiffuse.b,  1},
 				{aiLight->mColorSpecular.r, aiLight->mColorSpecular.g, aiLight->mColorSpecular.b, 1}
 			};
-			EngineState.Registry.emplace<Lights::Light>(entity, light);
-			EngineState.Registry.emplace<Common::ComponentIndex<Lights::Light >>(entity, lightIndex);
+			registry.emplace<Lights::Light>(entity, light);
+			registry.emplace<Common::ComponentIndex<Lights::Light >>(entity, lightIndex);
 			lightNameMap[lightName] = {entity, aiLight->mType};
 		}
 	}
@@ -377,9 +377,9 @@ namespace drk::Loaders {
 				aiCamera->mClipPlaneFar,
 			};
 
-			auto entity = EngineState.Registry.create();
-			EngineState.Registry.emplace<Cameras::Camera>(entity, camera);
-			EngineState.Registry.emplace<Common::ComponentIndex<Cameras::Camera>>(entity, cameraIndex);
+			auto entity = registry.create();
+			registry.emplace<Cameras::Camera>(entity, camera);
+			registry.emplace<Common::ComponentIndex<Cameras::Camera>>(entity, cameraIndex);
 			cameraNameMap[cameraName] = entity;
 		}
 	}
@@ -419,16 +419,16 @@ namespace drk::Loaders {
 			entity = std::get<0>(light->second);
 			auto lightType = std::get<1>(light->second);
 			if (lightType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
-				auto& directionalLight = EngineState.Registry.get<Lights::DirectionalLight>(entity);
+				auto& directionalLight = registry.get<Lights::DirectionalLight>(entity);
 				spatial.relativeRotation = spatial.relativeRotation * glm::quatLookAt(
 					glm::vec3(directionalLight.relativeDirection),
 					glm::vec3(directionalLight.relativeUp)
 				);
 			} else if (lightType == aiLightSourceType::aiLightSource_POINT) {
-				auto& pointLight = EngineState.Registry.get<Lights::PointLight>(entity);
+				auto& pointLight = registry.get<Lights::PointLight>(entity);
 				spatial.relativePosition = spatial.relativePosition + pointLight.relativePosition;
 			} else if (lightType == aiLightSourceType::aiLightSource_SPOT) {
-				auto& spotlight = EngineState.Registry.get<Lights::Spotlight>(entity);
+				auto& spotlight = registry.get<Lights::Spotlight>(entity);
 				spatial.relativeRotation = spatial.relativeRotation * glm::quatLookAt(
 					glm::vec3(spotlight.relativeDirection),
 					glm::vec3(spotlight.relativeUp)
@@ -441,8 +441,8 @@ namespace drk::Loaders {
 			entity = cameraEntity->second;
 		}
 
-		if (entity == entt::null) entity = EngineState.Registry.create();
-		EngineState.Registry.emplace<Objects::Object>(entity, aiNode->mName.C_Str());
+		if (entity == entt::null) entity = registry.create();
+		registry.emplace<Objects::Object>(entity, aiNode->mName.C_Str());
 
 		if (aiNode->mNumMeshes) {
 			Meshes::MeshGroup meshGroup;
@@ -450,10 +450,10 @@ namespace drk::Loaders {
 				auto meshEntity = loadResult.meshIdEntityMap[aiNode->mMeshes[meshIndex]];
 				meshGroup.meshEntities.push_back(meshEntity);
 			}
-			EngineState.Registry.emplace<Meshes::MeshGroup>(entity, meshGroup);
+			registry.emplace<Meshes::MeshGroup>(entity, meshGroup);
 		}
 
-		EngineState.Registry.emplace<Spatials::Spatial>(entity, spatial);
+		registry.emplace<Spatials::Spatial>(entity, spatial);
 
 		Objects::Relationship relationship;
 		Objects::Relationship* previousRelationship = nullptr;
@@ -473,7 +473,7 @@ namespace drk::Loaders {
 					cameraMap,
 					loadResult
 				);
-				auto& childRelationship = EngineState.Registry.get<Objects::Relationship>(childEntity);
+				auto& childRelationship = registry.get<Objects::Relationship>(childEntity);
 				if (childIndex == 0) relationship.firstChild = childEntity;
 				if (childIndex > 0) {
 					childRelationship.previousSibling = previousSibling;
@@ -485,7 +485,7 @@ namespace drk::Loaders {
 			}
 		}
 
-		EngineState.Registry.emplace<Objects::Relationship>(entity, relationship);
+		registry.emplace<Objects::Relationship>(entity, relationship);
 
 		return entity;
 	}
@@ -514,4 +514,3 @@ namespace drk::Loaders {
 
 	glm::vec3& AssimpLoader::toVector(const aiVector3D& aiVector) { return (*(glm::vec3*) &aiVector); }
 }
-                                                                                                                                                                                                                                                                                                              

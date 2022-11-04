@@ -12,7 +12,7 @@ namespace drk::Cameras {
 
 	CameraSystem::CameraSystem(
 		const Devices::DeviceContext& deviceContext,
-		Graphics::EngineState& engineState,
+		Engine::EngineState& engineState,
 		entt::registry& registry
 	)
 		: DeviceContext(deviceContext), EngineState(engineState), Registry(registry) {}
@@ -24,7 +24,7 @@ namespace drk::Cameras {
 	void CameraSystem::UpdateCameras() {
 		Graphics::SynchronizationState<Models::Camera>::Update<Camera>(
 			Registry,
-			EngineState.FrameIndex,
+			EngineState.getFrameIndex(),
 			std::function < void(Models::Camera & ,
 		const Camera&)>(
 			[=](
@@ -77,7 +77,7 @@ namespace drk::Cameras {
 
 				Registry.emplace_or_replace<Graphics::SynchronizationState<Models::Camera>>(
 					cameraEntity,
-					static_cast<uint32_t>(EngineState.FrameStates.size())
+					static_cast<uint32_t>(EngineState.getFrameCount())
 				);
 			}
 		);

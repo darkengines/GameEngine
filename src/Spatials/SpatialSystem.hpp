@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Devices/DeviceContext.hpp"
-#include "../Graphics/EngineState.hpp"
+#include "../Engine/EngineState.hpp"
 #include "Models/Spatial.hpp"
 #include "Spatial.hpp"
 
@@ -9,12 +9,12 @@ namespace drk::Spatials {
 	class SpatialSystem {
 	protected:
 		const Devices::DeviceContext& DeviceContext;
-		Graphics::EngineState& EngineState;
+		Engine::EngineState& EngineState;
 		entt::registry& Registry;
 		static void UpdateStoreItem(const Spatial& spatial, Models::Spatial &spatialModel);
 
 	public:
-		SpatialSystem(const Devices::DeviceContext& deviceContext, Graphics::EngineState& engineState, entt::registry& registry);
+		SpatialSystem(const Devices::DeviceContext& deviceContext, Engine::EngineState& engineState, entt::registry& registry);
 		static void AddSpatialSystem(entt::registry &registry);
 		static void RemoveSpatialSystem(entt::registry &registry);
 		static void OnSpatialConstruct(entt::registry &registry, entt::entity spatialEntity);

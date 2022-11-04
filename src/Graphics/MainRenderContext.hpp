@@ -1,7 +1,7 @@
 #pragma once
 #include "../Devices/Device.hpp"
 #include "../Devices/DeviceContext.hpp"
-#include "EngineState.hpp"
+#include "../Engine/EngineState.hpp"
 #include "DrawContext.hpp"
 
 namespace drk::Graphics {
@@ -9,40 +9,54 @@ namespace drk::Graphics {
 	public:
 		MainRenderContext(
 			const Devices::DeviceContext& deviceContext,
-			const EngineState& engineState,
-			Devices::Texture target
+			Engine::EngineState& engineState,
+			entt::registry& registry,
+			const Engine::DescriptorSetLayouts& descriptorSetLayouts
 		);
 		~MainRenderContext();
 
-		void SetExtent(const vk::Extent2D& extent);
-		void Render(const vk::CommandBuffer& commandBuffer) const;
+		void setTarget(const Devices::Texture& texture);
+		void render(const vk::CommandBuffer& commandBuffer) const;
 
 	protected:
-		const Devices::DeviceContext& DeviceContext;
+		entt::registry& registry;
+		const Devices::DeviceContext& deviceContext;
 		bool ExtentChanged = false;
-		const EngineState& EngineState;
-		Devices::Texture TargetTexture;
-		vk::ShaderModule MainVertexShaderModule;
-		vk::ShaderModule MainFragmentShaderModule;
-		vk::RenderPass MainRenderPass;
-		vk::PipelineLayout MainPipelineLayout;
+		Engine::EngineState& engineState;
+		std::optional<Devices::Texture> targetTexture;
+		vk::ShaderModule mainVertexShaderModule;
+		vk::ShaderModule mainFragmentShaderModule;
+		vk::RenderPass renderPass;
 
-		Devices::Texture MainFramebufferTexture;
-		Devices::Texture MainFramebufferDepthTexture;
+		Devices::Texture colorTexture;
+		Devices::Texture depthTexture;
 
-		std::vector<vk::Framebuffer> MainFramebuffers;
-		vk::Pipeline MainGraphicPipeline;
+		vk::Framebuffer framebuffer;
+		vk::Pipeline pipeline;
+		std::array<vk::DescriptorSetLayout, 4> descriptorSetLayouts;
+		vk::PipelineLayout pipelineLayout;
 
-		void DestroyMainFramebufferResources();
-		void DestroyShaderModules();
-		void DestroyMainFramebuffer();
-		void CreateMainRenderPass();
-		void CreateMainFramebufferResources();
-		void CreateMainFramebuffers();
-		void CreateMainPipelineLayout();
-		void CreateShaderModules();
-		void CreateMainGraphicPipeline();
+		void createFramebufferResources();
+		void destroyFramebufferResources();
+
+		void createShaderModules();
+		void destroyShaderModules();
+
+		void createFramebuffer();
+		void destroyFramebuffer();
+
+		void createRenderPass();
+		void createPipeline();
+
+		void recreatePipeLine();
+
+		static vk::PipelineLayout createPipelineLayout(
+			const Devices::DeviceContext& deviceContext,
+			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+		);
+
 		drk::Graphics::DrawContext BuildMainRenderPass() const;
-		void PopulateDrawContext(DrawContext& drawContext, const std::vector<Draw>& draws, uint32_t drawOffset) const;
+		void
+		PopulateDrawContext(DrawContext& drawContext, const std::vector<Draw>& draws, uint32_t drawOffset) const;
 	};
 }

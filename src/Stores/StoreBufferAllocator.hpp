@@ -15,6 +15,7 @@ namespace drk::Stores {
 		vk::DescriptorSet DescriptorSet;
 	public:
 		StoreBufferAllocator(const Devices::DeviceContext& deviceContext, const vk::DescriptorSet &descriptorSet);
+		StoreBufferAllocator(StoreBufferAllocator&& storeBufferAllocator);
 		~StoreBufferAllocator();
 
 		template<typename T>
@@ -54,7 +55,7 @@ namespace drk::Stores {
 			writeDescriptorSet.descriptorType = vk::DescriptorType::eStorageBuffer;
 			writeDescriptorSet.pBufferInfo = &descriptorBufferInfo;
 
-			DeviceContext.Device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
+			DeviceContext.device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
 
 			auto store = std::make_unique<StoreBuffer<T>>(itemCount, bufferIndex, reinterpret_cast<T*>(mappedMemory));
 

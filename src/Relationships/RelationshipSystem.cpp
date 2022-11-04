@@ -5,9 +5,9 @@
 namespace drk::Relationships {
 
 	void RelationshipSystem::SortRelationships() {
-		Registry.sort<Spatials::Spatial>(
+		registry.sort<Spatials::Spatial>(
 			[&](const entt::entity left, const entt::entity right) {
-				const auto &rightRelation = EngineState.Registry.get<Objects::Relationship>(right);
+				const auto &rightRelation = registry.get<Objects::Relationship>(right);
 				return left == rightRelation.parent || left == rightRelation.previousSibling;
 			}
 		);

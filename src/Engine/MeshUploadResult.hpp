@@ -3,7 +3,7 @@
 #include "../Devices/Buffer.hpp"
 #include "../Meshes/Mesh.hpp"
 
-namespace drk::Graphics {
+namespace drk::Engine {
 	struct MeshUploadResult {
 		Devices::Buffer indexBuffer;
 		Devices::Buffer vertexBuffer;

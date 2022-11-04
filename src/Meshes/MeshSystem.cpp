@@ -8,7 +8,7 @@ namespace drk::Meshes {
 
 	MeshSystem::MeshSystem(
 		const Devices::DeviceContext& deviceContext,
-		Graphics::EngineState& engineState,
+		Engine::EngineState& engineState,
 		entt::registry& registry
 	)
 		: DeviceContext(deviceContext), EngineState(engineState), Registry(registry) {}
@@ -19,8 +19,9 @@ namespace drk::Meshes {
 			materialEntity
 		);
 
-		meshModel.materialItemLocation.storeIndex = materialStoreItem.frameStoreItems[EngineState.FrameIndex].pStore->descriptorArrayElement;
-		meshModel.materialItemLocation.itemIndex = materialStoreItem.frameStoreItems[EngineState.FrameIndex].index;
+		const auto& frameStoreItem = materialStoreItem.frameStoreItems[EngineState.getFrameIndex()];
+		meshModel.materialItemLocation.storeIndex = frameStoreItem.pStore->descriptorArrayElement;
+		meshModel.materialItemLocation.itemIndex = frameStoreItem.index;
 	}
 
 	void MeshSystem::UploadMeshes() {
@@ -38,9 +39,6 @@ namespace drk::Meshes {
 			for (auto meshIndex = 0u; meshIndex < processedMeshEntities.size(); meshIndex++) {
 				Registry.emplace<Mesh>(processedMeshEntities[meshIndex], result.meshes[meshIndex]);
 			}
-
-			EngineState.Buffers.push_back(result.indexBuffer);
-			EngineState.Buffers.push_back(result.vertexBuffer);
 		}
 	}
 
@@ -51,7 +49,7 @@ namespace drk::Meshes {
 	void MeshSystem::UpdateMeshes() {
 		Graphics::SynchronizationState<Models::Mesh>::Update<MeshInfo*>(
 			Registry,
-			EngineState.FrameIndex,
+			EngineState.getFrameIndex(),
 			std::function < void(Models::Mesh & , MeshInfo * const&)>(
 			[&](
 				Models::Mesh& model,

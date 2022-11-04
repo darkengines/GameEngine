@@ -1,3 +1,4 @@
+#define BOOST_DI_CFG_DIAGNOSTICS_LEVEL 2
 #include <vulkan/vulkan.hpp>
 #include "implemantations.hpp"
 #include "Devices/Device.hpp"
@@ -24,23 +25,8 @@
 #include "Spatials/Extensions.hpp"
 #include "Controllers/Extensions.hpp"
 #include "UserInterfaces/Extensions.hpp"
-
-class App {
-public:
-	App(
-		const drk::Windows::Window& window,
-		const drk::Devices::DeviceContext& deviceContext,
-		const drk::Graphics::EngineState& engineState
-	)
-		: window(window), deviceContext(deviceContext), engineState(engineState) {
-
-		auto x = 0u;
-	}
-protected:
-	const drk::Windows::Window& window;
-	const drk::Devices::DeviceContext& deviceContext;
-	const drk::Graphics::EngineState& engineState;
-};
+#include "Draws/Extentions.hpp"
+#include "Stores/Extensions.hpp"
 
 int main(int argc, char** argv) {
 
@@ -49,6 +35,8 @@ int main(int argc, char** argv) {
 		drk::Configuration::AddConfiguration(),
 		drk::Windows::AddWindows(),
 		drk::Devices::AddDevices(),
+		//drk::Draws::AddDraws(),
+		//drk::Stores::AddStores(),
 		drk::Graphics::AddGraphics(),
 		drk::Cameras::AddCameras(),
 		drk::Lights::AddLights(),

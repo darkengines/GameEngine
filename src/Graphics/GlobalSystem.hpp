@@ -1,19 +1,19 @@
 #pragma once
 
 #include "SynchronizationState.hpp"
-#include "EngineState.hpp"
+#include "../Engine/EngineState.hpp"
 #include <entt/entity/entity.hpp>
 #include "../Cameras/Models/Camera.hpp"
 
 namespace drk::Graphics {
 	class GlobalSystem {
 	protected:
-		EngineState& EngineState;
+		Engine::EngineState& EngineState;
 		entt::registry& Registry;
 		entt::entity CameraEntity;
-		SynchronizationState<Models::Global> GlobalSynchronizationState;
+		SynchronizationState<Engine::Models::Global> GlobalSynchronizationState;
 	public:
-		GlobalSystem(drk::Graphics::EngineState& engineState, entt::registry& registry);
+		GlobalSystem(Engine::EngineState& engineState, entt::registry& registry);
 
 		void SetCamera(entt::entity cameraEntity);
 

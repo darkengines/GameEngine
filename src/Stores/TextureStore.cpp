@@ -56,7 +56,7 @@ namespace drk::Stores {
 				.usage = vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst |
 						 vk::ImageUsageFlagBits::eSampled
 			};
-			const auto image = DeviceContext.CreateImage(
+			const auto image = DeviceContext.createImage(
 				imageCreationInfo,
 				vk::MemoryPropertyFlagBits::eDeviceLocal
 			);
@@ -73,7 +73,7 @@ namespace drk::Stores {
 			};
 
 			auto commandBuffer = Devices::Device::beginSingleTimeCommands(
-				DeviceContext.Device,
+				DeviceContext.device,
 				DeviceContext.CommandPool
 			);
 			Devices::Device::transitionLayout(
@@ -110,7 +110,7 @@ namespace drk::Stores {
 			}
 
 			Devices::Device::endSingleTimeCommands(
-				DeviceContext.Device,
+				DeviceContext.device,
 				DeviceContext.GraphicQueue,
 				DeviceContext.CommandPool,
 				commandBuffer
@@ -130,7 +130,7 @@ namespace drk::Stores {
 					.layerCount = 1
 				}
 			};
-			const auto imageView = DeviceContext.Device.createImageView(imageViewCreateInfo);
+			const auto imageView = DeviceContext.device.createImageView(imageViewCreateInfo);
 			const Devices::Texture texture = {
 				.image = image,
 				.imageView = imageView,
@@ -156,7 +156,7 @@ namespace drk::Stores {
 			.pBufferInfo = nullptr,
 		};
 
-		DeviceContext.Device.updateDescriptorSets(std::array<vk::WriteDescriptorSet, 1>{write}, {});
+		DeviceContext.device.updateDescriptorSets(std::array<vk::WriteDescriptorSet, 1>{write}, {});
 
 		return uploadedTextures;
 	}

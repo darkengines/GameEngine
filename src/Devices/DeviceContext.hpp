@@ -35,16 +35,16 @@ namespace drk::Devices {
 		) const;
 		void DestroyBuffer(const Buffer& buffer) const;
 
-		Image CreateImage(const vk::ImageCreateInfo& imageCreationInfo, vk::MemoryPropertyFlags properties) const;
+		Image createImage(const vk::ImageCreateInfo& imageCreationInfo, vk::MemoryPropertyFlags properties) const;
 		void DestroyImage(const Image& image) const;
-		void DestroyTexture(const Texture& texture) const;
+		void destroyTexture(const Texture& texture) const;
 
 		vk::ShaderModule CreateShaderModule(const std::string& shaderPath) const;
 
 		vk::Instance Instance;
 		vk::SurfaceKHR Surface;
 		vk::PhysicalDevice PhysicalDevice;
-		vk::Device Device;
+		vk::Device device;
 		vk::Queue GraphicQueue;
 		vk::Queue PresentQueue;
 		vk::Queue ComputeQueue;
@@ -52,5 +52,10 @@ namespace drk::Devices {
 		VmaAllocator Allocator;
 		vk::SampleCountFlagBits MaxSampleCount;
 		vk::Format DepthFormat;
+		Texture createTexture(
+			const vk::ImageCreateInfo& imageCreateInfo,
+			const vk::ImageViewCreateInfo& imageViewCreateInfo,
+			vk::MemoryPropertyFlagBits memoryProperties
+		) const;
 	};
 }

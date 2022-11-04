@@ -9,7 +9,7 @@ namespace drk::Materials {
 	MaterialSystem::MaterialSystem(
 		const drk::Devices::DeviceContext& deviceContext,
 		entt::registry& registry,
-		Graphics::EngineState& engineState
+		Engine::EngineState& engineState
 	)
 		: DeviceContext(deviceContext), Registry(registry), EngineState(engineState) {}
 
@@ -73,7 +73,7 @@ namespace drk::Materials {
 	void MaterialSystem::UpdateMaterials() {
 		Graphics::SynchronizationState<Models::Material>::Update<Material*>(
 			Registry,
-			EngineState.FrameIndex,
+			EngineState.getFrameIndex(),
 			std::function < void(Models::Material & , Material *const&)>([&](
 			Models::Material& model,
 			Material* const& component

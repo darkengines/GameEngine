@@ -4,7 +4,7 @@
 #include "../Devices/DeviceContext.hpp"
 #include "../Graphics/Graphics.hpp"
 #include "../Windows/Window.hpp"
-#include "../Graphics/EngineState.hpp"
+#include "../Engine/EngineState.hpp"
 #include "../Loaders/AssimpLoader.hpp"
 #include "../Textures/TextureSystem.hpp"
 #include "../Meshes/MeshSystem.hpp"
@@ -24,7 +24,7 @@ namespace drk::Applications {
 		using boost_di_inject__ = boost::di::inject<
 			const Windows::Window&,
 			const Devices::DeviceContext&,
-			const Graphics::EngineState&,
+			Engine::EngineState&,
 			Textures::TextureSystem&,
 			Materials::MaterialSystem&,
 			Meshes::MeshSystem&,
@@ -35,13 +35,15 @@ namespace drk::Applications {
 			const Loaders::AssimpLoader&,
 			Graphics::Graphics&,
 			Controllers::FlyCamController&,
-			UserInterfaces::UserInterface&
+			UserInterfaces::UserInterface&,
+			entt::registry&,
+			Graphics::MainRenderContext&
 		>;
 
 		Application(
 			const Windows::Window& window,
 			const Devices::DeviceContext& deviceContext,
-			const Graphics::EngineState& engineState,
+			Engine::EngineState& engineState,
 			Textures::TextureSystem& textureSystem,
 			Materials::MaterialSystem& materialSystem,
 			Meshes::MeshSystem& meshSystem,
@@ -52,28 +54,31 @@ namespace drk::Applications {
 			const Loaders::AssimpLoader& loader,
 			Graphics::Graphics& graphics,
 			Controllers::FlyCamController& flyCamController,
-			UserInterfaces::UserInterface& userInterface
+			UserInterfaces::UserInterface& userInterface,
+			entt::registry& registry,
+			Graphics::MainRenderContext& mainRenderContext
 		);
 		~Application();
 
 		void Run();
 
 	protected:
-		const Windows::Window& Window;
-		const Devices::DeviceContext& DeviceContext;
-		const Graphics::EngineState& EngineState;
-		Textures::TextureSystem& TextureSystem;
-		Materials::MaterialSystem& MaterialSystem;
-		Meshes::MeshSystem& MeshSystem;
-		Spatials::SpatialSystem& SpatialSystem;
-		Objects::ObjectSystem& ObjectSystem;
-		Cameras::CameraSystem& CameraSystem;
-		Graphics::GlobalSystem& GlobalSystem;
-		const Loaders::AssimpLoader& Loader;
-		Graphics::Graphics& Graphics;
-		Graphics::MainRenderContext MainRenderContext;
-		Controllers::FlyCamController& FlyCamController;
-		UserInterfaces::UserInterface& UserInterface;
+		const Windows::Window& window;
+		const Devices::DeviceContext& deviceContext;
+		Engine::EngineState& engineState;
+		Textures::TextureSystem& textureSystem;
+		Materials::MaterialSystem& materialSystem;
+		Meshes::MeshSystem& meshSystem;
+		Spatials::SpatialSystem& spatialSystem;
+		Objects::ObjectSystem& objectSystem;
+		Cameras::CameraSystem& cameraSystem;
+		Graphics::GlobalSystem& globalSystem;
+		const Loaders::AssimpLoader& loader;
+		Graphics::Graphics& graphics;
+		Graphics::MainRenderContext mainRenderContext;
+		Controllers::FlyCamController& flyCamController;
+		UserInterfaces::UserInterface& userInterface;
+		entt::registry& registry;
 
 		void OnWindowSizeChanged(uint32_t width, uint32_t height);
 		void WaitFences();

@@ -1,7 +1,7 @@
 #include "Vertex.hpp"
 
 namespace drk::Meshes {
-	std::vector<vk::VertexInputBindingDescription> Vertex::getBindingDescription() {
+	std::vector<vk::VertexInputBindingDescription> Vertex::getBindingDescriptions() {
 		vk::VertexInputBindingDescription bindingDescription = {
 			.binding = 0,
 			.stride = sizeof(Vertex),

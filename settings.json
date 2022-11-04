@@ -1,7 +1,7 @@
 {
   "Window": {
     "Title": "Darkengines",
-    "Width": 512,
+    "Width": 1920,
     "Height": 1080
   },
   "DeviceContext": {
@@ -16,6 +16,6 @@
       "VK_KHR_swapchain",
       "VK_EXT_descriptor_indexing"
     ],
-    "EnableValidationLayers": true
+    "EnableValidationLayers": false
   }
 }

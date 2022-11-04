@@ -18,12 +18,12 @@ file(
     src/Graphics/Graphics.cpp
     src/Devices/DeviceContext.cpp
     src/Common/Common.cpp
-    src/Graphics/EngineState.cpp
-    src/Graphics/FrameState.cpp
+    src/Engine/EngineState.cpp
+    src/Engine/FrameState.cpp
     src/Stores/StoreBuffer.cpp
-    src/Graphics/DescriptorSetLayoutCreateInfoEqualityComparer.cpp
-    src/Graphics/DescriptorSetLayoutCache.cpp
-    src/Graphics/DescriptorSetAllocator.cpp
+    src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.cpp
+    src/Engine/DescriptorSetLayoutCache.cpp
+    src/Engine/DescriptorSetAllocator.cpp
     src/Applications/Application.cpp
     src/Loaders/AssimpLoader.cpp
     src/Common/IndexGenerator.cpp
@@ -83,12 +83,12 @@ file(
     src/GlmExtensions.hpp
     src/Graphics/Graphics.hpp
     src/Common/Common.hpp
-    src/Graphics/EngineState.hpp
-    src/Graphics/FrameState.hpp
+    src/Engine/EngineState.hpp
+    src/Engine/FrameState.hpp
     src/Stores/StoreBuffer.hpp
-    src/Graphics/DescriptorSetLayoutCreateInfoEqualityComparer.hpp
-    src/Graphics/DescriptorSetLayoutCache.hpp
-    src/Graphics/DescriptorSetAllocator.hpp
+    src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.hpp
+    src/Engine/DescriptorSetLayoutCache.hpp
+    src/Engine/DescriptorSetAllocator.hpp
     src/Applications/Application.hpp
     src/Loaders/AssimpLoader.hpp
     src/Loaders/LoadResult.hpp
@@ -100,7 +100,7 @@ file(
     src/Meshes/MeshSystem.hpp
     src/Materials/MaterialSystem.hpp
     src/Devices/BufferUploadResult.hpp
-    src/Graphics/MeshUploadResult.hpp
+    src/Engine/MeshUploadResult.hpp
     src/Meshes/Mesh.hpp
     src/Graphics/SynchronizationState.hpp
     src/Materials/Models/Material.hpp
@@ -109,9 +109,9 @@ file(
     src/Stores/StoreItem.hpp
     src/Graphics/Draw.hpp
     src/Graphics/Models/Draw.hpp
-    src/Graphics/Models/StoreItemLocation.hpp
+    src/Stores/Models/StoreItemLocation.hpp
     src/Objects/Object.hpp
-    src/Graphics/DrawCommand.hpp
+    src/Draws/DrawCommand.hpp
     src/Meshes/Models/Mesh.hpp
     src/Objects/Models/Object.hpp
     src/Objects/ObjectSystem.hpp
@@ -124,7 +124,7 @@ file(
     src/Cameras/Models/Camera.hpp
     src/Relationships/RelationshipSystem.hpp
     src/Stores/StoreItemLocation.hpp
-    src/Graphics/Models/Global.hpp
+    src/Engine/Models/Global.hpp
     src/Lights/SpotlightSystem.hpp
     src/Stores/TextureStore.hpp
     src/Graphics/GlobalSystem.hpp
@@ -138,6 +138,8 @@ file(
     GLOB GLSL_SOURCES
     "src/Graphics/Shaders/main.vert"
     "src/Graphics/Shaders/main.frag"
+    "src/Geometries/Shaders/PointPrimitive.vert"
+    "src/Geometries/Shaders/PointPrimitive.frag"
 )
 
 foreach (GLSL ${GLSL_SOURCES})
@@ -146,8 +148,8 @@ foreach (GLSL ${GLSL_SOURCES})
     add_custom_command(
         OUTPUT ${SPIRV}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/shaders/spv/"
-        #COMMAND glslc -g --target-env=vulkan1.3 ${GLSL} -o ${SPIRV}
-        COMMAND glslc --target-env=vulkan1.3 ${GLSL} -o ${SPIRV}
+        COMMAND glslc -g --target-env=vulkan1.3 ${GLSL} -o ${SPIRV}
+        COMMAND
         DEPENDS ${GLSL})
     list(APPEND SPIRV_BINARIES ${SPIRV})
 endforeach (GLSL)
@@ -157,7 +159,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/UserInterfaces/UserInterface.cpp src/UserInterfaces/UserInterface.hpp src/Graphics/MainRenderContext.cpp src/Graphics/MainRenderContext.hpp src/Devices/Extensions.hpp src/Windows/Extensions.hpp src/Configuration/Extensions.hpp src/Windows/WindowConfiguration.hpp src/Devices/VulkanInstanceConfiguration.hpp src/Devices/VulkanInstanceConfiguration.cpp src/Graphics/Extentions.hpp src/Applications/Extentions.hpp src/Cameras/Extensions.hpp src/Lights/Extensions.hpp src/Loaders/Extensions.hpp src/Materials/Extensions.hpp src/Meshes/Extensions.hpp src/Objects/Extensions.hpp src/Relationships/Extensions.hpp src/Spatials/Extensions.hpp src/Textures/Extensions.hpp src/Controllers/Extensions.hpp src/UserInterfaces/Extensions.hpp)
+add_executable(drk ${HEADERS} ${SOURCES} src/UserInterfaces/UserInterface.cpp src/UserInterfaces/UserInterface.hpp src/Graphics/MainRenderContext.cpp src/Graphics/MainRenderContext.hpp src/Devices/Extensions.hpp src/Windows/Extensions.hpp src/Configuration/Extensions.hpp src/Windows/WindowConfiguration.hpp src/Devices/VulkanInstanceConfiguration.hpp src/Devices/VulkanInstanceConfiguration.cpp src/Graphics/Extentions.hpp src/Applications/Extentions.hpp src/Cameras/Extensions.hpp src/Lights/Extensions.hpp src/Loaders/Extensions.hpp src/Materials/Extensions.hpp src/Meshes/Extensions.hpp src/Objects/Extensions.hpp src/Relationships/Extensions.hpp src/Spatials/Extensions.hpp src/Textures/Extensions.hpp src/Controllers/Extensions.hpp src/UserInterfaces/Extensions.hpp src/Points/PointPrimitivePipeline.cpp src/Points/PointPrimitivePipeline.hpp src/Points/Models/PointVertex.hpp src/Points/Models/PointVertex.cpp src/Points/Components/PointDraw.hpp src/Points/Components/Point.hpp src/Geometries/Primitives.hpp src/Systems/System.cpp src/Systems/System.hpp src/Points/PointSystem.cpp src/Points/PointSystem.hpp src/Points/Models/Point.hpp src/Draws/Draw.hpp src/Points/PointDrawSystem.cpp src/Points/PointDrawSystem.hpp src/Points/Models/PointDraw.hpp src/Draws/Extentions.hpp src/Stores/Extensions.hpp src/Engine/DescriptorSetLayouts.hpp src/Engine/Extensions.hpp src/Engine/DescriptorSetLayouts.cpp)
 add_dependencies(drk Shaders)
 configure_file(settings.json settings.json COPYONLY)
 
@@ -173,12 +175,12 @@ find_package(libuv REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(nameof REQUIRED)
 
-target_include_directories(drk PUBLIC ${Vulkan_INCLUDE_DIRS})
-target_include_directories(drk PUBLIC ${stb_INCLUDE_DIRS})
-target_include_directories(drk PUBLIC ${IMGUI_INCLUDE_DIR} ${IMGUI_INCLUDE_DIR}/backends)
-target_include_directories(drk PUBLIC ${imgui-filebrowser})
-target_include_directories(drk PUBLIC ${nlohmann_json_INCLUDE_DIRS})
-target_include_directories(drk PUBLIC ${nameof_INCLUDE_DIRS})
+target_include_directories(drk SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS})
+target_include_directories(drk SYSTEM PUBLIC ${stb_INCLUDE_DIRS})
+target_include_directories(drk SYSTEM PUBLIC ${IMGUI_INCLUDE_DIR} ${IMGUI_INCLUDE_DIR}/backends)
+target_include_directories(drk SYSTEM PUBLIC ${imgui-filebrowser})
+target_include_directories(drk SYSTEM PUBLIC ${nlohmann_json_INCLUDE_DIRS})
+target_include_directories(drk SYSTEM PUBLIC ${nameof_INCLUDE_DIRS})
 
 target_link_libraries(drk PRIVATE ${Vulkan_LIBRARIES})
 target_link_libraries(drk PRIVATE unofficial::vulkan-memory-allocator::vulkan-memory-allocator)
@@ -187,6 +189,6 @@ target_link_libraries(drk PRIVATE EnTT::EnTT)
 target_link_libraries(drk PRIVATE glm::glm)
 target_link_libraries(drk PRIVATE assimp::assimp)
 target_link_libraries(drk PRIVATE imgui)
-target_link_libraries(drk PRIVATE fmt::fmt)
+target_link_libraries(drk PRIVATE fmt::fmt-header-only)
 target_link_libraries(drk PRIVATE uv)
 target_link_libraries(drk PRIVATE nlohmann_json)

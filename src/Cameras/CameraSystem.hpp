@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Devices/DeviceContext.hpp"
-#include "../Graphics/EngineState.hpp"
+#include "../Engine/EngineState.hpp"
 #include "Camera.hpp"
 #include "Models/Camera.hpp"
 
@@ -9,12 +9,12 @@ namespace drk::Cameras {
 	class CameraSystem {
 	protected:
 		const Devices::DeviceContext& DeviceContext;
-		Graphics::EngineState& EngineState;
+		Engine::EngineState& EngineState;
 		entt::registry& Registry;
 	public:
 		CameraSystem(
 			const Devices::DeviceContext& deviceContext,
-			Graphics::EngineState& engineState,
+			Engine::EngineState& engineState,
 			entt::registry& registry
 		);
 		static void AddCameraSystem(entt::registry &registry);

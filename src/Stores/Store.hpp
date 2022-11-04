@@ -11,18 +11,19 @@ namespace drk::Stores {
 
 	class GenericStore {
 	protected:
-		StoreBufferAllocator *const StoreAllocator;
-		std::vector<std::unique_ptr<GenericStoreBuffer>> Stores;
-		uint32_t ItemPerBuffer = 1024;
+		StoreBufferAllocator& storeAllocator;
+		std::vector<std::unique_ptr<GenericStoreBuffer>> stores;
+		uint32_t ItemPerBuffer;
 
 	public:
-		GenericStore(StoreBufferAllocator *const storeBufferAllocator) :
-			StoreAllocator(storeBufferAllocator) {
+		GenericStore(StoreBufferAllocator& storeBufferAllocator) :
+			storeAllocator(storeBufferAllocator), ItemPerBuffer(1024u) {
 
 		}
 
-		GenericStore(GenericStore &&genericStore) :
-			StoreAllocator(genericStore.StoreAllocator), Stores(std::move(genericStore.Stores)) {
+		GenericStore(GenericStore&& genericStore) :
+			storeAllocator(genericStore.storeAllocator), stores(std::move(genericStore.stores)),
+			ItemPerBuffer(genericStore.ItemPerBuffer) {
 		}
 	};
 
@@ -32,28 +33,28 @@ namespace drk::Stores {
 		StoreItemLocation<T> NextLocation;
 		std::queue<StoreItemLocation<T>> AvailableLocations;
 	public:
-		Store(StoreBufferAllocator *const storeBufferAllocator) : GenericStore(storeBufferAllocator) {
-			auto store = StoreAllocator->Allocate<T>(ItemPerBuffer);
+		Store(StoreBufferAllocator& storeBufferAllocator) : GenericStore(storeBufferAllocator) {
+			auto store = storeAllocator.Allocate<T>(ItemPerBuffer);
 			auto index = store->add();
 			NextLocation = {
 				.pStore = store.get(),
 				.index = index,
 				.pItem = store->mappedMemory()
 			};
-			Stores.push_back(std::move(store));
+			stores.push_back(std::move(store));
 		}
 
-		Store(Store &&store)
+		Store(Store&& store)
 			: GenericStore(store), AvailableLocations(std::move(store.AvailableLocations)),
 			  NextLocation(store.NextLocation) {}
 
-		StoreItemLocation<T> Get(int index) {
+		StoreItemLocation<T> get(int index) {
 			auto bufferIndex = index / ItemPerBuffer;
 			auto bufferItemIndex = index % ItemPerBuffer;
 
-			if (Stores.size() <= bufferIndex) {
-				Stores.resize(bufferIndex + 1);
-				auto store = StoreAllocator->Allocate<T>(ItemPerBuffer);
+			if (stores.size() <= bufferIndex) {
+				stores.resize(bufferIndex + 1);
+				auto store = storeAllocator.Allocate<T>(ItemPerBuffer);
 				auto memory = store->mappedMemory();
 
 				StoreItemLocation<T> location = {
@@ -62,13 +63,13 @@ namespace drk::Stores {
 					.pItem = memory
 				};
 
-				Stores[bufferIndex] = std::move(store);
+				stores[bufferIndex] = std::move(store);
 
 				return location;
 			}
-			auto pStore = reinterpret_cast<StoreBuffer<T> *>(Stores[bufferIndex].get());
+			auto pStore = reinterpret_cast<StoreBuffer<T>*>(stores[bufferIndex].get());
 			if (pStore == nullptr) {
-				auto store = StoreAllocator->Allocate<T>(ItemPerBuffer);
+				auto store = storeAllocator.Allocate<T>(ItemPerBuffer);
 				auto memory = store->mappedMemory();
 
 				StoreItemLocation<T> location = {
@@ -77,7 +78,7 @@ namespace drk::Stores {
 					.pItem = memory
 				};
 
-				Stores[bufferIndex] = std::move(store);
+				stores[bufferIndex] = std::move(store);
 
 				return location;
 			}
@@ -96,14 +97,14 @@ namespace drk::Stores {
 //			auto bufferItemIndex = index % ItemPerBuffer;
 //			if (Stores.size() <= bufferIndex) {
 //				Stores.resize(bufferIndex + 1);
-//				auto store = StoreAllocator->Allocate<T>(ItemPerBuffer);
+//				auto store = storeAllocator.Allocate<T>(ItemPerBuffer);
 //				auto memory = store->mappedMemory();
 //				Stores[bufferIndex] = std::move(store);
 //				return &memory[bufferItemIndex];
 //			}
 //			auto pStore = reinterpret_cast<StoreBuffer<T>>(Stores[bufferIndex].get());
 //			if (pStore == nullptr) {
-//				auto store = StoreAllocator->Allocate<T>(ItemPerBuffer);
+//				auto store = storeAllocator.Allocate<T>(ItemPerBuffer);
 //				auto memory = store->mappedMemory();
 //				Stores[bufferIndex] = std::move(store);
 //				return &memory[bufferItemIndex];
@@ -117,9 +118,9 @@ namespace drk::Stores {
 				auto genericLocation = AvailableLocations.front();
 				AvailableLocations.pop();
 				StoreItemLocation<T> storeItemLocation = {
-					.pStore = reinterpret_cast<StoreBuffer<T> *>(genericLocation.pStore),
+					.pStore = reinterpret_cast<StoreBuffer<T>*>(genericLocation.pStore),
 					.index = genericLocation.index,
-					.pItem = reinterpret_cast<T *>(genericLocation.pItem)
+					.pItem = reinterpret_cast<T*>(genericLocation.pItem)
 				};
 				return storeItemLocation;
 			}
@@ -127,7 +128,7 @@ namespace drk::Stores {
 			auto location = NextLocation;
 
 			if (!NextLocation.pStore->hasAvailableIndex()) {
-				auto store = StoreAllocator->Allocate<T>(ItemPerBuffer);
+				auto store = storeAllocator.Allocate<T>(ItemPerBuffer);
 				auto index = store->add();
 				auto mappedMemory = store->mappedMemory();
 				NextLocation = {
@@ -135,18 +136,48 @@ namespace drk::Stores {
 					.index = index,
 					.pItem = mappedMemory
 				};
-				Stores.push_back(std::move(store));
+				stores.push_back(std::move(store));
 			}
 
 			NextLocation.index = NextLocation.pStore->add();
 			NextLocation.pItem = &NextLocation.pStore->mappedMemory()[NextLocation.index];
 
 			StoreItemLocation<T> storeItemLocation = {
-				.pStore = reinterpret_cast<StoreBuffer<T> *>(location.pStore),
+				.pStore = reinterpret_cast<StoreBuffer<T>*>(location.pStore),
 				.index = location.index,
-				.pItem = reinterpret_cast<T *>(location.pItem)
+				.pItem = reinterpret_cast<T*>(location.pItem)
 			};
 			return storeItemLocation;
+		}
+	};
+
+
+	struct StoreBufferAllocatorOwner {
+		StoreBufferAllocatorOwner(const Devices::DeviceContext& deviceContext, const vk::DescriptorSet& descriptorSet)
+			: storeBufferAllocator(deviceContext, descriptorSet) {}
+		StoreBufferAllocator storeBufferAllocator;
+
+		StoreBufferAllocatorOwner(StoreBufferAllocatorOwner&& storeBufferAllocatorOwner)
+			: storeBufferAllocator(std::move(storeBufferAllocatorOwner.storeBufferAllocator)) {}
+	};
+
+	template<typename TModel>
+	class UniformStore : public StoreBufferAllocatorOwner, public Store<TModel> {
+	protected:
+		const Devices::DeviceContext& deviceContext;
+	public:
+		vk::DescriptorSet descriptorSet;
+		UniformStore(const Devices::DeviceContext& deviceContext, const vk::DescriptorSet& descriptorSet)
+			: StoreBufferAllocatorOwner(deviceContext, descriptorSet),
+			  Store<TModel>(storeBufferAllocator), deviceContext(deviceContext), descriptorSet(descriptorSet) {
+		}
+		UniformStore(UniformStore&& uniformStore)
+			: StoreBufferAllocatorOwner(std::move(uniformStore)), Store<TModel>(std::move(uniformStore)),
+			  deviceContext(uniformStore.deviceContext),
+			  descriptorSet(uniformStore.descriptorSet) {
+		}
+		const vk::DescriptorSet& getDescriptorSet() const {
+			return descriptorSet;
 		}
 	};
 }

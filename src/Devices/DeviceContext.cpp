@@ -23,19 +23,19 @@ namespace drk::Devices {
 			Surface,
 			requiredDeviceExtensions
 		);
-		auto device = drk::Devices::Device::createLogicalDevice(
+		auto logicalDevice = drk::Devices::Device::createLogicalDevice(
 			PhysicalDevice,
 			Surface,
 			requiredDeviceExtensions,
 			enableValidationLayer,
 			requiredValidationLayers
 		);
-		Device = device.device,
-		GraphicQueue = device.graphicQueue,
-		PresentQueue = device.presentQueue,
-		ComputeQueue = device.computeQueue,
+		device = logicalDevice.device,
+		GraphicQueue = logicalDevice.graphicQueue,
+		PresentQueue = logicalDevice.presentQueue,
+		ComputeQueue = logicalDevice.computeQueue,
 
-		Allocator = Device::createAllocator(Instance, PhysicalDevice, Device);
+		Allocator = Device::createAllocator(Instance, PhysicalDevice, device);
 
 		MaxSampleCount = Device::getMaxSampleCount(PhysicalDevice);
 		DepthFormat = Device::findDepthFormat(PhysicalDevice);
@@ -43,7 +43,7 @@ namespace drk::Devices {
 		vk::CommandPoolCreateInfo commandPoolCreateInfo = {
 			.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer
 		};
-		CommandPool = Device.createCommandPool(commandPoolCreateInfo);
+		CommandPool = device.createCommandPool(commandPoolCreateInfo);
 	}
 	DeviceContext::DeviceContext(
 		const Configuration::Configuration& configuration,
@@ -91,19 +91,19 @@ namespace drk::Devices {
 			Surface,
 			requiredDeviceExtensions
 		);
-		auto device = drk::Devices::Device::createLogicalDevice(
+		auto logicalDevice = drk::Devices::Device::createLogicalDevice(
 			PhysicalDevice,
 			Surface,
 			requiredDeviceExtensions,
 			vulkanInstanceConfiguration.EnableValidationLayers,
 			requiredValidationLayers
 		);
-		Device = device.device,
-		GraphicQueue = device.graphicQueue,
-		PresentQueue = device.presentQueue,
-		ComputeQueue = device.computeQueue,
+		device = logicalDevice.device,
+		GraphicQueue = logicalDevice.graphicQueue,
+		PresentQueue = logicalDevice.presentQueue,
+		ComputeQueue = logicalDevice.computeQueue,
 
-		Allocator = Device::createAllocator(Instance, PhysicalDevice, Device);
+		Allocator = Device::createAllocator(Instance, PhysicalDevice, device);
 
 		MaxSampleCount = Device::getMaxSampleCount(PhysicalDevice);
 		DepthFormat = Device::findDepthFormat(PhysicalDevice);
@@ -111,13 +111,13 @@ namespace drk::Devices {
 		vk::CommandPoolCreateInfo commandPoolCreateInfo = {
 			.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer
 		};
-		CommandPool = Device.createCommandPool(commandPoolCreateInfo);
+		CommandPool = device.createCommandPool(commandPoolCreateInfo);
 	}
 
 	DeviceContext::~DeviceContext() {
-		Device.destroyCommandPool(CommandPool);
+		device.destroyCommandPool(CommandPool);
 		vmaDestroyAllocator(Allocator);
-		Device.destroy();
+		device.destroy();
 		Instance.destroySurfaceKHR(Surface);
 		Instance.destroy();
 	}
@@ -137,7 +137,7 @@ namespace drk::Devices {
 	}
 
 	Image
-	DeviceContext::CreateImage(
+	DeviceContext::createImage(
 		const vk::ImageCreateInfo& imageCreationInfo,
 		vk::MemoryPropertyFlags properties
 	) const {
@@ -145,17 +145,38 @@ namespace drk::Devices {
 	}
 
 	void DeviceContext::DestroyImage(const Image& image) const {
-		Device::destroyImage(Device, Allocator, image);
+		Device::destroyImage(device, Allocator, image);
 	}
 
-	void DeviceContext::DestroyTexture(const Texture& texture) const {
-		Device.destroyImageView(texture.imageView);
-		Device::destroyImage(Device, Allocator, texture.image);
+	Texture DeviceContext::createTexture(
+		const vk::ImageCreateInfo& imageCreateInfo,
+		const vk::ImageViewCreateInfo& imageViewCreateInfo,
+		vk::MemoryPropertyFlagBits memoryProperties
+	) const {
+		const auto image = createImage(
+			imageCreateInfo,
+			vk::MemoryPropertyFlagBits::eDeviceLocal
+		);
+
+		const auto imageView = device.createImageView(imageViewCreateInfo);
+
+		return {
+			.image = image,
+			.imageView = imageView,
+			.imageCreateInfo = imageCreateInfo,
+			.imageViewCreateInfo = imageViewCreateInfo,
+			.memoryProperties = memoryProperties
+		};
+	}
+
+	void DeviceContext::destroyTexture(const Texture& texture) const {
+		device.destroyImageView(texture.imageView);
+		Device::destroyImage(device, Allocator, texture.image);
 	}
 	vk::ShaderModule DeviceContext::CreateShaderModule(const std::string& shaderPath) const {
 		auto code = Common::ReadFile(shaderPath);
 		return Devices::Device::createShaderModules(
-			Device,
+			device,
 			static_cast<uint32_t>(code.size()),
 			reinterpret_cast<uint32_t*>(code.data()));
 	}

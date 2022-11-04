@@ -12,27 +12,27 @@
 #include "../../Objects/shaders/Object.glsl"
 #include "../../Cameras/shaders/Camera.glsl"
 
-layout (set = 1, binding = 0) readonly buffer materialLayout {
-    Material[] materials;
-} materialBuffer[];
-layout (set = 1, binding = 0) readonly buffer meshLayout {
-    Mesh[] meshes;
-} meshBuffer[];
-layout (set = 1, binding = 0) readonly buffer spatialLayout {
-    Spatial[] spatials;
-} spatialBuffer[];
-layout (set = 1, binding = 0) readonly buffer objectLayout {
-    Object[] objects;
-} objectBuffer[];
-layout (set = 1, binding = 0) readonly buffer cameraLayout {
-    Camera[] cameras;
-} cameraBuffer[];
-layout (set = 2, binding = 0) readonly buffer drawLayout {
+layout (set = 1, binding = 0) readonly buffer drawLayout {
     Draw[] draws;
 } drawBuffer[];
-layout(set = 3, binding = 0) uniform globalLayout {
+layout(set = 2, binding = 0) uniform globalLayout {
     Global global;
 } globalBuffer;
+layout (set = 3, binding = 0) readonly buffer materialLayout {
+    Material[] materials;
+} materialBuffer[];
+layout (set = 3, binding = 0) readonly buffer meshLayout {
+    Mesh[] meshes;
+} meshBuffer[];
+layout (set = 3, binding = 0) readonly buffer spatialLayout {
+    Spatial[] spatials;
+} spatialBuffer[];
+layout (set = 3, binding = 0) readonly buffer objectLayout {
+    Object[] objects;
+} objectBuffer[];
+layout (set = 3, binding = 0) readonly buffer cameraLayout {
+    Camera[] cameras;
+} cameraBuffer[];
 
 layout(location = 0) in vec4 inPosition;
 layout(location = 1) in vec4 inNormal;

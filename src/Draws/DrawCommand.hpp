@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace drk::Graphics {
+namespace drk::Draws {
 	struct DrawCommand {
 		uint32_t indexCount;
 		uint32_t instanceCount;
