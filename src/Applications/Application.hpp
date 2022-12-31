@@ -15,7 +15,7 @@
 #include "../Graphics/GlobalSystem.hpp"
 #include "../Controllers/FlyCamController.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
-#include "../Graphics/MainRenderContext.hpp"
+#include "../Graphics/MeshPipeline.hpp"
 #include <memory>
 
 namespace drk::Applications {
@@ -37,7 +37,7 @@ namespace drk::Applications {
 			Controllers::FlyCamController&,
 			UserInterfaces::UserInterface&,
 			entt::registry&,
-			Graphics::MainRenderContext&
+			Graphics::MeshPipeline&
 		>;
 
 		Application(
@@ -56,7 +56,7 @@ namespace drk::Applications {
 			Controllers::FlyCamController& flyCamController,
 			UserInterfaces::UserInterface& userInterface,
 			entt::registry& registry,
-			Graphics::MainRenderContext& mainRenderContext
+			Graphics::MeshPipeline& mainRenderContext
 		);
 		~Application();
 
@@ -75,7 +75,7 @@ namespace drk::Applications {
 		Graphics::GlobalSystem& globalSystem;
 		const Loaders::AssimpLoader& loader;
 		Graphics::Graphics& graphics;
-		Graphics::MainRenderContext mainRenderContext;
+		Graphics::MeshPipeline mainRenderContext;
 		Controllers::FlyCamController& flyCamController;
 		UserInterfaces::UserInterface& userInterface;
 		entt::registry& registry;
@@ -85,5 +85,6 @@ namespace drk::Applications {
 		static void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 		static void SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 		void RenderEntityTree(entt::entity);
+		void renderProperties(entt::entity entity);
 	};
 }

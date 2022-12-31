@@ -8,7 +8,7 @@ namespace drk::Graphics {
 		return boost::di::make_injector(
 			boost::di::bind<GlobalSystem>.to<GlobalSystem>(),
 			boost::di::bind<Graphics>.to<Graphics>(),
-			boost::di::bind<MainRenderContext>.to<MainRenderContext>()
+			boost::di::bind<MeshPipeline>.to<MeshPipeline>()
 		);
 	}
 }

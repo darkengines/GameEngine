@@ -132,5 +132,22 @@ namespace drk::Engine {
 			}
 			return *store;
 		}
+		template<>
+		Stores::UniformStore& getUniformStore(const std::type_index& typeIndex) {
+			auto keyValuePair = UniformStores.find(typeIndex);
+			Stores::UniformStore<TModel>* store = nullptr;
+			if (keyValuePair == UniformStores.end()) {
+				auto descriptorSet = descriptorSetAllocator.allocateDescriptorSets({descriptorSetLayouts.storeDescriptorSetLayout})[0];
+				auto pStore = std::make_unique<Stores::UniformStore<TModel>>(deviceContext, descriptorSet);
+				store = pStore.get();
+				UniformStores.emplace(
+					typeIndex,
+					std::move(pStore)
+				);
+			} else {
+				store = static_cast<Stores::UniformStore<TModel>*>(keyValuePair->second.get());
+			}
+			return *store;
+		}
 	};
 }

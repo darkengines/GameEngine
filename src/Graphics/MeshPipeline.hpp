@@ -5,15 +5,15 @@
 #include "DrawContext.hpp"
 
 namespace drk::Graphics {
-	class MainRenderContext {
+	class MeshPipeline {
 	public:
-		MainRenderContext(
+		MeshPipeline(
 			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
 			entt::registry& registry,
 			const Engine::DescriptorSetLayouts& descriptorSetLayouts
 		);
-		~MainRenderContext();
+		~MeshPipeline();
 
 		void setTarget(const Devices::Texture& texture);
 		void render(const vk::CommandBuffer& commandBuffer) const;

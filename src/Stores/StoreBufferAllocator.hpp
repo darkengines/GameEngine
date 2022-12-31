@@ -18,8 +18,10 @@ namespace drk::Stores {
 		StoreBufferAllocator(StoreBufferAllocator&& storeBufferAllocator);
 		~StoreBufferAllocator();
 
+		std::unique_ptr<GenericStoreBuffer> allocate(size_t itemByteLength, uint32_t itemCount);
+
 		template<typename T>
-		std::unique_ptr<StoreBuffer<T>> Allocate(uint32_t itemCount) {
+		std::unique_ptr<StoreBuffer<T>> allocate(uint32_t itemCount) {
 			auto itemByteLength = sizeof(T);
 			auto byteLength = itemCount * itemByteLength;
 			auto bufferIndex = static_cast<uint32_t>(Buffers.size());

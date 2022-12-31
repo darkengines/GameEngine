@@ -5,6 +5,11 @@
 #include "Models/StoreItemLocation.hpp"
 
 namespace drk::Stores {
+	struct GenericStoreItemLocation {
+		uint32_t descriptorArrayElement;
+		uint32_t itemIndex;
+	};
+
 	template<typename T>
 	struct StoreItemLocation {
 		StoreBuffer<T>* pStore;

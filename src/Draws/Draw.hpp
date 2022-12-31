@@ -7,10 +7,12 @@ namespace drk::Draws {
 
 	template<typename TDrawModel>
 	struct Draw {
+		TDrawModel drawModel;
+		const vk::Pipeline pipeline;
 		const Devices::BufferView& indexBufferView;
 		const Devices::BufferView& vertexBufferView;
-		TDrawModel drawModel;
 		bool hasTransparency;
+		float depth;
 	};
 
 }

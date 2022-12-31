@@ -26,7 +26,7 @@ namespace drk::Applications {
 		Controllers::FlyCamController& flyCamController,
 		UserInterfaces::UserInterface& userInterface,
 		entt::registry& registry,
-		Graphics::MainRenderContext& mainRenderContext
+		Graphics::MeshPipeline& mainRenderContext
 	)
 		: window(window),
 		  deviceContext(deviceContext),
@@ -109,7 +109,7 @@ namespace drk::Applications {
 			ImGui::NewFrame();
 			if (true || userInterface.IsVisible()) {
 				auto open = true;
-				ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
+
 				if (ImGui::BeginMainMenuBar()) {
 					if (ImGui::BeginMenu("File")) {
 						if (ImGui::MenuItem("Open", "ctrl + o")) {
@@ -126,9 +126,9 @@ namespace drk::Applications {
 					ImGui::EndMainMenuBar();
 				}
 
+				ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
 				ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 				ImGui::Image(sceneTextureImageDescriptorSet, viewportPanelSize);
-
 				ImGui::End();
 
 
@@ -138,13 +138,14 @@ namespace drk::Applications {
 				}
 				ImGui::End();
 
+				renderProperties(entt::null);
+
 				fileBrowser.Display();
 				if (fileBrowser.HasSelected()) {
 					auto loadResult = loader.Load(fileBrowser.GetSelected());
 					loadResults.emplace_back(std::move(loadResult));
 					fileBrowser.ClearSelected();
 				}
-				ImGui::ShowDemoWindow();
 			}
 			ImGui::EndFrame();
 
@@ -179,6 +180,15 @@ namespace drk::Applications {
 
 			//Renders
 			mainRenderContext.render(frameState.commandBuffer);
+
+			Devices::Device::transitionLayout(
+				frameState.commandBuffer,
+				sceneTexture.image.image,
+				sceneTexture.imageCreateInfo.format,
+				vk::ImageLayout::eUndefined,
+				vk::ImageLayout::eShaderReadOnlyOptimal,
+				1
+			);
 			graphics.Render(frameState.commandBuffer, swapchainImageIndex);
 
 			frameState.commandBuffer.end();
@@ -226,6 +236,12 @@ namespace drk::Applications {
 			ImGui::Text(object.Name.c_str());
 		}
 	}
+
+	void Application::renderProperties(entt::entity entity) {
+		ImGui::Begin("Properties");
+
+		ImGui::End();
+	};
 
 	void Application::OnWindowSizeChanged(uint32_t width, uint32_t height) {
 

@@ -48,6 +48,16 @@ file(
     src/Lights/PointLightSystem.cpp
     src/ImGui/imgui_impl_vulkan.cpp
     src/ImGui/imgui_impl_glfw.cpp
+    src/UserInterfaces/UserInterface.cpp
+    src/Graphics/MeshPipeline.cpp
+    src/Devices/VulkanInstanceConfiguration.cpp
+    src/Points/PointPrimitivePipeline.cpp
+    src/Points/Models/PointVertex.cpp
+    src/Systems/System.cpp
+    src/Points/PointSystem.cpp
+    src/Points/PointDrawSystem.cpp
+    src/Engine/DescriptorSetLayouts.cpp
+    src/Meshes/Pipelines/MeshPipeline.cpp
 )
 
 file(
@@ -109,6 +119,7 @@ file(
     src/Stores/StoreItem.hpp
     src/Graphics/Draw.hpp
     src/Graphics/Models/Draw.hpp
+    src/Meshes/Models/Draw.hpp
     src/Stores/Models/StoreItemLocation.hpp
     src/Objects/Object.hpp
     src/Draws/DrawCommand.hpp
@@ -132,6 +143,43 @@ file(
     src/Lights/DirectionalLightSystem.hpp
     src/Lights/LightSystem.hpp
     src/Lights/PointLightSystem.hpp
+    src/UserInterfaces/UserInterface.hpp
+    src/Graphics/MeshPipeline.hpp
+    src/Devices/Extensions.hpp
+    src/Windows/Extensions.hpp
+    src/Configuration/Extensions.hpp
+    src/Windows/WindowConfiguration.hpp
+    src/Devices/VulkanInstanceConfiguration.hpp
+    src/Graphics/Extentions.hpp
+    src/Applications/Extentions.hpp
+    src/Cameras/Extensions.hpp
+    src/Lights/Extensions.hpp
+    src/Loaders/Extensions.hpp
+    src/Materials/Extensions.hpp
+    src/Meshes/Extensions.hpp
+    src/Objects/Extensions.hpp
+    src/Relationships/Extensions.hpp
+    src/Spatials/Extensions.hpp
+    src/Textures/Extensions.hpp
+    src/Controllers/Extensions.hpp
+    src/UserInterfaces/Extensions.hpp
+    src/Points/PointPrimitivePipeline.hpp
+    src/Points/Models/PointVertex.hpp
+    src/Points/Components/PointDraw.hpp
+    src/Points/Components/Point.hpp
+    src/Geometries/Primitives.hpp
+    src/Systems/System.hpp
+    src/Points/PointSystem.hpp
+    src/Points/Models/Point.hpp
+    src/Draws/Draw.hpp
+    src/Points/PointDrawSystem.hpp
+    src/Points/Models/PointDraw.hpp
+    src/Draws/Extentions.hpp
+    src/Stores/Extensions.hpp
+    src/Engine/DescriptorSetLayouts.hpp
+    src/Engine/Extensions.hpp
+    src/Meshes/Components/Draw.hpp
+    src/Meshes/Pipelines/MeshPipeline.hpp
 )
 
 file(
@@ -159,7 +207,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/UserInterfaces/UserInterface.cpp src/UserInterfaces/UserInterface.hpp src/Graphics/MainRenderContext.cpp src/Graphics/MainRenderContext.hpp src/Devices/Extensions.hpp src/Windows/Extensions.hpp src/Configuration/Extensions.hpp src/Windows/WindowConfiguration.hpp src/Devices/VulkanInstanceConfiguration.hpp src/Devices/VulkanInstanceConfiguration.cpp src/Graphics/Extentions.hpp src/Applications/Extentions.hpp src/Cameras/Extensions.hpp src/Lights/Extensions.hpp src/Loaders/Extensions.hpp src/Materials/Extensions.hpp src/Meshes/Extensions.hpp src/Objects/Extensions.hpp src/Relationships/Extensions.hpp src/Spatials/Extensions.hpp src/Textures/Extensions.hpp src/Controllers/Extensions.hpp src/UserInterfaces/Extensions.hpp src/Points/PointPrimitivePipeline.cpp src/Points/PointPrimitivePipeline.hpp src/Points/Models/PointVertex.hpp src/Points/Models/PointVertex.cpp src/Points/Components/PointDraw.hpp src/Points/Components/Point.hpp src/Geometries/Primitives.hpp src/Systems/System.cpp src/Systems/System.hpp src/Points/PointSystem.cpp src/Points/PointSystem.hpp src/Points/Models/Point.hpp src/Draws/Draw.hpp src/Points/PointDrawSystem.cpp src/Points/PointDrawSystem.hpp src/Points/Models/PointDraw.hpp src/Draws/Extentions.hpp src/Stores/Extensions.hpp src/Engine/DescriptorSetLayouts.hpp src/Engine/Extensions.hpp src/Engine/DescriptorSetLayouts.cpp)
+add_executable(drk ${HEADERS} ${SOURCES} src/Draws/DrawSet.hpp)
 add_dependencies(drk Shaders)
 configure_file(settings.json settings.json COPYONLY)
 

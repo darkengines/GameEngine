@@ -8,6 +8,7 @@
 #include "Components/PointDraw.hpp"
 #include "../Cameras/Camera.hpp"
 #include "../Geometries/Primitives.hpp"
+#include "Models/PointDraw.hpp"
 #include <algorithm>
 
 namespace drk::Points {
@@ -42,8 +43,8 @@ namespace drk::Points {
 
 //		std::vector<Draws::DrawCommand> BuildMainRenderPass() const {
 //			auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Models::PointVertex, Spatials::Spatial>();
-//			std::vector<PointDraw> draws;
-//			std::vector<PointDraw> transparencyDraws;
+//			std::vector<Components::PointDraw> draws;
+//			std::vector<Components::PointDraw> transparencyDraws;
 //			objectEntities.each(
 //				[&](
 //					entt::entity pointEntity,
@@ -51,10 +52,11 @@ namespace drk::Points {
 //					auto& point,
 //					auto& spatial
 //				) {
-//					const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.FrameIndex];
-//					const auto pointStoreItem = engineState.Registry.get<Stores::StoreItem<Models::PointVertex>>(pointEntity);
-//					const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[engineState.FrameIndex];
-//					PointDraw draw = {
+//					auto frameIndex = engineState.getFrameIndex();
+//					const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[frameIndex];
+//					const auto pointStoreItem = registry.get<Stores::StoreItem<Models::PointVertex>>(pointEntity);
+//					const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[frameIndex];
+//					Components::PointDraw draw = {
 //						.point = point,
 //						.pointStoreItem = {
 //							.storeIndex = pointStoreItemLocation.pStore->descriptorArrayElement,
@@ -85,25 +87,21 @@ namespace drk::Points {
 //			std::stable_sort(
 //				transparencyDraws.begin(),
 //				transparencyDraws.end(),
-//				[&camera](const PointDraw& leftDraw, const PointDraw& rightDraw) {
+//				[&camera](const Components::PointDraw& leftDraw, const Components::PointDraw& rightDraw) {
 //					auto leftDistance = glm::distance(camera.absolutePosition, leftDraw.spatial.absolutePosition);
 //					auto rightDistance = glm::distance(camera.absolutePosition, rightDraw.spatial.absolutePosition);
 //					return leftDistance > rightDistance;
 //				}
 //			);
-//
-//
-//
-//			return drawContext;
 //		}
 //
 //		void PopulateDrawContext(
-//			DrawContext& drawContext,
-//			const std::vector<PointDraw>& draws,
+//			const std::vector<Components::PointDraw>& draws,
 //			uint32_t drawOffset
 //		) const {
-//			auto drawStore = engineState.FrameStates[engineState.FrameIndex].DrawStore.get();
-//			const PointDraw* previousDraw = nullptr;
+//			auto& frameState = engineState.getCurrentFrameState();
+//			auto& drawStore = frameState.getUniformStore<Models::PointDraw>();
+//			const Components::PointDraw* previousDraw = nullptr;
 //
 //			if (!drawContext.drawSets.empty() && !drawContext.drawSets.back().draws.empty())
 //				previousDraw = &drawContext.drawSets.back().draws.back();
@@ -111,7 +109,7 @@ namespace drk::Points {
 //			for (auto drawIndex = 0u; drawIndex < draws.size(); drawIndex++) {
 //				auto& draw = draws[drawIndex];
 //
-//				if (previousDraw != nullptr && previousDraw->meshInfo == draw.meshInfo) {
+//				if (previousDraw != nullptr && previousDraw->point == draw.point) {
 //					drawContext.drawSets.back().drawCommands.back().instanceCount++;
 //				} else {
 //					if (previousDraw == nullptr ||

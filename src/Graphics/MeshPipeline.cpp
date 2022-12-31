@@ -1,7 +1,7 @@
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.hpp>
 
-#include "MainRenderContext.hpp"
+#include "MeshPipeline.hpp"
 #include "Graphics.hpp"
 #include "../Objects/Models/Object.hpp"
 #include "../Meshes/MeshGroup.hpp"
@@ -9,7 +9,7 @@
 #include "../Meshes/Models/Mesh.hpp"
 
 namespace drk::Graphics {
-	MainRenderContext::MainRenderContext(
+	MeshPipeline::MeshPipeline(
 		const Devices::DeviceContext& deviceContext,
 		drk::Engine::EngineState& engineState,
 		entt::registry& registry,
@@ -28,7 +28,7 @@ namespace drk::Graphics {
 		createShaderModules();
 	}
 
-	MainRenderContext::~MainRenderContext() {
+	MeshPipeline::~MeshPipeline() {
 		deviceContext.device.destroyPipeline(pipeline);
 
 		destroyShaderModules();
@@ -39,21 +39,21 @@ namespace drk::Graphics {
 		destroyFramebufferResources();
 	}
 
-	void MainRenderContext::destroyShaderModules() {
+	void MeshPipeline::destroyShaderModules() {
 		deviceContext.device.destroyShaderModule(mainFragmentShaderModule);
 		deviceContext.device.destroyShaderModule(mainVertexShaderModule);
 	}
 
-	void MainRenderContext::destroyFramebuffer() {
+	void MeshPipeline::destroyFramebuffer() {
 		deviceContext.device.destroyFramebuffer(framebuffer);
 	}
 
-	void MainRenderContext::destroyFramebufferResources() {
+	void MeshPipeline::destroyFramebufferResources() {
 		deviceContext.destroyTexture(depthTexture);
 		deviceContext.destroyTexture(colorTexture);
 	}
 
-	void MainRenderContext::createRenderPass() {
+	void MeshPipeline::createRenderPass() {
 		vk::AttachmentDescription colorAttachment = {
 			.format = targetTexture->imageCreateInfo.format,
 			//TODO: Use configurable sample count
@@ -141,7 +141,7 @@ namespace drk::Graphics {
 		renderPass = deviceContext.device.createRenderPass(renderPassCreationInfo);
 	}
 
-	void MainRenderContext::createFramebufferResources() {
+	void MeshPipeline::createFramebufferResources() {
 		vk::ImageCreateInfo imageCreateInfo{
 			.imageType = vk::ImageType::e2D,
 			.format = targetTexture->imageViewCreateInfo.format,
@@ -216,7 +216,7 @@ namespace drk::Graphics {
 
 	}
 
-	void MainRenderContext::createFramebuffer() {
+	void MeshPipeline::createFramebuffer() {
 		std::array<vk::ImageView, 3> attachments{
 			colorTexture.imageView,
 			depthTexture.imageView,
@@ -233,7 +233,7 @@ namespace drk::Graphics {
 		framebuffer = deviceContext.device.createFramebuffer(framebufferCreateInfo);
 	}
 
-	void MainRenderContext::createPipeline() {
+	void MeshPipeline::createPipeline() {
 		vk::PipelineShaderStageCreateInfo vertexPipelineShaderStageCreateInfo = {
 			.stage = vk::ShaderStageFlagBits::eVertex,
 			.module = mainVertexShaderModule,
@@ -297,7 +297,7 @@ namespace drk::Graphics {
 	}
 
 	vk::PipelineLayout
-	MainRenderContext::createPipelineLayout(
+	MeshPipeline::createPipelineLayout(
 		const Devices::DeviceContext& deviceContext,
 		const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
 	) {
@@ -308,12 +308,12 @@ namespace drk::Graphics {
 		return deviceContext.device.createPipelineLayout(pipelineLayoutCreateInfo);
 	}
 
-	void MainRenderContext::createShaderModules() {
+	void MeshPipeline::createShaderModules() {
 		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/main.vert.spv");
 		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/main.frag.spv");
 	}
 
-	void MainRenderContext::render(const vk::CommandBuffer& commandBuffer) const {
+	void MeshPipeline::render(const vk::CommandBuffer& commandBuffer) const {
 		auto& frameState = engineState.getCurrentFrameState();
 
 		const auto drawContext = BuildMainRenderPass();
@@ -382,7 +382,7 @@ namespace drk::Graphics {
 		}
 	}
 
-	DrawContext MainRenderContext::BuildMainRenderPass() const {
+	DrawContext MeshPipeline::BuildMainRenderPass() const {
 		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Spatial>();
 		std::vector<Draw> draws;
 		std::vector<Draw> transparencyDraws;
@@ -467,7 +467,7 @@ namespace drk::Graphics {
 		return drawContext;
 	}
 
-	void MainRenderContext::PopulateDrawContext(
+	void MeshPipeline::PopulateDrawContext(
 		DrawContext& drawContext,
 		const std::vector<Draw>& draws,
 		uint32_t drawOffset
@@ -523,7 +523,7 @@ namespace drk::Graphics {
 			previousDraw = &draw;
 		}
 	}
-	void MainRenderContext::recreatePipeLine() {
+	void MeshPipeline::recreatePipeLine() {
 		if ((VkPipeline) pipeline != VK_NULL_HANDLE) {
 			deviceContext.device.destroyPipeline(pipeline);
 			deviceContext.device.destroyRenderPass(renderPass);
@@ -536,7 +536,7 @@ namespace drk::Graphics {
 		createFramebuffer();
 		createPipeline();
 	}
-	void MainRenderContext::setTarget(const Devices::Texture& texture) {
+	void MeshPipeline::setTarget(const Devices::Texture& texture) {
 		targetTexture = texture;
 		deviceContext.device.waitIdle();
 		recreatePipeLine();
