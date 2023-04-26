@@ -49,7 +49,6 @@ file(
     src/ImGui/imgui_impl_vulkan.cpp
     src/ImGui/imgui_impl_glfw.cpp
     src/UserInterfaces/UserInterface.cpp
-    src/Graphics/MeshPipeline.cpp
     src/Devices/VulkanInstanceConfiguration.cpp
     src/Points/PointPrimitivePipeline.cpp
     src/Points/Models/PointVertex.cpp
@@ -58,6 +57,8 @@ file(
     src/Points/PointDrawSystem.cpp
     src/Engine/DescriptorSetLayouts.cpp
     src/Meshes/Pipelines/MeshPipeline.cpp
+    src/Renderers/Renderer.cpp
+    src/Scenes/Renderers/SceneRenderer.cpp
 )
 
 file(
@@ -119,7 +120,7 @@ file(
     src/Stores/StoreItem.hpp
     src/Graphics/Draw.hpp
     src/Graphics/Models/Draw.hpp
-    src/Meshes/Models/Draw.hpp
+    src/Meshes/Models/MeshDraw.hpp
     src/Stores/Models/StoreItemLocation.hpp
     src/Objects/Object.hpp
     src/Draws/DrawCommand.hpp
@@ -144,7 +145,6 @@ file(
     src/Lights/LightSystem.hpp
     src/Lights/PointLightSystem.hpp
     src/UserInterfaces/UserInterface.hpp
-    src/Graphics/MeshPipeline.hpp
     src/Devices/Extensions.hpp
     src/Windows/Extensions.hpp
     src/Configuration/Extensions.hpp
@@ -180,6 +180,10 @@ file(
     src/Engine/Extensions.hpp
     src/Meshes/Components/Draw.hpp
     src/Meshes/Pipelines/MeshPipeline.hpp
+    src/Draws/DrawSet.hpp
+    src/Scenes/Renderers/SceneRenderer.hpp
+    src/Pipelines/Pipeline.hpp
+    src/Renderers/Renderer.hpp
 )
 
 file(
@@ -207,7 +211,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/Draws/DrawSet.hpp)
+add_executable(drk ${HEADERS} ${SOURCES} src/Scenes/SceneSystem.cpp src/Scenes/SceneSystem.hpp src/Scenes/Draws/SceneDraw.hpp src/Draws/DrawSystem.hpp src/Meshes/Components/MeshDraw.hpp src/Draws/DrawVertexBufferInfo.cpp src/Draws/DrawVertexBufferInfo.hpp)
 add_dependencies(drk Shaders)
 configure_file(settings.json settings.json COPYONLY)
 

@@ -17,7 +17,7 @@ namespace drk::Stores {
 
 	public:
 		GenericStore(StoreBufferAllocator& storeBufferAllocator) :
-			storeAllocator(storeBufferAllocator), ItemPerBuffer(1024u) {
+			storeAllocator(storeBufferAllocator), ItemPerBuffer(1024u) /* todo: make this ItemPerBuffer(1024u) configurable */ {
 
 		}
 

@@ -30,7 +30,6 @@ namespace drk::Graphics {
 
 	MeshPipeline::~MeshPipeline() {
 		deviceContext.device.destroyPipeline(pipeline);
-
 		destroyShaderModules();
 		deviceContext.device.destroyPipelineLayout(pipelineLayout);
 		destroyFramebuffer();

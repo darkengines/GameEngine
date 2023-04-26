@@ -6,5 +6,6 @@
 namespace drk::Points::Components {
 	struct Point {
 		entt::entity materialEntity;
+		Materials::Material* pMaterial;
 	};
 }
