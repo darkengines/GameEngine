@@ -84,6 +84,6 @@ namespace drk::Textures {
 	};
 
 	uint32_t ImageInfo::mipLevels() const {
-		return std::floor(std::log2(std::max(width, height)));
+		return static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))));
 	}
 }

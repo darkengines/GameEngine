@@ -16,6 +16,10 @@
 #include "../Controllers/FlyCamController.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
 #include "../Graphics/MeshPipeline.hpp"
+#include "../Scenes/Renderers/SceneRenderer.hpp"
+#include "../UserInterfaces/Renderers/UserInterfaceRenderer.hpp"
+#include "../Scenes/SceneSystem.hpp"
+#include "../Points/PointSystem.hpp"
 #include <memory>
 
 namespace drk::Applications {
@@ -37,7 +41,10 @@ namespace drk::Applications {
 			Controllers::FlyCamController&,
 			UserInterfaces::UserInterface&,
 			entt::registry&,
-			Graphics::MeshPipeline&
+			UserInterfaces::Renderers::UserInterfaceRenderer&,
+			Scenes::Renderers::SceneRenderer&,
+			Scenes::SceneSystem&,
+			Points::PointSystem&
 		>;
 
 		Application(
@@ -56,7 +63,10 @@ namespace drk::Applications {
 			Controllers::FlyCamController& flyCamController,
 			UserInterfaces::UserInterface& userInterface,
 			entt::registry& registry,
-			Graphics::MeshPipeline& mainRenderContext
+			UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer,
+			Scenes::Renderers::SceneRenderer& sceneRenderer,
+			Scenes::SceneSystem& sceneSystem,
+			Points::PointSystem& pointSystem
 		);
 		~Application();
 
@@ -75,10 +85,13 @@ namespace drk::Applications {
 		Graphics::GlobalSystem& globalSystem;
 		const Loaders::AssimpLoader& loader;
 		Graphics::Graphics& graphics;
-		Graphics::MeshPipeline mainRenderContext;
 		Controllers::FlyCamController& flyCamController;
 		UserInterfaces::UserInterface& userInterface;
 		entt::registry& registry;
+		UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer;
+		Scenes::Renderers::SceneRenderer& sceneRenderer;
+		Scenes::SceneSystem& sceneSystem;
+		Points::PointSystem& pointSystem;
 
 		void OnWindowSizeChanged(uint32_t width, uint32_t height);
 		void WaitFences();

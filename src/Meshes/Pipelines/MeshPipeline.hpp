@@ -3,8 +3,6 @@
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
 #include "../Models/MeshDraw.hpp"
-#include "../../Draws/DrawSet.hpp"
-#include "../../Draws/Draw.hpp"
 #include "../../Pipelines/Pipeline.hpp"
 
 namespace drk::Meshes::Pipelines {
@@ -19,7 +17,8 @@ namespace drk::Meshes::Pipelines {
 
 		void render(const vk::CommandBuffer& commandBuffer) const;
 		void bind(const vk::CommandBuffer& commandBuffer) const;
-		std::vector<Draws::DrawSet> PrepareDraws();
+		void configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configure);
+		void destroyPipeline();
 
 	protected:
 		const Devices::DeviceContext& deviceContext;
@@ -33,12 +32,12 @@ namespace drk::Meshes::Pipelines {
 		void createShaderModules();
 		void destroyShaderModules();
 
-		void createPipeline();
-		void recreatePipeLine();
+		void createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo);
 
 		static vk::PipelineLayout createPipelineLayout(
 			const Devices::DeviceContext& deviceContext,
 			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
 		);
+		vk::GraphicsPipelineCreateInfo getDefaultGraphicPipelineCreateInfo();
 	};
 }

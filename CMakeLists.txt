@@ -54,7 +54,6 @@ file(
     src/Points/Models/PointVertex.cpp
     src/Systems/System.cpp
     src/Points/PointSystem.cpp
-    src/Points/PointDrawSystem.cpp
     src/Engine/DescriptorSetLayouts.cpp
     src/Meshes/Pipelines/MeshPipeline.cpp
     src/Renderers/Renderer.cpp
@@ -172,7 +171,6 @@ file(
     src/Points/PointSystem.hpp
     src/Points/Models/Point.hpp
     src/Draws/Draw.hpp
-    src/Points/PointDrawSystem.hpp
     src/Points/Models/PointDraw.hpp
     src/Draws/Extentions.hpp
     src/Stores/Extensions.hpp
@@ -211,7 +209,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/Scenes/SceneSystem.cpp src/Scenes/SceneSystem.hpp src/Scenes/Draws/SceneDraw.hpp src/Draws/DrawSystem.hpp src/Meshes/Components/MeshDraw.hpp src/Draws/DrawVertexBufferInfo.cpp src/Draws/DrawVertexBufferInfo.hpp)
+add_executable(drk ${HEADERS} ${SOURCES} src/Scenes/SceneSystem.cpp src/Scenes/SceneSystem.hpp src/Scenes/Draws/SceneDraw.hpp src/Draws/DrawSystem.hpp src/Meshes/Components/MeshDraw.hpp src/Draws/DrawVertexBufferInfo.cpp src/Draws/DrawVertexBufferInfo.hpp src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp src/UserInterfaces/Renderers/UserInterfaceRenderer.hpp src/Devices/ImageInfo.hpp src/Devices/DeviceImageInfo.hpp)
 add_dependencies(drk Shaders)
 configure_file(settings.json settings.json COPYONLY)
 

@@ -37,7 +37,8 @@ namespace drk::Meshes::Pipelines {
 		deviceContext.device.destroyShaderModule(mainVertexShaderModule);
 	}
 
-	void MeshPipeline::createPipeline() {
+	vk::GraphicsPipelineCreateInfo
+	MeshPipeline::getDefaultGraphicPipelineCreateInfo(std::function<void(vk::GraphicsPipelineCreateInfo&)> configure) {
 		vk::PipelineShaderStageCreateInfo vertexPipelineShaderStageCreateInfo = {
 			.stage = vk::ShaderStageFlagBits::eVertex,
 			.module = mainVertexShaderModule,
@@ -66,7 +67,7 @@ namespace drk::Meshes::Pipelines {
 		);
 		const auto& pipelineInputAssemblyStateCreateInfo = Graphics::Graphics::DefaultPipelineInputAssemblyStateCreateInfo();
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{targetTexture->imageCreateInfo.extent.width, targetTexture->imageCreateInfo.extent.height},
+			{1024u, 768u},
 			viewport,
 			scissor
 		);
@@ -90,14 +91,80 @@ namespace drk::Meshes::Pipelines {
 			.pDepthStencilState = &pipelineDepthStencilStateCreateInfo,
 			.pColorBlendState = &pipelineColorBlendStateCreateInfo,
 			.layout = pipelineLayout,
-			.renderPass = renderPass,
 		};
 
-		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicsPipelineCreateInfo);
+		return graphicsPipelineCreateInfo;
+	}
+
+	void MeshPipeline::createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo) {
+
+		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicPipelineCreateInfo);
 		if ((VkResult) result.result != VK_SUCCESS) {
 			throw new std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		pipeline = result.value;
+	}
+
+	void MeshPipeline::configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configuration) {
+		vk::PipelineShaderStageCreateInfo vertexPipelineShaderStageCreateInfo = {
+			.stage = vk::ShaderStageFlagBits::eVertex,
+			.module = mainVertexShaderModule,
+			.pName = "main"
+		};
+		vk::PipelineShaderStageCreateInfo fragmentPipelineShaderStageCreateInfo = {
+			.stage = vk::ShaderStageFlagBits::eFragment,
+			.module = mainFragmentShaderModule,
+			.pName = "main"
+		};
+
+		std::vector<vk::PipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos = {
+			vertexPipelineShaderStageCreateInfo,
+			fragmentPipelineShaderStageCreateInfo
+		};
+
+		vk::PipelineColorBlendAttachmentState pipelineColorBlendAttachmentState;
+		std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions = Meshes::Vertex::getBindingDescriptions();
+		std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions = Meshes::Vertex::getAttributeDescriptions();
+		vk::Viewport viewport;
+		vk::Rect2D scissor;
+
+		const auto& pipelineVertexInputStateCreateInfo = Graphics::Graphics::DefaultPipelineVertexInputStateCreateInfo(
+			vertexInputBindingDescriptions,
+			vertexInputAttributeDescriptions
+		);
+		const auto& pipelineInputAssemblyStateCreateInfo = Graphics::Graphics::DefaultPipelineInputAssemblyStateCreateInfo();
+		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
+			{1024u, 768u},
+			viewport,
+			scissor
+		);
+		const auto& pipelineRasterizationStateCreateInfo = Graphics::Graphics::DefaultPipelineRasterizationStateCreateInfo();
+		auto pipelineMultisampleStateCreateInfo = Graphics::Graphics::DefaultPipelineMultisampleStateCreateInfo();
+		//TODO: Use configurable sample count
+		pipelineMultisampleStateCreateInfo.rasterizationSamples = vk::SampleCountFlagBits::e8;
+		const auto& pipelineColorBlendStateCreateInfo = Graphics::Graphics::DefaultPipelineColorBlendStateCreateInfo(
+			pipelineColorBlendAttachmentState
+		);
+		const auto& pipelineDepthStencilStateCreateInfo = Graphics::Graphics::DefaultPipelineDepthStencilStateCreateInfo();
+
+		vk::GraphicsPipelineCreateInfo graphicPipelineCreateInfo = {
+			.stageCount = static_cast<uint32_t>(pipelineShaderStageCreateInfos.size()),
+			.pStages = pipelineShaderStageCreateInfos.data(),
+			.pVertexInputState = &pipelineVertexInputStateCreateInfo,
+			.pInputAssemblyState = &pipelineInputAssemblyStateCreateInfo,
+			.pViewportState = &pipelineViewportStateCreateInfo,
+			.pRasterizationState = &pipelineRasterizationStateCreateInfo,
+			.pMultisampleState = &pipelineMultisampleStateCreateInfo,
+			.pDepthStencilState = &pipelineDepthStencilStateCreateInfo,
+			.pColorBlendState = &pipelineColorBlendStateCreateInfo,
+			.layout = pipelineLayout,
+		};
+
+		configuration(graphicPipelineCreateInfo);
+		createPipeline(graphicPipelineCreateInfo);
+	}
+	void MeshPipeline::destroyPipeline() {
+		deviceContext.device.destroyPipeline(pipeline);
 	}
 
 	vk::PipelineLayout
@@ -129,104 +196,11 @@ namespace drk::Meshes::Pipelines {
 			vk::PipelineBindPoint::eGraphics,
 			pipelineLayout,
 			0,
-			descriptorSets.size(),
+			static_cast<uint32_t>(descriptorSets.size()),
 			descriptorSets.data(),
 			0,
 			nullptr
 		);
 		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
-	}
-	void MeshPipeline::render(
-		const vk::CommandBuffer& commandBuffer,
-		std::vector<std::unique_ptr<Draws::Draw<Models::MeshDraw>>>& draws
-	) const {
-		auto& frameState = engineState.getCurrentFrameState();
-		vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
-			.renderPass = renderPass,
-			.framebuffer = framebuffer,
-			.renderArea = {
-				0,
-				0,
-				{
-					targetTexture->imageCreateInfo.extent.width,
-					targetTexture->imageCreateInfo.extent.height
-				}},
-			.clearValueCount = 0u,
-			.pClearValues = nullptr,
-		};
-		commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
-
-		if (!draws.empty()) {
-			std::sort(
-				draws.begin(),
-				draws.end(),
-				[](
-					const std::unique_ptr<Draws::Draw<Models::MeshDraw>>& left,
-					const std::unique_ptr<Draws::Draw<Models::MeshDraw>>& right
-				) {
-					return left->indexBufferView.buffer.buffer == right->indexBufferView.buffer.buffer;
-				}
-			);
-			for (auto drawSetIndex = 0u; drawSetIndex < drawContext.drawSets.size(); drawSetIndex++) {
-				const auto& drawSet = drawContext.drawSets[drawSetIndex];
-
-				vk::DeviceSize offset = 0u;
-				commandBuffer.bindIndexBuffer(drawSet.indexBuffer.buffer, 0, vk::IndexType::eUint32);
-				commandBuffer.bindVertexBuffers(0, 1, &drawSet.vertexBuffer.buffer, &offset);
-				for (auto drawIndex = 0u; drawIndex < drawSet.drawCommands.size(); drawIndex++) {
-					const auto& drawCommand = drawSet.drawCommands[drawIndex];
-					commandBuffer.drawIndexed(
-						drawCommand.indexCount,
-						drawCommand.instanceCount,
-						drawCommand.firstIndex,
-						drawCommand.vertexOffset,
-						drawCommand.firstInstance
-					);
-				}
-			}
-			commandBuffer.endRenderPass();
-		}
-	}
-
-	std::vector<Draws::DrawSet> MeshPipeline::PrepareDraws() {
-		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Spatial>();
-		std::vector<std::unique_ptr<Draws::GenericDraw>> draws;
-		auto cameraEntity = engineState.CameraEntity;
-		auto camera = registry.get<Cameras::Camera>(cameraEntity);
-		objectEntities.each(
-			[&](
-				entt::entity objectEntity,
-				auto& objectStoreItem,
-				auto& meshGroup,
-				auto& spatial
-			) {
-				const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
-				for (const auto& meshEntity: meshGroup.meshEntities) {
-					Meshes::MeshInfo* meshInfo = registry.get<Meshes::MeshInfo*>(meshEntity);
-					const Meshes::Mesh mesh = registry.get<Meshes::Mesh>(meshEntity);
-					const Stores::StoreItem<Meshes::Models::Mesh> meshStoreItem = registry.get<Stores::StoreItem<Meshes::Models::Mesh>>(
-						meshEntity
-					);
-					const auto& meshStoreItemLocation = meshStoreItem.frameStoreItems[engineState.getFrameIndex()];
-					Draws::Draw<Models::MeshDraw> draw = {
-						.drawModel = {.meshStoreItem = meshStoreItemLocation, .objectLocation = objectStoreItemLocation},
-						.pipeline = pipeline,
-						.indexBufferView = mesh.IndexBufferView,
-						.vertexBufferView = mesh.VertexBufferView,
-						.hasTransparency = meshInfo->pMaterial->hasTransparency,
-						.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition)
-					};
-					draws.emplace_back(std::make_unique(draw));
-				}
-			}
-		);
-		return draws;
-	}
-
-	void MeshPipeline::recreatePipeLine() {
-		if ((VkPipeline) pipeline != VK_NULL_HANDLE) {
-			deviceContext.device.destroyPipeline(pipeline);
-		}
-		createPipeline();
 	}
 }

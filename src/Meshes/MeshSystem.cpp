@@ -5,7 +5,6 @@
 #include "../Materials/Models/Material.hpp"
 #include "../Objects/Models/Object.hpp"
 #include "MeshGroup.hpp"
-#include "../Draws/Draw.hpp"
 #include "../Spatials/Spatial.hpp"
 #include "../Cameras/Camera.hpp"
 #include "Models/MeshDraw.hpp"
@@ -133,7 +132,7 @@ namespace drk::Meshes {
 			static_cast<uint32_t>(meshDraw.meshInfo->indices.size()),
 			static_cast<uint32_t>(meshDraw.mesh.IndexBufferView.byteOffset / sizeof(VertexIndex)),
 			static_cast<int32_t>(meshDraw.mesh.VertexBufferView.byteOffset / sizeof(Vertex))
-		};;
-
+		};
+		return bufferInfo;
 	}
 }

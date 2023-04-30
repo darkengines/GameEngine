@@ -1,37 +1,38 @@
 
 #include "SceneRenderer.hpp"
 #include "../Draws/SceneDraw.hpp"
+#include "../../Graphics/Graphics.hpp"
 
 namespace drk::Scenes::Renderers {
 	SceneRenderer::SceneRenderer(
 		const Devices::DeviceContext& deviceContext,
-		Engine::EngineState& engineState,
 		entt::registry& registry,
 		std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline
 	)
-		: deviceContext(deviceContext), engineState(engineState), registry(registry),
-		  meshPipeline(std::move(meshPipeline)) {
+		: deviceContext(deviceContext), registry(registry),
+		  meshPipeline(std::move(meshPipeline)) {}
 
-	}
 	SceneRenderer::~SceneRenderer() {
-		deviceContext.device.destroyPipeline(pipeline);
-		destroyFramebuffer();
-		deviceContext.device.destroyRenderPass(renderPass);
+		destroyFramebuffers();
+		destroyRenderPass();
 		destroyFramebufferResources();
 	}
-	void SceneRenderer::destroyFramebuffer() {
-		deviceContext.device.destroyFramebuffer(framebuffer);
+	void SceneRenderer::destroyFramebuffers() {
+		for (const auto& framebuffer: framebuffers) {
+			deviceContext.device.destroyFramebuffer(framebuffer);
+		}
+		framebuffers.clear();
 	}
 
 	void SceneRenderer::destroyFramebufferResources() {
-		deviceContext.destroyTexture(depthTexture);
-		deviceContext.destroyTexture(colorTexture);
+		if (depthTexture.has_value()) deviceContext.destroyTexture(depthTexture.value());
+		if (colorTexture.has_value()) deviceContext.destroyTexture(colorTexture.value());
 	}
 	void SceneRenderer::createFramebufferResources() {
 		vk::ImageCreateInfo imageCreateInfo{
 			.imageType = vk::ImageType::e2D,
-			.format = targetTexture->imageViewCreateInfo.format,
-			.extent = {targetTexture->imageCreateInfo.extent.width, targetTexture->imageCreateInfo.extent.height, 1},
+			.format = targetImageInfo->format,
+			.extent = {targetImageInfo->extent.width, targetImageInfo->extent.height, 1},
 			.mipLevels = 1,
 			.arrayLayers = 1,
 			.samples = deviceContext.MaxSampleCount,
@@ -54,7 +55,7 @@ namespace drk::Scenes::Renderers {
 		vk::ImageViewCreateInfo imageViewCreateInfo = {
 			.image = mainFramebufferImage.image,
 			.viewType = vk::ImageViewType::e2D,
-			.format = targetTexture->imageViewCreateInfo.format,
+			.format = targetImageInfo->format,
 			.subresourceRange = subresourceRange
 		};
 
@@ -63,7 +64,7 @@ namespace drk::Scenes::Renderers {
 		vk::ImageCreateInfo depthImageCreateInfo{
 			.imageType = vk::ImageType::e2D,
 			.format = deviceContext.DepthFormat,
-			.extent = {targetTexture->imageCreateInfo.extent.width, targetTexture->imageCreateInfo.extent.height, 1},
+			.extent = {targetImageInfo->extent.width, targetImageInfo->extent.height, 1},
 			.mipLevels = 1,
 			.arrayLayers = 1,
 			.samples = deviceContext.MaxSampleCount,
@@ -102,26 +103,29 @@ namespace drk::Scenes::Renderers {
 
 	}
 
-	void SceneRenderer::createFramebuffer() {
-		std::array<vk::ImageView, 3> attachments{
-			colorTexture.imageView,
-			depthTexture.imageView,
-			targetTexture->imageView
-		};
-		vk::FramebufferCreateInfo framebufferCreateInfo = {
-			.renderPass = renderPass,
-			.attachmentCount = (uint32_t) attachments.size(),
-			.pAttachments = attachments.data(),
-			.width = targetTexture->imageCreateInfo.extent.width,
-			.height = targetTexture->imageCreateInfo.extent.height,
-			.layers = 1
-		};
-		framebuffer = deviceContext.device.createFramebuffer(framebufferCreateInfo);
+	void SceneRenderer::createFramebuffers() {
+		for (const auto& swapChainImageView: targetImageViews) {
+			std::array<vk::ImageView, 3> attachments{
+				colorTexture->imageView,
+				depthTexture->imageView,
+				swapChainImageView
+			};
+			vk::FramebufferCreateInfo framebufferCreateInfo = {
+				.renderPass = renderPass,
+				.attachmentCount = (uint32_t) attachments.size(),
+				.pAttachments = attachments.data(),
+				.width = targetImageInfo->extent.width,
+				.height = targetImageInfo->extent.height,
+				.layers = 1
+			};
+			auto framebuffer = deviceContext.device.createFramebuffer(framebufferCreateInfo);
+			framebuffers.push_back(framebuffer);
+		}
 	}
 
 	void SceneRenderer::createRenderPass() {
 		vk::AttachmentDescription colorAttachment = {
-			.format = targetTexture->imageCreateInfo.format,
+			.format = targetImageInfo->format,
 			//TODO: Use configurable sample count
 			.samples = vk::SampleCountFlagBits::e8,
 			.loadOp = vk::AttachmentLoadOp::eClear,
@@ -155,7 +159,7 @@ namespace drk::Scenes::Renderers {
 		};
 
 		vk::AttachmentDescription resolvedColorAttachment = {
-			.format = targetTexture->imageViewCreateInfo.format,
+			.format = targetImageInfo->format,
 			.samples = vk::SampleCountFlagBits::e1,
 			.loadOp = vk::AttachmentLoadOp::eClear,
 			.storeOp = vk::AttachmentStoreOp::eStore,
@@ -206,33 +210,42 @@ namespace drk::Scenes::Renderers {
 
 		renderPass = deviceContext.device.createRenderPass(renderPassCreationInfo);
 	}
-	void SceneRenderer::recreatePipeLine() {
-		if ((VkRenderPass) renderPass != VK_NULL_HANDLE) {
-			deviceContext.device.destroyPipeline(pipeline);
-			deviceContext.device.destroyRenderPass(renderPass);
-			destroyFramebuffer();
-			destroyFramebufferResources();
-		}
-
+	void SceneRenderer::setTargetImageViews(
+		Devices::ImageInfo targetImageInfo,
+		std::vector<vk::ImageView> targetImageViews
+	) {
+		meshPipeline->destroyPipeline();
+		destroyFramebuffers();
+		destroyRenderPass();
 		createRenderPass();
+
+		vk::Viewport viewport;
+		vk::Rect2D scissor;
+
+		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
+			{targetImageInfo.extent.width, targetImageInfo.extent.height},
+			viewport,
+			scissor
+		);
+		meshPipeline->configure(
+			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
+				graphicsPipelineCreateInfo.renderPass = renderPass;
+				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
+			}
+		);
+
 		createFramebufferResources();
-		createFramebuffer();
+		createFramebuffers();
 	}
-	void SceneRenderer::Render() {
-
-	}
-	void SceneRenderer::render(const vk::CommandBuffer& commandBuffer) {
-
+	void SceneRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) {
 		vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
 			.renderPass = renderPass,
-			.framebuffer = framebuffer,
+			.framebuffer = framebuffers[targetImageIndex],
 			.renderArea = {
 				0,
 				0,
-				{
-					targetTexture->imageCreateInfo.extent.width,
-					targetTexture->imageCreateInfo.extent.height
-				}},
+				targetImageInfo.value().extent
+			},
 			.clearValueCount = 0u,
 			.pClearValues = nullptr,
 		};
@@ -249,34 +262,48 @@ namespace drk::Scenes::Renderers {
 		uint32_t firstIndex = 0u;
 		uint32_t vertexOffset = 0u;
 
-		draws.each([&](entt::entity drawEntity, const Draws::SceneDraw& draw) {
-			if (previousDrawSystem != draw.drawSystem) {
-				//todo: fetch previousDrawSystem suitable pipeline
-				const auto& pipeline = meshPipeline;
-				pipeline->bind(commandBuffer);
-			}
-
-			if (previousSceneDraw->indexBufferView != draw.indexBufferView) {
-				if (previousSceneDraw != nullptr) {
-					const auto& bufferInfo = previousDrawSystem->GetVertexBufferInfo(previousDrawEntity);
-					commandBuffer.bindIndexBuffer(previousSceneDraw->indexBufferView->buffer.buffer, 0, vk::IndexType::eUint32);
-					commandBuffer.bindVertexBuffers(0, 1, &previousSceneDraw->vertexBufferView->buffer.buffer, &previousSceneDraw->vertexBufferView->byteOffset);
-					commandBuffer.drawIndexed(
-						bufferInfo.indexCount,
-						instanceCount,
-						bufferInfo.firstIndex,
-						bufferInfo.vertexOffset,
-						firstInstance
-					);
+		draws.each(
+			[&](entt::entity drawEntity, const Draws::SceneDraw& draw) {
+				if (previousDrawSystem != draw.drawSystem) {
+					//todo: fetch previousDrawSystem suitable pipeline
+					const auto& pipeline = meshPipeline;
+					pipeline->bind(commandBuffer);
 				}
-				instanceCount = 0u;
-			}
 
-			previousSceneDraw = &draw;
-			instanceCount++;
-			firstInstance++;
-		});
+				if (previousSceneDraw->indexBufferView != draw.indexBufferView) {
+					if (previousSceneDraw != nullptr) {
+						const auto& bufferInfo = previousDrawSystem->GetVertexBufferInfo(previousDrawEntity);
+						commandBuffer.bindIndexBuffer(
+							previousSceneDraw->indexBufferView->buffer.buffer,
+							0,
+							vk::IndexType::eUint32
+						);
+						commandBuffer.bindVertexBuffers(
+							0,
+							1,
+							&previousSceneDraw->vertexBufferView->buffer.buffer,
+							&previousSceneDraw->vertexBufferView->byteOffset
+						);
+						commandBuffer.drawIndexed(
+							bufferInfo.indexCount,
+							instanceCount,
+							bufferInfo.firstIndex,
+							bufferInfo.vertexOffset,
+							firstInstance
+						);
+					}
+					instanceCount = 0u;
+				}
+
+				previousSceneDraw = &draw;
+				instanceCount++;
+				firstInstance++;
+			}
+		);
 
 		commandBuffer.endRenderPass();
+	}
+	void SceneRenderer::destroyRenderPass() {
+		deviceContext.device.destroyRenderPass(renderPass);
 	}
 }

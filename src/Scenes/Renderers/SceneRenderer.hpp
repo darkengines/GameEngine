@@ -6,6 +6,7 @@
 #include "../../Renderers/Renderer.hpp"
 #include "../../Engine/EngineState.hpp"
 #include "../../Meshes/Pipelines/MeshPipeline.hpp"
+#include "../../Devices/ImageInfo.hpp"
 
 
 namespace drk::Scenes::Renderers {
@@ -13,29 +14,28 @@ namespace drk::Scenes::Renderers {
 	protected:
 		entt::registry& registry;
 		const Devices::DeviceContext& deviceContext;
-		Engine::EngineState& engineState;
-		Devices::Texture colorTexture;
-		Devices::Texture depthTexture;
-		vk::Framebuffer framebuffer;
-		std::optional<Devices::Texture> targetTexture;
+		std::optional<Devices::Texture> colorTexture;
+		std::optional<Devices::Texture> depthTexture;
+		std::vector<vk::Framebuffer> framebuffers;
+		std::optional<Devices::ImageInfo> targetImageInfo;
+		std::vector<vk::ImageView> targetImageViews;
 		std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline;
 		vk::RenderPass renderPass;
 	public:
 		SceneRenderer(
 			const Devices::DeviceContext& deviceContext,
-			drk::Engine::EngineState& engineState,
 			entt::registry& registry,
 			std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline
 		);
-		SceneRenderer::~SceneRenderer();
-		void Render();
+		~SceneRenderer();
+		void render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer);
+		void setTargetImageViews(Devices::ImageInfo targetImageInfo, std::vector<vk::ImageView> targetImageViews);
 	protected:
 		void createFramebufferResources();
 		void destroyFramebufferResources();
-		void createFramebuffer();
-		void destroyFramebuffer();
+		void createFramebuffers();
+		void destroyFramebuffers();
 		void createRenderPass();
-		void recreatePipeLine();
-		void render(const vk::CommandBuffer& commandBuffer);
+		void destroyRenderPass();
 	};
 }

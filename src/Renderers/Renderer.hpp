@@ -3,7 +3,7 @@
 
 namespace drk::Renderers {
 	class Renderer {
-
+		void Render();
 	};
 }
 

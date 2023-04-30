@@ -42,6 +42,7 @@ namespace drk::Graphics {
 		static Devices::Texture
 		BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, const Devices::Swapchain& swapchain);
 		Devices::Texture GetSceneRenderTargetTexture() const { return SceneRenderTargetTexture; }
+		const Devices::Swapchain& GetSwapchain() const;
 	protected:
 		Devices::DeviceContext& DeviceContext;
 		Engine::EngineState& EngineState;

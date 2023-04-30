@@ -10,6 +10,7 @@ namespace drk::Points {
 	class PointSystem : public Systems::System<Models::Point, Components::Point>, public Draws::DrawSystem {
 	public:
 		void Update(Models::Point& model, const Components::Point& point) override;
+		void UpdateDraws();
 		void EmitDraws();
 		void UpdateDraw(entt::entity drawEntity, int drawIndex);
 	};

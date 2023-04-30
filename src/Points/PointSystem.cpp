@@ -4,7 +4,6 @@
 #include "../Cameras/Camera.hpp"
 #include "../Spatials/Spatial.hpp"
 #include "Components/PointDraw.hpp"
-#include "../Draws/Draw.hpp"
 #include "Models/PointDraw.hpp"
 #include "../Scenes/Draws/SceneDraw.hpp"
 #include "PointPrimitivePipeline.hpp"
@@ -52,5 +51,8 @@ namespace drk::Points {
 				registry.emplace<Models::PointDraw>(entity, pointDraw);
 			}
 		);
+	}
+	void PointSystem::UpdateDraws() {
+
 	}
 }

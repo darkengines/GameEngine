@@ -26,7 +26,10 @@ namespace drk::Applications {
 		Controllers::FlyCamController& flyCamController,
 		UserInterfaces::UserInterface& userInterface,
 		entt::registry& registry,
-		Graphics::MeshPipeline& mainRenderContext
+		UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer,
+		Scenes::Renderers::SceneRenderer& sceneRenderer,
+		Scenes::SceneSystem& sceneSystem,
+		Points::PointSystem& pointSystem
 	)
 		: window(window),
 		  deviceContext(deviceContext),
@@ -43,7 +46,10 @@ namespace drk::Applications {
 		  flyCamController(flyCamController),
 		  userInterface(userInterface),
 		  registry(registry),
-		  mainRenderContext(mainRenderContext) {
+		  userInterfaceRenderer(userInterfaceRenderer),
+		  sceneRenderer(sceneRenderer),
+		  sceneSystem(sceneSystem),
+		  pointSystem(pointSystem){
 
 		const auto& glfwWindow = window.GetWindow();
 		glfwSetWindowUserPointer(glfwWindow, this);
@@ -81,8 +87,21 @@ namespace drk::Applications {
 
 		ImGui::FileBrowser fileBrowser;
 
+		const auto swapchain = graphics.GetSwapchain();
+		userInterfaceRenderer.SetTargetImageViews(
+			{
+				.extent= swapchain.extent,
+				.format= swapchain.imageFormat
+			}, swapchain.imageViews
+		);
+
 		auto sceneTexture = graphics.GetSceneRenderTargetTexture();
-		mainRenderContext.setTarget(sceneTexture);
+		sceneRenderer.setTargetImageViews(
+			{
+				.extent= {sceneTexture.imageCreateInfo.extent.width, sceneTexture.imageCreateInfo.extent.height},
+				.format= sceneTexture.imageCreateInfo.format
+			}, std::vector<vk::ImageView>{sceneTexture.imageView}
+		);
 
 		auto sceneTextureImageDescriptorSet = ImGui_ImplVulkan_AddTexture(
 			engineState.GetDefaultTextureSampler(),
@@ -175,11 +194,13 @@ namespace drk::Applications {
 			cameraSystem.UpdateCameras();
 			globalSystem.Update();
 
+			sceneSystem.UpdateDraws();
+			pointSystem.UpdateDraws();
 			//Clear frame
 			registry.clear<Objects::Dirty<Spatials::Spatial>>();
 
 			//Renders
-			mainRenderContext.render(frameState.commandBuffer);
+			sceneRenderer.render(0, frameState.commandBuffer);
 
 			Devices::Device::transitionLayout(
 				frameState.commandBuffer,
@@ -189,7 +210,7 @@ namespace drk::Applications {
 				vk::ImageLayout::eShaderReadOnlyOptimal,
 				1
 			);
-			graphics.Render(frameState.commandBuffer, swapchainImageIndex);
+			userInterfaceRenderer.Render(frameState.commandBuffer, swapchainImageIndex);
 
 			frameState.commandBuffer.end();
 
