@@ -27,6 +27,7 @@ namespace drk::Meshes {
 		void StoreMeshes();
 		void EmitDraws();
 		void UpdateDraw(entt::entity drawEntity, int drawIndex);
+		void UpdateDraws() { throw std::runtime_error("Not supported"); }
 		Draws::DrawVertexBufferInfo GetVertexBufferInfo(entt::entity drawEntity);
 	};
 }

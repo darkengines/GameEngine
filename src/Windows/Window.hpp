@@ -28,7 +28,7 @@ namespace drk::Windows {
 		GLFWwindow* GetWindow() const { return window; };
 		vk::Extent2D GetExtent() const {
 			vk::Extent2D actualExtent;
-			glfwGetWindowSize(window, (int*) &actualExtent.width, (int*) &actualExtent.height);
+			glfwGetFramebufferSize(window, (int*) &actualExtent.width, (int*) &actualExtent.height);
 			return actualExtent;
 		};
 

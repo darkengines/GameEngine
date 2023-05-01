@@ -17,15 +17,14 @@ namespace drk::UserInterfaces::Renderers {
 		static std::vector<const char*> RequiredInstanceExtensions;
 		static std::vector<const char*> RequiredDeviceExtensions;
 
-		UserInterfaceRenderer(
+		explicit UserInterfaceRenderer(
 			Devices::DeviceContext& deviceContext,
-			Engine::EngineState& engineState,
-			Windows::Window& windows
+			Engine::EngineState& engineState
 		);
 		~UserInterfaceRenderer();
 
 		void SetExtent(const vk::Extent2D& extent);
-		void Render(const vk::CommandBuffer& commandBuffer, uint32_t swapchainImageIndex) const;
+		void render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer);
 		void Present(uint32_t swapchainImageIndex);
 		void SetTargetImageViews(Devices::ImageInfo targetImageInfo, std::vector<vk::ImageView> targetImageViews);
 		std::optional<Devices::Texture> GetSceneRenderTargetTexture() const { return SceneRenderTargetTexture; }

@@ -30,6 +30,11 @@ namespace drk::Scenes::Renderers {
 		~SceneRenderer();
 		void render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer);
 		void setTargetImageViews(Devices::ImageInfo targetImageInfo, std::vector<vk::ImageView> targetImageViews);
+		static Devices::Texture BuildSceneRenderTargetTexture(
+			const Devices::DeviceContext& deviceContext,
+			vk::Extent3D extent
+		);
+		void setTargetExtent(vk::Extent2D extent2D);
 	protected:
 		void createFramebufferResources();
 		void destroyFramebufferResources();

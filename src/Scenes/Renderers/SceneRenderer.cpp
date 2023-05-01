@@ -306,4 +306,67 @@ namespace drk::Scenes::Renderers {
 	void SceneRenderer::destroyRenderPass() {
 		deviceContext.device.destroyRenderPass(renderPass);
 	}
+	Devices::Texture
+	SceneRenderer::BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent) {
+		vk::ImageCreateInfo imageCreateInfo{
+			.imageType = vk::ImageType::e2D,
+			.format = vk::Format::eR8G8B8A8Srgb,
+			.extent = extent,
+			.mipLevels = 1,
+			.arrayLayers = 1,
+			.samples = vk::SampleCountFlagBits::e1,
+			.usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
+			.sharingMode = vk::SharingMode::eExclusive,
+		};
+		auto memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal;
+		auto mainFramebufferImage = deviceContext.createImage(
+			imageCreateInfo,
+			memoryProperties
+		);
+
+		vk::ImageSubresourceRange subresourceRange = {
+			.aspectMask = vk::ImageAspectFlagBits::eColor,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1
+		};
+
+		vk::ImageViewCreateInfo imageViewCreateInfo = {
+			.image = mainFramebufferImage.image,
+			.viewType = vk::ImageViewType::e2D,
+			.format = vk::Format::eR8G8B8A8Srgb,
+			.subresourceRange = subresourceRange
+		};
+
+		auto mainFramebufferImageView = deviceContext.device.createImageView(imageViewCreateInfo);
+
+		Devices::Texture target = {
+			.image = mainFramebufferImage,
+			.imageView = mainFramebufferImageView,
+			.imageCreateInfo = imageCreateInfo,
+			.imageViewCreateInfo = imageViewCreateInfo,
+			.memoryProperties = memoryProperties
+		};
+
+		return target;
+	}
+	void SceneRenderer::setTargetExtent(vk::Extent2D extent) {
+		meshPipeline->destroyPipeline();
+
+		vk::Viewport viewport;
+		vk::Rect2D scissor;
+
+		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
+			{extent.width, extent.height},
+			viewport,
+			scissor
+		);
+		meshPipeline->configure(
+			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
+				graphicsPipelineCreateInfo.renderPass = renderPass;
+				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
+			}
+		);
+	}
 }

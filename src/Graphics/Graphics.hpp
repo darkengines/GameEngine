@@ -21,11 +21,9 @@ namespace drk::Graphics {
 		);
 		~Graphics();
 
-		void SetExtent(const vk::Extent2D& extent);
-
-		uint32_t AcuireSwapchainImageIndex();
+		vk::ResultValue<uint32_t> AcuireSwapchainImageIndex();
 		void Render(const vk::CommandBuffer& commandBuffer, uint32_t swapchainImageIndex) const;
-		void Present(uint32_t swapchainImageIndex);
+		vk::Result Present(uint32_t swapchainImageIndex);
 		static vk::PipelineDepthStencilStateCreateInfo DefaultPipelineDepthStencilStateCreateInfo();
 		static vk::PipelineColorBlendAttachmentState DefaultPipelineColorBlendAttachmentState();
 		static vk::PipelineColorBlendStateCreateInfo
@@ -39,35 +37,16 @@ namespace drk::Graphics {
 			const std::vector<vk::VertexInputBindingDescription>& vertexInputBindingDescriptions,
 			const std::vector<vk::VertexInputAttributeDescription>& vertexInputAttributeDescriptions
 		);
-		static Devices::Texture
-		BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, const Devices::Swapchain& swapchain);
-		Devices::Texture GetSceneRenderTargetTexture() const { return SceneRenderTargetTexture; }
 		const Devices::Swapchain& GetSwapchain() const;
+		void RecreateSwapchain(vk::Extent2D extent);
 	protected:
 		Devices::DeviceContext& DeviceContext;
 		Engine::EngineState& EngineState;
-		vk::Extent2D Extent;
-		bool ExtentChanged = false;
 		Devices::Swapchain Swapchain;
-		Devices::Texture SceneRenderTargetTexture;
-
-		vk::RenderPass MainRenderPass;
-
-		Devices::Texture MainFramebufferTexture;
-		Devices::Texture MainFramebufferDepthTexture;
-
-		std::vector<vk::Framebuffer> MainFramebuffers;
 
 		vk::DescriptorPool ImGuiDescriptorPool;
 
-		void DestroyMainFramebufferResources();
-		void DestroyMainFramebuffer();
-		void RecreateSwapchain(vk::Extent2D extent);
 		void DestroySwapchain();
-		void CreateSwapchain(vk::Extent2D& extent);
-		void CreateMainRenderPass();
-		void CreateMainFramebufferResources();
-		void createMainFramebuffers();
-		void SetupImgui();
+		void CreateSwapchain(const vk::Extent2D& extent);
 	};
 }

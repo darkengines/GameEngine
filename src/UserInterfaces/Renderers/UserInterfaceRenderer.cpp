@@ -6,8 +6,7 @@
 namespace drk::UserInterfaces::Renderers {
 	UserInterfaceRenderer::UserInterfaceRenderer(
 		Devices::DeviceContext& deviceContext,
-		Engine::EngineState& engineState,
-		Windows::Window& window
+		Engine::EngineState& engineState
 	) : DeviceContext(deviceContext), EngineState(engineState) {
 		SetupImgui();
 	}
@@ -241,17 +240,17 @@ namespace drk::UserInterfaces::Renderers {
 
 		vk::DescriptorPoolSize poolSizes[] =
 			{
-				{vk::DescriptorType::eSampler, 1000},
+				{vk::DescriptorType::eSampler,              1000},
 				{vk::DescriptorType::eCombinedImageSampler, 1000},
-				{vk::DescriptorType::eSampledImage, 1000},
-				{vk::DescriptorType::eStorageImage, 1000},
-				{vk::DescriptorType::eUniformTexelBuffer, 1000},
-				{vk::DescriptorType::eStorageTexelBuffer, 1000},
-				{vk::DescriptorType::eUniformBuffer, 1000},
-				{vk::DescriptorType::eStorageBuffer, 1000},
+				{vk::DescriptorType::eSampledImage,         1000},
+				{vk::DescriptorType::eStorageImage,         1000},
+				{vk::DescriptorType::eUniformTexelBuffer,   1000},
+				{vk::DescriptorType::eStorageTexelBuffer,   1000},
+				{vk::DescriptorType::eUniformBuffer,        1000},
+				{vk::DescriptorType::eStorageBuffer,        1000},
 				{vk::DescriptorType::eUniformBufferDynamic, 1000},
 				{vk::DescriptorType::eStorageBufferDynamic, 1000},
-				{vk::DescriptorType::eInputAttachment, 1000}
+				{vk::DescriptorType::eInputAttachment,      1000}
 			};
 
 		vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
@@ -293,7 +292,7 @@ namespace drk::UserInterfaces::Renderers {
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
 	}
 
-	void UserInterfaceRenderer::Render(const vk::CommandBuffer& commandBuffer, uint32_t swapchainImageIndex) const {
+	void UserInterfaceRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) {
 		ImGui::Render();
 
 		const auto& frameState = EngineState.getCurrentFrameState();
@@ -311,7 +310,7 @@ namespace drk::UserInterfaces::Renderers {
 
 		vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
 			.renderPass = MainRenderPass,
-			.framebuffer = MainFramebuffers[swapchainImageIndex],
+			.framebuffer = MainFramebuffers[targetImageIndex],
 			.renderArea = {0, 0, targetImageInfo->extent},
 			.clearValueCount = (uint32_t) clearValues.size(),
 			.pClearValues = clearValues.data(),

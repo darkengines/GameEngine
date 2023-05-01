@@ -37,65 +37,6 @@ namespace drk::Meshes::Pipelines {
 		deviceContext.device.destroyShaderModule(mainVertexShaderModule);
 	}
 
-	vk::GraphicsPipelineCreateInfo
-	MeshPipeline::getDefaultGraphicPipelineCreateInfo(std::function<void(vk::GraphicsPipelineCreateInfo&)> configure) {
-		vk::PipelineShaderStageCreateInfo vertexPipelineShaderStageCreateInfo = {
-			.stage = vk::ShaderStageFlagBits::eVertex,
-			.module = mainVertexShaderModule,
-			.pName = "main"
-		};
-		vk::PipelineShaderStageCreateInfo fragmentPipelineShaderStageCreateInfo = {
-			.stage = vk::ShaderStageFlagBits::eFragment,
-			.module = mainFragmentShaderModule,
-			.pName = "main"
-		};
-
-		std::vector<vk::PipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos = {
-			vertexPipelineShaderStageCreateInfo,
-			fragmentPipelineShaderStageCreateInfo
-		};
-
-		vk::PipelineColorBlendAttachmentState pipelineColorBlendAttachmentState;
-		std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions = Meshes::Vertex::getBindingDescriptions();
-		std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions = Meshes::Vertex::getAttributeDescriptions();
-		vk::Viewport viewport;
-		vk::Rect2D scissor;
-
-		const auto& pipelineVertexInputStateCreateInfo = Graphics::Graphics::DefaultPipelineVertexInputStateCreateInfo(
-			vertexInputBindingDescriptions,
-			vertexInputAttributeDescriptions
-		);
-		const auto& pipelineInputAssemblyStateCreateInfo = Graphics::Graphics::DefaultPipelineInputAssemblyStateCreateInfo();
-		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{1024u, 768u},
-			viewport,
-			scissor
-		);
-		const auto& pipelineRasterizationStateCreateInfo = Graphics::Graphics::DefaultPipelineRasterizationStateCreateInfo();
-		auto pipelineMultisampleStateCreateInfo = Graphics::Graphics::DefaultPipelineMultisampleStateCreateInfo();
-		//TODO: Use configurable sample count
-		pipelineMultisampleStateCreateInfo.rasterizationSamples = vk::SampleCountFlagBits::e8;
-		const auto& pipelineColorBlendStateCreateInfo = Graphics::Graphics::DefaultPipelineColorBlendStateCreateInfo(
-			pipelineColorBlendAttachmentState
-		);
-		const auto& pipelineDepthStencilStateCreateInfo = Graphics::Graphics::DefaultPipelineDepthStencilStateCreateInfo();
-
-		vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo = {
-			.stageCount = static_cast<uint32_t>(pipelineShaderStageCreateInfos.size()),
-			.pStages = pipelineShaderStageCreateInfos.data(),
-			.pVertexInputState = &pipelineVertexInputStateCreateInfo,
-			.pInputAssemblyState = &pipelineInputAssemblyStateCreateInfo,
-			.pViewportState = &pipelineViewportStateCreateInfo,
-			.pRasterizationState = &pipelineRasterizationStateCreateInfo,
-			.pMultisampleState = &pipelineMultisampleStateCreateInfo,
-			.pDepthStencilState = &pipelineDepthStencilStateCreateInfo,
-			.pColorBlendState = &pipelineColorBlendStateCreateInfo,
-			.layout = pipelineLayout,
-		};
-
-		return graphicsPipelineCreateInfo;
-	}
-
 	void MeshPipeline::createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo) {
 
 		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicPipelineCreateInfo);
@@ -183,7 +124,7 @@ namespace drk::Meshes::Pipelines {
 		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/main.vert.spv");
 		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/main.frag.spv");
 	}
-	void MeshPipeline::bind(const vk::CommandBuffer& commandBuffer) const {
+	void MeshPipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();
 		const auto& drawDescriptorSet = frameState.getUniformStore<Models::MeshDraw>().descriptorSet;
 		std::array<vk::DescriptorSet, 4> descriptorSets{

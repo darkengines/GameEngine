@@ -31,29 +31,17 @@ namespace drk::Graphics {
 		Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
 		Windows::Window& window
-	) : DeviceContext(deviceContext), EngineState(engineState), Extent(window.GetExtent()) {
+	) : DeviceContext(deviceContext), EngineState(engineState) {
 
-		CreateSwapchain(Extent);
-		SceneRenderTargetTexture = BuildSceneRenderTargetTexture(DeviceContext, Swapchain);
-		CreateMainRenderPass();
-		CreateMainFramebufferResources();
-		createMainFramebuffers();
-		SetupImgui();
+		CreateSwapchain(window.GetExtent());
 	}
 
 	Graphics::~Graphics() {
 		DeviceContext.device.destroyDescriptorPool(ImGuiDescriptorPool);
-		ImGui_ImplVulkan_Shutdown();
-
-		DestroyMainFramebuffer();
-		DeviceContext.device.destroyRenderPass(MainRenderPass);
-
-		DeviceContext.destroyTexture(SceneRenderTargetTexture);
-		DestroyMainFramebufferResources();
 		DestroySwapchain();
 	}
 
-	void Graphics::CreateSwapchain(vk::Extent2D& extent) {
+	void Graphics::CreateSwapchain(const vk::Extent2D& extent) {
 		Swapchain = Devices::Device::createSwapchain(
 			DeviceContext.device,
 			DeviceContext.PhysicalDevice,
@@ -68,17 +56,8 @@ namespace drk::Graphics {
 
 	void Graphics::RecreateSwapchain(vk::Extent2D extent) {
 		DeviceContext.device.waitIdle();
-
-		DestroyMainFramebuffer();
-		DeviceContext.device.destroyRenderPass(MainRenderPass);
-		DestroyMainFramebufferResources();
 		DestroySwapchain();
-
 		CreateSwapchain(extent);
-		CreateMainRenderPass();
-		CreateMainFramebufferResources();
-		createMainFramebuffers();
-
 		DeviceContext.device.waitIdle();
 	}
 
@@ -202,12 +181,7 @@ namespace drk::Graphics {
 		return vertexInputInfo;
 	}
 
-	void Graphics::SetExtent(const vk::Extent2D& extent) {
-		Extent = extent;
-		ExtentChanged = true;
-	}
-
-	void Graphics::Present(uint32_t swapchainImageIndex) {
+	vk::Result Graphics::Present(uint32_t swapchainImageIndex) {
 		const auto& frameState = EngineState.getCurrentFrameState();
 		const auto& fence = frameState.fence;
 		const auto& imageReadySemaphore = frameState.imageReadySemaphore;
@@ -223,35 +197,17 @@ namespace drk::Graphics {
 			.pResults = &presentResults,
 		};
 
-		vk::Result presentResult;
-		bool outOfDate = false;
-		try {
-			presentResult = DeviceContext.PresentQueue.presentKHR(presentInfoKHR);
-		} catch (const vk::OutOfDateKHRError& e) {
-			outOfDate = true;
-		}
-		if (outOfDate || presentResult == vk::Result::eSuboptimalKHR ||
-			ExtentChanged) {
-			ExtentChanged = false;
-			RecreateSwapchain(Extent);
-			return;
-		}
+		return DeviceContext.PresentQueue.presentKHR(presentInfoKHR);
 	}
-	uint32_t Graphics::AcuireSwapchainImageIndex() {
+	vk::ResultValue<uint32_t> Graphics::AcuireSwapchainImageIndex() {
 		const auto& frameState = EngineState.getCurrentFrameState();
-		auto swapchainImageIndex = DeviceContext.device.acquireNextImageKHR(
+		auto result = DeviceContext.device.acquireNextImageKHR(
 			Swapchain.swapchain,
 			UINT64_MAX,
 			frameState.imageReadySemaphore,
 			VK_NULL_HANDLE
 		);
-		if (swapchainImageIndex.result == vk::Result::eSuboptimalKHR ||
-			swapchainImageIndex.result == vk::Result::eErrorOutOfDateKHR || ExtentChanged) {
-			ExtentChanged = false;
-			RecreateSwapchain(Extent);
-			return 0;
-		}
-		return swapchainImageIndex.value;
+		return result;
 	}
 	const Devices::Swapchain& Graphics::GetSwapchain() const {
 		return Swapchain;

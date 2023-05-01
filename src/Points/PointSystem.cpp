@@ -9,6 +9,10 @@
 #include "PointPrimitivePipeline.hpp"
 
 namespace drk::Points {
+	PointSystem::PointSystem(Engine::EngineState& engineState, entt::registry& registry)
+		: Systems::System<Models::Point, Components::Point>(engineState, registry) {
+
+	}
 	void PointSystem::Update(Models::Point& model, const Components::Point& point) {
 		const auto& materialModel = registry.get<Stores::StoreItem<Materials::Models::Material>>(point.materialEntity);
 		model.materialItemLocation = materialModel.frameStoreItems[engineState.getFrameIndex()];
@@ -52,7 +56,7 @@ namespace drk::Points {
 			}
 		);
 	}
-	void PointSystem::UpdateDraws() {
-
+	Draws::DrawVertexBufferInfo PointSystem::GetVertexBufferInfo(entt::entity drawEntity) {
+		return Draws::DrawVertexBufferInfo{0, 0, 0};
 	}
 }

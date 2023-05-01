@@ -15,8 +15,7 @@ namespace drk::Meshes::Pipelines {
 		);
 		~MeshPipeline();
 
-		void render(const vk::CommandBuffer& commandBuffer) const;
-		void bind(const vk::CommandBuffer& commandBuffer) const;
+		void bind(const vk::CommandBuffer& commandBuffer);
 		void configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configure);
 		void destroyPipeline();
 

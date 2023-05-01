@@ -99,5 +99,7 @@ namespace drk::Applications {
 		static void SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 		void RenderEntityTree(entt::entity);
 		void renderProperties(entt::entity entity);
+		bool shouldRecreateSwapchain = false;
+		vk::Extent2D windowExtent;
 	};
 }

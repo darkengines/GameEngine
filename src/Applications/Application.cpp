@@ -49,7 +49,8 @@ namespace drk::Applications {
 		  userInterfaceRenderer(userInterfaceRenderer),
 		  sceneRenderer(sceneRenderer),
 		  sceneSystem(sceneSystem),
-		  pointSystem(pointSystem){
+		  pointSystem(pointSystem),
+		  windowExtent(window.GetExtent()) {
 
 		const auto& glfwWindow = window.GetWindow();
 		glfwSetWindowUserPointer(glfwWindow, this);
@@ -95,20 +96,20 @@ namespace drk::Applications {
 			}, swapchain.imageViews
 		);
 
-		auto sceneTexture = graphics.GetSceneRenderTargetTexture();
+		std::optional<Devices::Texture> sceneTexture;
+		vk::Extent3D sceneExtent{0, 0, 0};
 		sceneRenderer.setTargetImageViews(
 			{
-				.extent= {sceneTexture.imageCreateInfo.extent.width, sceneTexture.imageCreateInfo.extent.height},
-				.format= sceneTexture.imageCreateInfo.format
-			}, std::vector<vk::ImageView>{sceneTexture.imageView}
+				.extent= {sceneTexture->imageCreateInfo.extent.width, sceneTexture->imageCreateInfo.extent.height},
+				.format= sceneTexture->imageCreateInfo.format
+			}, std::vector<vk::ImageView>{sceneTexture->imageView}
 		);
 
 		auto sceneTextureImageDescriptorSet = ImGui_ImplVulkan_AddTexture(
 			engineState.GetDefaultTextureSampler(),
-			sceneTexture.imageView,
+			sceneTexture->imageView,
 			static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal)
 		);
-
 		while (!glfwWindowShouldClose(window.GetWindow())) {
 			glfwPollEvents();
 
@@ -116,7 +117,11 @@ namespace drk::Applications {
 			const auto& fence = frameState.fence;
 
 			const auto& waitForFenceResult = deviceContext.device.waitForFences(1, &fence, VK_TRUE, UINT64_MAX);
-			auto swapchainImageIndex = graphics.AcuireSwapchainImageIndex();
+			auto swapchainImageAcquisitionResult = graphics.AcuireSwapchainImageIndex();
+			if (swapchainImageAcquisitionResult.result == vk::Result::eSuboptimalKHR ||
+				swapchainImageAcquisitionResult.result == vk::Result::eErrorOutOfDateKHR) {
+				graphics.RecreateSwapchain(windowExtent);
+			}
 			const auto& resetFenceResult = deviceContext.device.resetFences(1, &fence);
 
 			frameState.commandBuffer.reset();
@@ -147,6 +152,36 @@ namespace drk::Applications {
 
 				ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
 				ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+				vk::Extent2D newSceneExtent = {
+					static_cast<uint32_t>(viewportPanelSize.x),
+					static_cast<uint32_t>(viewportPanelSize.y)
+				};
+				if (sceneExtent.width != newSceneExtent.width || sceneExtent.height != newSceneExtent.height) {
+					if (sceneExtent.width < newSceneExtent.width || sceneExtent.height < newSceneExtent.height) {
+						sceneTexture = Scenes::Renderers::SceneRenderer::BuildSceneRenderTargetTexture(
+							deviceContext,
+							{
+								newSceneExtent.width,
+								newSceneExtent.height,
+								1
+							}
+						);
+						sceneRenderer.setTargetImageViews(
+							{
+								newSceneExtent,
+								graphics.GetSwapchain().imageFormat,
+							},
+							{sceneTexture->imageView}
+						);
+					} else {
+						sceneRenderer.setTargetExtent(newSceneExtent);
+					}
+					sceneExtent = vk::Extent3D{
+						newSceneExtent.width,
+						newSceneExtent.height,
+						1
+					};
+				}
 				ImGui::Image(sceneTextureImageDescriptorSet, viewportPanelSize);
 				ImGui::End();
 
@@ -168,11 +203,11 @@ namespace drk::Applications {
 			}
 			ImGui::EndFrame();
 
-			//Resources
+			//Resources to GPU
 			textureSystem.UploadTextures();
 			meshSystem.UploadMeshes();
 
-			//Resources
+			//Resources to GPU
 			materialSystem.StoreMaterials();
 			meshSystem.StoreMeshes();
 			spatialSystem.StoreSpatials();
@@ -186,7 +221,7 @@ namespace drk::Applications {
 			spatialSystem.PropagateChanges();
 			cameraSystem.ProcessDirtyItems();
 
-			//Store updates
+			//Store updates to GPU
 			materialSystem.UpdateMaterials();
 			meshSystem.UpdateMeshes();
 			spatialSystem.UpdateSpatials();
@@ -194,23 +229,33 @@ namespace drk::Applications {
 			cameraSystem.UpdateCameras();
 			globalSystem.Update();
 
+			//Emit draws
+			meshSystem.EmitDraws();
+			pointSystem.EmitDraws();
+
+			//Stores draws to GPU
 			sceneSystem.UpdateDraws();
-			pointSystem.UpdateDraws();
+
 			//Clear frame
 			registry.clear<Objects::Dirty<Spatials::Spatial>>();
+
+			if (shouldRecreateSwapchain) {
+				graphics.RecreateSwapchain(windowExtent);
+				shouldRecreateSwapchain = true;
+			}
 
 			//Renders
 			sceneRenderer.render(0, frameState.commandBuffer);
 
 			Devices::Device::transitionLayout(
 				frameState.commandBuffer,
-				sceneTexture.image.image,
-				sceneTexture.imageCreateInfo.format,
+				sceneTexture->image.image,
+				sceneTexture->imageCreateInfo.format,
 				vk::ImageLayout::eUndefined,
 				vk::ImageLayout::eShaderReadOnlyOptimal,
 				1
 			);
-			userInterfaceRenderer.Render(frameState.commandBuffer, swapchainImageIndex);
+			userInterfaceRenderer.render(swapchainImageAcquisitionResult.value, frameState.commandBuffer);
 
 			frameState.commandBuffer.end();
 
@@ -227,7 +272,16 @@ namespace drk::Applications {
 
 			deviceContext.GraphicQueue.submit({submitInfo}, fence);
 
-			graphics.Present(swapchainImageIndex);
+
+			vk::Result presentResult;
+			bool outOfDate = false;
+			try {
+				presentResult = graphics.Present(swapchainImageAcquisitionResult);
+			} catch (const vk::OutOfDateKHRError& e) {
+				outOfDate = true;
+			}
+			shouldRecreateSwapchain = outOfDate || presentResult == vk::Result::eSuboptimalKHR;
+
 			engineState.incrementFrameIndex();
 
 			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
@@ -270,8 +324,11 @@ namespace drk::Applications {
 			glfwGetFramebufferSize(window.GetWindow(), reinterpret_cast<int*>(&width), reinterpret_cast<int*>(&height));
 			glfwWaitEvents();
 		}
-
-		graphics.SetExtent({width, height});
+		if (windowExtent.width != width || windowExtent.height != height) {
+			windowExtent.width = width;
+			windowExtent.height = height;
+			shouldRecreateSwapchain = true;
+		}
 	}
 
 	void Application::SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
