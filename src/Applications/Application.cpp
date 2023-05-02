@@ -98,18 +98,8 @@ namespace drk::Applications {
 
 		std::optional<Devices::Texture> sceneTexture;
 		vk::Extent3D sceneExtent{0, 0, 0};
-		sceneRenderer.setTargetImageViews(
-			{
-				.extent= {sceneTexture->imageCreateInfo.extent.width, sceneTexture->imageCreateInfo.extent.height},
-				.format= sceneTexture->imageCreateInfo.format
-			}, std::vector<vk::ImageView>{sceneTexture->imageView}
-		);
+		std::optional<vk::DescriptorSet> sceneTextureImageDescriptorSet;
 
-		auto sceneTextureImageDescriptorSet = ImGui_ImplVulkan_AddTexture(
-			engineState.GetDefaultTextureSampler(),
-			sceneTexture->imageView,
-			static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal)
-		);
 		while (!glfwWindowShouldClose(window.GetWindow())) {
 			glfwPollEvents();
 
@@ -166,6 +156,14 @@ namespace drk::Applications {
 								1
 							}
 						);
+
+						if (sceneTextureImageDescriptorSet.has_value()) ImGui_ImplVulkan_RemoveTexture(*sceneTextureImageDescriptorSet);
+						sceneTextureImageDescriptorSet = ImGui_ImplVulkan_AddTexture(
+							engineState.GetDefaultTextureSampler(),
+							sceneTexture->imageView,
+							static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal)
+						);
+
 						sceneRenderer.setTargetImageViews(
 							{
 								newSceneExtent,
@@ -182,7 +180,7 @@ namespace drk::Applications {
 						1
 					};
 				}
-				ImGui::Image(sceneTextureImageDescriptorSet, viewportPanelSize);
+				ImGui::Image(*sceneTextureImageDescriptorSet, viewportPanelSize);
 				ImGui::End();
 
 

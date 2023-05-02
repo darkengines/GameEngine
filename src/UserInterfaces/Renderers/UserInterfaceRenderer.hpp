@@ -43,13 +43,15 @@ namespace drk::UserInterfaces::Renderers {
 		std::optional<Devices::Texture> MainFramebufferTexture;
 		std::optional<Devices::Texture> MainFramebufferDepthTexture;
 
+		bool isImGuiInitialized = false;
+
 		void DestroyMainFramebufferResources();
 		void DestroyMainFramebuffer();
-		void CreateMainRenderPass(const vk::RenderPassCreateInfo& renderPassCreateInfo);
+		void CreateMainRenderPass();
 		void CreateMainFramebufferResources();
 		void CreateMainFramebuffers();
 		void SetupImgui();
-		vk::RenderPassCreateInfo GetDefaultRenderPassCreateInfo();
-		void RecreateRenderPass(const vk::RenderPassCreateInfo& renderPassCreateInfo);
+		void RecreateRenderPass();
+		void CreateImguiResources();
 	};
 }

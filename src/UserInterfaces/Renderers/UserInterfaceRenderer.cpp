@@ -7,9 +7,7 @@ namespace drk::UserInterfaces::Renderers {
 	UserInterfaceRenderer::UserInterfaceRenderer(
 		Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState
-	) : DeviceContext(deviceContext), EngineState(engineState) {
-		SetupImgui();
-	}
+	) : DeviceContext(deviceContext), EngineState(engineState) {}
 	UserInterfaceRenderer::~UserInterfaceRenderer() {
 		DeviceContext.device.destroyDescriptorPool(ImGuiDescriptorPool);
 		ImGui_ImplVulkan_Shutdown();
@@ -29,7 +27,15 @@ namespace drk::UserInterfaces::Renderers {
 		if (MainFramebufferDepthTexture.has_value()) DeviceContext.destroyTexture(MainFramebufferDepthTexture.value());
 		if (MainFramebufferTexture.has_value()) DeviceContext.destroyTexture(MainFramebufferTexture.value());
 	}
-	vk::RenderPassCreateInfo UserInterfaceRenderer::GetDefaultRenderPassCreateInfo() {
+	void UserInterfaceRenderer::SetTargetImageViews(
+		Devices::ImageInfo targetImageInfo,
+		std::vector<vk::ImageView> targetImageViews
+	) {
+		this->targetImageInfo = targetImageInfo;
+		this->targetImageViews = targetImageViews;
+		RecreateRenderPass();
+	}
+	void UserInterfaceRenderer::CreateMainRenderPass() {
 		vk::AttachmentDescription colorAttachment = {
 			.format = targetImageInfo->format,
 			//TODO: Use configurable sample count
@@ -105,7 +111,7 @@ namespace drk::UserInterfaces::Renderers {
 			depthAttachment,
 			resolvedColorAttachment
 		};
-		vk::RenderPassCreateInfo renderPassCreationInfo = {
+		vk::RenderPassCreateInfo renderPassCreateInfo = {
 			.attachmentCount = static_cast<uint32_t>(attachments.size()),
 			.pAttachments = attachments.data(),
 			.subpassCount = 1,
@@ -113,32 +119,22 @@ namespace drk::UserInterfaces::Renderers {
 			.dependencyCount = 1,
 			.pDependencies = &dependency,
 		};
-		return renderPassCreationInfo;
-	}
-	void UserInterfaceRenderer::SetTargetImageViews(
-		Devices::ImageInfo targetImageInfo,
-		std::vector<vk::ImageView> targetImageViews
-	) {
-		this->targetImageInfo = targetImageInfo;
-		this->targetImageViews = targetImageViews;
-		RecreateRenderPass(GetDefaultRenderPassCreateInfo());
-	}
-	void UserInterfaceRenderer::CreateMainRenderPass(const vk::RenderPassCreateInfo& renderPassCreateInfo) {
 		auto renderPass = DeviceContext.device.createRenderPass(renderPassCreateInfo);
 		MainRenderPass = renderPass;
 	}
 
-	void UserInterfaceRenderer::RecreateRenderPass(const vk::RenderPassCreateInfo& renderPassCreateInfo) {
+	void UserInterfaceRenderer::RecreateRenderPass() {
 		DeviceContext.device.waitIdle();
-
+		if (isImGuiInitialized) ImGui_ImplVulkan_Shutdown();
 		DestroyMainFramebuffer();
 		if (MainRenderPass) DeviceContext.device.destroyRenderPass(MainRenderPass);
 		if (SceneRenderTargetTexture.has_value()) DeviceContext.destroyTexture(SceneRenderTargetTexture.value());
 		DestroyMainFramebufferResources();
 
 		CreateMainFramebufferResources();
-		CreateMainRenderPass(GetDefaultRenderPassCreateInfo());
+		CreateMainRenderPass();
 		CreateMainFramebuffers();
+		SetupImgui();
 	}
 
 	void UserInterfaceRenderer::CreateMainFramebufferResources() {
@@ -235,9 +231,7 @@ namespace drk::UserInterfaces::Renderers {
 			MainFramebuffers.push_back(framebuffer);
 		}
 	}
-
-	void UserInterfaceRenderer::SetupImgui() {
-
+	void UserInterfaceRenderer::CreateImguiResources() {
 		vk::DescriptorPoolSize poolSizes[] =
 			{
 				{vk::DescriptorType::eSampler,              1000},
@@ -260,7 +254,11 @@ namespace drk::UserInterfaces::Renderers {
 		};
 
 		ImGuiDescriptorPool = DeviceContext.device.createDescriptorPool(descriptorPoolCreateInfo);
-
+	}
+	void UserInterfaceRenderer::SetupImgui() {
+		if (!isImGuiInitialized) {
+			CreateImguiResources();
+		}
 		ImGui_ImplVulkan_InitInfo infos{
 			.Instance = DeviceContext.Instance,
 			.PhysicalDevice = DeviceContext.PhysicalDevice,
@@ -278,18 +276,22 @@ namespace drk::UserInterfaces::Renderers {
 			.CheckVkResultFn = nullptr
 		};
 		ImGui_ImplVulkan_Init(&infos, MainRenderPass);
-		auto commandBuffer = Devices::Device::beginSingleTimeCommands(
-			DeviceContext.device,
-			DeviceContext.CommandPool
-		);
-		ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-		Devices::Device::endSingleTimeCommands(
-			DeviceContext.device,
-			DeviceContext.GraphicQueue,
-			DeviceContext.CommandPool,
-			commandBuffer
-		);
-		ImGui_ImplVulkan_DestroyFontUploadObjects();
+		if (!isImGuiInitialized) {
+			auto commandBuffer = Devices::Device::beginSingleTimeCommands(
+				DeviceContext.device,
+				DeviceContext.CommandPool
+			);
+
+			ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
+			Devices::Device::endSingleTimeCommands(
+				DeviceContext.device,
+				DeviceContext.GraphicQueue,
+				DeviceContext.CommandPool,
+				commandBuffer
+			);
+			ImGui_ImplVulkan_DestroyFontUploadObjects();
+		}
+		isImGuiInitialized = true;
 	}
 
 	void UserInterfaceRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) {

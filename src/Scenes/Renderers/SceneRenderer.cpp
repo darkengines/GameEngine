@@ -214,6 +214,8 @@ namespace drk::Scenes::Renderers {
 		Devices::ImageInfo targetImageInfo,
 		std::vector<vk::ImageView> targetImageViews
 	) {
+		this->targetImageInfo = targetImageInfo;
+		this->targetImageViews = targetImageViews;
 		meshPipeline->destroyPipeline();
 		destroyFramebuffers();
 		destroyRenderPass();
