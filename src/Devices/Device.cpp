@@ -69,7 +69,7 @@ namespace drk::Devices {
 		auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
 		int i = 0;
-		for (const auto& queueFamily : queueFamilies) {
+		for (const auto& queueFamily: queueFamilies) {
 			auto presentSupport = physicalDevice.getSurfaceSupportKHR(i, surface);
 			if (presentSupport) {
 				indices.presentFamily = i;
@@ -118,7 +118,7 @@ namespace drk::Devices {
 	) {
 		auto devices = instance.enumeratePhysicalDevices();
 		if (devices.empty()) throw std::runtime_error("Failed to find GPU with Vulkan support.");
-		for (const auto& device : devices) {
+		for (const auto& device: devices) {
 			if (Device::isDeviceSuitable(device, surface, requiredExtensions)) {
 				return device;
 			}
@@ -141,7 +141,7 @@ namespace drk::Devices {
 			indices.computeFamily.value()
 		};
 		auto queuePriority = 1.0f;
-		for (uint32_t queueFamily : uniqueQueueFamilies) {
+		for (uint32_t queueFamily: uniqueQueueFamilies) {
 			vk::DeviceQueueCreateInfo queueCreateInfo = {
 				.queueFamilyIndex = queueFamily,
 				.queueCount = 1,
@@ -256,7 +256,7 @@ namespace drk::Devices {
 		vk::ImageTiling tiling,
 		vk::FormatFeatureFlags features
 	) {
-		for (auto format : candidates) {
+		for (auto format: candidates) {
 			auto formatProperties = physicalDevice.getFormatProperties(format);
 
 			if (tiling == vk::ImageTiling::eLinear &&
@@ -495,7 +495,7 @@ namespace drk::Devices {
 	}
 
 	vk::SurfaceFormatKHR Device::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats) {
-		for (const auto& availableFormat : availableFormats) {
+		for (const auto& availableFormat: availableFormats) {
 			if (availableFormat.format == vk::Format::eB8G8R8A8Srgb &&
 				availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
 				return availableFormat;
@@ -506,7 +506,7 @@ namespace drk::Devices {
 	}
 
 	vk::PresentModeKHR Device::chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes) {
-		for (const auto& availablePresentMode : availablePresentModes) {
+		for (const auto& availablePresentMode: availablePresentModes) {
 			if (availablePresentMode == vk::PresentModeKHR::eMailbox) {
 				return availablePresentMode;
 			}
@@ -613,7 +613,7 @@ namespace drk::Devices {
 		Swapchain swapchain = {
 			.swapchain = vkSwapchain,
 			.imageFormat = surfaceFormat.format,
-			.extent = swapExtent,
+			.extent = {swapExtent.width, swapExtent.height, 1},
 			.images = swapchainImages,
 			.imageViews = swapchainImageViews,
 		};
@@ -622,7 +622,7 @@ namespace drk::Devices {
 	}
 
 	void Device::destroySwapchain(const vk::Device& device, const Swapchain& swapchain) {
-		for (auto& swapchainImageView : swapchain.imageViews) {
+		for (auto& swapchainImageView: swapchain.imageViews) {
 			device.destroyImageView(swapchainImageView);
 		}
 		device.destroySwapchainKHR(swapchain.swapchain);

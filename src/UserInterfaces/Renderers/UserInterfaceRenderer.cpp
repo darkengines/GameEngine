@@ -125,7 +125,10 @@ namespace drk::UserInterfaces::Renderers {
 
 	void UserInterfaceRenderer::RecreateRenderPass() {
 		DeviceContext.device.waitIdle();
-		if (isImGuiInitialized) ImGui_ImplVulkan_Shutdown();
+		if (isImGuiInitialized) {
+			//ImGui_ImplVulkan_Shutdown();
+			//isImGuiInitialized = false;
+		}
 		DestroyMainFramebuffer();
 		if (MainRenderPass) DeviceContext.device.destroyRenderPass(MainRenderPass);
 		if (SceneRenderTargetTexture.has_value()) DeviceContext.destroyTexture(SceneRenderTargetTexture.value());
@@ -134,7 +137,7 @@ namespace drk::UserInterfaces::Renderers {
 		CreateMainFramebufferResources();
 		CreateMainRenderPass();
 		CreateMainFramebuffers();
-		SetupImgui();
+		if (!isImGuiInitialized) SetupImgui();
 	}
 
 	void UserInterfaceRenderer::CreateMainFramebufferResources() {
@@ -248,6 +251,7 @@ namespace drk::UserInterfaces::Renderers {
 			};
 
 		vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
+			.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
 			.maxSets = 1000u,
 			.poolSizeCount = (uint32_t) std::size(poolSizes),
 			.pPoolSizes = poolSizes,
@@ -313,7 +317,7 @@ namespace drk::UserInterfaces::Renderers {
 		vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
 			.renderPass = MainRenderPass,
 			.framebuffer = MainFramebuffers[targetImageIndex],
-			.renderArea = {0, 0, targetImageInfo->extent},
+			.renderArea = {0, 0, {targetImageInfo->extent.width, targetImageInfo->extent.height}},
 			.clearValueCount = (uint32_t) clearValues.size(),
 			.pClearValues = clearValues.data(),
 		};

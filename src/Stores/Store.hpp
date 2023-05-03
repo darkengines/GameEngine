@@ -17,7 +17,8 @@ namespace drk::Stores {
 
 	public:
 		GenericStore(StoreBufferAllocator& storeBufferAllocator) :
-			storeAllocator(storeBufferAllocator), ItemPerBuffer(1024u) /* todo: make this ItemPerBuffer(1024u) configurable */ {
+			storeAllocator(storeBufferAllocator),
+			ItemPerBuffer(1024u) /* todo: make this ItemPerBuffer(1024u) configurable */ {
 
 		}
 
@@ -25,7 +26,7 @@ namespace drk::Stores {
 			storeAllocator(genericStore.storeAllocator), stores(std::move(genericStore.stores)),
 			ItemPerBuffer(genericStore.ItemPerBuffer) {
 		}
-
+		virtual ~GenericStore() {};
 		GenericStoreItemLocation get(uint32_t index) {
 			auto bufferIndex = index / ItemPerBuffer;
 			auto bufferItemIndex = index % ItemPerBuffer;

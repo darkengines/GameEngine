@@ -100,6 +100,7 @@ namespace drk::Applications {
 		void RenderEntityTree(entt::entity);
 		void renderProperties(entt::entity entity);
 		bool shouldRecreateSwapchain = false;
+		void RecreateSwapchain(vk::Extent2D windowExtent);
 		vk::Extent2D windowExtent;
 	};
 }

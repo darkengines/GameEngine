@@ -91,7 +91,7 @@ namespace drk::Applications {
 		const auto swapchain = graphics.GetSwapchain();
 		userInterfaceRenderer.SetTargetImageViews(
 			{
-				.extent= swapchain.extent,
+				.extent= {swapchain.extent.width, swapchain.extent.height, 1},
 				.format= swapchain.imageFormat
 			}, swapchain.imageViews
 		);
@@ -99,6 +99,7 @@ namespace drk::Applications {
 		std::optional<Devices::Texture> sceneTexture;
 		vk::Extent3D sceneExtent{0, 0, 0};
 		std::optional<vk::DescriptorSet> sceneTextureImageDescriptorSet;
+		vk::Extent3D sceneTextureExtent{0, 0, 1};
 
 		while (!glfwWindowShouldClose(window.GetWindow())) {
 			glfwPollEvents();
@@ -108,187 +109,203 @@ namespace drk::Applications {
 
 			const auto& waitForFenceResult = deviceContext.device.waitForFences(1, &fence, VK_TRUE, UINT64_MAX);
 			auto swapchainImageAcquisitionResult = graphics.AcuireSwapchainImageIndex();
-			if (swapchainImageAcquisitionResult.result == vk::Result::eSuboptimalKHR ||
+			if (shouldRecreateSwapchain || swapchainImageAcquisitionResult.result == vk::Result::eSuboptimalKHR ||
 				swapchainImageAcquisitionResult.result == vk::Result::eErrorOutOfDateKHR) {
-				graphics.RecreateSwapchain(windowExtent);
-			}
-			const auto& resetFenceResult = deviceContext.device.resetFences(1, &fence);
+				RecreateSwapchain(windowExtent);
+			} else {
+				const auto& resetFenceResult = deviceContext.device.resetFences(1, &fence);
 
-			frameState.commandBuffer.reset();
-			vk::CommandBufferBeginInfo commandBufferBeginInfo = {};
-			const auto& result = frameState.commandBuffer.begin(&commandBufferBeginInfo);
+				frameState.commandBuffer.reset();
+				vk::CommandBufferBeginInfo commandBufferBeginInfo = {};
+				const auto& result = frameState.commandBuffer.begin(&commandBufferBeginInfo);
 
-			ImGui_ImplVulkan_NewFrame();
-			ImGui_ImplGlfw_NewFrame();
-			ImGui::NewFrame();
-			if (true || userInterface.IsVisible()) {
-				auto open = true;
+				ImGui_ImplVulkan_NewFrame();
+				ImGui_ImplGlfw_NewFrame();
+				ImGui::NewFrame();
+				if (true || userInterface.IsVisible()) {
+					auto open = true;
 
-				if (ImGui::BeginMainMenuBar()) {
-					if (ImGui::BeginMenu("File")) {
-						if (ImGui::MenuItem("Open", "ctrl + o")) {
-							fileBrowser.Open();
-						}
-						if (ImGui::MenuItem("Save", "ctrl + s")) {
-
-						}
-						if (ImGui::MenuItem("Close", "alt + f4")) {
-
-						}
-						ImGui::EndMenu();
-					}
-					ImGui::EndMainMenuBar();
-				}
-
-				ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
-				ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-				vk::Extent2D newSceneExtent = {
-					static_cast<uint32_t>(viewportPanelSize.x),
-					static_cast<uint32_t>(viewportPanelSize.y)
-				};
-				if (sceneExtent.width != newSceneExtent.width || sceneExtent.height != newSceneExtent.height) {
-					if (sceneExtent.width < newSceneExtent.width || sceneExtent.height < newSceneExtent.height) {
-						sceneTexture = Scenes::Renderers::SceneRenderer::BuildSceneRenderTargetTexture(
-							deviceContext,
+					if (shouldRecreateSwapchain) {
+						graphics.RecreateSwapchain(windowExtent);
+						const auto swapchain = graphics.GetSwapchain();
+						userInterfaceRenderer.SetTargetImageViews(
 							{
+								.extent= swapchain.extent,
+								.format= swapchain.imageFormat
+							}, swapchain.imageViews
+						);
+						shouldRecreateSwapchain = false;
+					}
+
+					if (ImGui::BeginMainMenuBar()) {
+						if (ImGui::BeginMenu("File")) {
+							if (ImGui::MenuItem("Open", "ctrl + o")) {
+								fileBrowser.Open();
+							}
+							if (ImGui::MenuItem("Save", "ctrl + s")) {
+
+							}
+							if (ImGui::MenuItem("Close", "alt + f4")) {
+
+							}
+							ImGui::EndMenu();
+						}
+						ImGui::EndMainMenuBar();
+					}
+
+					ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
+					ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+					vk::Extent3D newSceneExtent = {
+						static_cast<uint32_t>(viewportPanelSize.x),
+						static_cast<uint32_t>(viewportPanelSize.y),
+						1
+					};
+					if (sceneExtent.width != newSceneExtent.width || sceneExtent.height != newSceneExtent.height) {
+						if (sceneTextureExtent.width < newSceneExtent.width ||
+							sceneTextureExtent.height < newSceneExtent.height) {
+							deviceContext.device.waitIdle();
+							if (sceneTextureImageDescriptorSet.has_value())
+								ImGui_ImplVulkan_RemoveTexture(
+									sceneTextureImageDescriptorSet.value());
+							if (sceneTexture.has_value()) deviceContext.destroyTexture(sceneTexture.value());
+							sceneTexture = Scenes::Renderers::SceneRenderer::BuildSceneRenderTargetTexture(
+								deviceContext,
+								{
+									newSceneExtent.width,
+									newSceneExtent.height,
+									1
+								}
+							);
+							sceneTextureImageDescriptorSet = ImGui_ImplVulkan_AddTexture(
+								engineState.GetDefaultTextureSampler(),
+								sceneTexture->imageView,
+								static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal)
+							);
+
+							sceneRenderer.setTargetImageViews(
+								{
+									newSceneExtent,
+									vk::Format::eR8G8B8A8Srgb,
+								},
+								{sceneTexture->imageView}
+							);
+							sceneTextureExtent = vk::Extent3D{
 								newSceneExtent.width,
 								newSceneExtent.height,
 								1
-							}
-						);
-
-						if (sceneTextureImageDescriptorSet.has_value()) ImGui_ImplVulkan_RemoveTexture(*sceneTextureImageDescriptorSet);
-						sceneTextureImageDescriptorSet = ImGui_ImplVulkan_AddTexture(
-							engineState.GetDefaultTextureSampler(),
-							sceneTexture->imageView,
-							static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal)
-						);
-
-						sceneRenderer.setTargetImageViews(
-							{
-								newSceneExtent,
-								graphics.GetSwapchain().imageFormat,
-							},
-							{sceneTexture->imageView}
-						);
-					} else {
-						sceneRenderer.setTargetExtent(newSceneExtent);
+							};
+						} else {
+							sceneRenderer.setTargetExtent(newSceneExtent);
+						}
+						sceneExtent = newSceneExtent;
 					}
-					sceneExtent = vk::Extent3D{
-						newSceneExtent.width,
-						newSceneExtent.height,
-						1
-					};
+					ImGui::Image(sceneTextureImageDescriptorSet.value(), viewportPanelSize);
+					ImGui::End();
+
+
+					ImGui::Begin("Entities");
+					for (const auto& loadResult: loadResults) {
+						RenderEntityTree(loadResult.rootEntity);
+					}
+					ImGui::End();
+
+					renderProperties(entt::null);
+
+					fileBrowser.Display();
+					if (fileBrowser.HasSelected()) {
+						auto loadResult = loader.Load(fileBrowser.GetSelected());
+						loadResults.emplace_back(std::move(loadResult));
+						fileBrowser.ClearSelected();
+					}
 				}
-				ImGui::Image(*sceneTextureImageDescriptorSet, viewportPanelSize);
-				ImGui::End();
+				ImGui::EndFrame();
+
+				//Resources to GPU
+				textureSystem.UploadTextures();
+				meshSystem.UploadMeshes();
+
+				//Resources to GPU
+				materialSystem.StoreMaterials();
+				meshSystem.StoreMeshes();
+				spatialSystem.StoreSpatials();
+				objectSystem.StoreObjects();
+				cameraSystem.StoreCameras();
+
+				//Alterations
+				flyCamController.Step();
+
+				//Change propagations
+				spatialSystem.PropagateChanges();
+				cameraSystem.ProcessDirtyItems();
+
+				//Store updates to GPU
+				materialSystem.UpdateMaterials();
+				meshSystem.UpdateMeshes();
+				spatialSystem.UpdateSpatials();
+				objectSystem.UpdateObjects();
+				cameraSystem.UpdateCameras();
+				globalSystem.Update();
+
+				//Emit draws
+				meshSystem.EmitDraws();
+				pointSystem.EmitDraws();
+
+				//Stores draws to GPU
+				sceneSystem.UpdateDraws();
+
+				//Clear frame
+				registry.clear<Objects::Dirty<Spatials::Spatial>>();
+
+				//Renders
+				sceneRenderer.render(0, frameState.commandBuffer);
+
+				Devices::Device::transitionLayout(
+					frameState.commandBuffer,
+					sceneTexture->image.image,
+					sceneTexture->imageCreateInfo.format,
+					vk::ImageLayout::eUndefined,
+					vk::ImageLayout::eShaderReadOnlyOptimal,
+					1
+				);
+				userInterfaceRenderer.render(swapchainImageAcquisitionResult.value, frameState.commandBuffer);
+
+				frameState.commandBuffer.end();
+
+				vk::PipelineStageFlags submissionWaitDstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+				vk::SubmitInfo submitInfo = {
+					.waitSemaphoreCount = 1,
+					.pWaitSemaphores = &frameState.imageReadySemaphore,
+					.pWaitDstStageMask = &submissionWaitDstStageMask,
+					.commandBufferCount = 1,
+					.pCommandBuffers = &frameState.commandBuffer,
+					.signalSemaphoreCount = 1,
+					.pSignalSemaphores = &frameState.imageRenderedSemaphore,
+				};
+
+				deviceContext.GraphicQueue.submit({submitInfo}, fence);
 
 
-				ImGui::Begin("Entities");
-				for (const auto& loadResult: loadResults) {
-					RenderEntityTree(loadResult.rootEntity);
+				vk::Result presentResult;
+				bool outOfDate = false;
+				try {
+					presentResult = graphics.Present(swapchainImageAcquisitionResult.value);
+				} catch (const vk::OutOfDateKHRError& e) {
+					outOfDate = true;
 				}
-				ImGui::End();
+				shouldRecreateSwapchain = outOfDate || presentResult == vk::Result::eSuboptimalKHR;
+				if (shouldRecreateSwapchain) {
+					RecreateSwapchain(windowExtent);
+				}
 
-				renderProperties(entt::null);
-
-				fileBrowser.Display();
-				if (fileBrowser.HasSelected()) {
-					auto loadResult = loader.Load(fileBrowser.GetSelected());
-					loadResults.emplace_back(std::move(loadResult));
-					fileBrowser.ClearSelected();
+				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+					ImGui::UpdatePlatformWindows();
+					ImGui::RenderPlatformWindowsDefault();
 				}
 			}
-			ImGui::EndFrame();
-
-			//Resources to GPU
-			textureSystem.UploadTextures();
-			meshSystem.UploadMeshes();
-
-			//Resources to GPU
-			materialSystem.StoreMaterials();
-			meshSystem.StoreMeshes();
-			spatialSystem.StoreSpatials();
-			objectSystem.StoreObjects();
-			cameraSystem.StoreCameras();
-
-			//Alterations
-			flyCamController.Step();
-
-			//Change propagations
-			spatialSystem.PropagateChanges();
-			cameraSystem.ProcessDirtyItems();
-
-			//Store updates to GPU
-			materialSystem.UpdateMaterials();
-			meshSystem.UpdateMeshes();
-			spatialSystem.UpdateSpatials();
-			objectSystem.UpdateObjects();
-			cameraSystem.UpdateCameras();
-			globalSystem.Update();
-
-			//Emit draws
-			meshSystem.EmitDraws();
-			pointSystem.EmitDraws();
-
-			//Stores draws to GPU
-			sceneSystem.UpdateDraws();
-
-			//Clear frame
-			registry.clear<Objects::Dirty<Spatials::Spatial>>();
-
-			if (shouldRecreateSwapchain) {
-				graphics.RecreateSwapchain(windowExtent);
-				shouldRecreateSwapchain = true;
-			}
-
-			//Renders
-			sceneRenderer.render(0, frameState.commandBuffer);
-
-			Devices::Device::transitionLayout(
-				frameState.commandBuffer,
-				sceneTexture->image.image,
-				sceneTexture->imageCreateInfo.format,
-				vk::ImageLayout::eUndefined,
-				vk::ImageLayout::eShaderReadOnlyOptimal,
-				1
-			);
-			userInterfaceRenderer.render(swapchainImageAcquisitionResult.value, frameState.commandBuffer);
-
-			frameState.commandBuffer.end();
-
-			vk::PipelineStageFlags submissionWaitDstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-			vk::SubmitInfo submitInfo = {
-				.waitSemaphoreCount = 1,
-				.pWaitSemaphores = &frameState.imageReadySemaphore,
-				.pWaitDstStageMask = &submissionWaitDstStageMask,
-				.commandBufferCount = 1,
-				.pCommandBuffers = &frameState.commandBuffer,
-				.signalSemaphoreCount = 1,
-				.pSignalSemaphores = &frameState.imageRenderedSemaphore,
-			};
-
-			deviceContext.GraphicQueue.submit({submitInfo}, fence);
-
-
-			vk::Result presentResult;
-			bool outOfDate = false;
-			try {
-				presentResult = graphics.Present(swapchainImageAcquisitionResult);
-			} catch (const vk::OutOfDateKHRError& e) {
-				outOfDate = true;
-			}
-			shouldRecreateSwapchain = outOfDate || presentResult == vk::Result::eSuboptimalKHR;
-
 			engineState.incrementFrameIndex();
-
-			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-				ImGui::UpdatePlatformWindows();
-				ImGui::RenderPlatformWindowsDefault();
-			}
 		}
-
 		deviceContext.device.waitIdle();
+		if (sceneTexture.has_value()) deviceContext.destroyTexture(sceneTexture.value());
 	}
 
 	void Application::RenderEntityTree(entt::entity entity) {
@@ -343,4 +360,16 @@ namespace drk::Applications {
 	Application::~Application() {
 
 	}
+	void Application::RecreateSwapchain(vk::Extent2D windowExtent) {
+		graphics.RecreateSwapchain(windowExtent);
+		const auto swapchain = graphics.GetSwapchain();
+		userInterfaceRenderer.SetTargetImageViews(
+			{
+				.extent= swapchain.extent,
+				.format= swapchain.imageFormat
+			}, swapchain.imageViews
+		);
+		shouldRecreateSwapchain = false;
+	}
+
 }

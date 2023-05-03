@@ -34,7 +34,7 @@ namespace drk::Scenes::Renderers {
 			const Devices::DeviceContext& deviceContext,
 			vk::Extent3D extent
 		);
-		void setTargetExtent(vk::Extent2D extent2D);
+		void setTargetExtent(vk::Extent3D extent2D);
 	protected:
 		void createFramebufferResources();
 		void destroyFramebufferResources();

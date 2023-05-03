@@ -218,6 +218,7 @@ namespace drk::Scenes::Renderers {
 		this->targetImageViews = targetImageViews;
 		meshPipeline->destroyPipeline();
 		destroyFramebuffers();
+		destroyFramebufferResources();
 		destroyRenderPass();
 		createRenderPass();
 
@@ -240,16 +241,24 @@ namespace drk::Scenes::Renderers {
 		createFramebuffers();
 	}
 	void SceneRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) {
+		vk::ClearValue colorClearValue = {
+			.color = {std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}
+		};
+		vk::ClearValue depthClearValue{
+			.depthStencil = {1.0f, 0}
+		};
+		std::array<vk::ClearValue, 3> clearValues{colorClearValue, depthClearValue, colorClearValue};
+		auto extent = targetImageInfo.value().extent;
 		vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
 			.renderPass = renderPass,
 			.framebuffer = framebuffers[targetImageIndex],
 			.renderArea = {
 				0,
 				0,
-				targetImageInfo.value().extent
+				{extent.width, extent.height}
 			},
-			.clearValueCount = 0u,
-			.pClearValues = nullptr,
+			.clearValueCount = clearValues.size(),
+			.pClearValues = clearValues.data(),
 		};
 		commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
 
@@ -272,28 +281,26 @@ namespace drk::Scenes::Renderers {
 					pipeline->bind(commandBuffer);
 				}
 
-				if (previousSceneDraw->indexBufferView != draw.indexBufferView) {
-					if (previousSceneDraw != nullptr) {
-						const auto& bufferInfo = previousDrawSystem->GetVertexBufferInfo(previousDrawEntity);
-						commandBuffer.bindIndexBuffer(
-							previousSceneDraw->indexBufferView->buffer.buffer,
-							0,
-							vk::IndexType::eUint32
-						);
-						commandBuffer.bindVertexBuffers(
-							0,
-							1,
-							&previousSceneDraw->vertexBufferView->buffer.buffer,
-							&previousSceneDraw->vertexBufferView->byteOffset
-						);
-						commandBuffer.drawIndexed(
-							bufferInfo.indexCount,
-							instanceCount,
-							bufferInfo.firstIndex,
-							bufferInfo.vertexOffset,
-							firstInstance
-						);
-					}
+				if (previousSceneDraw != nullptr && previousSceneDraw->indexBufferView != draw.indexBufferView) {
+					const auto& bufferInfo = previousDrawSystem->GetVertexBufferInfo(previousDrawEntity);
+					commandBuffer.bindIndexBuffer(
+						previousSceneDraw->indexBufferView->buffer.buffer,
+						0,
+						vk::IndexType::eUint32
+					);
+					commandBuffer.bindVertexBuffers(
+						0,
+						1,
+						&previousSceneDraw->vertexBufferView->buffer.buffer,
+						&previousSceneDraw->vertexBufferView->byteOffset
+					);
+					commandBuffer.drawIndexed(
+						bufferInfo.indexCount,
+						instanceCount,
+						bufferInfo.firstIndex,
+						bufferInfo.vertexOffset,
+						firstInstance
+					);
 					instanceCount = 0u;
 				}
 
@@ -353,7 +360,7 @@ namespace drk::Scenes::Renderers {
 
 		return target;
 	}
-	void SceneRenderer::setTargetExtent(vk::Extent2D extent) {
+	void SceneRenderer::setTargetExtent(vk::Extent3D extent) {
 		meshPipeline->destroyPipeline();
 
 		vk::Viewport viewport;

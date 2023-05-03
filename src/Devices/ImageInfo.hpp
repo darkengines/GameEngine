@@ -6,7 +6,7 @@
 
 namespace drk::Devices {
 	struct ImageInfo {
-		vk::Extent2D extent;
+		vk::Extent3D extent;
 		vk::Format format;
 	};
 }
