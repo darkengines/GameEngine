@@ -10,7 +10,7 @@ namespace drk::Scenes {
 
 	}
 	void SceneSystem::UpdateDraws() {
-		registry.sort<Draws::SceneDraw>(
+		registry.sort<Scenes::Draws::SceneDraw>(
 			[](
 				const Draws::SceneDraw& leftDraw,
 				const Draws::SceneDraw& rightDraw
@@ -25,21 +25,20 @@ namespace drk::Scenes {
 				}
 				result |= leftDraw.drawSystem < rightDraw.
 					drawSystem; // Sort by pipeline in ascending order
-				result |= leftDraw.indexBufferView < rightDraw.
-					indexBufferView; // Sort by index buffer view in ascending order
+				result |= leftDraw.indexBufferView.byteOffset < rightDraw.indexBufferView.byteOffset; // Sort by index buffer view in ascending order
 				return
 					result;
 			}
 		);
 
 		auto& frameState = engineState.getCurrentFrameState();
-		auto& drawStore = frameState.getUniformStore<Draws::SceneDraw>();
+		auto& drawStore = frameState.getUniformStore<Scenes::Draws::SceneDraw>();
 
-		const auto& sceneDrawEntities = registry.view<Draws::SceneDraw>();
+		auto sceneDrawEntities = registry.view<Scenes::Draws::SceneDraw>();
 
 		auto drawIndex = 0u;
 		sceneDrawEntities.each(
-			[&drawIndex, &drawStore](entt::entity sceneDrawEntity, const Draws::SceneDraw& draw) {
+			[&drawIndex, &drawStore](entt::entity sceneDrawEntity, Draws::SceneDraw& draw) {
 				draw.drawSystem->UpdateDraw(sceneDrawEntity, drawIndex);
 				drawIndex++;
 			}

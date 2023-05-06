@@ -8,6 +8,7 @@
 #include <imfilebrowser.h>
 #include <uv.h>
 #include <GLFW/glfw3.h>
+#include "../Scenes/Draws/SceneDraw.hpp"
 
 namespace drk::Applications {
 	Application::Application(
@@ -245,6 +246,9 @@ namespace drk::Applications {
 				objectSystem.UpdateObjects();
 				cameraSystem.UpdateCameras();
 				globalSystem.Update();
+
+				auto draws = registry.view<Scenes::Draws::SceneDraw>();
+				registry.destroy(draws.begin(), draws.end());
 
 				//Emit draws
 				meshSystem.EmitDraws();

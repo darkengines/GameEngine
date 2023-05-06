@@ -7,8 +7,8 @@
 namespace drk::Scenes::Draws {
 	struct SceneDraw {
 		drk::Draws::DrawSystem* drawSystem;
-		Devices::BufferView const * indexBufferView;
-		Devices::BufferView const * vertexBufferView;
+		Devices::BufferView indexBufferView;
+		Devices::BufferView vertexBufferView;
 		bool hasTransparency;
 		float depth;
 	};

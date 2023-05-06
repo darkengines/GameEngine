@@ -263,54 +263,104 @@ namespace drk::Scenes::Renderers {
 		commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
 
 		const auto& draws = registry.view<Draws::SceneDraw>();
-		drk::Draws::DrawSystem* previousDrawSystem = nullptr;
-		const Draws::SceneDraw* previousSceneDraw = nullptr;
+		std::optional<Draws::SceneDraw> previousSceneDraw;
 		entt::entity previousDrawEntity = entt::null;
 
 		uint32_t instanceCount = 0u;
 		uint32_t firstInstance = 0u;
-		uint32_t indexCount = 0u;
-		uint32_t firstIndex = 0u;
-		uint32_t vertexOffset = 0u;
 
 		draws.each(
-			[&](entt::entity drawEntity, const Draws::SceneDraw& draw) {
-				if (previousDrawSystem != draw.drawSystem) {
-					//todo: fetch previousDrawSystem suitable pipeline
-					const auto& pipeline = meshPipeline;
-					pipeline->bind(commandBuffer);
+			[&](entt::entity drawEntity, const Draws::SceneDraw& sceneDraw) {
+				SceneRenderOperation operations = SceneRenderOperation::None;
+				if (!previousSceneDraw.has_value() || previousSceneDraw->drawSystem != sceneDraw.drawSystem) {
+					operations |= SceneRenderOperation::BindPipeline;
 				}
-
-				if (previousSceneDraw != nullptr && previousSceneDraw->indexBufferView != draw.indexBufferView) {
-					const auto& bufferInfo = previousDrawSystem->GetVertexBufferInfo(previousDrawEntity);
-					commandBuffer.bindIndexBuffer(
-						previousSceneDraw->indexBufferView->buffer.buffer,
-						0,
-						vk::IndexType::eUint32
-					);
-					commandBuffer.bindVertexBuffers(
-						0,
-						1,
-						&previousSceneDraw->vertexBufferView->buffer.buffer,
-						&previousSceneDraw->vertexBufferView->byteOffset
-					);
-					commandBuffer.drawIndexed(
-						bufferInfo.indexCount,
-						instanceCount,
-						bufferInfo.firstIndex,
-						bufferInfo.vertexOffset,
-						firstInstance
-					);
-					instanceCount = 0u;
+				if (previousDrawEntity == entt::null ||
+					(previousSceneDraw->indexBufferView.buffer.buffer != sceneDraw.indexBufferView.buffer.buffer)) {
+					operations |= SceneRenderOperation::BindIndexBuffer | SceneRenderOperation::BindVertexBuffer;
 				}
-
-				previousSceneDraw = &draw;
+				if (previousDrawEntity != entt::null &&
+					previousSceneDraw->indexBufferView.byteOffset != sceneDraw.indexBufferView.byteOffset) {
+					operations |= SceneRenderOperation::Draw;
+				}
+				if (previousDrawEntity == entt::null) {
+					doOperations(commandBuffer, operations, sceneDraw);
+				} else {
+					if (operations != SceneRenderOperation::None) {
+						draw(
+							previousDrawEntity,
+							previousSceneDraw.value(),
+							commandBuffer,
+							instanceCount,
+							firstInstance
+						);
+						firstInstance += instanceCount;
+						instanceCount = 0u;
+					}
+					doOperations(
+						commandBuffer,
+						operations,
+						sceneDraw
+					);
+				}
+				previousSceneDraw = sceneDraw;
+				previousDrawEntity = drawEntity;
 				instanceCount++;
-				firstInstance++;
 			}
 		);
-
+		if (previousDrawEntity != entt::null) {
+			this->draw(
+				previousDrawEntity,
+				previousSceneDraw.value(),
+				commandBuffer,
+				instanceCount,
+				firstInstance
+			);
+		}
 		commandBuffer.endRenderPass();
+	}
+	void SceneRenderer::draw(
+		entt::entity previousDrawEntity,
+		Draws::SceneDraw previousSceneDraw,
+		const vk::CommandBuffer& commandBuffer,
+		int instanceCount,
+		int firstInstance
+	) {
+		auto sceneDraw = registry.get<Draws::SceneDraw>(previousDrawEntity);
+		auto bufferInfo = sceneDraw.drawSystem->GetVertexBufferInfo(previousDrawEntity);
+		commandBuffer.drawIndexed(
+			bufferInfo.indexCount,
+			instanceCount,
+			bufferInfo.firstIndex,
+			bufferInfo.vertexOffset,
+			firstInstance
+		);
+	}
+	void SceneRenderer::doOperations(
+		const vk::CommandBuffer& commandBuffer,
+		SceneRenderOperation sceneRenderOperation,
+		Draws::SceneDraw sceneDraw
+	) {
+		if ((sceneRenderOperation & SceneRenderOperation::BindPipeline) == SceneRenderOperation::BindPipeline) {
+			const auto& pipeline = meshPipeline;
+			pipeline->bind(commandBuffer);
+		}
+		if ((sceneRenderOperation & SceneRenderOperation::BindIndexBuffer) == SceneRenderOperation::BindIndexBuffer) {
+			commandBuffer.bindIndexBuffer(
+				sceneDraw.indexBufferView.buffer.buffer,
+				0,
+				vk::IndexType::eUint32
+			);
+		}
+		if ((sceneRenderOperation & SceneRenderOperation::BindVertexBuffer) == SceneRenderOperation::BindVertexBuffer) {
+			vk::DeviceSize offset = 0u;
+			commandBuffer.bindVertexBuffers(
+				0,
+				1,
+				&sceneDraw.vertexBufferView.buffer.buffer,
+				&offset
+			);
+		}
 	}
 	void SceneRenderer::destroyRenderPass() {
 		deviceContext.device.destroyRenderPass(renderPass);

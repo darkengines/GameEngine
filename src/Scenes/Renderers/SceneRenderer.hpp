@@ -7,6 +7,9 @@
 #include "../../Engine/EngineState.hpp"
 #include "../../Meshes/Pipelines/MeshPipeline.hpp"
 #include "../../Devices/ImageInfo.hpp"
+#include "../../Draws/DrawSystem.hpp"
+#include "../Draws/SceneDraw.hpp"
+#include "SceneRenderOperation.hpp"
 
 
 namespace drk::Scenes::Renderers {
@@ -28,7 +31,7 @@ namespace drk::Scenes::Renderers {
 			std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline
 		);
 		~SceneRenderer();
-		void render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer);
+		void render(uint32_t targetImageIndex, const vk::CommandBuffer& sceneDraw);
 		void setTargetImageViews(Devices::ImageInfo targetImageInfo, std::vector<vk::ImageView> targetImageViews);
 		static Devices::Texture BuildSceneRenderTargetTexture(
 			const Devices::DeviceContext& deviceContext,
@@ -42,5 +45,17 @@ namespace drk::Scenes::Renderers {
 		void destroyFramebuffers();
 		void createRenderPass();
 		void destroyRenderPass();
+		void draw(
+			entt::entity previousDrawEntity,
+			Draws::SceneDraw previousSceneDraw,
+			const vk::CommandBuffer& commandBuffer,
+			int instanceCount,
+			int firstInstance
+		);
+		void doOperations(
+			const vk::CommandBuffer& commandBuffer,
+			SceneRenderOperation sceneRenderOperation,
+			Draws::SceneDraw sceneDraw
+		);
 	};
 }

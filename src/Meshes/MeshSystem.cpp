@@ -86,6 +86,8 @@ namespace drk::Meshes {
 		const auto& meshItemLocation = drawStore.get(drawIndex);
 		meshItemLocation.pItem->meshItemLocation.storeIndex = meshDraw.meshItemLocation.storeIndex;
 		meshItemLocation.pItem->meshItemLocation.itemIndex = meshDraw.meshItemLocation.itemIndex;
+		meshItemLocation.pItem->objectItemLocation.storeIndex = meshDraw.objectItemLocation.storeIndex;
+		meshItemLocation.pItem->objectItemLocation.itemIndex = meshDraw.objectItemLocation.itemIndex;
 	}
 	void MeshSystem::EmitDraws() {
 		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Spatial>();
@@ -101,15 +103,15 @@ namespace drk::Meshes {
 				const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
 				for (const auto& meshEntity: meshGroup.meshEntities) {
 					Meshes::MeshInfo* meshInfo = registry.get<Meshes::MeshInfo*>(meshEntity);
-					const Meshes::Mesh mesh = registry.get<Meshes::Mesh>(meshEntity);
+					const Meshes::Mesh& mesh = registry.get<Meshes::Mesh>(meshEntity);
 					const Stores::StoreItem<Meshes::Models::Mesh> meshStoreItem = registry.get<Stores::StoreItem<Meshes::Models::Mesh>>(
 						meshEntity
 					);
 					const auto& meshStoreItemLocation = meshStoreItem.frameStoreItems[engineState.getFrameIndex()];
 					Scenes::Draws::SceneDraw draw = {
 						.drawSystem = this,
-						.indexBufferView = &mesh.IndexBufferView,
-						.vertexBufferView = &mesh.VertexBufferView,
+						.indexBufferView = mesh.IndexBufferView,
+						.vertexBufferView = mesh.VertexBufferView,
 						.hasTransparency = meshInfo->pMaterial->hasTransparency,
 						.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition),
 					};
@@ -120,14 +122,14 @@ namespace drk::Meshes {
 						.objectItemLocation = objectStoreItemLocation
 					};
 					auto entity = registry.create();
-					registry.emplace<Scenes::Draws::SceneDraw>(entity, draw);
-					registry.emplace<Components::MeshDraw>(entity, meshDraw);
+					registry.emplace_or_replace<Scenes::Draws::SceneDraw>(entity, std::move(draw));
+					registry.emplace_or_replace<Components::MeshDraw>(entity, std::move(meshDraw));
 				}
 			}
 		);
 	}
 	Draws::DrawVertexBufferInfo MeshSystem::GetVertexBufferInfo(entt::entity drawEntity) {
-		const auto& meshDraw = registry.get<Components::MeshDraw>(drawEntity);
+		auto meshDraw = registry.get<Components::MeshDraw>(drawEntity);
 		Draws::DrawVertexBufferInfo bufferInfo{
 			static_cast<uint32_t>(meshDraw.meshInfo->indices.size()),
 			static_cast<uint32_t>(meshDraw.mesh.IndexBufferView.byteOffset / sizeof(VertexIndex)),
