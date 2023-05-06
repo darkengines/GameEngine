@@ -8,6 +8,7 @@
 #include <imfilebrowser.h>
 #include <uv.h>
 #include <GLFW/glfw3.h>
+#include "../Scenes/Draws/SceneDraw.hpp"
 
 namespace drk::Applications {
 	Application::Application(
@@ -26,7 +27,10 @@ namespace drk::Applications {
 		Controllers::FlyCamController& flyCamController,
 		UserInterfaces::UserInterface& userInterface,
 		entt::registry& registry,
-		Graphics::MainRenderContext& mainRenderContext
+		UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer,
+		Scenes::Renderers::SceneRenderer& sceneRenderer,
+		Scenes::SceneSystem& sceneSystem,
+		Points::PointSystem& pointSystem
 	)
 		: window(window),
 		  deviceContext(deviceContext),
@@ -43,7 +47,11 @@ namespace drk::Applications {
 		  flyCamController(flyCamController),
 		  userInterface(userInterface),
 		  registry(registry),
-		  mainRenderContext(mainRenderContext) {
+		  userInterfaceRenderer(userInterfaceRenderer),
+		  sceneRenderer(sceneRenderer),
+		  sceneSystem(sceneSystem),
+		  pointSystem(pointSystem),
+		  windowExtent(window.GetExtent()) {
 
 		const auto& glfwWindow = window.GetWindow();
 		glfwSetWindowUserPointer(glfwWindow, this);
@@ -81,14 +89,18 @@ namespace drk::Applications {
 
 		ImGui::FileBrowser fileBrowser;
 
-		auto sceneTexture = graphics.GetSceneRenderTargetTexture();
-		mainRenderContext.setTarget(sceneTexture);
-
-		auto sceneTextureImageDescriptorSet = ImGui_ImplVulkan_AddTexture(
-			engineState.GetDefaultTextureSampler(),
-			sceneTexture.imageView,
-			static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal)
+		const auto swapchain = graphics.GetSwapchain();
+		userInterfaceRenderer.SetTargetImageViews(
+			{
+				.extent= {swapchain.extent.width, swapchain.extent.height, 1},
+				.format= swapchain.imageFormat
+			}, swapchain.imageViews
 		);
+
+		std::optional<Devices::Texture> sceneTexture;
+		vk::Extent3D sceneExtent{0, 0, 0};
+		std::optional<vk::DescriptorSet> sceneTextureImageDescriptorSet;
+		vk::Extent3D sceneTextureExtent{0, 0, 1};
 
 		while (!glfwWindowShouldClose(window.GetWindow())) {
 			glfwPollEvents();
@@ -97,115 +109,207 @@ namespace drk::Applications {
 			const auto& fence = frameState.fence;
 
 			const auto& waitForFenceResult = deviceContext.device.waitForFences(1, &fence, VK_TRUE, UINT64_MAX);
-			auto swapchainImageIndex = graphics.AcuireSwapchainImageIndex();
-			const auto& resetFenceResult = deviceContext.device.resetFences(1, &fence);
+			auto swapchainImageAcquisitionResult = graphics.AcuireSwapchainImageIndex();
+			if (shouldRecreateSwapchain || swapchainImageAcquisitionResult.result == vk::Result::eSuboptimalKHR ||
+				swapchainImageAcquisitionResult.result == vk::Result::eErrorOutOfDateKHR) {
+				RecreateSwapchain(windowExtent);
+			} else {
+				const auto& resetFenceResult = deviceContext.device.resetFences(1, &fence);
 
-			frameState.commandBuffer.reset();
-			vk::CommandBufferBeginInfo commandBufferBeginInfo = {};
-			const auto& result = frameState.commandBuffer.begin(&commandBufferBeginInfo);
+				frameState.commandBuffer.reset();
+				vk::CommandBufferBeginInfo commandBufferBeginInfo = {};
+				const auto& result = frameState.commandBuffer.begin(&commandBufferBeginInfo);
 
-			ImGui_ImplVulkan_NewFrame();
-			ImGui_ImplGlfw_NewFrame();
-			ImGui::NewFrame();
-			if (true || userInterface.IsVisible()) {
-				auto open = true;
-				ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
-				if (ImGui::BeginMainMenuBar()) {
-					if (ImGui::BeginMenu("File")) {
-						if (ImGui::MenuItem("Open", "ctrl + o")) {
-							fileBrowser.Open();
-						}
-						if (ImGui::MenuItem("Save", "ctrl + s")) {
+				ImGui_ImplVulkan_NewFrame();
+				ImGui_ImplGlfw_NewFrame();
+				ImGui::NewFrame();
+				if (true || userInterface.IsVisible()) {
+					auto open = true;
 
-						}
-						if (ImGui::MenuItem("Close", "alt + f4")) {
-
-						}
-						ImGui::EndMenu();
+					if (shouldRecreateSwapchain) {
+						graphics.RecreateSwapchain(windowExtent);
+						const auto swapchain = graphics.GetSwapchain();
+						userInterfaceRenderer.SetTargetImageViews(
+							{
+								.extent= swapchain.extent,
+								.format= swapchain.imageFormat
+							}, swapchain.imageViews
+						);
+						shouldRecreateSwapchain = false;
 					}
-					ImGui::EndMainMenuBar();
+
+					if (ImGui::BeginMainMenuBar()) {
+						if (ImGui::BeginMenu("File")) {
+							if (ImGui::MenuItem("Open", "ctrl + o")) {
+								fileBrowser.Open();
+							}
+							if (ImGui::MenuItem("Save", "ctrl + s")) {
+
+							}
+							if (ImGui::MenuItem("Close", "alt + f4")) {
+
+							}
+							ImGui::EndMenu();
+						}
+						ImGui::EndMainMenuBar();
+					}
+
+					ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
+					ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+					vk::Extent3D newSceneExtent = {
+						static_cast<uint32_t>(viewportPanelSize.x),
+						static_cast<uint32_t>(viewportPanelSize.y),
+						1
+					};
+					if (sceneExtent.width != newSceneExtent.width || sceneExtent.height != newSceneExtent.height) {
+						if (sceneTextureExtent.width < newSceneExtent.width ||
+							sceneTextureExtent.height < newSceneExtent.height) {
+							deviceContext.device.waitIdle();
+							if (sceneTextureImageDescriptorSet.has_value())
+								ImGui_ImplVulkan_RemoveTexture(
+									sceneTextureImageDescriptorSet.value());
+							if (sceneTexture.has_value()) deviceContext.destroyTexture(sceneTexture.value());
+							sceneTexture = Scenes::Renderers::SceneRenderer::BuildSceneRenderTargetTexture(
+								deviceContext,
+								{
+									newSceneExtent.width,
+									newSceneExtent.height,
+									1
+								}
+							);
+							sceneTextureImageDescriptorSet = ImGui_ImplVulkan_AddTexture(
+								engineState.GetDefaultTextureSampler(),
+								sceneTexture->imageView,
+								static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal)
+							);
+
+							sceneRenderer.setTargetImageViews(
+								{
+									newSceneExtent,
+									vk::Format::eR8G8B8A8Srgb,
+								},
+								{sceneTexture->imageView}
+							);
+							sceneTextureExtent = vk::Extent3D{
+								newSceneExtent.width,
+								newSceneExtent.height,
+								1
+							};
+						} else {
+							sceneRenderer.setTargetExtent(newSceneExtent);
+						}
+						sceneExtent = newSceneExtent;
+					}
+					ImGui::Image(sceneTextureImageDescriptorSet.value(), viewportPanelSize);
+					ImGui::End();
+
+
+					ImGui::Begin("Entities");
+					for (const auto& loadResult: loadResults) {
+						RenderEntityTree(loadResult.rootEntity);
+					}
+					ImGui::End();
+
+					renderProperties(entt::null);
+
+					fileBrowser.Display();
+					if (fileBrowser.HasSelected()) {
+						auto loadResult = loader.Load(fileBrowser.GetSelected());
+						loadResults.emplace_back(std::move(loadResult));
+						fileBrowser.ClearSelected();
+					}
+				}
+				ImGui::EndFrame();
+
+				//Resources to GPU
+				textureSystem.UploadTextures();
+				meshSystem.UploadMeshes();
+
+				//Resources to GPU
+				materialSystem.StoreMaterials();
+				meshSystem.StoreMeshes();
+				spatialSystem.StoreSpatials();
+				objectSystem.StoreObjects();
+				cameraSystem.StoreCameras();
+
+				//Alterations
+				flyCamController.Step();
+
+				//Change propagations
+				spatialSystem.PropagateChanges();
+				cameraSystem.ProcessDirtyItems();
+
+				//Store updates to GPU
+				materialSystem.UpdateMaterials();
+				meshSystem.UpdateMeshes();
+				spatialSystem.UpdateSpatials();
+				objectSystem.UpdateObjects();
+				cameraSystem.UpdateCameras();
+				globalSystem.Update();
+
+				auto draws = registry.view<Scenes::Draws::SceneDraw>();
+				registry.destroy(draws.begin(), draws.end());
+
+				//Emit draws
+				meshSystem.EmitDraws();
+				pointSystem.EmitDraws();
+
+				//Stores draws to GPU
+				sceneSystem.UpdateDraws();
+
+				//Clear frame
+				registry.clear<Objects::Dirty<Spatials::Spatial>>();
+
+				//Renders
+				sceneRenderer.render(0, frameState.commandBuffer);
+
+				Devices::Device::transitionLayout(
+					frameState.commandBuffer,
+					sceneTexture->image.image,
+					sceneTexture->imageCreateInfo.format,
+					vk::ImageLayout::eUndefined,
+					vk::ImageLayout::eShaderReadOnlyOptimal,
+					1
+				);
+				userInterfaceRenderer.render(swapchainImageAcquisitionResult.value, frameState.commandBuffer);
+
+				frameState.commandBuffer.end();
+
+				vk::PipelineStageFlags submissionWaitDstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+				vk::SubmitInfo submitInfo = {
+					.waitSemaphoreCount = 1,
+					.pWaitSemaphores = &frameState.imageReadySemaphore,
+					.pWaitDstStageMask = &submissionWaitDstStageMask,
+					.commandBufferCount = 1,
+					.pCommandBuffers = &frameState.commandBuffer,
+					.signalSemaphoreCount = 1,
+					.pSignalSemaphores = &frameState.imageRenderedSemaphore,
+				};
+
+				deviceContext.GraphicQueue.submit({submitInfo}, fence);
+
+
+				vk::Result presentResult;
+				bool outOfDate = false;
+				try {
+					presentResult = graphics.Present(swapchainImageAcquisitionResult.value);
+				} catch (const vk::OutOfDateKHRError& e) {
+					outOfDate = true;
+				}
+				shouldRecreateSwapchain = outOfDate || presentResult == vk::Result::eSuboptimalKHR;
+				if (shouldRecreateSwapchain) {
+					RecreateSwapchain(windowExtent);
 				}
 
-				ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-				ImGui::Image(sceneTextureImageDescriptorSet, viewportPanelSize);
-
-				ImGui::End();
-
-
-				ImGui::Begin("Entities");
-				for (const auto& loadResult: loadResults) {
-					RenderEntityTree(loadResult.rootEntity);
+				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+					ImGui::UpdatePlatformWindows();
+					ImGui::RenderPlatformWindowsDefault();
 				}
-				ImGui::End();
-
-				fileBrowser.Display();
-				if (fileBrowser.HasSelected()) {
-					auto loadResult = loader.Load(fileBrowser.GetSelected());
-					loadResults.emplace_back(std::move(loadResult));
-					fileBrowser.ClearSelected();
-				}
-				ImGui::ShowDemoWindow();
 			}
-			ImGui::EndFrame();
-
-			//Resources
-			textureSystem.UploadTextures();
-			meshSystem.UploadMeshes();
-
-			//Resources
-			materialSystem.StoreMaterials();
-			meshSystem.StoreMeshes();
-			spatialSystem.StoreSpatials();
-			objectSystem.StoreObjects();
-			cameraSystem.StoreCameras();
-
-			//Alterations
-			flyCamController.Step();
-
-			//Change propagations
-			spatialSystem.PropagateChanges();
-			cameraSystem.ProcessDirtyItems();
-
-			//Store updates
-			materialSystem.UpdateMaterials();
-			meshSystem.UpdateMeshes();
-			spatialSystem.UpdateSpatials();
-			objectSystem.UpdateObjects();
-			cameraSystem.UpdateCameras();
-			globalSystem.Update();
-
-			//Clear frame
-			registry.clear<Objects::Dirty<Spatials::Spatial>>();
-
-			//Renders
-			mainRenderContext.render(frameState.commandBuffer);
-			graphics.Render(frameState.commandBuffer, swapchainImageIndex);
-
-			frameState.commandBuffer.end();
-
-			vk::PipelineStageFlags submissionWaitDstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-			vk::SubmitInfo submitInfo = {
-				.waitSemaphoreCount = 1,
-				.pWaitSemaphores = &frameState.imageReadySemaphore,
-				.pWaitDstStageMask = &submissionWaitDstStageMask,
-				.commandBufferCount = 1,
-				.pCommandBuffers = &frameState.commandBuffer,
-				.signalSemaphoreCount = 1,
-				.pSignalSemaphores = &frameState.imageRenderedSemaphore,
-			};
-
-			deviceContext.GraphicQueue.submit({submitInfo}, fence);
-
-			graphics.Present(swapchainImageIndex);
 			engineState.incrementFrameIndex();
-
-			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-				ImGui::UpdatePlatformWindows();
-				ImGui::RenderPlatformWindowsDefault();
-			}
 		}
-
 		deviceContext.device.waitIdle();
+		if (sceneTexture.has_value()) deviceContext.destroyTexture(sceneTexture.value());
 	}
 
 	void Application::RenderEntityTree(entt::entity entity) {
@@ -227,14 +331,23 @@ namespace drk::Applications {
 		}
 	}
 
+	void Application::renderProperties(entt::entity entity) {
+		ImGui::Begin("Properties");
+
+		ImGui::End();
+	};
+
 	void Application::OnWindowSizeChanged(uint32_t width, uint32_t height) {
 
 		while (width == 0 || height == 0) {
 			glfwGetFramebufferSize(window.GetWindow(), reinterpret_cast<int*>(&width), reinterpret_cast<int*>(&height));
 			glfwWaitEvents();
 		}
-
-		graphics.SetExtent({width, height});
+		if (windowExtent.width != width || windowExtent.height != height) {
+			windowExtent.width = width;
+			windowExtent.height = height;
+			shouldRecreateSwapchain = true;
+		}
 	}
 
 	void Application::SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -251,4 +364,16 @@ namespace drk::Applications {
 	Application::~Application() {
 
 	}
+	void Application::RecreateSwapchain(vk::Extent2D windowExtent) {
+		graphics.RecreateSwapchain(windowExtent);
+		const auto swapchain = graphics.GetSwapchain();
+		userInterfaceRenderer.SetTargetImageViews(
+			{
+				.extent= swapchain.extent,
+				.format= swapchain.imageFormat
+			}, swapchain.imageViews
+		);
+		shouldRecreateSwapchain = false;
+	}
+
 }

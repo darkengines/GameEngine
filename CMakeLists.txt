@@ -48,6 +48,16 @@ file(
     src/Lights/PointLightSystem.cpp
     src/ImGui/imgui_impl_vulkan.cpp
     src/ImGui/imgui_impl_glfw.cpp
+    src/UserInterfaces/UserInterface.cpp
+    src/Devices/VulkanInstanceConfiguration.cpp
+    src/Points/PointPrimitivePipeline.cpp
+    src/Points/Models/PointVertex.cpp
+    src/Systems/System.cpp
+    src/Points/PointSystem.cpp
+    src/Engine/DescriptorSetLayouts.cpp
+    src/Meshes/Pipelines/MeshPipeline.cpp
+    src/Renderers/Renderer.cpp
+    src/Scenes/Renderers/SceneRenderer.cpp
 )
 
 file(
@@ -109,6 +119,7 @@ file(
     src/Stores/StoreItem.hpp
     src/Graphics/Draw.hpp
     src/Graphics/Models/Draw.hpp
+    src/Meshes/Models/MeshDraw.hpp
     src/Stores/Models/StoreItemLocation.hpp
     src/Objects/Object.hpp
     src/Draws/DrawCommand.hpp
@@ -132,6 +143,45 @@ file(
     src/Lights/DirectionalLightSystem.hpp
     src/Lights/LightSystem.hpp
     src/Lights/PointLightSystem.hpp
+    src/UserInterfaces/UserInterface.hpp
+    src/Devices/Extensions.hpp
+    src/Windows/Extensions.hpp
+    src/Configuration/Extensions.hpp
+    src/Windows/WindowConfiguration.hpp
+    src/Devices/VulkanInstanceConfiguration.hpp
+    src/Graphics/Extentions.hpp
+    src/Applications/Extentions.hpp
+    src/Cameras/Extensions.hpp
+    src/Lights/Extensions.hpp
+    src/Loaders/Extensions.hpp
+    src/Materials/Extensions.hpp
+    src/Meshes/Extensions.hpp
+    src/Objects/Extensions.hpp
+    src/Relationships/Extensions.hpp
+    src/Spatials/Extensions.hpp
+    src/Textures/Extensions.hpp
+    src/Controllers/Extensions.hpp
+    src/UserInterfaces/Extensions.hpp
+    src/Points/PointPrimitivePipeline.hpp
+    src/Points/Models/PointVertex.hpp
+    src/Points/Components/PointDraw.hpp
+    src/Points/Components/Point.hpp
+    src/Geometries/Primitives.hpp
+    src/Systems/System.hpp
+    src/Points/PointSystem.hpp
+    src/Points/Models/Point.hpp
+    src/Draws/Draw.hpp
+    src/Points/Models/PointDraw.hpp
+    src/Draws/Extentions.hpp
+    src/Stores/Extensions.hpp
+    src/Engine/DescriptorSetLayouts.hpp
+    src/Engine/Extensions.hpp
+    src/Meshes/Components/Draw.hpp
+    src/Meshes/Pipelines/MeshPipeline.hpp
+    src/Draws/DrawSet.hpp
+    src/Scenes/Renderers/SceneRenderer.hpp
+    src/Pipelines/Pipeline.hpp
+    src/Renderers/Renderer.hpp
 )
 
 file(
@@ -159,7 +209,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/UserInterfaces/UserInterface.cpp src/UserInterfaces/UserInterface.hpp src/Graphics/MainRenderContext.cpp src/Graphics/MainRenderContext.hpp src/Devices/Extensions.hpp src/Windows/Extensions.hpp src/Configuration/Extensions.hpp src/Windows/WindowConfiguration.hpp src/Devices/VulkanInstanceConfiguration.hpp src/Devices/VulkanInstanceConfiguration.cpp src/Graphics/Extentions.hpp src/Applications/Extentions.hpp src/Cameras/Extensions.hpp src/Lights/Extensions.hpp src/Loaders/Extensions.hpp src/Materials/Extensions.hpp src/Meshes/Extensions.hpp src/Objects/Extensions.hpp src/Relationships/Extensions.hpp src/Spatials/Extensions.hpp src/Textures/Extensions.hpp src/Controllers/Extensions.hpp src/UserInterfaces/Extensions.hpp src/Points/PointPrimitivePipeline.cpp src/Points/PointPrimitivePipeline.hpp src/Points/Models/PointVertex.hpp src/Points/Models/PointVertex.cpp src/Points/Components/PointDraw.hpp src/Points/Components/Point.hpp src/Geometries/Primitives.hpp src/Systems/System.cpp src/Systems/System.hpp src/Points/PointSystem.cpp src/Points/PointSystem.hpp src/Points/Models/Point.hpp src/Draws/Draw.hpp src/Points/PointDrawSystem.cpp src/Points/PointDrawSystem.hpp src/Points/Models/PointDraw.hpp src/Draws/Extentions.hpp src/Stores/Extensions.hpp src/Engine/DescriptorSetLayouts.hpp src/Engine/Extensions.hpp src/Engine/DescriptorSetLayouts.cpp)
+add_executable(drk ${HEADERS} ${SOURCES} src/Scenes/SceneSystem.cpp src/Scenes/SceneSystem.hpp src/Scenes/Draws/SceneDraw.hpp src/Draws/DrawSystem.hpp src/Meshes/Components/MeshDraw.hpp src/Draws/DrawVertexBufferInfo.cpp src/Draws/DrawVertexBufferInfo.hpp src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp src/UserInterfaces/Renderers/UserInterfaceRenderer.hpp src/Devices/ImageInfo.hpp src/Devices/DeviceImageInfo.hpp src/Scenes/Renderers/SceneRenderOperation.hpp)
 add_dependencies(drk Shaders)
 configure_file(settings.json settings.json COPYONLY)
 

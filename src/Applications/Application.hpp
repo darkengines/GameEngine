@@ -15,7 +15,11 @@
 #include "../Graphics/GlobalSystem.hpp"
 #include "../Controllers/FlyCamController.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
-#include "../Graphics/MainRenderContext.hpp"
+#include "../Graphics/MeshPipeline.hpp"
+#include "../Scenes/Renderers/SceneRenderer.hpp"
+#include "../UserInterfaces/Renderers/UserInterfaceRenderer.hpp"
+#include "../Scenes/SceneSystem.hpp"
+#include "../Points/PointSystem.hpp"
 #include <memory>
 
 namespace drk::Applications {
@@ -37,7 +41,10 @@ namespace drk::Applications {
 			Controllers::FlyCamController&,
 			UserInterfaces::UserInterface&,
 			entt::registry&,
-			Graphics::MainRenderContext&
+			UserInterfaces::Renderers::UserInterfaceRenderer&,
+			Scenes::Renderers::SceneRenderer&,
+			Scenes::SceneSystem&,
+			Points::PointSystem&
 		>;
 
 		Application(
@@ -56,7 +63,10 @@ namespace drk::Applications {
 			Controllers::FlyCamController& flyCamController,
 			UserInterfaces::UserInterface& userInterface,
 			entt::registry& registry,
-			Graphics::MainRenderContext& mainRenderContext
+			UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer,
+			Scenes::Renderers::SceneRenderer& sceneRenderer,
+			Scenes::SceneSystem& sceneSystem,
+			Points::PointSystem& pointSystem
 		);
 		~Application();
 
@@ -75,15 +85,22 @@ namespace drk::Applications {
 		Graphics::GlobalSystem& globalSystem;
 		const Loaders::AssimpLoader& loader;
 		Graphics::Graphics& graphics;
-		Graphics::MainRenderContext mainRenderContext;
 		Controllers::FlyCamController& flyCamController;
 		UserInterfaces::UserInterface& userInterface;
 		entt::registry& registry;
+		UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer;
+		Scenes::Renderers::SceneRenderer& sceneRenderer;
+		Scenes::SceneSystem& sceneSystem;
+		Points::PointSystem& pointSystem;
 
 		void OnWindowSizeChanged(uint32_t width, uint32_t height);
 		void WaitFences();
 		static void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 		static void SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 		void RenderEntityTree(entt::entity);
+		void renderProperties(entt::entity entity);
+		bool shouldRecreateSwapchain = false;
+		void RecreateSwapchain(vk::Extent2D windowExtent);
+		vk::Extent2D windowExtent;
 	};
 }

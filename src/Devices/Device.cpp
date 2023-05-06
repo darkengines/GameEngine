@@ -10,8 +10,8 @@ namespace drk::Devices {
 	VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
-		const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-		void *pUserData
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+		void* pUserData
 	) {
 		std::cerr << pCallbackData->pMessage << std::endl;
 		return VK_FALSE;
@@ -19,18 +19,18 @@ namespace drk::Devices {
 
 
 	bool Device::checkDeviceExtensionSupport(
-		const vk::PhysicalDevice &physicalDevice,
-		const std::vector<const char *> &requiredExtensions
+		const vk::PhysicalDevice& physicalDevice,
+		const std::vector<const char*>& requiredExtensions
 	) {
 		auto availableExtensions = physicalDevice.enumerateDeviceExtensionProperties();
 		auto hasAllRequiredExtensions = std::all_of(
 			requiredExtensions.begin(),
 			requiredExtensions.end(),
-			[&availableExtensions](const char *requiredExtension) {
+			[&availableExtensions](const char* requiredExtension) {
 				auto foundExtension = std::find_if(
 					availableExtensions.begin(),
 					availableExtensions.end(),
-					[&requiredExtension](const vk::ExtensionProperties &availableExtension) {
+					[&requiredExtension](const vk::ExtensionProperties& availableExtension) {
 						return !strcmp(availableExtension.extensionName, requiredExtension);
 					}
 				);
@@ -41,8 +41,8 @@ namespace drk::Devices {
 	}
 
 	bool Device::isDeviceSuitable(
-		const vk::PhysicalDevice &physicalDevice, const vk::SurfaceKHR &surface,
-		const std::vector<const char *> &requiredExtensions
+		const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface,
+		const std::vector<const char*>& requiredExtensions
 	) {
 		QueueFamilyIndices indices = Device::findQueueFamilies(physicalDevice, surface);
 		bool extensionsSupported = Device::checkDeviceExtensionSupport(physicalDevice, requiredExtensions);
@@ -62,14 +62,14 @@ namespace drk::Devices {
 	}
 
 	QueueFamilyIndices
-	Device::findQueueFamilies(const vk::PhysicalDevice &physicalDevice, const vk::SurfaceKHR &surface) {
+	Device::findQueueFamilies(const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface) {
 		QueueFamilyIndices indices = {};
 
 		uint32_t queueFamilyCount = 0;
 		auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
 		int i = 0;
-		for (const auto &queueFamily : queueFamilies) {
+		for (const auto& queueFamily: queueFamilies) {
 			auto presentSupport = physicalDevice.getSurfaceSupportKHR(i, surface);
 			if (presentSupport) {
 				indices.presentFamily = i;
@@ -90,7 +90,7 @@ namespace drk::Devices {
 	}
 
 	SwapChainSupportDetails
-	Device::querySwapChainSupport(const vk::PhysicalDevice &physicalDevice, const vk::SurfaceKHR &surface) {
+	Device::querySwapChainSupport(const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface) {
 		SwapChainSupportDetails details = {
 			.capabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface),
 			.formats = physicalDevice.getSurfaceFormatsKHR(surface),
@@ -99,7 +99,7 @@ namespace drk::Devices {
 		return details;
 	}
 
-	vk::SampleCountFlagBits Device::getMaxSampleCount(const vk::PhysicalDevice &physicalDevice) {
+	vk::SampleCountFlagBits Device::getMaxSampleCount(const vk::PhysicalDevice& physicalDevice) {
 		auto deviceProperties = physicalDevice.getProperties();
 		auto counts = deviceProperties.limits.framebufferColorSampleCounts &
 					  deviceProperties.limits.framebufferDepthSampleCounts;
@@ -113,12 +113,12 @@ namespace drk::Devices {
 	}
 
 	vk::PhysicalDevice Device::pickPhysicalDevice(
-		const vk::Instance &instance, const vk::SurfaceKHR &surface,
-		const std::vector<const char *> &requiredExtensions
+		const vk::Instance& instance, const vk::SurfaceKHR& surface,
+		const std::vector<const char*>& requiredExtensions
 	) {
 		auto devices = instance.enumeratePhysicalDevices();
 		if (devices.empty()) throw std::runtime_error("Failed to find GPU with Vulkan support.");
-		for (const auto &device : devices) {
+		for (const auto& device: devices) {
 			if (Device::isDeviceSuitable(device, surface, requiredExtensions)) {
 				return device;
 			}
@@ -127,11 +127,11 @@ namespace drk::Devices {
 	}
 
 	VulkanLogicalDeviceInfo Device::createLogicalDevice(
-		const vk::PhysicalDevice &physicalDevice,
-		const vk::SurfaceKHR &surface,
-		const std::vector<const char *> &requiredExtensions,
+		const vk::PhysicalDevice& physicalDevice,
+		const vk::SurfaceKHR& surface,
+		const std::vector<const char*>& requiredExtensions,
 		bool enableValidationLayers,
-		const std::vector<const char *> &requiredLayers
+		const std::vector<const char*>& requiredLayers
 	) {
 		auto indices = Device::findQueueFamilies(physicalDevice, surface);
 		std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
@@ -141,7 +141,7 @@ namespace drk::Devices {
 			indices.computeFamily.value()
 		};
 		auto queuePriority = 1.0f;
-		for (uint32_t queueFamily : uniqueQueueFamilies) {
+		for (uint32_t queueFamily: uniqueQueueFamilies) {
 			vk::DeviceQueueCreateInfo queueCreateInfo = {
 				.queueFamilyIndex = queueFamily,
 				.queueCount = 1,
@@ -194,8 +194,8 @@ namespace drk::Devices {
 	}
 
 	vk::Instance Device::createInstance(
-		const std::vector<const char *> &requiredInstanceExtensions,
-		const std::vector<const char *> &requiredLayers
+		const std::vector<const char*>& requiredInstanceExtensions,
+		const std::vector<const char*>& requiredLayers
 	) {
 		vk::ApplicationInfo applicationInfo = {
 			.pApplicationName = "DarkEngines",
@@ -256,7 +256,7 @@ namespace drk::Devices {
 		vk::ImageTiling tiling,
 		vk::FormatFeatureFlags features
 	) {
-		for (auto format : candidates) {
+		for (auto format: candidates) {
 			auto formatProperties = physicalDevice.getFormatProperties(format);
 
 			if (tiling == vk::ImageTiling::eLinear &&
@@ -273,9 +273,9 @@ namespace drk::Devices {
 	}
 
 	VmaAllocator Device::createAllocator(
-		const vk::Instance &instance,
-		const vk::PhysicalDevice &physicalDevice,
-		const vk::Device &device
+		const vk::Instance& instance,
+		const vk::PhysicalDevice& physicalDevice,
+		const vk::Device& device
 	) {
 		VmaVulkanFunctions vulkanFunctions = {
 			.vkGetInstanceProcAddr = &vkGetInstanceProcAddr,
@@ -298,7 +298,7 @@ namespace drk::Devices {
 	Buffer Device::createVmaBuffer(
 		const VmaAllocator allocator,
 		const vk::BufferUsageFlags usage,
-		const VmaAllocationCreateInfo *pAllocationCreationInfo,
+		const VmaAllocationCreateInfo* pAllocationCreationInfo,
 		vk::DeviceSize size
 	) {
 		vk::BufferCreateInfo bufferCreateInfo = {
@@ -313,9 +313,9 @@ namespace drk::Devices {
 
 		auto result = vmaCreateBuffer(
 			allocator,
-			(VkBufferCreateInfo *) &bufferCreateInfo,
+			(VkBufferCreateInfo*) &bufferCreateInfo,
 			pAllocationCreationInfo,
-			(VkBuffer *) &buffer,
+			(VkBuffer*) &buffer,
 			&allocation,
 			&allocationInfo
 		);
@@ -325,30 +325,30 @@ namespace drk::Devices {
 	}
 
 	Buffer Device::createBuffer(
-		const VmaAllocator &allocator,
+		const VmaAllocator& allocator,
 		vk::MemoryPropertyFlags properties,
 		vk::BufferUsageFlags usage,
-		const VmaAllocationCreateInfo &vmaAllocationCreateInfo,
+		const VmaAllocationCreateInfo& vmaAllocationCreateInfo,
 		vk::DeviceSize size
 	) {
 		auto buffer = Device::createVmaBuffer(allocator, usage, &vmaAllocationCreateInfo, size);
 		return buffer;
 	}
 
-	void Device::destroyVmaBuffer(const VmaAllocator &allocator, Buffer buffer) {
+	void Device::destroyVmaBuffer(const VmaAllocator& allocator, Buffer buffer) {
 		vmaDestroyBuffer(allocator, buffer.buffer, buffer.allocation);
 	}
 
-	void Device::destroyBuffer(const VmaAllocator &allocator, const Buffer &buffer) {
+	void Device::destroyBuffer(const VmaAllocator& allocator, const Buffer& buffer) {
 		Device::destroyVmaBuffer(allocator, buffer);
 	}
 
 	void Device::copyBuffer(
-		const vk::Device &device,
-		const vk::Queue &queue,
-		const vk::CommandPool &commandPool,
-		const Buffer &source,
-		const Buffer &destination,
+		const vk::Device& device,
+		const vk::Queue& queue,
+		const vk::CommandPool& commandPool,
+		const Buffer& source,
+		const Buffer& destination,
 		size_t sourceOffset,
 		size_t destinationOffset,
 		size_t length
@@ -363,15 +363,15 @@ namespace drk::Devices {
 		Device::endSingleTimeCommands(device, queue, commandPool, commandBuffer);
 	}
 
-	void Device::mapBuffer(const VmaAllocator &allocator, const Buffer &buffer, void **memory) {
+	void Device::mapBuffer(const VmaAllocator& allocator, const Buffer& buffer, void** memory) {
 		vmaMapMemory(allocator, buffer.allocation, memory);
 	}
 
-	void Device::unmapBuffer(const VmaAllocator &allocator, const Buffer &buffer) {
+	void Device::unmapBuffer(const VmaAllocator& allocator, const Buffer& buffer) {
 		vmaUnmapMemory(allocator, buffer.allocation);
 	}
 
-	vk::CommandBuffer Device::beginSingleTimeCommands(const vk::Device &device, const vk::CommandPool &commandPool) {
+	vk::CommandBuffer Device::beginSingleTimeCommands(const vk::Device& device, const vk::CommandPool& commandPool) {
 		vk::CommandBufferAllocateInfo commandBufferAllocationInfo = {
 			.commandPool = commandPool,
 			.level = vk::CommandBufferLevel::ePrimary,
@@ -386,10 +386,10 @@ namespace drk::Devices {
 	}
 
 	void Device::endSingleTimeCommands(
-		const vk::Device &device,
-		const vk::Queue &queue,
-		const vk::CommandPool &commandPool,
-		const vk::CommandBuffer &commandBuffer
+		const vk::Device& device,
+		const vk::Queue& queue,
+		const vk::CommandPool& commandPool,
+		const vk::CommandBuffer& commandBuffer
 	) {
 		commandBuffer.end();
 		vk::SubmitInfo submitInfo = {
@@ -402,7 +402,7 @@ namespace drk::Devices {
 	}
 
 	Image Device::createImage(
-		const VmaAllocator &allocator,
+		const VmaAllocator& allocator,
 		const vk::ImageCreateInfo imageCreationInfo,
 		vk::MemoryPropertyFlags properties
 	) {
@@ -416,9 +416,9 @@ namespace drk::Devices {
 	}
 
 	Image Device::createVmaImage(
-		const VmaAllocator &allocator,
-		const vk::ImageCreateInfo &imageCreationInfo,
-		const VmaAllocationCreateInfo &allocationCreationInfo
+		const VmaAllocator& allocator,
+		const vk::ImageCreateInfo& imageCreationInfo,
+		const VmaAllocationCreateInfo& allocationCreationInfo
 	) {
 		VkImage image;
 		VmaAllocation allocation;
@@ -426,7 +426,7 @@ namespace drk::Devices {
 
 		auto result = vmaCreateImage(
 			allocator,
-			(VkImageCreateInfo *) &imageCreationInfo,
+			(VkImageCreateInfo*) &imageCreationInfo,
 			&allocationCreationInfo,
 			&image,
 			&allocation,
@@ -437,22 +437,22 @@ namespace drk::Devices {
 	}
 
 	void Device::destroyVmaImage(
-		const VmaAllocator &allocator,
-		const Image &image
+		const VmaAllocator& allocator,
+		const Image& image
 	) {
 		vmaDestroyImage(allocator, image.image, image.allocation);
 	}
 
 	void Device::destroyImage(
-		const vk::Device &device,
-		const VmaAllocator &allocator,
-		const Image &image
+		const vk::Device& device,
+		const VmaAllocator& allocator,
+		const Image& image
 	) {
 		Device::destroyVmaImage(allocator, image);
 	}
 
 	vk::Sampler Device::createSampler(
-		const vk::Device &device,
+		const vk::Device& device,
 		vk::SamplerCreateFlags flags,
 		vk::Filter magFilter,
 		vk::Filter minFilter,
@@ -490,12 +490,12 @@ namespace drk::Devices {
 		return sampler;
 	}
 
-	void Device::destroySampler(const vk::Device &device, const vk::Sampler &sampler) {
+	void Device::destroySampler(const vk::Device& device, const vk::Sampler& sampler) {
 		device.destroySampler(sampler);
 	}
 
-	vk::SurfaceFormatKHR Device::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats) {
-		for (const auto &availableFormat : availableFormats) {
+	vk::SurfaceFormatKHR Device::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats) {
+		for (const auto& availableFormat: availableFormats) {
 			if (availableFormat.format == vk::Format::eB8G8R8A8Srgb &&
 				availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
 				return availableFormat;
@@ -505,8 +505,8 @@ namespace drk::Devices {
 		return format;
 	}
 
-	vk::PresentModeKHR Device::chooseSwapPresentMode(const std::vector<vk::PresentModeKHR> &availablePresentModes) {
-		for (const auto &availablePresentMode : availablePresentModes) {
+	vk::PresentModeKHR Device::chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes) {
+		for (const auto& availablePresentMode: availablePresentModes) {
 			if (availablePresentMode == vk::PresentModeKHR::eMailbox) {
 				return availablePresentMode;
 			}
@@ -515,7 +515,7 @@ namespace drk::Devices {
 	}
 
 	vk::Extent2D
-	Device::chooseSwapExtent(vk::Extent2D extent, const vk::SurfaceCapabilitiesKHR &capabilities) {
+	Device::chooseSwapExtent(vk::Extent2D extent, const vk::SurfaceCapabilitiesKHR& capabilities) {
 		if (capabilities.currentExtent.width != UINT32_MAX) {
 			return capabilities.currentExtent;
 		} else {
@@ -531,10 +531,10 @@ namespace drk::Devices {
 	}
 
 	Swapchain Device::createSwapchain(
-		const vk::Device &device,
-		const vk::PhysicalDevice &physicalDevice,
-		const vk::SurfaceKHR &surface,
-		const vk::Extent2D &extent
+		const vk::Device& device,
+		const vk::PhysicalDevice& physicalDevice,
+		const vk::SurfaceKHR& surface,
+		const vk::Extent2D& extent
 	) {
 		SwapChainSupportDetails swapChainSupport = Device::querySwapChainSupport(physicalDevice, surface);
 		auto surfaceFormat = Device::chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -584,7 +584,7 @@ namespace drk::Devices {
 			swapchainImages.begin(),
 			swapchainImages.end(),
 			swapchainTextures.data(),
-			[](const vk::Image &vkImage) {
+			[](const vk::Image& vkImage) {
 				return Image{
 					.image = vkImage
 				};
@@ -595,7 +595,7 @@ namespace drk::Devices {
 			swapchainTextures.begin(),
 			swapchainTextures.end(),
 			swapchainImageViews.data(),
-			[&device, surfaceFormat](const auto &swapchainImage) {
+			[&device, surfaceFormat](const auto& swapchainImage) {
 				vk::ImageViewCreateInfo imageViewCreateInfo = {
 					.image = swapchainImage.image,
 					.viewType = vk::ImageViewType::e2D,
@@ -613,7 +613,7 @@ namespace drk::Devices {
 		Swapchain swapchain = {
 			.swapchain = vkSwapchain,
 			.imageFormat = surfaceFormat.format,
-			.extent = swapExtent,
+			.extent = {swapExtent.width, swapExtent.height, 1},
 			.images = swapchainImages,
 			.imageViews = swapchainImageViews,
 		};
@@ -621,14 +621,14 @@ namespace drk::Devices {
 		return swapchain;
 	}
 
-	void Device::destroySwapchain(const vk::Device &device, const Swapchain &swapchain) {
-		for (auto &swapchainImageView : swapchain.imageViews) {
+	void Device::destroySwapchain(const vk::Device& device, const Swapchain& swapchain) {
+		for (auto& swapchainImageView: swapchain.imageViews) {
 			device.destroyImageView(swapchainImageView);
 		}
 		device.destroySwapchainKHR(swapchain.swapchain);
 	}
 
-	vk::ShaderModule Device::createShaderModules(const vk::Device &device, uint32_t codeSize, const uint32_t *pCode) {
+	vk::ShaderModule Device::createShaderModules(const vk::Device& device, uint32_t codeSize, const uint32_t* pCode) {
 		vk::ShaderModuleCreateInfo createInfo = {
 			.codeSize = codeSize,
 			.pCode = pCode
@@ -638,15 +638,15 @@ namespace drk::Devices {
 		return shaderModule;
 	}
 
-	void Device::destroyShaderModule(const vk::Device &device, const vk::ShaderModule &shaderModule) {
+	void Device::destroyShaderModule(const vk::Device& device, const vk::ShaderModule& shaderModule) {
 		device.destroyShaderModule(shaderModule);
 	}
 
 	void Device::copyBufferToImage(
-		const vk::CommandBuffer &commandBuffer,
-		const Devices::Buffer &source,
-		const vk::Image &destination,
-		const vk::BufferImageCopy &region
+		const vk::CommandBuffer& commandBuffer,
+		const Devices::Buffer& source,
+		const vk::Image& destination,
+		const vk::BufferImageCopy& region
 	) {
 		commandBuffer.copyBufferToImage(
 			source.buffer,
@@ -658,8 +658,8 @@ namespace drk::Devices {
 	}
 
 	void Device::transitionLayout(
-		const vk::CommandBuffer &commandBuffer,
-		const vk::Image &image,
+		const vk::CommandBuffer& commandBuffer,
+		const vk::Image& image,
 		vk::Format format,
 		vk::ImageLayout oldLayout,
 		vk::ImageLayout newLayout,
@@ -710,6 +710,12 @@ namespace drk::Devices {
 									vk::AccessFlagBits::eDepthStencilAttachmentRead;
 			source = vk::PipelineStageFlagBits::eTopOfPipe;
 			destination = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+		} else if (oldLayout == vk::ImageLayout::eUndefined &&
+				   newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+			barrier.srcAccessMask = vk::AccessFlagBits::eNone;
+			barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+			source = vk::PipelineStageFlagBits::eTopOfPipe;
+			destination = vk::PipelineStageFlagBits::eFragmentShader;
 		} else {
 			throw std::runtime_error("Unsupported layout transition!");
 		}
@@ -724,8 +730,8 @@ namespace drk::Devices {
 	}
 
 	void Device::generatedMipmaps(
-		const vk::CommandBuffer &commandBuffer,
-		const vk::Image &image,
+		const vk::CommandBuffer& commandBuffer,
+		const vk::Image& image,
 		int32_t width,
 		int32_t height,
 		uint32_t mipLevels

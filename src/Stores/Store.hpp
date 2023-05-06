@@ -17,13 +17,23 @@ namespace drk::Stores {
 
 	public:
 		GenericStore(StoreBufferAllocator& storeBufferAllocator) :
-			storeAllocator(storeBufferAllocator), ItemPerBuffer(1024u) {
+			storeAllocator(storeBufferAllocator),
+			ItemPerBuffer(1024u) /* todo: make this ItemPerBuffer(1024u) configurable */ {
 
 		}
 
 		GenericStore(GenericStore&& genericStore) :
 			storeAllocator(genericStore.storeAllocator), stores(std::move(genericStore.stores)),
 			ItemPerBuffer(genericStore.ItemPerBuffer) {
+		}
+		virtual ~GenericStore() {};
+		GenericStoreItemLocation get(uint32_t index) {
+			auto bufferIndex = index / ItemPerBuffer;
+			auto bufferItemIndex = index % ItemPerBuffer;
+			return {
+				.descriptorArrayElement = stores[bufferIndex]->descriptorArrayElement,
+				.itemIndex = bufferItemIndex
+			};
 		}
 	};
 
@@ -34,7 +44,7 @@ namespace drk::Stores {
 		std::queue<StoreItemLocation<T>> AvailableLocations;
 	public:
 		Store(StoreBufferAllocator& storeBufferAllocator) : GenericStore(storeBufferAllocator) {
-			auto store = storeAllocator.Allocate<T>(ItemPerBuffer);
+			auto store = storeAllocator.allocate<T>(ItemPerBuffer);
 			auto index = store->add();
 			NextLocation = {
 				.pStore = store.get(),
@@ -54,7 +64,7 @@ namespace drk::Stores {
 
 			if (stores.size() <= bufferIndex) {
 				stores.resize(bufferIndex + 1);
-				auto store = storeAllocator.Allocate<T>(ItemPerBuffer);
+				auto store = storeAllocator.allocate<T>(ItemPerBuffer);
 				auto memory = store->mappedMemory();
 
 				StoreItemLocation<T> location = {
@@ -69,7 +79,7 @@ namespace drk::Stores {
 			}
 			auto pStore = reinterpret_cast<StoreBuffer<T>*>(stores[bufferIndex].get());
 			if (pStore == nullptr) {
-				auto store = storeAllocator.Allocate<T>(ItemPerBuffer);
+				auto store = storeAllocator.allocate<T>(ItemPerBuffer);
 				auto memory = store->mappedMemory();
 
 				StoreItemLocation<T> location = {
@@ -128,7 +138,7 @@ namespace drk::Stores {
 			auto location = NextLocation;
 
 			if (!NextLocation.pStore->hasAvailableIndex()) {
-				auto store = storeAllocator.Allocate<T>(ItemPerBuffer);
+				auto store = storeAllocator.allocate<T>(ItemPerBuffer);
 				auto index = store->add();
 				auto mappedMemory = store->mappedMemory();
 				NextLocation = {

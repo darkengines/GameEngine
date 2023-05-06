@@ -7,8 +7,7 @@ namespace drk::Graphics {
 	auto AddGraphics() {
 		return boost::di::make_injector(
 			boost::di::bind<GlobalSystem>.to<GlobalSystem>(),
-			boost::di::bind<Graphics>.to<Graphics>(),
-			boost::di::bind<MainRenderContext>.to<MainRenderContext>()
+			boost::di::bind<Graphics>.to<Graphics>()
 		);
 	}
 }

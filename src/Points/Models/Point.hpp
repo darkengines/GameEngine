@@ -8,7 +8,7 @@
 #include "../../Stores/Models/StoreItemLocation.hpp"
 
 namespace drk::Points::Models {
-	struct Point { ;
+	struct Point {
 		 Stores::Models::StoreItemLocation materialItemLocation;
 	};
 }
