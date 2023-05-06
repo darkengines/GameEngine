@@ -20,12 +20,13 @@ namespace drk::Scenes {
 				if (leftDraw.
 					hasTransparency && rightDraw
 						.hasTransparency) {
-					result |= leftDraw.depth < rightDraw.
+					result |= leftDraw.depth > rightDraw.
 						depth; // If both have transparency, sort by depth in ascending order
 				}
 				result |= leftDraw.drawSystem < rightDraw.
 					drawSystem; // Sort by pipeline in ascending order
-				result |= leftDraw.indexBufferView.byteOffset < rightDraw.indexBufferView.byteOffset; // Sort by index buffer view in ascending order
+				result |= leftDraw.indexBufferView.byteOffset <
+						  rightDraw.indexBufferView.byteOffset; // Sort by index buffer view in ascending order
 				return
 					result;
 			}
@@ -37,11 +38,14 @@ namespace drk::Scenes {
 		auto sceneDrawEntities = registry.view<Scenes::Draws::SceneDraw>();
 
 		auto drawIndex = 0u;
+		//std::cout << "----------------------" << std::endl;
 		sceneDrawEntities.each(
 			[&drawIndex, &drawStore](entt::entity sceneDrawEntity, Draws::SceneDraw& draw) {
+				//std::cout << draw.hasTransparency << " " << draw.depth << std::endl;
 				draw.drawSystem->UpdateDraw(sceneDrawEntity, drawIndex);
 				drawIndex++;
 			}
 		);
+		//std::cout << "----------------------" << std::endl;
 	}
 }
