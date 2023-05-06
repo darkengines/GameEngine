@@ -1,4 +1,4 @@
-# GameEngine
+# GameEngine [![CodeFactor](https://www.codefactor.io/repository/github/darkengines/gameengine/badge)](https://www.codefactor.io/repository/github/darkengines/gameengine)
 
 ## How to build
 
