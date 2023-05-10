@@ -6,7 +6,7 @@
 #include "../Objects/Object.hpp"
 #include "../Meshes/MeshGroup.hpp"
 #include "Draw.hpp"
-#include "../Spatials/Spatial.hpp"
+#include "../Spatials/Components/Spatial.hpp"
 #include "../Draws/DrawCommand.hpp"
 #include "Models/Draw.hpp"
 #include <imgui_impl_vulkan.h>

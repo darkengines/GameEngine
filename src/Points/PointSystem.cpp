@@ -2,7 +2,7 @@
 #include "PointSystem.hpp"
 #include "../Materials/Models/Material.hpp"
 #include "../Cameras/Camera.hpp"
-#include "../Spatials/Spatial.hpp"
+#include "../Spatials/Components/Spatial.hpp"
 #include "Components/PointDraw.hpp"
 #include "Models/PointDraw.hpp"
 #include "../Scenes/Draws/SceneDraw.hpp"
@@ -27,7 +27,7 @@ namespace drk::Points {
 		pointItemLocation.pItem->pointItemLocation.itemIndex = pointDraw.pointItemLocation.itemIndex;
 	}
 	void PointSystem::EmitDraws() {
-		auto pointEntities = registry.view<Stores::StoreItem<Models::Point>, Components::Point, Spatials::Spatial>();
+		auto pointEntities = registry.view<Stores::StoreItem<Models::Point>, Components::Point, Spatials::Components::Spatial>();
 		auto cameraEntity = engineState.CameraEntity;
 		auto camera = registry.get<Cameras::Camera>(cameraEntity);
 		pointEntities.each(

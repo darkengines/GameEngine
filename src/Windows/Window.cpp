@@ -28,8 +28,6 @@ namespace drk::Windows {
 		auto& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-		ImGui_ImplGlfw_InitForVulkan(window, true);
 		return window;
 	}
 

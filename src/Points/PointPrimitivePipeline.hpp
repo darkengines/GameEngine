@@ -42,7 +42,7 @@ namespace drk::Points {
 		vk::Pipeline BuildGraphicsPipeline(const vk::RenderPass& renderPass, const vk::Extent2D& extent);
 
 //		std::vector<Draws::DrawCommand> BuildMainRenderPass() const {
-//			auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Models::PointVertex, Spatials::Spatial>();
+//			auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Models::PointVertex, Spatials::Components::Spatial>();
 //			std::vector<Components::PointDraw> draws;
 //			std::vector<Components::PointDraw> transparencyDraws;
 //			objectEntities.each(

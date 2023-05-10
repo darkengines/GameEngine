@@ -2,7 +2,7 @@
 #include "../Objects/Dirty.hpp"
 #include <entt/entt.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include "../Spatials/Spatial.hpp"
+#include "../Spatials/Components/Spatial.hpp"
 #include "../Objects/Relationship.hpp"
 #include "../Objects/Object.hpp"
 #include "../Graphics/SynchronizationState.hpp"
@@ -51,13 +51,13 @@ namespace drk::Cameras {
 	}
 
 	void CameraSystem::ProcessDirtyItems() {
-		auto dirtyCameraView = Registry.view<Camera, Spatials::Spatial, Objects::Dirty<Spatials::Spatial>>();
+		auto dirtyCameraView = Registry.view<Camera, Spatials::Components::Spatial, Objects::Dirty<Spatials::Components::Spatial>>();
 		dirtyCameraView.each(
 			[&](
 				entt::entity cameraEntity,
 				Camera& camera,
-				Spatials::Spatial& spatial,
-				Objects::Dirty<Spatials::Spatial>& dirty
+				Spatials::Components::Spatial& spatial,
+				Objects::Dirty<Spatials::Components::Spatial>& dirty
 			) {
 				camera.absolutePosition = spatial.absolutePosition;
 				auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
@@ -114,7 +114,7 @@ namespace drk::Cameras {
 			.near = near,
 			.far = far
 		};
-		Spatials::Spatial cameraSpatial = {
+		Spatials::Components::Spatial cameraSpatial = {
 			.relativeScale = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f),
 			.relativeRotation = glm::quat(1, 0, 0, 0),
 			.relativePosition = position
@@ -131,7 +131,7 @@ namespace drk::Cameras {
 		};
 
 		Registry.emplace<Camera>(cameraEntity, std::move(camera));
-		Registry.emplace<Spatials::Spatial>(cameraEntity, std::move(cameraSpatial));
+		Registry.emplace<Spatials::Components::Spatial>(cameraEntity, std::move(cameraSpatial));
 		Registry.emplace<Objects::Relationship>(cameraEntity, std::move(cameraRelationship));
 		Registry.emplace<Objects::Object>(cameraEntity, std::move(cameraObject));
 

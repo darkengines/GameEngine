@@ -5,7 +5,7 @@
 #include "../Materials/Models/Material.hpp"
 #include "../Objects/Models/Object.hpp"
 #include "MeshGroup.hpp"
-#include "../Spatials/Spatial.hpp"
+#include "../Spatials/Components/Spatial.hpp"
 #include "../Cameras/Camera.hpp"
 #include "Models/MeshDraw.hpp"
 #include "../Scenes/Draws/SceneDraw.hpp"
@@ -90,7 +90,7 @@ namespace drk::Meshes {
 		meshItemLocation.pItem->objectItemLocation.itemIndex = meshDraw.objectItemLocation.itemIndex;
 	}
 	void MeshSystem::EmitDraws() {
-		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Spatial>();
+		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Components::Spatial>();
 		auto cameraEntity = engineState.CameraEntity;
 		auto camera = registry.get<Cameras::Camera>(cameraEntity);
 		objectEntities.each(

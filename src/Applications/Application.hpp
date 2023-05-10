@@ -92,6 +92,7 @@ namespace drk::Applications {
 		Scenes::Renderers::SceneRenderer& sceneRenderer;
 		Scenes::SceneSystem& sceneSystem;
 		Points::PointSystem& pointSystem;
+		entt::entity selectedEntity = entt::null;
 
 		void OnWindowSizeChanged(uint32_t width, uint32_t height);
 		void WaitFences();

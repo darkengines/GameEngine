@@ -382,7 +382,7 @@ namespace drk::Graphics {
 	}
 
 	DrawContext MeshPipeline::BuildMainRenderPass() const {
-		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Spatial>();
+		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Components::Spatial>();
 		std::vector<Draw> draws;
 		std::vector<Draw> transparencyDraws;
 		objectEntities.each(

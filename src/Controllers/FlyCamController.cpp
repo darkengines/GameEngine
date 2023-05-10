@@ -1,6 +1,6 @@
 #include "FlyCamController.hpp"
 #include "../Cameras/Camera.hpp"
-#include "../Spatials/Spatial.hpp"
+#include "../Spatials/Components/Spatial.hpp"
 #include "../GlmExtensions.hpp"
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -9,72 +9,54 @@
 #include "../Graphics/SynchronizationState.hpp"
 #include "../Spatials/Models/Spatial.hpp"
 #include "../Objects/Dirty.hpp"
+#include <imgui.h>
 
 namespace drk::Controllers {
 
-	FlyCamController::FlyCamController(entt::registry& registry) : Registry(registry) {	}
+	FlyCamController::FlyCamController(entt::registry& registry) : Registry(registry) {}
 
 	void FlyCamController::Attach(entt::entity cameraEntity) {
 		CameraEntity = cameraEntity;
 	}
 
-	void FlyCamController::OnKeyboardEvent(int key, int scancode, int action, int mods) {
-		switch (key) {
-			case (GLFW_KEY_W): {
-				if (action == GLFW_PRESS) {
-					MoveForward = true;
-				}
-				if (action == GLFW_RELEASE) {
-					MoveForward = false;
-				}
-				break;
-			}
-			case (GLFW_KEY_S): {
-				if (action == GLFW_PRESS) {
-					MoveBackward = true;
-				}
-				if (action == GLFW_RELEASE) {
-					MoveBackward = false;
-				}
-				break;
-			}
-			case (GLFW_KEY_A): {
-				if (action == GLFW_PRESS) {
-					MoveLeft = true;
-				}
-				if (action == GLFW_RELEASE) {
-					MoveLeft = false;
-				}
-				break;
-			}
-			case (GLFW_KEY_D): {
-				if (action == GLFW_PRESS) {
-					MoveRight = true;
-				}
-				if (action == GLFW_RELEASE) {
-					MoveRight = false;
-				}
-				break;
-			}
-			case (GLFW_KEY_SPACE): {
-				if (action == GLFW_PRESS) {
-					MoveUp = true;
-				}
-				if (action == GLFW_RELEASE) {
-					MoveUp = false;
-				}
-				break;
-			}
-			case (GLFW_KEY_LEFT_CONTROL): {
-				if (action == GLFW_PRESS) {
-					MoveDown = true;
-				}
-				if (action == GLFW_RELEASE) {
-					MoveDown = false;
-				}
-				break;
-			}
+	void FlyCamController::HandleKeyboardEvents() {
+		if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Z)) {
+			MoveForward = true;
 		}
+		if (ImGui::IsKeyReleased(ImGuiKey::ImGuiKey_Z)) {
+			MoveForward = false;
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_S)) {
+			MoveBackward = true;
+		}
+		if (ImGui::IsKeyReleased(ImGuiKey::ImGuiKey_S)) {
+			MoveBackward = false;
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Q)) {
+			MoveLeft = true;
+		}
+		if (ImGui::IsKeyReleased(ImGuiKey::ImGuiKey_Q)) {
+			MoveLeft = false;
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_D)) {
+			MoveRight = true;
+		}
+		if (ImGui::IsKeyReleased(ImGuiKey::ImGuiKey_D)) {
+			MoveRight = false;
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Space)) {
+			MoveUp = true;
+		}
+		if (ImGui::IsKeyReleased(ImGuiKey::ImGuiKey_Space)) {
+			MoveUp = false;
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_LeftCtrl)) {
+			MoveDown = true;
+		}
+		if (ImGui::IsKeyReleased(ImGuiKey::ImGuiKey_LeftCtrl)) {
+			MoveDown = false;
+		}
+
 	}
 
 	void FlyCamController::OnCursorPositionEvent(double xpos, double ypos) {
@@ -90,8 +72,8 @@ namespace drk::Controllers {
 	}
 
 	void FlyCamController::Step() {
-		auto &camera = Registry.get<Cameras::Camera>(CameraEntity);
-		auto &cameraSpatial = Registry.get<Spatials::Spatial>(CameraEntity);
+		auto& camera = Registry.get<Cameras::Camera>(CameraEntity);
+		auto& cameraSpatial = Registry.get<Spatials::Components::Spatial>(CameraEntity);
 		auto up = camera.absoluteUp;
 		auto front = camera.absoluteFront;
 		auto side = GlmExtensions::cross(front, up);
@@ -126,7 +108,7 @@ namespace drk::Controllers {
 		if (MousePositionDelta.x != 0 || MousePositionDelta.y != 0) {
 			if (MousePositionDelta.x) {
 				auto q = glm::angleAxis(-MousePositionDelta.x, glm::vec3(camera.relativeUp));
-				cameraSpatial.relativeRotation = q * cameraSpatial.relativeRotation ;
+				cameraSpatial.relativeRotation = q * cameraSpatial.relativeRotation;
 				MousePositionDelta.x = 0;
 			}
 			if (MousePositionDelta.y) {
@@ -140,8 +122,8 @@ namespace drk::Controllers {
 			hasUpdate = true;
 		}
 		if (hasUpdate) {
-			Registry.emplace_or_replace<Graphics::SynchronizationState<Spatials::Models::Spatial>>(CameraEntity, 2u);
-			Registry.emplace_or_replace<Objects::Dirty<Spatials::Spatial>>(CameraEntity);
+			Registry.emplace_or_replace<Graphics::SynchronizationState<Spatials::Models::Spatial >>(CameraEntity, 2u);
+			Registry.emplace_or_replace<Objects::Dirty<Spatials::Components::Spatial >>(CameraEntity);
 		}
 	}
 }

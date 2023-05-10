@@ -5,7 +5,7 @@
 #include "../Lights/Spotlight.hpp"
 #include "../Lights/Light.hpp"
 #include "../Cameras/Camera.hpp"
-#include "../Spatials/Spatial.hpp"
+#include "../Spatials/Components/Spatial.hpp"
 #include "../Meshes/MeshGroup.hpp"
 #include "../Objects/Relationship.hpp"
 #include "../Objects/Object.hpp"
@@ -401,7 +401,7 @@ namespace drk::Loaders {
 		auto scalingMatrix = glm::scale(glm::identity<glm::mat4>(), glm::vec3(scale));
 		auto localModel = translationMatrix * rotationMatrix * scalingMatrix;
 
-		Spatials::Spatial spatial{
+		Spatials::Components::Spatial spatial{
 			scale,
 			rotation,
 			position,
@@ -453,7 +453,7 @@ namespace drk::Loaders {
 			registry.emplace<Meshes::MeshGroup>(entity, meshGroup);
 		}
 
-		registry.emplace<Spatials::Spatial>(entity, spatial);
+		registry.emplace<Spatials::Components::Spatial>(entity, spatial);
 
 		Objects::Relationship relationship;
 		Objects::Relationship* previousRelationship = nullptr;

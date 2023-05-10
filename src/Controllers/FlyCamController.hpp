@@ -20,8 +20,8 @@ namespace drk::Controllers {
 
 	public:
 		FlyCamController(entt::registry& registry);
-		void Attach(entt::entity cameraEntity);;
-		void OnKeyboardEvent(int key, int scancode, int action, int mods);
+		void Attach(entt::entity cameraEntity);
+		void HandleKeyboardEvents();
 		void OnCursorPositionEvent(double xpos, double ypos);
 		void OnMouseButtonEvent(int button, int action, int mods);
 		void Step();

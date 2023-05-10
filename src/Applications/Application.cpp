@@ -9,6 +9,7 @@
 #include <uv.h>
 #include <GLFW/glfw3.h>
 #include "../Scenes/Draws/SceneDraw.hpp"
+#include "../Spatials/Components/SpatialEditor.hpp"
 
 namespace drk::Applications {
 	Application::Application(
@@ -52,8 +53,9 @@ namespace drk::Applications {
 		  sceneSystem(sceneSystem),
 		  pointSystem(pointSystem),
 		  windowExtent(window.GetExtent()) {
-
+		//ImGui::GetIO().IniFilename = NULL;
 		const auto& glfwWindow = window.GetWindow();
+		glfwSetCursorPosCallback(glfwWindow, CursorPosCallback);
 		glfwSetWindowUserPointer(glfwWindow, this);
 		glfwSetWindowSizeCallback(
 			glfwWindow, [](GLFWwindow* window, int width, int height) {
@@ -61,8 +63,9 @@ namespace drk::Applications {
 				application->OnWindowSizeChanged(width, height);
 			}
 		);
-		glfwSetCursorPosCallback(glfwWindow, CursorPosCallback);
-		glfwSetKeyCallback(glfwWindow, SetKeyCallback);
+		ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
+		auto io = ImGui::GetIO();
+		glfwMakeContextCurrent(glfwWindow);
 	}
 
 	void Application::Run() {
@@ -102,8 +105,21 @@ namespace drk::Applications {
 		std::optional<vk::DescriptorSet> sceneTextureImageDescriptorSet;
 		vk::Extent3D sceneTextureExtent{0, 0, 1};
 
+		glm::vec2 previousMousePosition{0, 0};
+		auto isDemoWindowOpen = false;
 		while (!glfwWindowShouldClose(window.GetWindow())) {
 			glfwPollEvents();
+
+			userInterface.HandleKeyboardEvents();
+			if (userInterface.IsExplorationMode()) {
+				flyCamController.HandleKeyboardEvents();
+			}
+
+			auto imGuiMousePosition = ImGui::GetMousePos();
+			glm::vec2 mousePosition{imGuiMousePosition.x, imGuiMousePosition.y};
+			if (!userInterface.IsExplorationMode()) {
+				CursorPosCallback(window.GetWindow(), mousePosition.x, mousePosition.y);
+			}
 
 			const auto& frameState = engineState.getCurrentFrameState();
 			const auto& fence = frameState.fence;
@@ -119,10 +135,20 @@ namespace drk::Applications {
 				frameState.commandBuffer.reset();
 				vk::CommandBufferBeginInfo commandBufferBeginInfo = {};
 				const auto& result = frameState.commandBuffer.begin(&commandBufferBeginInfo);
-
+				auto io = ImGui::GetIO();
+				io.MouseDrawCursor = false;
+				io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 				ImGui_ImplVulkan_NewFrame();
 				ImGui_ImplGlfw_NewFrame();
+
+				auto mainViewport = ImGui::GetMainViewport();
+				auto mainViewportSize = mainViewport->Size;
+				ImGui::SetNextWindowSize(mainViewportSize, ImGuiCond_FirstUseEver);
 				ImGui::NewFrame();
+
+				if (userInterface.IsExplorationMode()) {
+					io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+				}
 				if (true || userInterface.IsVisible()) {
 					auto open = true;
 
@@ -137,7 +163,7 @@ namespace drk::Applications {
 						);
 						shouldRecreateSwapchain = false;
 					}
-
+					ImGui::DockSpaceOverViewport();
 					if (ImGui::BeginMainMenuBar()) {
 						if (ImGui::BeginMenu("File")) {
 							if (ImGui::MenuItem("Open", "ctrl + o")) {
@@ -151,10 +177,23 @@ namespace drk::Applications {
 							}
 							ImGui::EndMenu();
 						}
+						if (ImGui::BeginMenu("About")) {
+							isDemoWindowOpen = ImGui::MenuItem("Show demo window", "ctrl + d");
+							ImGui::EndMenu();
+						}
 						ImGui::EndMainMenuBar();
 					}
-
+					ImGui::End();
+					if (isDemoWindowOpen) ImGui::ShowDemoWindow(&isDemoWindowOpen);
+					auto windowExtent = window.GetExtent();
+					ImGui::SetNextWindowSize(
+						ImVec2(
+							windowExtent.width,
+							windowExtent.height - ImGui::GetTextLineHeightWithSpacing()),
+						ImGuiCond_FirstUseEver
+					);
 					ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
+
 					ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 					vk::Extent3D newSceneExtent = {
 						static_cast<uint32_t>(viewportPanelSize.x),
@@ -210,7 +249,7 @@ namespace drk::Applications {
 					}
 					ImGui::End();
 
-					renderProperties(entt::null);
+					renderProperties(selectedEntity);
 
 					fileBrowser.Display();
 					if (fileBrowser.HasSelected()) {
@@ -258,7 +297,7 @@ namespace drk::Applications {
 				sceneSystem.UpdateDraws();
 
 				//Clear frame
-				registry.clear<Objects::Dirty<Spatials::Spatial>>();
+				registry.clear<Objects::Dirty<Spatials::Components::Spatial>>();
 
 				//Renders
 				sceneRenderer.render(0, frameState.commandBuffer);
@@ -319,6 +358,9 @@ namespace drk::Applications {
 		auto child = relationship.firstChild;
 		if (child != entt::null) {
 			if (ImGui::TreeNode(fmt::format("{0} {1}", object.Name, relationship.childCount).c_str())) {
+				if (ImGui::IsItemClicked()) {
+					selectedEntity = entity;
+				}
 				while (child != entt::null) {
 					RenderEntityTree(child);
 					auto childRelationship = registry.get<Objects::Relationship>(child);
@@ -328,12 +370,30 @@ namespace drk::Applications {
 			}
 		} else {
 			ImGui::Text(object.Name.c_str());
+			if (ImGui::IsItemClicked()) {
+				selectedEntity = entity;
+			}
 		}
 	}
 
 	void Application::renderProperties(entt::entity entity) {
 		ImGui::Begin("Properties");
+		for (auto&& curr: registry.storage()) {
+			entt::id_type id = curr.first;
 
+			if (auto& storage = curr.second; storage.contains(entity)) {
+				auto typeInfo = storage.type();
+				auto component = storage.get(entity);
+				ImGui::Text(typeInfo.name().data());
+				auto spatialComponentTypeId = entt::type_id<Spatials::Components::Spatial>();
+				if (typeInfo == spatialComponentTypeId) {
+					auto& spatial = registry.get<Spatials::Components::Spatial>(entity);
+					if (Spatials::Components::SpatialEditor::Spatial(spatial)) {
+						spatialSystem.MakeDirty(entity);
+					}
+				}
+			}
+		}
 		ImGui::End();
 	};
 
@@ -352,14 +412,15 @@ namespace drk::Applications {
 
 	void Application::SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 		auto application = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-		application->flyCamController.OnKeyboardEvent(key, scancode, action, mods);
-		application->userInterface.OnKeyboardEvent(key, scancode, action, mods);
+		//application->flyCamController.OnKeyboardEvent(key, scancode, action, mods);
+		//application->userInterface.OnKeyboardEvent(key, scancode, action, mods);
 	}
 
 	void Application::CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
 		auto application = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-		ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
-		application->flyCamController.OnCursorPositionEvent(xpos, ypos);
+		if (application->userInterface.IsExplorationMode()) {
+			application->flyCamController.OnCursorPositionEvent(xpos, ypos);
+		}
 	}
 	Application::~Application() {
 
@@ -375,5 +436,4 @@ namespace drk::Applications {
 		);
 		shouldRecreateSwapchain = false;
 	}
-
 }

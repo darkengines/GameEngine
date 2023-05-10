@@ -1,9 +1,9 @@
 #pragma once
 
-#include <glm/ext.hpp>
-#include <glm/glm.hpp>
+#include "glm/ext.hpp"
+#include "glm/glm.hpp"
 
-namespace drk::Spatials {
+namespace drk::Spatials::Components {
 	struct Spatial {
 		glm::vec4 relativeScale;
 		glm::quat relativeRotation;
