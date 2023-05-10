@@ -5,7 +5,7 @@
 #include "Graphics.hpp"
 #include "../Objects/Models/Object.hpp"
 #include "../Meshes/MeshGroup.hpp"
-#include "../Cameras/Camera.hpp"
+#include "../Cameras/Components/Camera.hpp"
 #include "../Meshes/Models/Mesh.hpp"
 
 namespace drk::Graphics {
@@ -395,7 +395,7 @@ namespace drk::Graphics {
 				const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
 				for (const auto& meshEntity : meshGroup.meshEntities) {
 					Meshes::MeshInfo* meshInfo = registry.get<Meshes::MeshInfo*>(meshEntity);
-					const Meshes::Mesh mesh = registry.get<Meshes::Mesh>(meshEntity);
+					const Meshes::Components::Mesh mesh = registry.get<Meshes::Components::Mesh>(meshEntity);
 					const Stores::StoreItem<Meshes::Models::Mesh> meshStoreItem = registry.get<Stores::StoreItem<Meshes::Models::Mesh>>(
 						meshEntity
 					);
@@ -448,7 +448,7 @@ namespace drk::Graphics {
 		);
 
 		auto cameraEntity = engineState.CameraEntity;
-		auto camera = registry.get<Cameras::Camera>(cameraEntity);
+		auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
 
 		std::stable_sort(
 			transparencyDraws.begin(), transparencyDraws.end(), [&camera](const Draw& leftDraw, const Draw& rightDraw) {

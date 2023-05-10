@@ -2,7 +2,7 @@
 #pragma once
 
 #include "../MeshInfo.hpp"
-#include "../Mesh.hpp"
+#include "Mesh.hpp"
 #include "../../Stores/StoreItemLocation.hpp"
 
 namespace drk::Meshes::Components {

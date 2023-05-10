@@ -6,14 +6,15 @@
 #include "../Devices/Device.hpp"
 #include "../Devices/DeviceContext.hpp"
 #include "Models/Material.hpp"
+#include "../Systems/System.hpp"
 
 namespace drk::Materials {
-	class MaterialSystem {
+	class MaterialSystem: public Systems::System<Models::Material, Components::Material*> {
 	protected:
-		const Devices::DeviceContext& DeviceContext;
-		entt::registry& Registry;
-		Engine::EngineState& EngineState;
-		void UpdateStoreItem(const Material* material, Models::Material& storedMaterial);
+		const Devices::DeviceContext& deviceContext;
+	public:
+		void Update(Models::Material& model, Components::Material* const& components) override;
+		//void Update(Models::Material& storedMaterial, const Components::Material* material);
 	public:
 		MaterialSystem(
 			const drk::Devices::DeviceContext& deviceContext,
@@ -23,7 +24,5 @@ namespace drk::Materials {
 		static void AddMaterialSystem(entt::registry& registry);
 		static void RemoveMaterialSystem(entt::registry& registry);
 		static void OnMaterialConstruct(entt::registry& registry, entt::entity materialEntity);
-		void UpdateMaterials();
-		void StoreMaterials();
 	};
 }

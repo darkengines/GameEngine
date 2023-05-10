@@ -6,7 +6,7 @@
 #include "../../Graphics/Graphics.hpp"
 #include "../../Objects/Models/Object.hpp"
 #include "../../Meshes/MeshGroup.hpp"
-#include "../../Cameras/Camera.hpp"
+#include "../../Cameras/Components/Camera.hpp"
 #include "../../Meshes/Models/Mesh.hpp"
 
 namespace drk::Meshes::Pipelines {

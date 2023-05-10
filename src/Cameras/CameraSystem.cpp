@@ -14,28 +14,9 @@ namespace drk::Cameras {
 		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
 		entt::registry& registry
-	)
-		: DeviceContext(deviceContext), EngineState(engineState), Registry(registry) {}
+	) : System(engineState, registry), deviceContext(deviceContext) {}
 
-	void CameraSystem::StoreCameras() {
-		EngineState.Store<Models::Camera, Camera>();
-	}
-
-	void CameraSystem::UpdateCameras() {
-		Graphics::SynchronizationState<Models::Camera>::Update<Camera>(
-			Registry,
-			EngineState.getFrameIndex(),
-			std::function < void(Models::Camera & ,
-		const Camera&)>(
-			[=](
-				Models::Camera& model,
-				const Camera& component
-			) { UpdateStoreItem(component, model); }
-		)
-		);
-	}
-
-	void CameraSystem::UpdateStoreItem(const Camera& camera, Models::Camera& cameraModel) {
+	void CameraSystem::Update(Models::Camera& cameraModel, const Components::Camera& camera) {
 		cameraModel.perspective = camera.perspective;
 		cameraModel.view = camera.view;
 		cameraModel.relativePosition = camera.relativePosition;
@@ -51,11 +32,11 @@ namespace drk::Cameras {
 	}
 
 	void CameraSystem::ProcessDirtyItems() {
-		auto dirtyCameraView = Registry.view<Camera, Spatials::Components::Spatial, Objects::Dirty<Spatials::Components::Spatial>>();
+		auto dirtyCameraView = registry.view<Components::Camera, Spatials::Components::Spatial, Objects::Dirty<Spatials::Components::Spatial>>();
 		dirtyCameraView.each(
 			[&](
 				entt::entity cameraEntity,
-				Camera& camera,
+				Components::Camera& camera,
 				Spatials::Components::Spatial& spatial,
 				Objects::Dirty<Spatials::Components::Spatial>& dirty
 			) {
@@ -75,20 +56,20 @@ namespace drk::Cameras {
 				);
 				camera.perspective[1][1] *= -1.0f;
 
-				Registry.emplace_or_replace<Graphics::SynchronizationState<Models::Camera>>(
+				registry.emplace_or_replace<Graphics::SynchronizationState<Models::Camera>>(
 					cameraEntity,
-					static_cast<uint32_t>(EngineState.getFrameCount())
+					static_cast<uint32_t>(engineState.getFrameCount())
 				);
 			}
 		);
 	}
 
 	void CameraSystem::AddCameraSystem(entt::registry& registry) {
-		registry.on_construct<Camera>().connect<CameraSystem::OnCameraConstruct>();
+		registry.on_construct<Components::Camera>().connect<CameraSystem::OnCameraConstruct>();
 	}
 
 	void CameraSystem::RemoveCameraSystem(entt::registry& registry) {
-		registry.on_construct<Camera>().disconnect<CameraSystem::OnCameraConstruct>();
+		registry.on_construct<Components::Camera>().disconnect<CameraSystem::OnCameraConstruct>();
 	}
 
 	void CameraSystem::OnCameraConstruct(entt::registry& registry, entt::entity cameraEntity) {
@@ -104,8 +85,8 @@ namespace drk::Cameras {
 		float near,
 		float far
 	) const {
-		auto cameraEntity = Registry.create();
-		Camera camera = {
+		auto cameraEntity = registry.create();
+		Components::Camera camera = {
 			.relativePosition = position,
 			.relativeFront = front,
 			.relativeUp = up,
@@ -130,10 +111,10 @@ namespace drk::Cameras {
 			.Name = "Default camera"
 		};
 
-		Registry.emplace<Camera>(cameraEntity, std::move(camera));
-		Registry.emplace<Spatials::Components::Spatial>(cameraEntity, std::move(cameraSpatial));
-		Registry.emplace<Objects::Relationship>(cameraEntity, std::move(cameraRelationship));
-		Registry.emplace<Objects::Object>(cameraEntity, std::move(cameraObject));
+		registry.emplace<Components::Camera>(cameraEntity, std::move(camera));
+		registry.emplace<Spatials::Components::Spatial>(cameraEntity, std::move(cameraSpatial));
+		registry.emplace<Objects::Relationship>(cameraEntity, std::move(cameraRelationship));
+		registry.emplace<Objects::Object>(cameraEntity, std::move(cameraObject));
 
 		return cameraEntity;
 	}

@@ -1,5 +1,5 @@
 #include "MaterialSystem.hpp"
-#include "Material.hpp"
+#include "Components/Material.hpp"
 #include "Models/Material.hpp"
 #include "../Graphics/SynchronizationState.hpp"
 #include <functional>
@@ -10,10 +10,9 @@ namespace drk::Materials {
 		const drk::Devices::DeviceContext& deviceContext,
 		entt::registry& registry,
 		Engine::EngineState& engineState
-	)
-		: DeviceContext(deviceContext), Registry(registry), EngineState(engineState) {}
+	): System(engineState, registry), deviceContext(deviceContext) {}
 
-	void MaterialSystem::UpdateStoreItem(const Material* material, Models::Material& storedMaterial) {
+	void MaterialSystem::Update(Models::Material& storedMaterial, Components::Material* const& material) {
 		storedMaterial.baseColor = material->baseColor;
 		storedMaterial.ambientColor = material->ambientColor;
 		storedMaterial.diffuseColor = material->diffuseColor;
@@ -34,59 +33,43 @@ namespace drk::Materials {
 		storedMaterial.hasMetallicRoughnessMap = hasMetallicRoughnessMap;
 
 		if (hasBaseColorTexture) {
-			storedMaterial.baseColorTextureIndex = Registry.get<Devices::Texture>(
+			storedMaterial.baseColorTextureIndex = registry.get<Devices::Texture>(
 				material->baseColorTexture
 			).index;
 		}
 		if (hasAmbientColorTexture) {
-			storedMaterial.ambientColorTextureIndex = Registry.get<Devices::Texture>(
+			storedMaterial.ambientColorTextureIndex = registry.get<Devices::Texture>(
 				material->ambientColorTexture
 			).index;
 		}
 		if (hasDiffuseColorTexture) {
-			storedMaterial.diffuseColorTextureIndex = Registry.get<Devices::Texture>(
+			storedMaterial.diffuseColorTextureIndex = registry.get<Devices::Texture>(
 				material->diffuseColorTexture
 			).index;
 		}
 		if (hasSpecularColorTexture) {
-			storedMaterial.specularColorTextureIndex = Registry.get<Devices::Texture>(
+			storedMaterial.specularColorTextureIndex = registry.get<Devices::Texture>(
 				material->specularColorTexture
 			).index;
 		}
 		if (hasNormalMap) {
-			storedMaterial.normalMapIndex = Registry.get<Devices::Texture>(
+			storedMaterial.normalMapIndex = registry.get<Devices::Texture>(
 				material->normalMap
 			).index;
 		}
 		if (hasMetallicRoughnessMap) {
-			storedMaterial.metallicRoughnessTextureIndex = Registry.get<Devices::Texture>(
+			storedMaterial.metallicRoughnessTextureIndex = registry.get<Devices::Texture>(
 				material->metallicRoughnessTexture
 			).index;
 		}
 	}
 
-
-	void MaterialSystem::StoreMaterials() {
-		EngineState.Store<Models::Material, Material*>();
-	}
-
-	void MaterialSystem::UpdateMaterials() {
-		Graphics::SynchronizationState<Models::Material>::Update<Material*>(
-			Registry,
-			EngineState.getFrameIndex(),
-			std::function < void(Models::Material & , Material *const&)>([&](
-			Models::Material& model,
-			Material* const& component
-		) { UpdateStoreItem(component, model); })
-		);
-	}
-
 	void MaterialSystem::AddMaterialSystem(entt::registry& registry) {
-		registry.on_construct<Material*>().connect<MaterialSystem::OnMaterialConstruct>();
+		registry.on_construct<Components::Material*>().connect<MaterialSystem::OnMaterialConstruct>();
 	}
 
 	void MaterialSystem::RemoveMaterialSystem(entt::registry& registry) {
-		registry.on_construct<Material*>().disconnect<MaterialSystem::OnMaterialConstruct>();
+		registry.on_construct<Components::Material*>().disconnect<MaterialSystem::OnMaterialConstruct>();
 	}
 
 	void MaterialSystem::OnMaterialConstruct(entt::registry& registry, entt::entity materialEntity) {

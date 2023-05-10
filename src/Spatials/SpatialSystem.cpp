@@ -15,7 +15,7 @@ namespace drk::Spatials {
 		Engine::EngineState& engineState,
 		entt::registry& registry
 	)
-		: DeviceContext(deviceContext), EngineState(engineState), Registry(registry) {}
+		: System(engineState, registry), deviceContext(deviceContext) {}
 
 	void SpatialSystem::AddSpatialSystem(entt::registry& registry) {
 		registry.on_construct<Components::Spatial>().connect<SpatialSystem::OnSpatialConstruct>();
@@ -29,7 +29,7 @@ namespace drk::Spatials {
 		registry.emplace<Objects::Dirty<Components::Spatial>>(spatialEntity);
 	}
 
-	void SpatialSystem::UpdateStoreItem(const Components::Spatial& spatial, Models::Spatial& spatialModel) {
+	void SpatialSystem::Update(Models::Spatial& spatialModel, const Components::Spatial& spatial) {
 		spatialModel.relativeScale = spatial.relativeScale;
 		spatialModel.relativeRotation = spatial.relativeRotation;
 		spatialModel.relativePosition = spatial.relativePosition;
@@ -40,14 +40,10 @@ namespace drk::Spatials {
 		spatialModel.absoluteModel = spatial.absoluteModel;
 	}
 
-	void SpatialSystem::StoreSpatials() {
-		EngineState.Store<Models::Spatial, Components::Spatial>();
-	}
-
 	void SpatialSystem::MakeDirty(const entt::entity spatialEntity, bool asChild) {
-		auto& relationship = Registry.get<Objects::Relationship>(spatialEntity);
-		auto& object = Registry.get<Objects::Object>(spatialEntity);
-		Registry.emplace_or_replace<Objects::Dirty<Spatials::Components::Spatial>>(spatialEntity, true);
+		auto& relationship = registry.get<Objects::Relationship>(spatialEntity);
+		auto& object = registry.get<Objects::Object>(spatialEntity);
+		registry.emplace_or_replace<Objects::Dirty<Spatials::Components::Spatial>>(spatialEntity, true);
 		if (relationship.childCount > 0) {
 			MakeDirty(relationship.firstChild, true);
 		}
@@ -58,37 +54,37 @@ namespace drk::Spatials {
 
 	bool SpatialSystem::IsParent(entt::entity left, entt::entity right) {
 		if (right == entt::null) return false;
-		const auto& relationship = Registry.get<Objects::Relationship>(right);
+		const auto& relationship = registry.get<Objects::Relationship>(right);
 		return relationship.parent == left || IsParent(left, relationship.parent);
 	}
 
 	uint32_t SpatialSystem::GetDepth(entt::entity entity) {
-		const auto& relationship = Registry.get<Objects::Relationship>(entity);
+		const auto& relationship = registry.get<Objects::Relationship>(entity);
 		if (relationship.parent == entt::null) return 0;
 		return GetDepth(relationship.parent) + 1;
 	}
 
 	std::string SpatialSystem::GetPath(entt::entity entity) {
-		const auto& relationship = Registry.get<Objects::Relationship>(entity);
-		const auto& object = Registry.get<Objects::Object>(entity);
+		const auto& relationship = registry.get<Objects::Relationship>(entity);
+		const auto& object = registry.get<Objects::Object>(entity);
 		if (relationship.parent == entt::null) return object.Name;
 		return fmt::format("{0}-->{1}", GetPath(relationship.parent), object.Name);
 	}
 
 	void SpatialSystem::PropagateChanges() {
-		Registry.sort<Objects::Dirty<Components::Spatial>>(
+		registry.sort<Objects::Dirty<Components::Spatial>>(
 			[&](entt::entity left, entt::entity& right) {
-				const auto& rightRelation = Registry.get<Objects::Relationship>(right);
+				const auto& rightRelation = registry.get<Objects::Relationship>(right);
 				return GetDepth(left) < GetDepth(right);
 			}
 		);
-		Registry.view<Objects::Dirty<Components::Spatial>>().each(
+		registry.view<Objects::Dirty<Components::Spatial>>().each(
 			[&](const entt::entity entity) {
-				const auto& relationship = Registry.get<Objects::Relationship>(entity);
-				const auto& object = Registry.get<Objects::Object>(entity);
+				const auto& relationship = registry.get<Objects::Relationship>(entity);
+				const auto& object = registry.get<Objects::Object>(entity);
 				//std::cout << fmt::format("{0} {1}", GetDepth(entity), object.Name) << std::endl;
 
-				auto& spatial = Registry.get<Components::Spatial>(entity);
+				auto& spatial = registry.get<Components::Spatial>(entity);
 
 				auto translationMatrix = glm::translate(
 					glm::identity<glm::mat4>(),
@@ -98,7 +94,7 @@ namespace drk::Spatials {
 				spatial.relativeModel = translationMatrix * rotationMatrix * scalingMatrix;
 
 				if (relationship.parent != entt::null) {
-					auto& parentSpatial = Registry.get<Components::Spatial>(relationship.parent);
+					auto& parentSpatial = registry.get<Components::Spatial>(relationship.parent);
 					spatial.absoluteScale = parentSpatial.absoluteScale * spatial.relativeScale;
 					spatial.absoluteRotation = parentSpatial.absoluteRotation * spatial.relativeRotation;
 					spatial.absolutePosition = parentSpatial.absolutePosition + parentSpatial.absoluteRotation *
@@ -111,24 +107,10 @@ namespace drk::Spatials {
 					spatial.absolutePosition = spatial.relativePosition;
 					spatial.absoluteModel = spatial.relativeModel;
 				}
-				Registry.emplace_or_replace<Graphics::SynchronizationState<Models::Spatial>>(
+				registry.emplace_or_replace<Graphics::SynchronizationState<Models::Spatial>>(
 					entity,
-					(uint32_t) EngineState.getFrameCount());
+					(uint32_t) engineState.getFrameCount());
 			}
-		);
-	}
-
-	void SpatialSystem::UpdateSpatials() {
-		Graphics::SynchronizationState<Models::Spatial>::Update<Components::Spatial>(
-			Registry,
-			EngineState.getFrameIndex(),
-			std::function < void(Models::Spatial & ,
-		const Components::Spatial&)>(
-			[=](
-				Models::Spatial& model,
-				const Components::Spatial component
-			) { UpdateStoreItem(component, model); }
-		)
 		);
 	}
 }

@@ -75,14 +75,14 @@ file(
     src/Textures/TextureType.hpp
     src/Common/ComponentIndex.hpp
     src/Meshes/MeshInfo.hpp
-    src/Materials/Material.hpp
+    src/Materials/Components/Material.hpp
     src/Devices/Texture.hpp
     src/Devices/BufferView.hpp
     src/Devices/Buffer.hpp
     src/Devices/Swapchain.hpp
     src/Windows/Window.hpp
     src/Lights/Light.hpp
-    src/Cameras/Camera.hpp
+    src/Cameras/Components/Camera.hpp
     src/Spatials/Components/Spatial.hpp
     src/Lights/Spotlight.hpp
     src/Lights/PointLight.hpp
@@ -111,7 +111,7 @@ file(
     src/Materials/MaterialSystem.hpp
     src/Devices/BufferUploadResult.hpp
     src/Engine/MeshUploadResult.hpp
-    src/Meshes/Mesh.hpp
+    src/Meshes/Components/Mesh.hpp
     src/Graphics/SynchronizationState.hpp
     src/Materials/Models/Material.hpp
     src/Stores/StoreBufferAllocator.hpp

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 
-namespace drk::Cameras {
+namespace drk::Cameras::Components {
 	struct Camera {
 		glm::mat4 perspective;
 		glm::mat4 view;

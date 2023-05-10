@@ -27,14 +27,6 @@ namespace drk::Graphics {
 			return !Stores[frameIndex];
 		}
 
-		bool Update(uint32_t index) {
-			if (!Stores[index]) {
-				Stores[index] = true;
-				RemainingCount--;
-			}
-			return RemainingCount;
-		};
-
 		template<typename ...TComponents>
 		static void Update(
 			entt::registry& registry,
@@ -60,6 +52,13 @@ namespace drk::Graphics {
 			);
 		}
 
+		bool Update(uint32_t index) {
+			if (!Stores[index]) {
+				Stores[index] = true;
+				RemainingCount--;
+			}
+			return RemainingCount;
+		};
 	protected:
 		uint32_t RemainingCount;
 		std::vector<bool> Stores;

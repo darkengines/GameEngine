@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Devices/BufferView.hpp"
+#include "../../Devices/BufferView.hpp"
 
-namespace drk::Meshes {
+namespace drk::Meshes::Components {
 	struct Mesh {
 		Devices::BufferView IndexBufferView;
 		Devices::BufferView VertexBufferView;

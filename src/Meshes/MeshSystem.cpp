@@ -6,7 +6,7 @@
 #include "../Objects/Models/Object.hpp"
 #include "MeshGroup.hpp"
 #include "../Spatials/Components/Spatial.hpp"
-#include "../Cameras/Camera.hpp"
+#include "../Cameras/Components/Camera.hpp"
 #include "Models/MeshDraw.hpp"
 #include "../Scenes/Draws/SceneDraw.hpp"
 #include "../Meshes/Pipelines/MeshPipeline.hpp"
@@ -19,21 +19,21 @@ namespace drk::Meshes {
 		Engine::EngineState& engineState,
 		entt::registry& registry
 	)
-		: deviceContext(deviceContext), engineState(engineState), registry(registry) {}
+		: System(engineState, registry), deviceContext(deviceContext) {}
 
-	void MeshSystem::UpdateStoreItem(const MeshInfo* mesh, Models::Mesh& meshModel) {
-		auto materialEntity = mesh->materialEntity;
+	void MeshSystem::Update(Models::Mesh& model, MeshInfo* const& components) {
+		auto materialEntity = components->materialEntity;
 		auto materialStoreItem = registry.get<Stores::StoreItem<Materials::Models::Material>>(
 			materialEntity
 		);
 
 		const auto& frameStoreItem = materialStoreItem.frameStoreItems[engineState.getFrameIndex()];
-		meshModel.materialItemLocation.storeIndex = frameStoreItem.pStore->descriptorArrayElement;
-		meshModel.materialItemLocation.itemIndex = frameStoreItem.index;
+		model.materialItemLocation.storeIndex = frameStoreItem.pStore->descriptorArrayElement;
+		model.materialItemLocation.itemIndex = frameStoreItem.index;
 	}
 
 	void MeshSystem::UploadMeshes() {
-		auto meshEntities = registry.view<MeshInfo*>(entt::exclude<Mesh>);
+		auto meshEntities = registry.view<MeshInfo*>(entt::exclude<Components::Mesh>);
 		std::vector<entt::entity> processedMeshEntities;
 		std::vector<Meshes::MeshInfo*> meshes;
 		meshEntities.each(
@@ -45,26 +45,9 @@ namespace drk::Meshes {
 		if (!meshes.empty()) {
 			const auto result = engineState.UploadMeshes(meshes);
 			for (auto meshIndex = 0u; meshIndex < processedMeshEntities.size(); meshIndex++) {
-				registry.emplace<Mesh>(processedMeshEntities[meshIndex], result.meshes[meshIndex]);
+				registry.emplace<Components::Mesh>(processedMeshEntities[meshIndex], result.meshes[meshIndex]);
 			}
 		}
-	}
-
-	void MeshSystem::StoreMeshes() {
-		engineState.Store<Models::Mesh, MeshInfo*>();
-	}
-
-	void MeshSystem::UpdateMeshes() {
-		Graphics::SynchronizationState<Models::Mesh>::Update<MeshInfo*>(
-			registry,
-			engineState.getFrameIndex(),
-			std::function < void(Models::Mesh & , MeshInfo * const&)>(
-			[&](
-				Models::Mesh& model,
-				MeshInfo* const& component
-			) { UpdateStoreItem(component, model); }
-		)
-		);
 	}
 
 	void MeshSystem::AddMeshSystem(entt::registry& registry) {
@@ -92,7 +75,7 @@ namespace drk::Meshes {
 	void MeshSystem::EmitDraws() {
 		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Components::Spatial>();
 		auto cameraEntity = engineState.CameraEntity;
-		auto camera = registry.get<Cameras::Camera>(cameraEntity);
+		auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
 		objectEntities.each(
 			[&](
 				entt::entity objectEntity,
@@ -103,7 +86,7 @@ namespace drk::Meshes {
 				const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
 				for (const auto& meshEntity: meshGroup.meshEntities) {
 					Meshes::MeshInfo* meshInfo = registry.get<Meshes::MeshInfo*>(meshEntity);
-					const Meshes::Mesh& mesh = registry.get<Meshes::Mesh>(meshEntity);
+					const Meshes::Components::Mesh& mesh = registry.get<Meshes::Components::Mesh>(meshEntity);
 					const Stores::StoreItem<Meshes::Models::Mesh> meshStoreItem = registry.get<Stores::StoreItem<Meshes::Models::Mesh>>(
 						meshEntity
 					);

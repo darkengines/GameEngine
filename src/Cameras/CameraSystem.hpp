@@ -2,15 +2,14 @@
 
 #include "../Devices/DeviceContext.hpp"
 #include "../Engine/EngineState.hpp"
-#include "Camera.hpp"
+#include "Components/Camera.hpp"
 #include "Models/Camera.hpp"
+#include "../Systems/System.hpp"
 
 namespace drk::Cameras {
-	class CameraSystem {
+	class CameraSystem : public Systems::System<Models::Camera, Components::Camera>{
 	protected:
-		const Devices::DeviceContext& DeviceContext;
-		Engine::EngineState& EngineState;
-		entt::registry& Registry;
+		const Devices::DeviceContext& deviceContext;
 	public:
 		CameraSystem(
 			const Devices::DeviceContext& deviceContext,
@@ -20,9 +19,8 @@ namespace drk::Cameras {
 		static void AddCameraSystem(entt::registry &registry);
 		static void RemoveCameraSystem(entt::registry &registry);
 		static void OnCameraConstruct(entt::registry &registry, entt::entity cameraEntity);
-		void UpdateStoreItem(const Camera &camera, Models::Camera &cameraModel);
+		void Update(Models::Camera &cameraModel, const Components::Camera &camera);
 		void StoreCameras();
-		void UpdateCameras();
 		void ProcessDirtyItems();
 
 		entt::entity CreateCamera(

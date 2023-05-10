@@ -265,11 +265,11 @@ namespace drk::Applications {
 				meshSystem.UploadMeshes();
 
 				//Resources to GPU
-				materialSystem.StoreMaterials();
-				meshSystem.StoreMeshes();
-				spatialSystem.StoreSpatials();
-				objectSystem.StoreObjects();
-				cameraSystem.StoreCameras();
+				materialSystem.Store();
+				meshSystem.Store();
+				spatialSystem.Store();
+				objectSystem.Store();
+				cameraSystem.Store();
 
 				//Alterations
 				flyCamController.Step();
@@ -279,11 +279,11 @@ namespace drk::Applications {
 				cameraSystem.ProcessDirtyItems();
 
 				//Store updates to GPU
-				materialSystem.UpdateMaterials();
-				meshSystem.UpdateMeshes();
-				spatialSystem.UpdateSpatials();
-				objectSystem.UpdateObjects();
-				cameraSystem.UpdateCameras();
+				materialSystem.UpdateStore();
+				meshSystem.UpdateStore();
+				spatialSystem.UpdateStore();
+				objectSystem.UpdateStore();
+				cameraSystem.UpdateStore();
 				globalSystem.Update();
 
 				auto draws = registry.view<Scenes::Draws::SceneDraw>();

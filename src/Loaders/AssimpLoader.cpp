@@ -4,7 +4,7 @@
 #include "../Lights/DirectionalLight.hpp"
 #include "../Lights/Spotlight.hpp"
 #include "../Lights/Light.hpp"
-#include "../Cameras/Camera.hpp"
+#include "../Cameras/Components/Camera.hpp"
 #include "../Spatials/Components/Spatial.hpp"
 #include "../Meshes/MeshGroup.hpp"
 #include "../Objects/Relationship.hpp"
@@ -150,7 +150,7 @@ namespace drk::Loaders {
 			auto hasSpecularColor =
 				aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_SPECULAR, &specularColor) == AI_SUCCESS;
 
-			auto materialIndex = EngineState.IndexGenerator.Generate<Materials::Material>();
+			auto materialIndex = EngineState.IndexGenerator.Generate<Materials::Components::Material>();
 			auto materialEntity = registry.create();
 
 			auto hasTransparency =
@@ -163,7 +163,7 @@ namespace drk::Loaders {
 				|| hasAmbientColor && ambientColor.a < 1
 				|| hasDiffuseColor && diffuseColor.a < 1;
 
-			Materials::Material material = {
+			Materials::Components::Material material = {
 				.name = materialName,
 				.baseColor = glm::vec4(ambientColor.r, ambientColor.g, ambientColor.b, ambientColor.a),
 				.ambientColor = glm::vec4(ambientColor.r, ambientColor.g, ambientColor.b, ambientColor.a),
@@ -178,9 +178,9 @@ namespace drk::Loaders {
 				.hasTransparency = hasTransparency
 			};
 
-			auto materialPtr = std::make_unique<Materials::Material>(material);
-			registry.emplace<Materials::Material*>(materialEntity, materialPtr.get());
-			registry.emplace<Common::ComponentIndex<Materials::Material >>(materialEntity, materialIndex);
+			auto materialPtr = std::make_unique<Materials::Components::Material>(material);
+			registry.emplace<Materials::Components::Material*>(materialEntity, materialPtr.get());
+			registry.emplace<Common::ComponentIndex<Materials::Components::Material >>(materialEntity, materialIndex);
 			loadResult.materials[aiMaterialIndex] = std::move(materialPtr);
 			loadResult.materialIdEntityMap[aiMaterialIndex] = materialEntity;
 		}
@@ -351,7 +351,7 @@ namespace drk::Loaders {
 			};
 			auto relativeFront = glm::vec4{aiCamera->mLookAt.x, aiCamera->mLookAt.y, aiCamera->mLookAt.z, 0.0f};
 			auto relativeUp = glm::vec4{aiCamera->mUp.x, aiCamera->mUp.y, aiCamera->mUp.z, 0.0f};
-			auto cameraIndex = EngineState.IndexGenerator.Generate<Cameras::Camera>();
+			auto cameraIndex = EngineState.IndexGenerator.Generate<Cameras::Components::Camera>();
 			auto perspective = glm::perspectiveZO(
 				aiCamera->mHorizontalFOV,
 				aiCamera->mAspect,
@@ -359,7 +359,7 @@ namespace drk::Loaders {
 				aiCamera->mClipPlaneFar
 			);
 			perspective[1][1] *= -1.0f;
-			Cameras::Camera camera{
+			Cameras::Components::Camera camera{
 				perspective,
 				glm::lookAt(
 					glm::make_vec3(relativePosition),
@@ -378,8 +378,8 @@ namespace drk::Loaders {
 			};
 
 			auto entity = registry.create();
-			registry.emplace<Cameras::Camera>(entity, camera);
-			registry.emplace<Common::ComponentIndex<Cameras::Camera>>(entity, cameraIndex);
+			registry.emplace<Cameras::Components::Camera>(entity, camera);
+			registry.emplace<Common::ComponentIndex<Cameras::Components::Camera>>(entity, cameraIndex);
 			cameraNameMap[cameraName] = entity;
 		}
 	}

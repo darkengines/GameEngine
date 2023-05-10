@@ -1,7 +1,7 @@
 
 #include "PointSystem.hpp"
 #include "../Materials/Models/Material.hpp"
-#include "../Cameras/Camera.hpp"
+#include "../Cameras/Components/Camera.hpp"
 #include "../Spatials/Components/Spatial.hpp"
 #include "Components/PointDraw.hpp"
 #include "Models/PointDraw.hpp"
@@ -29,7 +29,7 @@ namespace drk::Points {
 	void PointSystem::EmitDraws() {
 		auto pointEntities = registry.view<Stores::StoreItem<Models::Point>, Components::Point, Spatials::Components::Spatial>();
 		auto cameraEntity = engineState.CameraEntity;
-		auto camera = registry.get<Cameras::Camera>(cameraEntity);
+		auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
 		pointEntities.each(
 			[&](
 				entt::entity pointEntity,
@@ -38,7 +38,7 @@ namespace drk::Points {
 				auto& spatial
 			) {
 				const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[engineState.getFrameIndex()];
-				const auto& material = registry.get<Materials::Material*>(pointEntity);
+				const auto& material = registry.get<Materials::Components::Material*>(pointEntity);
 				Scenes::Draws::SceneDraw draw = {
 					.drawSystem = this,
 					.indexBufferView = nullptr,

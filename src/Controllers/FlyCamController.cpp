@@ -1,5 +1,5 @@
 #include "FlyCamController.hpp"
-#include "../Cameras/Camera.hpp"
+#include "../Cameras/Components/Camera.hpp"
 #include "../Spatials/Components/Spatial.hpp"
 #include "../GlmExtensions.hpp"
 #include <GLFW/glfw3.h>
@@ -72,7 +72,7 @@ namespace drk::Controllers {
 	}
 
 	void FlyCamController::Step() {
-		auto& camera = Registry.get<Cameras::Camera>(CameraEntity);
+		auto& camera = Registry.get<Cameras::Components::Camera>(CameraEntity);
 		auto& cameraSpatial = Registry.get<Spatials::Components::Spatial>(CameraEntity);
 		auto up = camera.absoluteUp;
 		auto front = camera.absoluteFront;

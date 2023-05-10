@@ -4,14 +4,15 @@
 #include "../Engine/EngineState.hpp"
 #include "Models/Mesh.hpp"
 #include "../Draws/DrawSystem.hpp"
+#include "../Systems/System.hpp"
 
 namespace drk::Meshes {
-	class MeshSystem : public Draws::DrawSystem {
+	class MeshSystem : public Draws::DrawSystem, public Systems::System<Models::Mesh, MeshInfo*> {
+	protected:
+	public:
+		void Update(Models::Mesh& model, MeshInfo* const& components) override;
 	protected:
 		const Devices::DeviceContext& deviceContext;
-		Engine::EngineState& engineState;
-		entt::registry& registry;
-		void UpdateStoreItem(const MeshInfo* mesh, Models::Mesh& meshModel);
 
 	public:
 		MeshSystem(
@@ -23,8 +24,6 @@ namespace drk::Meshes {
 		static void RemoveMeshSystem(entt::registry& registry);
 		static void OnMeshConstruct(entt::registry& registry, entt::entity meshEntity);
 		void UploadMeshes();
-		void UpdateMeshes();
-		void StoreMeshes();
 		void EmitDraws();
 		void UpdateDraw(entt::entity drawEntity, int drawIndex);
 		void UpdateDraws() { throw std::runtime_error("Not supported"); }

@@ -2,11 +2,11 @@
 
 #include <cstdint>
 #include <string>
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 #include <optional>
-#include <entt/entt.hpp>
+#include "entt/entt.hpp"
 
-namespace drk::Materials {
+namespace drk::Materials::Components {
 	struct Material {
 		std::string name;
 

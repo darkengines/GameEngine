@@ -113,7 +113,7 @@ namespace drk::Engine {
 
 		for (auto meshInfoIndex = 0u; meshInfoIndex < meshInfos.size(); meshInfoIndex++) {
 			result.meshes.push_back(
-				Meshes::Mesh{
+				Meshes::Components::Mesh{
 					.IndexBufferView = indexBufferUploadResult.bufferViews[meshInfoIndex],
 					.VertexBufferView = vertexBufferUploadResult.bufferViews[meshInfoIndex],
 				}

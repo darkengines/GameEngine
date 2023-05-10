@@ -4,14 +4,12 @@
 #include "../Engine/EngineState.hpp"
 #include "Models/Spatial.hpp"
 #include "Components/Spatial.hpp"
+#include "../Systems/System.hpp"
 
 namespace drk::Spatials {
-	class SpatialSystem {
+	class SpatialSystem : public Systems::System<Models::Spatial, Components::Spatial> {
 	protected:
-		const Devices::DeviceContext& DeviceContext;
-		Engine::EngineState& EngineState;
-		entt::registry& Registry;
-		static void UpdateStoreItem(const Components::Spatial& spatial, Models::Spatial& spatialModel);
+		const Devices::DeviceContext& deviceContext;
 
 	public:
 		SpatialSystem(
@@ -22,9 +20,7 @@ namespace drk::Spatials {
 		static void AddSpatialSystem(entt::registry& registry);
 		static void RemoveSpatialSystem(entt::registry& registry);
 		static void OnSpatialConstruct(entt::registry& registry, entt::entity spatialEntity);
-		void UploadSpatials();
-		void UpdateSpatials();
-		void StoreSpatials();
+		void Update(Models::Spatial& spatialModel, const Components::Spatial& spatial);
 		void PropagateChanges();
 		void MakeDirty(entt::entity entity, bool asChild = false);
 		bool IsParent(entt::entity left, entt::entity right);

@@ -16,8 +16,8 @@
 #include <algorithm>
 #include <vector>
 #include "../Meshes/Vertex.hpp"
-#include "../Materials/Material.hpp"
-#include "../Cameras/Camera.hpp"
+#include "../Materials/Components/Material.hpp"
+#include "../Cameras/Components/Camera.hpp"
 #include <stdexcept>
 
 namespace drk::Graphics {

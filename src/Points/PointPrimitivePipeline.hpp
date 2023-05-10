@@ -6,7 +6,7 @@
 #include "Models/PointVertex.hpp"
 #include "../Objects/Models/Object.hpp"
 #include "Components/PointDraw.hpp"
-#include "../Cameras/Camera.hpp"
+#include "../Cameras/Components/Camera.hpp"
 #include "../Geometries/Primitives.hpp"
 #include "Models/PointDraw.hpp"
 #include <algorithm>
@@ -70,7 +70,7 @@ namespace drk::Points {
 //						.hasTransparency = false
 //					};
 //					if (point.materialEntity != entt::null) {
-//						const auto& material = registry.get<Materials::Material>(point.materialEntity);
+//						const auto& material = registry.get<Materials::Components::Material>(point.materialEntity);
 //						draw.hasTransparency = material.hasTransparency;
 //					}
 //					if (draw.hasTransparency) {
@@ -82,7 +82,7 @@ namespace drk::Points {
 //			);
 //
 //			auto cameraEntity = engineState.CameraEntity;
-//			auto camera = registry.get<Cameras::Camera>(cameraEntity);
+//			auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
 //
 //			std::stable_sort(
 //				transparencyDraws.begin(),
