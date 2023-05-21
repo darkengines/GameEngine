@@ -5,12 +5,14 @@
 #include "Models/Mesh.hpp"
 #include "../Draws/DrawSystem.hpp"
 #include "../Systems/System.hpp"
+#include "MeshGroup.hpp"
+#include "Components/Mesh.hpp"
 
 namespace drk::Meshes {
-	class MeshSystem : public Draws::DrawSystem, public Systems::System<Models::Mesh, MeshInfo*> {
+	class MeshSystem : public Draws::DrawSystem, public Systems::System<Models::Mesh, Components::Mesh> {
 	protected:
 	public:
-		void Update(Models::Mesh& model, MeshInfo* const& components) override;
+		void Update(Models::Mesh& model, const Components::Mesh& mesh) override;
 	protected:
 		const Devices::DeviceContext& deviceContext;
 
@@ -28,5 +30,9 @@ namespace drk::Meshes {
 		void UpdateDraw(entt::entity drawEntity, int drawIndex);
 		void UpdateDraws() { throw std::runtime_error("Not supported"); }
 		Draws::DrawVertexBufferInfo GetVertexBufferInfo(entt::entity drawEntity);
+		static entt::entity
+		copyMeshEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
+		static MeshGroup
+		copyMeshGroup(const entt::registry& source, entt::registry& destination, const MeshGroup& sourceMeshGroup);
 	};
 }

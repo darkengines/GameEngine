@@ -1,10 +1,9 @@
 #pragma once
 
-#include "../../Devices/BufferView.hpp"
+#include "entt/entity/entity.hpp"
 
 namespace drk::Meshes::Components {
 	struct Mesh {
-		Devices::BufferView IndexBufferView;
-		Devices::BufferView VertexBufferView;
+		entt::entity materialEntity;
 	};
 }

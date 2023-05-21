@@ -71,16 +71,16 @@ namespace drk::Engine {
 		deviceContext.device.destroySampler(textureSampler);
 	}
 
-	MeshUploadResult EngineState::UploadMeshes(const std::vector<Meshes::MeshInfo*>& meshInfos) {
+	MeshUploadResult EngineState::UploadMeshes(const std::vector<std::shared_ptr<Meshes::Components::MeshResource>>& meshInfos) {
 		std::vector<std::span<Meshes::Vertex>> vertices(meshInfos.size());
 		std::vector<std::span<Meshes::VertexIndex>> indices(meshInfos.size());
 		std::transform(
-			meshInfos.begin(), meshInfos.end(), vertices.data(), [](Meshes::MeshInfo* mesh) {
+			meshInfos.begin(), meshInfos.end(), vertices.data(), [](std::shared_ptr<Meshes::Components::MeshResource> mesh) {
 				return std::span{mesh->vertices.data(), mesh->vertices.size()};
 			}
 		);
 		std::transform(
-			meshInfos.begin(), meshInfos.end(), indices.data(), [](Meshes::MeshInfo* mesh) {
+			meshInfos.begin(), meshInfos.end(), indices.data(), [](std::shared_ptr<Meshes::Components::MeshResource> mesh) {
 				return std::span{mesh->indices.data(), mesh->indices.size()};
 			}
 		);
@@ -113,7 +113,7 @@ namespace drk::Engine {
 
 		for (auto meshInfoIndex = 0u; meshInfoIndex < meshInfos.size(); meshInfoIndex++) {
 			result.meshes.push_back(
-				Meshes::Components::Mesh{
+				Meshes::Components::MeshBufferView{
 					.IndexBufferView = indexBufferUploadResult.bufferViews[meshInfoIndex],
 					.VertexBufferView = vertexBufferUploadResult.bufferViews[meshInfoIndex],
 				}

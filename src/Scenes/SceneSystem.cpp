@@ -11,24 +11,28 @@ namespace drk::Scenes {
 	}
 	void SceneSystem::UpdateDraws() {
 		registry.sort<Scenes::Draws::SceneDraw>(
-			[](
-				const Draws::SceneDraw& leftDraw,
-				const Draws::SceneDraw& rightDraw
-			) {
-				auto result =
-					leftDraw.hasTransparency < rightDraw.hasTransparency; // Sort by hasTransparency in ascending order
-				if (leftDraw.
-					hasTransparency && rightDraw
-						.hasTransparency) {
-					result |= leftDraw.depth > rightDraw.
-						depth; // If both have transparency, sort by depth in ascending order
+			[](const Draws::SceneDraw& leftDraw, const Draws::SceneDraw& rightDraw) {
+				if (leftDraw.hasTransparency < rightDraw.hasTransparency)
+					return true;
+				if (leftDraw.hasTransparency > rightDraw.hasTransparency)
+					return false;
+
+				if (leftDraw.hasTransparency && rightDraw.hasTransparency) {
+					if (leftDraw.depth < rightDraw.depth)
+						return true;
+					if (leftDraw.depth > rightDraw.depth)
+						return false;
 				}
-				result |= leftDraw.drawSystem < rightDraw.
-					drawSystem; // Sort by pipeline in ascending order
-				result |= leftDraw.indexBufferView.byteOffset <
-						  rightDraw.indexBufferView.byteOffset; // Sort by index buffer view in ascending order
-				return
-					result;
+
+				if (leftDraw.drawSystem < rightDraw.drawSystem)
+					return true;
+				if (leftDraw.drawSystem > rightDraw.drawSystem)
+					return false;
+
+				if (leftDraw.indexBufferView.byteOffset < rightDraw.indexBufferView.byteOffset)
+					return true;
+
+				return false;
 			}
 		);
 

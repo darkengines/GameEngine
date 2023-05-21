@@ -10,6 +10,8 @@
 #include <GLFW/glfw3.h>
 #include "../Scenes/Draws/SceneDraw.hpp"
 #include "../Spatials/Components/SpatialEditor.hpp"
+#include "../UserInterfaces/UserInterface.hpp"
+#include <stack>
 
 namespace drk::Applications {
 	Application::Application(
@@ -31,7 +33,8 @@ namespace drk::Applications {
 		UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer,
 		Scenes::Renderers::SceneRenderer& sceneRenderer,
 		Scenes::SceneSystem& sceneSystem,
-		Points::PointSystem& pointSystem
+		Points::PointSystem& pointSystem,
+		UserInterfaces::AssetExplorer& assetExplorer
 	)
 		: window(window),
 		  deviceContext(deviceContext),
@@ -52,7 +55,8 @@ namespace drk::Applications {
 		  sceneRenderer(sceneRenderer),
 		  sceneSystem(sceneSystem),
 		  pointSystem(pointSystem),
-		  windowExtent(window.GetExtent()) {
+		  windowExtent(window.GetExtent()),
+		  assetExplorer(assetExplorer) {
 		//ImGui::GetIO().IniFilename = NULL;
 		const auto& glfwWindow = window.GetWindow();
 		glfwSetCursorPosCallback(glfwWindow, CursorPosCallback);
@@ -183,15 +187,14 @@ namespace drk::Applications {
 						}
 						ImGui::EndMainMenuBar();
 					}
-					ImGui::End();
 					if (isDemoWindowOpen) ImGui::ShowDemoWindow(&isDemoWindowOpen);
 					auto windowExtent = window.GetExtent();
-					ImGui::SetNextWindowSize(
-						ImVec2(
-							windowExtent.width,
-							windowExtent.height - ImGui::GetTextLineHeightWithSpacing()),
-						ImGuiCond_FirstUseEver
-					);
+//					ImGui::SetNextWindowSize(
+//						ImVec2(
+//							windowExtent.width,
+//							windowExtent.height - ImGui::GetTextLineHeightWithSpacing()),
+//						ImGuiCond_FirstUseEver
+//					);
 					ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
 
 					ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
@@ -239,21 +242,28 @@ namespace drk::Applications {
 						}
 						sceneExtent = newSceneExtent;
 					}
-					ImGui::Image(sceneTextureImageDescriptorSet.value(), viewportPanelSize);
+					ImGui::Image(
+						sceneTextureImageDescriptorSet.value(),
+						viewportPanelSize,
+						{0, 0},
+						{
+							viewportPanelSize.x / sceneTextureExtent.width,
+							viewportPanelSize.y / sceneTextureExtent.height
+						}
+					);
 					ImGui::End();
 
 
 					ImGui::Begin("Entities");
-					for (const auto& loadResult: loadResults) {
-						RenderEntityTree(loadResult.rootEntity);
-					}
+					renderEntities();
 					ImGui::End();
 
 					renderProperties(selectedEntity);
+					assetExplorer.render(registry);
 
 					fileBrowser.Display();
 					if (fileBrowser.HasSelected()) {
-						auto loadResult = loader.Load(fileBrowser.GetSelected());
+						auto loadResult = loader.Load(fileBrowser.GetSelected(), registry);
 						loadResults.emplace_back(std::move(loadResult));
 						fileBrowser.ClearSelected();
 					}
@@ -291,7 +301,7 @@ namespace drk::Applications {
 
 				//Emit draws
 				meshSystem.EmitDraws();
-				pointSystem.EmitDraws();
+				//pointSystem.EmitDraws();
 
 				//Stores draws to GPU
 				sceneSystem.UpdateDraws();
@@ -351,25 +361,31 @@ namespace drk::Applications {
 		if (sceneTexture.has_value()) deviceContext.destroyTexture(sceneTexture.value());
 	}
 
-	void Application::RenderEntityTree(entt::entity entity) {
-		auto relationship = registry.get<Objects::Relationship>(entity);
-		auto object = registry.get<Objects::Object>(entity);
+	void Application::renderEntities() {
+		const auto& relationships = registry.view<Objects::Relationship>();
+		relationships.each([this](entt::entity entity, Objects::Relationship& relationship) {
+			if (relationship.parent == entt::null) renderEntity(entity);
+		});
+	}
 
-		auto child = relationship.firstChild;
-		if (child != entt::null) {
-			if (ImGui::TreeNode(fmt::format("{0} {1}", object.Name, relationship.childCount).c_str())) {
-				if (ImGui::IsItemClicked()) {
-					selectedEntity = entity;
-				}
-				while (child != entt::null) {
-					RenderEntityTree(child);
-					auto childRelationship = registry.get<Objects::Relationship>(child);
-					child = childRelationship.nextSibling;
+	void Application::renderEntity(entt::entity entity) {
+		const auto& [relationship, object] = registry.get<Objects::Relationship, Objects::Object>(entity);
+		if (relationship.firstChild != entt::null) {
+			auto isOpen = ImGui::TreeNode(
+				(void*) entity,
+				fmt::format("{0}", object.Name).c_str()
+			);
+			if (ImGui::IsItemClicked()) {
+				selectedEntity = entity;
+			}
+			if (isOpen) {
+				for (const auto& childEntity: relationship.children) {
+					renderEntity(childEntity);
 				}
 				ImGui::TreePop();
 			}
 		} else {
-			ImGui::Text(object.Name.c_str());
+			ImGui::Text(fmt::format("{0}", object.Name).c_str());
 			if (ImGui::IsItemClicked()) {
 				selectedEntity = entity;
 			}

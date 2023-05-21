@@ -9,6 +9,7 @@
 namespace drk::Materials::Components {
 	struct Material {
 		std::string name;
+		std::string source;
 
 		glm::vec4 baseColor;
 		glm::vec4 ambientColor;

@@ -58,10 +58,10 @@ namespace drk::Spatials {
 		return relationship.parent == left || IsParent(left, relationship.parent);
 	}
 
-	uint32_t SpatialSystem::GetDepth(entt::entity entity) {
+	uint32_t SpatialSystem::GetDepth(const entt::registry& registry, entt::entity entity) {
 		const auto& relationship = registry.get<Objects::Relationship>(entity);
 		if (relationship.parent == entt::null) return 0;
-		return GetDepth(relationship.parent) + 1;
+		return GetDepth(registry, relationship.parent) + 1;
 	}
 
 	std::string SpatialSystem::GetPath(entt::entity entity) {
@@ -71,11 +71,29 @@ namespace drk::Spatials {
 		return fmt::format("{0}-->{1}", GetPath(relationship.parent), object.Name);
 	}
 
+	bool SpatialSystem::compareRelationship(
+		const entt::registry& registry,
+		const entt::entity leftEntity,
+		const entt::entity rightEntity
+	) {
+		Objects::Relationship leftRelationship = registry.get<Objects::Relationship>(leftEntity);
+		Objects::Relationship rightRelationship = registry.get<Objects::Relationship>(rightEntity);
+
+		return rightRelationship.parent == leftEntity
+			   || leftRelationship.nextSibling == rightEntity
+			   || (
+				   !(leftRelationship.parent == rightEntity || rightRelationship.nextSibling == leftEntity)
+				   && (
+					   leftRelationship.parent < rightRelationship.parent
+					   || (leftRelationship.parent == rightRelationship.parent && &leftRelationship < &rightRelationship)
+				   )
+			   );
+	}
+
 	void SpatialSystem::PropagateChanges() {
 		registry.sort<Objects::Dirty<Components::Spatial>>(
 			[&](entt::entity left, entt::entity& right) {
-				const auto& rightRelation = registry.get<Objects::Relationship>(right);
-				return GetDepth(left) < GetDepth(right);
+				return GetDepth(registry, left) < GetDepth(registry, right);
 			}
 		);
 		registry.view<Objects::Dirty<Components::Spatial>>().each(

@@ -13,20 +13,22 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include "../Materials/Components/MaterialCollection.hpp"
+#include "../Meshes/Components/Mesh.hpp"
 
 namespace drk::Loaders {
-	AssimpLoader::AssimpLoader(entt::registry& registry, Engine::EngineState& engineState)
-		: registry(registry), EngineState(engineState) {}
-
-	LoadResult AssimpLoader::Load(std::filesystem::path scenePath) const {
+	AssimpLoader::AssimpLoader() {}
+	LoadResult AssimpLoader::Load(std::filesystem::path scenePath, entt::registry& registry) const {
 		Assimp::Importer importer;
 		auto aiScene = importer.ReadFile(
 			scenePath.string(),
 			aiProcess_FindInstances
 			| aiProcess_GenBoundingBoxes
 			| aiProcess_Triangulate
+			| aiProcess_FindInstances
 			| aiProcess_GenNormals
-			| aiProcess_CalcTangentSpace
+			| aiProcess_JoinIdenticalVertices
+			| aiProcess_OptimizeMeshes
 		);
 
 		std::span<aiMaterial*> aiMaterials(aiScene->mMaterials, aiScene->mNumMaterials);
@@ -40,16 +42,16 @@ namespace drk::Loaders {
 		loadResult.materials.resize(aiMaterials.size());
 
 		const auto workingDirectoryPath = scenePath.parent_path();
-		loadMaterials(aiMaterials, aiTextures, workingDirectoryPath, loadResult);
-		loadMeshes(aiMeshes, loadResult);
+		loadMaterials(aiMaterials, aiTextures, workingDirectoryPath, loadResult, registry);
+		loadMeshes(aiMeshes, loadResult, registry);
 
 		std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>> lightMap;
 		std::unordered_map<std::string, entt::entity> cameraMap;
 
-		loadLights(aiLights, lightMap);
-		loadCameras(aiCameras, cameraMap);
+		loadLights(aiLights, lightMap, registry);
+		loadCameras(aiCameras, cameraMap, registry);
 
-		auto rootEntity = loadNode(aiScene->mRootNode, lightMap, cameraMap, loadResult);
+		auto rootEntity = loadNode(aiScene->mRootNode, lightMap, cameraMap, loadResult, registry);
 
 
 		return loadResult;
@@ -59,14 +61,15 @@ namespace drk::Loaders {
 		std::span<aiMaterial*> aiMaterials,
 		std::span<aiTexture*> aiTextures,
 		std::filesystem::path workingDirectoryPath,
-		LoadResult& loadResult
+		LoadResult& loadResult,
+		entt::registry& registry
 	) const {
 		auto aiTextureIndex = 0u;
 		for (auto aiMaterialIndex = 0u; aiMaterialIndex < aiMaterials.size(); aiMaterialIndex++) {
 			auto aiMaterial = aiMaterials[aiMaterialIndex];
 			std::unordered_map<std::string, entt::entity> textureNameMap;
 			std::unordered_map<Textures::TextureType, entt::entity> textureTypeMap;
-			for (auto textureTypePair : TextureTypeMap) {
+			for (auto textureTypePair: TextureTypeMap) {
 				if (aiMaterial->GetTextureCount(textureTypePair.first)) {
 					aiString aiTexturePath;
 					auto result = aiMaterial->GetTexture(textureTypePair.first, 0, &aiTexturePath);
@@ -95,12 +98,7 @@ namespace drk::Loaders {
 								);
 							}
 							auto textureEntity = registry.create();
-							registry.emplace<Textures::ImageInfo*>(textureEntity, image.get());
-							auto textureIndex = EngineState.IndexGenerator.Generate<Textures::ImageInfo>();
-							registry.emplace<Common::ComponentIndex<Textures::ImageInfo>>(
-								textureEntity,
-								textureIndex
-							);
+							registry.emplace<std::shared_ptr<Textures::ImageInfo>>(textureEntity, std::move(image));
 							textureNameMap[texturePath] = textureEntity;
 							textureTypeMap[textureTypePair.second] = textureEntity;
 							loadResult.images.push_back(std::move(image));
@@ -150,16 +148,15 @@ namespace drk::Loaders {
 			auto hasSpecularColor =
 				aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_SPECULAR, &specularColor) == AI_SUCCESS;
 
-			auto materialIndex = EngineState.IndexGenerator.Generate<Materials::Components::Material>();
 			auto materialEntity = registry.create();
 
 			auto hasTransparency =
 				baseColorTexture != entt::null &&
-				registry.get<Textures::ImageInfo*>(baseColorTexture)->depth > 3
+				registry.get<std::shared_ptr<Textures::ImageInfo>>(baseColorTexture)->depth > 3
 				|| ambientColorTexture != entt::null &&
-				   registry.get<Textures::ImageInfo*>(ambientColorTexture)->depth > 3
+				   registry.get<std::shared_ptr<Textures::ImageInfo>>(ambientColorTexture)->depth > 3
 				|| diffuseColorTexture != entt::null &&
-				   registry.get<Textures::ImageInfo*>(diffuseColorTexture)->depth > 3
+				   registry.get<std::shared_ptr<Textures::ImageInfo>>(diffuseColorTexture)->depth > 3
 				|| hasAmbientColor && ambientColor.a < 1
 				|| hasDiffuseColor && diffuseColor.a < 1;
 
@@ -178,15 +175,14 @@ namespace drk::Loaders {
 				.hasTransparency = hasTransparency
 			};
 
-			auto materialPtr = std::make_unique<Materials::Components::Material>(material);
-			registry.emplace<Materials::Components::Material*>(materialEntity, materialPtr.get());
-			registry.emplace<Common::ComponentIndex<Materials::Components::Material >>(materialEntity, materialIndex);
-			loadResult.materials[aiMaterialIndex] = std::move(materialPtr);
+			auto materialPtr = std::make_shared<Materials::Components::Material>(material);
+			registry.emplace<std::shared_ptr<Materials::Components::Material>>(materialEntity, materialPtr);
+			loadResult.materials[aiMaterialIndex] = materialPtr;
 			loadResult.materialIdEntityMap[aiMaterialIndex] = materialEntity;
 		}
 	}
 
-	void AssimpLoader::loadMeshes(std::span<aiMesh*> aiMeshes, LoadResult& loadResult) const {
+	void AssimpLoader::loadMeshes(std::span<aiMesh*> aiMeshes, LoadResult& loadResult, entt::registry& registry) const {
 		for (auto aiMeshIndex = 0u; aiMeshIndex < aiMeshes.size(); aiMeshIndex++) {
 			const auto& aiMesh = aiMeshes[aiMeshIndex];
 			std::vector<uint32_t> indices(aiMesh->mNumFaces * 3);
@@ -249,41 +245,38 @@ namespace drk::Loaders {
 				};
 			}
 			std::string meshName = aiMesh->mName.C_Str();
-			auto meshIndex = EngineState.IndexGenerator.Generate<Meshes::MeshInfo>();
-			auto meshMaterial = loadResult.materials[aiMesh->mMaterialIndex].get();
+			auto meshMaterial = loadResult.materials[aiMesh->mMaterialIndex];
 			auto materialEntity = loadResult.materialIdEntityMap[aiMesh->mMaterialIndex];
-			Meshes::MeshInfo mesh = {
+			Meshes::Components::MeshResource mesh = {
 				.name = meshName,
 				.vertices =vertices,
 				.indices = indices,
-				.pMaterial = meshMaterial,
-				.materialEntity = materialEntity
 			};
-			auto meshPtr = std::make_unique<Meshes::MeshInfo>(mesh);
+			auto meshPtr = std::make_shared<Meshes::Components::MeshResource>(mesh);
 			Geometries::AxisAlignedBoundingBox axisAlignedBoundingBox = Geometries::AxisAlignedBoundingBox::fromMinMax(
 				glm::vec4(AssimpLoader::toVector(aiMesh->mAABB.mMin), 1.0f),
 				glm::vec4(AssimpLoader::toVector(aiMesh->mAABB.mMax), 1.0f)
 			);
 
 			auto meshEntity = registry.create();
-			registry.emplace<Meshes::MeshInfo*>(meshEntity, meshPtr.get());
-			registry.emplace<Common::ComponentIndex<Meshes::MeshInfo>>(meshEntity, meshIndex);
+			registry.emplace<std::shared_ptr<Meshes::Components::MeshResource>>(meshEntity, meshPtr);
+			registry.emplace<Meshes::Components::Mesh>(meshEntity, materialEntity);
 			registry.emplace<Geometries::AxisAlignedBoundingBox>(meshEntity, axisAlignedBoundingBox);
 
 			loadResult.meshIdEntityMap[aiMeshIndex] = meshEntity;
-			loadResult.meshes[aiMeshIndex] = std::move(meshPtr);
+			loadResult.meshes[aiMeshIndex] = meshPtr;
 		}
 	}
 
 	void AssimpLoader::loadLights(
 		std::span<aiLight*> aiLights,
-		std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightNameMap
+		std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightNameMap,
+		entt::registry& registry
 	) const {
-		for (auto aiLight : aiLights) {
+		for (auto aiLight: aiLights) {
 			auto entity = registry.create();
 			auto lightName = std::string(aiLight->mName.C_Str());
 			if (aiLight->mType == aiLightSourceType::aiLightSource_POINT) {
-				auto pointLightIndex = EngineState.IndexGenerator.Generate<Lights::PointLight>();
 				Lights::PointLight pointLight;
 				pointLight.constantAttenuation = aiLight->mAttenuationConstant;
 				pointLight.linearAttenuation = aiLight->mAttenuationLinear;
@@ -291,10 +284,8 @@ namespace drk::Loaders {
 				pointLight.relativePosition = {aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1};
 
 				registry.emplace<Lights::PointLight>(entity, pointLight);
-				registry.emplace<Common::ComponentIndex<Lights::PointLight>>(entity, pointLightIndex);
 			}
 			if (aiLight->mType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
-				auto directionalLightIndex = EngineState.IndexGenerator.Generate<Lights::DirectionalLight>();
 				Lights::DirectionalLight directionalLight;
 				directionalLight.relativeDirection = {
 					aiLight->mDirection.x,
@@ -305,13 +296,8 @@ namespace drk::Loaders {
 				directionalLight.relativeUp = {aiLight->mUp.x, aiLight->mUp.y, aiLight->mUp.z, 0};
 
 				registry.emplace<Lights::DirectionalLight>(entity, directionalLight);
-				registry.emplace<Common::ComponentIndex<Lights::DirectionalLight >>(
-					entity,
-					directionalLightIndex
-				);
 			}
 			if (aiLight->mType == aiLightSourceType::aiLightSource_SPOT) {
-				auto spotlightIndex = EngineState.IndexGenerator.Generate<Lights::Spotlight>();
 				Lights::Spotlight spotlight;
 				spotlight.constantAttenuation = aiLight->mAttenuationConstant;
 				spotlight.linearAttenuation = aiLight->mAttenuationLinear;
@@ -323,25 +309,23 @@ namespace drk::Loaders {
 				spotlight.outerConeAngle = aiLight->mAngleOuterCone;
 
 				registry.emplace<Lights::Spotlight>(entity, spotlight);
-				registry.emplace<Common::ComponentIndex<Lights::Spotlight >>(entity, spotlightIndex);
 			}
-			auto lightIndex = EngineState.IndexGenerator.Generate<Lights::Light>();
 			Lights::Light light = {
 				{aiLight->mColorAmbient.r,  aiLight->mColorAmbient.g,  aiLight->mColorAmbient.b,  1},
 				{aiLight->mColorDiffuse.r,  aiLight->mColorDiffuse.g,  aiLight->mColorDiffuse.b,  1},
 				{aiLight->mColorSpecular.r, aiLight->mColorSpecular.g, aiLight->mColorSpecular.b, 1}
 			};
 			registry.emplace<Lights::Light>(entity, light);
-			registry.emplace<Common::ComponentIndex<Lights::Light >>(entity, lightIndex);
 			lightNameMap[lightName] = {entity, aiLight->mType};
 		}
 	}
 
 	void AssimpLoader::loadCameras(
 		std::span<aiCamera*> aiCameras,
-		std::unordered_map<std::string, entt::entity>& cameraNameMap
+		std::unordered_map<std::string, entt::entity>& cameraNameMap,
+		entt::registry& registry
 	) const {
-		for (auto aiCamera : aiCameras) {
+		for (auto aiCamera: aiCameras) {
 			auto cameraName = std::string(aiCamera->mName.C_Str());
 			auto relativePosition = glm::vec4{
 				aiCamera->mPosition.x,
@@ -351,7 +335,6 @@ namespace drk::Loaders {
 			};
 			auto relativeFront = glm::vec4{aiCamera->mLookAt.x, aiCamera->mLookAt.y, aiCamera->mLookAt.z, 0.0f};
 			auto relativeUp = glm::vec4{aiCamera->mUp.x, aiCamera->mUp.y, aiCamera->mUp.z, 0.0f};
-			auto cameraIndex = EngineState.IndexGenerator.Generate<Cameras::Components::Camera>();
 			auto perspective = glm::perspectiveZO(
 				aiCamera->mHorizontalFOV,
 				aiCamera->mAspect,
@@ -379,7 +362,6 @@ namespace drk::Loaders {
 
 			auto entity = registry.create();
 			registry.emplace<Cameras::Components::Camera>(entity, camera);
-			registry.emplace<Common::ComponentIndex<Cameras::Components::Camera>>(entity, cameraIndex);
 			cameraNameMap[cameraName] = entity;
 		}
 	}
@@ -388,7 +370,9 @@ namespace drk::Loaders {
 		const aiNode* aiNode,
 		const std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightMap,
 		const std::unordered_map<std::string, entt::entity>& cameraMap,
-		LoadResult& loadResult
+		LoadResult& loadResult,
+		entt::registry& registry,
+		int depth
 	) const {
 		auto nodeName = std::string(aiNode->mName.C_Str());
 		aiVector3D aiScale, aiPosition;
@@ -464,6 +448,7 @@ namespace drk::Loaders {
 		}
 
 		relationship.childCount = aiNode->mNumChildren;
+		relationship.depth = depth;
 		if (aiNode->mNumChildren) {
 			for (auto childIndex = 0u; childIndex < aiNode->mNumChildren; childIndex++) {
 				auto aiChildNode = aiNode->mChildren[childIndex];
@@ -471,8 +456,11 @@ namespace drk::Loaders {
 					aiChildNode,
 					lightMap,
 					cameraMap,
-					loadResult
+					loadResult,
+					registry,
+					depth + 1
 				);
+				relationship.children.push_back(childEntity);
 				auto& childRelationship = registry.get<Objects::Relationship>(childEntity);
 				if (childIndex == 0) relationship.firstChild = childEntity;
 				if (childIndex > 0) {

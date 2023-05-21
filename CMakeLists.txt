@@ -58,6 +58,7 @@ file(
     src/Meshes/Pipelines/MeshPipeline.cpp
     src/Renderers/Renderer.cpp
     src/Scenes/Renderers/SceneRenderer.cpp
+    src/ImGui/imgui_stdlib.cpp
 )
 
 file(
@@ -74,7 +75,7 @@ file(
     src/Textures/ImageInfo.hpp
     src/Textures/TextureType.hpp
     src/Common/ComponentIndex.hpp
-    src/Meshes/MeshInfo.hpp
+    src/Meshes/Components/MeshResource.hpp
     src/Materials/Components/Material.hpp
     src/Devices/Texture.hpp
     src/Devices/BufferView.hpp
@@ -111,7 +112,7 @@ file(
     src/Materials/MaterialSystem.hpp
     src/Devices/BufferUploadResult.hpp
     src/Engine/MeshUploadResult.hpp
-    src/Meshes/Components/Mesh.hpp
+    src/Meshes/Components/MeshBufferView.hpp
     src/Graphics/SynchronizationState.hpp
     src/Materials/Models/Material.hpp
     src/Stores/StoreBufferAllocator.hpp
@@ -182,6 +183,7 @@ file(
     src/Scenes/Renderers/SceneRenderer.hpp
     src/Pipelines/Pipeline.hpp
     src/Renderers/Renderer.hpp
+    src/ImGui/imgui_stdlib.h
 )
 
 file(
@@ -209,7 +211,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/Scenes/SceneSystem.cpp src/Scenes/SceneSystem.hpp src/Scenes/Draws/SceneDraw.hpp src/Draws/DrawSystem.hpp src/Meshes/Components/MeshDraw.hpp src/Draws/DrawVertexBufferInfo.cpp src/Draws/DrawVertexBufferInfo.hpp src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp src/UserInterfaces/Renderers/UserInterfaceRenderer.hpp src/Devices/ImageInfo.hpp src/Devices/DeviceImageInfo.hpp src/Scenes/Renderers/SceneRenderOperation.hpp src/Spatials/Components/SpatialEditor.cpp src/Spatials/Components/SpatialEditor.hpp)
+add_executable(drk ${HEADERS} ${SOURCES} src/Scenes/SceneSystem.cpp src/Scenes/SceneSystem.hpp src/Scenes/Draws/SceneDraw.hpp src/Draws/DrawSystem.hpp src/Meshes/Components/MeshDraw.hpp src/Draws/DrawVertexBufferInfo.cpp src/Draws/DrawVertexBufferInfo.hpp src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp src/UserInterfaces/Renderers/UserInterfaceRenderer.hpp src/Devices/ImageInfo.hpp src/Devices/DeviceImageInfo.hpp src/Scenes/Renderers/SceneRenderOperation.hpp src/Spatials/Components/SpatialEditor.cpp src/Spatials/Components/SpatialEditor.hpp src/UserInterfaces/AssetExplorer.cpp src/UserInterfaces/AssetExplorer.hpp src/Materials/Components/MaterialCollection.hpp src/Meshes/Components/Mesh.hpp)
 add_dependencies(drk Shaders)
 configure_file(settings.json settings.json COPYONLY)
 

@@ -38,7 +38,7 @@ namespace drk::Points {
 				auto& spatial
 			) {
 				const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[engineState.getFrameIndex()];
-				const auto& material = registry.get<Materials::Components::Material*>(pointEntity);
+				const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(pointEntity);
 				Scenes::Draws::SceneDraw draw = {
 					.drawSystem = this,
 					.indexBufferView = nullptr,

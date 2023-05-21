@@ -394,7 +394,7 @@ namespace drk::Graphics {
 			) {
 				const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
 				for (const auto& meshEntity : meshGroup.meshEntities) {
-					Meshes::MeshInfo* meshInfo = registry.get<Meshes::MeshInfo*>(meshEntity);
+					std::shared_ptr<Meshes::MeshInfo> meshInfo = registry.get<std::shared_ptr<Meshes::MeshInfo>>(meshEntity);
 					const Meshes::Components::Mesh mesh = registry.get<Meshes::Components::Mesh>(meshEntity);
 					const Stores::StoreItem<Meshes::Models::Mesh> meshStoreItem = registry.get<Stores::StoreItem<Meshes::Models::Mesh>>(
 						meshEntity

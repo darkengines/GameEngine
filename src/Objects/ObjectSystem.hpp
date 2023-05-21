@@ -25,5 +25,6 @@ namespace drk::Objects {
 		static void AddObjectSystem(entt::registry& registry);
 		static void RemoveObjectSystem(entt::registry& registry);
 		static void OnObjectConstruct(entt::registry& registry, entt::entity objectEntity);
+		static entt::entity copyObjectEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity, entt::entity parent = entt::null, entt::entity previousSibling = entt::null);
 	};
 }

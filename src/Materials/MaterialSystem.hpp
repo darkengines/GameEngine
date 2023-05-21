@@ -9,12 +9,11 @@
 #include "../Systems/System.hpp"
 
 namespace drk::Materials {
-	class MaterialSystem: public Systems::System<Models::Material, Components::Material*> {
+	class MaterialSystem : public Systems::System<Models::Material, std::shared_ptr<Components::Material>> {
 	protected:
 		const Devices::DeviceContext& deviceContext;
 	public:
-		void Update(Models::Material& model, Components::Material* const& components) override;
-		//void Update(Models::Material& storedMaterial, const Components::Material* material);
+		void Update(Models::Material& model, const std::shared_ptr<Components::Material>& components);
 	public:
 		MaterialSystem(
 			const drk::Devices::DeviceContext& deviceContext,
@@ -24,5 +23,7 @@ namespace drk::Materials {
 		static void AddMaterialSystem(entt::registry& registry);
 		static void RemoveMaterialSystem(entt::registry& registry);
 		static void OnMaterialConstruct(entt::registry& registry, entt::entity materialEntity);
+		static entt::entity copyMaterialEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
+
 	};
 }

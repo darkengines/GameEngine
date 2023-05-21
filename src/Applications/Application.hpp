@@ -20,6 +20,7 @@
 #include "../UserInterfaces/Renderers/UserInterfaceRenderer.hpp"
 #include "../Scenes/SceneSystem.hpp"
 #include "../Points/PointSystem.hpp"
+#include "../UserInterfaces/AssetExplorer.hpp"
 #include <memory>
 
 namespace drk::Applications {
@@ -44,7 +45,8 @@ namespace drk::Applications {
 			UserInterfaces::Renderers::UserInterfaceRenderer&,
 			Scenes::Renderers::SceneRenderer&,
 			Scenes::SceneSystem&,
-			Points::PointSystem&
+			Points::PointSystem&,
+			UserInterfaces::AssetExplorer&
 		>;
 
 		Application(
@@ -66,7 +68,8 @@ namespace drk::Applications {
 			UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer,
 			Scenes::Renderers::SceneRenderer& sceneRenderer,
 			Scenes::SceneSystem& sceneSystem,
-			Points::PointSystem& pointSystem
+			Points::PointSystem& pointSystem,
+			UserInterfaces::AssetExplorer& assetExplorer
 		);
 		~Application();
 
@@ -93,6 +96,7 @@ namespace drk::Applications {
 		Scenes::SceneSystem& sceneSystem;
 		Points::PointSystem& pointSystem;
 		entt::entity selectedEntity = entt::null;
+		UserInterfaces::AssetExplorer& assetExplorer;
 
 		void OnWindowSizeChanged(uint32_t width, uint32_t height);
 		void WaitFences();
@@ -103,5 +107,7 @@ namespace drk::Applications {
 		bool shouldRecreateSwapchain = false;
 		void RecreateSwapchain(vk::Extent2D windowExtent);
 		vk::Extent2D windowExtent;
+		void renderEntity(entt::entity entity);
+		void renderEntities();
 	};
 }

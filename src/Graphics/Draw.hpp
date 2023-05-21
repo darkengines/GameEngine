@@ -1,14 +1,14 @@
 #pragma once
 
 #include "../Stores/Models/StoreItemLocation.hpp"
-#include "../Meshes/Components/Mesh.hpp"
-#include "../Meshes/MeshInfo.hpp"
+#include "../Meshes/Components/MeshBufferView.hpp"
+#include "../Meshes/Components/MeshResource.hpp"
 #include "../Spatials/Components/Spatial.hpp"
 
 namespace drk::Graphics {
 	struct Draw {
-		Meshes::MeshInfo* meshInfo;
-		Meshes::Components::Mesh mesh;
+		std::shared_ptr<Meshes::Components::MeshResource> meshInfo;
+		Meshes::Components::MeshBufferView mesh;
 		Stores::Models::StoreItemLocation meshStoreItem;
 		Stores::Models::StoreItemLocation objectLocation;
 		Spatials::Components::Spatial spatial;

@@ -13,7 +13,12 @@ namespace drk::Textures {
 		entt::registry& registry;
 
 	public:
-		TextureSystem(const Devices::DeviceContext& deviceContext, Engine::EngineState& engineState, entt::registry& registry);
+		TextureSystem(
+			const Devices::DeviceContext& deviceContext,
+			Engine::EngineState& engineState,
+			entt::registry& registry
+		);
 		void UploadTextures();
+		static entt::entity copyTextureEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
 	};
 }

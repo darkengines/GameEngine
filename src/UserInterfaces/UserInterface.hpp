@@ -36,5 +36,11 @@ namespace drk::UserInterfaces {
 		void OnMouseButtonEvent(int button, int action, int mods) {}
 		bool IsVisible() const { return isVisible; }
 		bool IsExplorationMode() const { return isExplorationMode; }
+		static void RenderEntityTree(
+			entt::registry& registry,
+			const std::function<bool(entt::entity entity)>& renderNode,
+			const std::function<void(entt::entity entity)>& renderLeaf,
+			std::optional<const std::function<void(entt::entity entity)>> renderAfterNode = std::nullopt
+		);
 	};
 }

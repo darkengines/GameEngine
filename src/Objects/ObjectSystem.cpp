@@ -2,6 +2,8 @@
 #include "../Stores/StoreItem.hpp"
 #include "../Graphics/SynchronizationState.hpp"
 #include "../Meshes/MeshGroup.hpp"
+#include "../Meshes/MeshSystem.hpp"
+#include "Relationship.hpp"
 
 namespace drk::Objects {
 
@@ -30,5 +32,43 @@ namespace drk::Objects {
 
 	void ObjectSystem::OnObjectConstruct(entt::registry& registry, entt::entity objectEntity) {
 
+	}
+	entt::entity
+	ObjectSystem::copyObjectEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity, entt::entity parent, entt::entity previousSibling) {
+		const auto& sourceObject = source.get<Object>(sourceEntity);
+		auto sourceMeshGroup = source.try_get<Meshes::MeshGroup>(sourceEntity);
+		auto sourceSpatial = source.try_get<Spatials::Components::Spatial>(sourceEntity);
+		auto sourceRelationship = source.try_get<Relationship>(sourceEntity);
+
+		auto destinationEntity = destination.create();
+		Object destinationObject{
+			.Name = sourceObject.Name
+		};
+		destination.emplace<Object>(destinationEntity, destinationObject);
+		if (sourceMeshGroup != nullptr) {
+			auto destinationMeshGroup = Meshes::MeshSystem::copyMeshGroup(source, destination, *sourceMeshGroup);
+			destination.emplace<Meshes::MeshGroup>(destinationEntity, destinationMeshGroup);
+		}
+		if (sourceSpatial != nullptr) {
+			destination.emplace<Spatials::Components::Spatial>(destinationEntity, *sourceSpatial);
+		}
+
+		if (sourceRelationship != nullptr) {
+			auto sourceFirstChild = sourceRelationship->firstChild;
+			auto sourceNextSibling = sourceRelationship->nextSibling;
+			auto destinationFirstChild = sourceFirstChild == entt::null ? entt::null : copyObjectEntity(source, destination, sourceFirstChild, destinationEntity);
+			auto destinationNextSibling = sourceNextSibling == entt::null ? entt::null : copyObjectEntity(source, destination, sourceNextSibling, destinationEntity);
+
+			Relationship destinationRelationship {
+				.childCount = sourceRelationship->childCount,
+				.firstChild = destinationFirstChild,
+				.previousSibling = previousSibling,
+				.nextSibling = destinationNextSibling,
+				.parent = parent
+			};
+			destination.emplace<Relationship>(destinationEntity, destinationRelationship);
+		}
+
+		return destinationEntity;
 	}
 }
