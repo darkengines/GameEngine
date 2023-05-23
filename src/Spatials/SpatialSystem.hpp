@@ -23,10 +23,10 @@ namespace drk::Spatials {
 		static void OnSpatialConstruct(entt::registry& registry, entt::entity spatialEntity);
 		void Update(Models::Spatial& spatialModel, const Components::Spatial& spatial);
 		void PropagateChanges();
-		void MakeDirty(entt::entity entity, bool asChild = false);
+		void MakeDirty(entt::entity entity);
 		bool IsParent(entt::entity left, entt::entity right);
 		std::string GetPath(entt::entity entity);
 		static uint32_t GetDepth(const entt::registry& registry, entt::entity entity);
-		static bool compareRelationship(const entt::registry& registry, const entt::entity leftEntity, const entt::entity rightEntity);
+		//static bool compareRelationship(const entt::registry& registry, const entt::entity leftEntity, const entt::entity rightEntity);
 	};
 }

@@ -22,15 +22,17 @@ namespace drk::UserInterfaces {
 
 	void AssetExplorer::renderEntity(entt::registry& destinationRegistry, entt::entity entity) {
 		const auto& [relationship, object] = assetRegistry.get<Objects::Relationship, Objects::Object>(entity);
-		if (relationship.firstChild != entt::null) {
+		if (relationship.children.size() > 0) {
 			auto isOpen = ImGui::TreeNode(
 				(void*) entity,
 				fmt::format("{0}", object.Name).c_str()
 			);
 			ImGui::SameLine();
+			ImGui::PushID((void*)entity);
 			if (ImGui::Button("Copy##node")) {
 				Objects::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
 			}
+			ImGui::PopID();
 			if (isOpen) {
 				for (const auto& childEntity: relationship.children) {
 					renderEntity(destinationRegistry, childEntity);
@@ -40,9 +42,11 @@ namespace drk::UserInterfaces {
 		} else {
 			ImGui::Text(fmt::format("{0}", object.Name).c_str());
 			ImGui::SameLine();
+			ImGui::PushID((void*)entity);
 			if (ImGui::Button("Copy##leaf")) {
 				Objects::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
 			}
+			ImGui::PopID();
 		}
 	}
 	void AssetExplorer::render(entt::registry& destinationRegistry) {

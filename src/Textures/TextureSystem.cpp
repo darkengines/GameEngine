@@ -15,8 +15,12 @@ namespace drk::Textures {
 			const auto imageInfo = registry.get<std::shared_ptr<Textures::ImageInfo>>(
 				imageEntity
 			);
-			const auto& texture = EngineState.UploadTexture(imageInfo.get());
-			registry.emplace<Devices::Texture>(imageEntity, texture);
+			if (imageInfo->pixels.size() > 0) {
+				const auto& texture = EngineState.UploadTexture(imageInfo.get());
+				registry.emplace<Devices::Texture>(imageEntity, texture);
+			} else {
+				//TODO: apply default texture
+			}
 		}
 	}
 	entt::entity

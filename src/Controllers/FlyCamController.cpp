@@ -64,7 +64,7 @@ namespace drk::Controllers {
 		if (LastMousePosition.has_value()) {
 			MousePositionDelta = (mousePosition - *LastMousePosition) * 0.0005f;
 		}
-		LastMousePosition = std::move(mousePosition);
+		LastMousePosition = mousePosition;
 	}
 
 	void FlyCamController::OnMouseButtonEvent(int button, int action, int mods) {

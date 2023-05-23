@@ -97,11 +97,13 @@ namespace drk::Loaders {
 									textureTypePair.second
 								);
 							}
-							auto textureEntity = registry.create();
-							registry.emplace<std::shared_ptr<Textures::ImageInfo>>(textureEntity, std::move(image));
-							textureNameMap[texturePath] = textureEntity;
-							textureTypeMap[textureTypePair.second] = textureEntity;
-							loadResult.images.push_back(std::move(image));
+							if (image->pixels.size() > 0) {
+								auto textureEntity = registry.create();
+								registry.emplace<std::shared_ptr<Textures::ImageInfo>>(textureEntity, std::move(image));
+								textureNameMap[texturePath] = textureEntity;
+								textureTypeMap[textureTypePair.second] = textureEntity;
+								loadResult.images.push_back(std::move(image));
+							}
 							aiTextureIndex++;
 						} else {
 							textureTypeMap[textureTypePair.second] = texturePathPair->second;
@@ -447,7 +449,6 @@ namespace drk::Loaders {
 			loadResult.rootEntity = entity;
 		}
 
-		relationship.childCount = aiNode->mNumChildren;
 		relationship.depth = depth;
 		if (aiNode->mNumChildren) {
 			for (auto childIndex = 0u; childIndex < aiNode->mNumChildren; childIndex++) {
@@ -462,14 +463,7 @@ namespace drk::Loaders {
 				);
 				relationship.children.push_back(childEntity);
 				auto& childRelationship = registry.get<Objects::Relationship>(childEntity);
-				if (childIndex == 0) relationship.firstChild = childEntity;
-				if (childIndex > 0) {
-					childRelationship.previousSibling = previousSibling;
-					previousRelationship->nextSibling = childEntity;
-				}
 				childRelationship.parent = entity;
-				previousSibling = childEntity;
-				previousRelationship = &childRelationship;
 			}
 		}
 

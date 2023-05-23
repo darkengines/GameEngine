@@ -34,7 +34,13 @@ namespace drk::Objects {
 
 	}
 	entt::entity
-	ObjectSystem::copyObjectEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity, entt::entity parent, entt::entity previousSibling) {
+	ObjectSystem::copyObjectEntity(
+		const entt::registry& source,
+		entt::registry& destination,
+		entt::entity sourceEntity,
+		entt::entity parent,
+		entt::entity previousSibling
+	) {
 		const auto& sourceObject = source.get<Object>(sourceEntity);
 		auto sourceMeshGroup = source.try_get<Meshes::MeshGroup>(sourceEntity);
 		auto sourceSpatial = source.try_get<Spatials::Components::Spatial>(sourceEntity);
@@ -54,19 +60,17 @@ namespace drk::Objects {
 		}
 
 		if (sourceRelationship != nullptr) {
-			auto sourceFirstChild = sourceRelationship->firstChild;
-			auto sourceNextSibling = sourceRelationship->nextSibling;
-			auto destinationFirstChild = sourceFirstChild == entt::null ? entt::null : copyObjectEntity(source, destination, sourceFirstChild, destinationEntity);
-			auto destinationNextSibling = sourceNextSibling == entt::null ? entt::null : copyObjectEntity(source, destination, sourceNextSibling, destinationEntity);
 
-			Relationship destinationRelationship {
-				.childCount = sourceRelationship->childCount,
-				.firstChild = destinationFirstChild,
-				.previousSibling = previousSibling,
-				.nextSibling = destinationNextSibling,
-				.parent = parent
+			Relationship destinationRelationship{
+				.parent = parent,
+				.depth = sourceRelationship->depth
 			};
-			destination.emplace<Relationship>(destinationEntity, destinationRelationship);
+
+			for (const auto& sourceChild: sourceRelationship->children) {
+				const auto& destinationChild = copyObjectEntity(source, destination, sourceChild, destinationEntity);
+				destinationRelationship.children.emplace_back(std::move(destinationChild));
+			}
+			destination.emplace<Relationship>(destinationEntity, std::move(destinationRelationship));
 		}
 
 		return destinationEntity;

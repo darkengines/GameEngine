@@ -1,8 +1,11 @@
 #pragma once
-
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
 #include <GLFW/glfw3.h>
 #include "../Windows/Window.hpp"
+#include "../Controllers/FlyCamController.hpp"
 #include <imgui.h>
+#include <glm/glm.hpp>
 
 namespace drk::UserInterfaces {
 	class UserInterface {
@@ -10,9 +13,11 @@ namespace drk::UserInterfaces {
 		const Windows::Window& window;
 		bool isVisible;
 		bool isExplorationMode = false;
+		Controllers::FlyCamController& flyCamController;
 
 	public:
-		UserInterface(const Windows::Window& window) : window(window), isVisible(false) {}
+		UserInterface(Windows::Window& window, Controllers::FlyCamController& flyCamController)
+			: window(window), isVisible(false), flyCamController(flyCamController) {}
 		void HandleKeyboardEvents() {
 			if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_LeftAlt)) {
 				int cursorMode;
@@ -21,6 +26,9 @@ namespace drk::UserInterfaces {
 					isVisible = false;
 					//cursorMode = ImGuiMouseCursor_None;
 					cursorMode = GLFW_CURSOR_DISABLED;
+					glm::vec<2, double> cursorPosition;
+					glfwGetCursorPos(window.GetWindow(), &cursorPosition.x, &cursorPosition.y);
+					flyCamController.LastMousePosition = cursorPosition;
 				} else {
 					isVisible = true;
 					//cursorMode = ImGuiMouseCursor_Arrow;
@@ -36,11 +44,5 @@ namespace drk::UserInterfaces {
 		void OnMouseButtonEvent(int button, int action, int mods) {}
 		bool IsVisible() const { return isVisible; }
 		bool IsExplorationMode() const { return isExplorationMode; }
-		static void RenderEntityTree(
-			entt::registry& registry,
-			const std::function<bool(entt::entity entity)>& renderNode,
-			const std::function<void(entt::entity entity)>& renderLeaf,
-			std::optional<const std::function<void(entt::entity entity)>> renderAfterNode = std::nullopt
-		);
 	};
 }

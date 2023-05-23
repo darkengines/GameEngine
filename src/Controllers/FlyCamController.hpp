@@ -13,12 +13,12 @@ namespace drk::Controllers {
 		bool MoveLeft = false;
 		bool MoveUp = false;
 		bool MoveDown = false;
-		std::optional<glm::vec2> LastMousePosition = std::nullopt;
 		glm::vec2 MousePositionDelta = {0.0f, 0.0f};
 		entt::entity CameraEntity = entt::null;
 		entt::registry& Registry;
 
 	public:
+		std::optional<glm::vec2> LastMousePosition = std::nullopt;
 		FlyCamController(entt::registry& registry);
 		void Attach(entt::entity cameraEntity);
 		void HandleKeyboardEvents();

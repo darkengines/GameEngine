@@ -101,10 +101,6 @@ namespace drk::Cameras {
 			.relativePosition = position
 		};
 		Objects::Relationship cameraRelationship = {
-			.childCount = 0,
-			.firstChild = entt::null,
-			.previousSibling = entt::null,
-			.nextSibling = entt::null,
 			.parent = entt::null
 		};
 		Objects::Object cameraObject = {

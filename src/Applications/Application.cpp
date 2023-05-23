@@ -370,7 +370,7 @@ namespace drk::Applications {
 
 	void Application::renderEntity(entt::entity entity) {
 		const auto& [relationship, object] = registry.get<Objects::Relationship, Objects::Object>(entity);
-		if (relationship.firstChild != entt::null) {
+		if (relationship.children.size() > 0) {
 			auto isOpen = ImGui::TreeNode(
 				(void*) entity,
 				fmt::format("{0}", object.Name).c_str()

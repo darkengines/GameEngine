@@ -15,6 +15,12 @@ namespace drk::Spatials::Components {
 
 			ImGui::SeparatorText("Spatial");
 			hasChanged |= ImGui::InputFloat3("Position", reinterpret_cast<float*>(&spatial.relativePosition));
+//			if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_KeypadAdd)) {
+//				speed = 1.0f;
+//				if (ImGui::IsKeyPressed((ImGuiKey::ImGuiKey_LeftCtrl))) factor = 0.1f;
+//				if (ImGui::IsKeyPressed((ImGuiKey::ImGuiKey_LeftShift))) factor = 10.0f;
+//				hasChanged |= true;
+//			}
 			if (ImGui::DragFloat3("Drag position", reinterpret_cast<float*>(&speed), 0.01f, -1.0f, 1.0f)) {
 				auto hasSpeed = speed.x != 0 || speed.y != 0 || speed.z != 0;
 				hasChanged |= hasSpeed;

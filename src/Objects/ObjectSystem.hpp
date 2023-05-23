@@ -7,6 +7,7 @@
 #include "../Meshes/Models/Mesh.hpp"
 #include "../Spatials/Models/Spatial.hpp"
 #include "../Systems/System.hpp"
+#include "../Loaders/LoadResult.hpp"
 
 namespace drk::Objects {
 	class ObjectSystem : public Systems::System<Models::Object, Stores::StoreItem<Spatials::Models::Spatial>> {
@@ -25,6 +26,12 @@ namespace drk::Objects {
 		static void AddObjectSystem(entt::registry& registry);
 		static void RemoveObjectSystem(entt::registry& registry);
 		static void OnObjectConstruct(entt::registry& registry, entt::entity objectEntity);
-		static entt::entity copyObjectEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity, entt::entity parent = entt::null, entt::entity previousSibling = entt::null);
+		static entt::entity copyObjectEntity(
+			const entt::registry& source,
+			entt::registry& destination,
+			entt::entity sourceEntity,
+			entt::entity parent = entt::null,
+			entt::entity previousSibling = entt::null
+		);
 	};
 }

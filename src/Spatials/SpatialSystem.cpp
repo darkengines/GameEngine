@@ -40,15 +40,12 @@ namespace drk::Spatials {
 		spatialModel.absoluteModel = spatial.absoluteModel;
 	}
 
-	void SpatialSystem::MakeDirty(const entt::entity spatialEntity, bool asChild) {
+	void SpatialSystem::MakeDirty(const entt::entity spatialEntity) {
 		auto& relationship = registry.get<Objects::Relationship>(spatialEntity);
 		auto& object = registry.get<Objects::Object>(spatialEntity);
 		registry.emplace_or_replace<Objects::Dirty<Spatials::Components::Spatial>>(spatialEntity, true);
-		if (relationship.childCount > 0) {
-			MakeDirty(relationship.firstChild, true);
-		}
-		if (asChild && relationship.nextSibling != entt::null) {
-			MakeDirty(relationship.nextSibling, true);
+		for (const auto& child: relationship.children) {
+			MakeDirty(child);
 		}
 	}
 
@@ -71,24 +68,24 @@ namespace drk::Spatials {
 		return fmt::format("{0}-->{1}", GetPath(relationship.parent), object.Name);
 	}
 
-	bool SpatialSystem::compareRelationship(
-		const entt::registry& registry,
-		const entt::entity leftEntity,
-		const entt::entity rightEntity
-	) {
-		Objects::Relationship leftRelationship = registry.get<Objects::Relationship>(leftEntity);
-		Objects::Relationship rightRelationship = registry.get<Objects::Relationship>(rightEntity);
-
-		return rightRelationship.parent == leftEntity
-			   || leftRelationship.nextSibling == rightEntity
-			   || (
-				   !(leftRelationship.parent == rightEntity || rightRelationship.nextSibling == leftEntity)
-				   && (
-					   leftRelationship.parent < rightRelationship.parent
-					   || (leftRelationship.parent == rightRelationship.parent && &leftRelationship < &rightRelationship)
-				   )
-			   );
-	}
+//	bool SpatialSystem::compareRelationship(
+//		const entt::registry& registry,
+//		const entt::entity leftEntity,
+//		const entt::entity rightEntity
+//	) {
+//		Objects::Relationship leftRelationship = registry.get<Objects::Relationship>(leftEntity);
+//		Objects::Relationship rightRelationship = registry.get<Objects::Relationship>(rightEntity);
+//
+//		return rightRelationship.parent == leftEntity
+//			   || leftRelationship.nextSibling == rightEntity
+//			   || (
+//				   !(leftRelationship.parent == rightEntity || rightRelationship.nextSibling == leftEntity)
+//				   && (
+//					   leftRelationship.parent < rightRelationship.parent
+//					   || (leftRelationship.parent == rightRelationship.parent && &leftRelationship < &rightRelationship)
+//				   )
+//			   );
+//	}
 
 	void SpatialSystem::PropagateChanges() {
 		registry.sort<Objects::Dirty<Components::Spatial>>(
