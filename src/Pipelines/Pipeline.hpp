@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.hpp>
 #include <vector>
 #include <memory>
+#include <functional>
 
 namespace drk::Pipelines {
 	class Pipeline {

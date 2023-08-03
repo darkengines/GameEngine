@@ -6,11 +6,11 @@
 #include <imgui_impl_vulkan.h>
 #include <iostream>
 #include <imfilebrowser.h>
-#include <uv.h>
 #include <GLFW/glfw3.h>
 #include "../Scenes/Draws/SceneDraw.hpp"
 #include "../Spatials/Components/SpatialEditor.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
+#include <entt/entt.hpp>
 #include <stack>
 
 namespace drk::Applications {
@@ -399,7 +399,7 @@ namespace drk::Applications {
 
 			if (auto& storage = curr.second; storage.contains(entity)) {
 				auto typeInfo = storage.type();
-				auto component = storage.get(entity);
+				auto component = storage.find(entity);
 				ImGui::Text(typeInfo.name().data());
 				auto spatialComponentTypeId = entt::type_id<Spatials::Components::Spatial>();
 				if (typeInfo == spatialComponentTypeId) {

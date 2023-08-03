@@ -118,11 +118,13 @@ namespace drk::Devices {
 	) {
 		auto devices = instance.enumeratePhysicalDevices();
 		if (devices.empty()) throw std::runtime_error("Failed to find GPU with Vulkan support.");
+		std::vector<vk::PhysicalDevice> suitablePhysicalDevices;
 		for (const auto& device: devices) {
 			if (Device::isDeviceSuitable(device, surface, requiredExtensions)) {
-				return device;
+				suitablePhysicalDevices.push_back(device);
 			}
 		}
+		if (suitablePhysicalDevices.size() > 0) return suitablePhysicalDevices[suitablePhysicalDevices.size() - 1];
 		throw std::runtime_error("Failed to find a suitable GPU.");
 	}
 
@@ -291,7 +293,10 @@ namespace drk::Devices {
 		};
 
 		VmaAllocator allocator;
-		vmaCreateAllocator(&allocatorCreationInfo, &allocator);
+		auto result = vmaCreateAllocator(&allocatorCreationInfo, &allocator);
+		if (result != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create vma allocator");
+		}
 		return allocator;
 	}
 

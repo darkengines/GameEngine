@@ -16,6 +16,6 @@
       "VK_KHR_swapchain",
       "VK_EXT_descriptor_indexing"
     ],
-    "EnableValidationLayers": false
+    "EnableValidationLayers": true
   }
 }

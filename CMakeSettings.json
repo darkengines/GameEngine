@@ -10,7 +10,7 @@
 			"cmakeCommandArgs": "",
 			"buildCommandArgs": "",
 			"ctestCommandArgs": "",
-			"cmakeToolchain": "H:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+			"cmakeToolchain": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
 		},
 		{
 			"name": "release",
@@ -21,7 +21,7 @@
 			"cmakeCommandArgs": "",
 			"buildCommandArgs": "",
 			"ctestCommandArgs": "",
-			"cmakeToolchain": "H:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+			"cmakeToolchain": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
 			"inheritEnvironments": [ "msvc_x64_x64" ]
 		},
 		{
@@ -33,7 +33,7 @@
 			"cmakeCommandArgs": "",
 			"buildCommandArgs": "",
 			"ctestCommandArgs": "",
-			"cmakeToolchain": "H:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+			"cmakeToolchain": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
 			"inheritEnvironments": [ "msvc_x64_x64" ]
 		}
 	]

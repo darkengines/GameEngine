@@ -196,10 +196,10 @@ file(
 
 foreach (GLSL ${GLSL_SOURCES})
     get_filename_component(FILE_NAME ${GLSL} NAME)
-    set(SPIRV "${PROJECT_BINARY_DIR}/shaders/spv/${FILE_NAME}.spv")
+    set(SPIRV "${PROJECT_BINARY_DIR}/$<CONFIG>/shaders/spv/${FILE_NAME}.spv")
     add_custom_command(
         OUTPUT ${SPIRV}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/shaders/spv/"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/$<CONFIG>/shaders/spv/"
         COMMAND glslc -g --target-env=vulkan1.3 ${GLSL} -o ${SPIRV}
         COMMAND
         DEPENDS ${GLSL})
@@ -213,17 +213,16 @@ add_custom_target(
 
 add_executable(drk ${HEADERS} ${SOURCES} src/Scenes/SceneSystem.cpp src/Scenes/SceneSystem.hpp src/Scenes/Draws/SceneDraw.hpp src/Draws/DrawSystem.hpp src/Meshes/Components/MeshDraw.hpp src/Draws/DrawVertexBufferInfo.cpp src/Draws/DrawVertexBufferInfo.hpp src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp src/UserInterfaces/Renderers/UserInterfaceRenderer.hpp src/Devices/ImageInfo.hpp src/Devices/DeviceImageInfo.hpp src/Scenes/Renderers/SceneRenderOperation.hpp src/Spatials/Components/SpatialEditor.cpp src/Spatials/Components/SpatialEditor.hpp src/UserInterfaces/AssetExplorer.cpp src/UserInterfaces/AssetExplorer.hpp src/Materials/Components/MaterialCollection.hpp src/Meshes/Components/Mesh.hpp)
 add_dependencies(drk Shaders)
-configure_file(settings.json settings.json COPYONLY)
+file (GENERATE OUTPUT $<CONFIG>/settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 
 find_package(Vulkan REQUIRED)
-find_package(unofficial-vulkan-memory-allocator REQUIRED)
+find_package(VulkanMemoryAllocator REQUIRED)
 find_package(entt REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 find_package(assimp REQUIRED)
 find_package(stb REQUIRED)
 find_package(fmt REQUIRED)
-find_package(libuv REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(nameof REQUIRED)
 
@@ -235,12 +234,11 @@ target_include_directories(drk SYSTEM PUBLIC ${nlohmann_json_INCLUDE_DIRS})
 target_include_directories(drk SYSTEM PUBLIC ${nameof_INCLUDE_DIRS})
 
 target_link_libraries(drk PRIVATE ${Vulkan_LIBRARIES})
-target_link_libraries(drk PRIVATE unofficial::vulkan-memory-allocator::vulkan-memory-allocator)
+target_link_libraries(drk PRIVATE GPUOpen::VulkanMemoryAllocator)
 target_link_libraries(drk PRIVATE glfw)
 target_link_libraries(drk PRIVATE EnTT::EnTT)
 target_link_libraries(drk PRIVATE glm::glm)
 target_link_libraries(drk PRIVATE assimp::assimp)
 target_link_libraries(drk PRIVATE imgui)
 target_link_libraries(drk PRIVATE fmt::fmt-header-only)
-target_link_libraries(drk PRIVATE uv)
 target_link_libraries(drk PRIVATE nlohmann_json)

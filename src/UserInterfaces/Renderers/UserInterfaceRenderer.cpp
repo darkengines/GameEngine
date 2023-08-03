@@ -17,7 +17,7 @@ namespace drk::UserInterfaces::Renderers {
 		DestroyMainFramebufferResources();
 	}
 	void UserInterfaceRenderer::DestroyMainFramebuffer() {
-		for (const auto& framebuffer: MainFramebuffers) {
+		for (const auto& framebuffer : MainFramebuffers) {
 			DeviceContext.device.destroyFramebuffer(framebuffer);
 		}
 		MainFramebuffers.clear();
@@ -108,8 +108,8 @@ namespace drk::UserInterfaces::Renderers {
 
 		std::vector<vk::AttachmentDescription> attachments{
 			colorAttachment,
-			depthAttachment,
-			resolvedColorAttachment
+				depthAttachment,
+				resolvedColorAttachment
 		};
 		vk::RenderPassCreateInfo renderPassCreateInfo = {
 			.attachmentCount = static_cast<uint32_t>(attachments.size()),
@@ -144,13 +144,13 @@ namespace drk::UserInterfaces::Renderers {
 		assert(this->targetImageInfo.has_value());
 		vk::ImageCreateInfo imageCreateInfo{
 			.imageType = vk::ImageType::e2D,
-			.format = targetImageInfo->format,
-			.extent = {targetImageInfo->extent.width, targetImageInfo->extent.height, 1},
-			.mipLevels = 1,
-			.arrayLayers = 1,
-			.samples = vk::SampleCountFlagBits::e8,
-			.usage = vk::ImageUsageFlagBits::eColorAttachment,
-			.sharingMode = vk::SharingMode::eExclusive,
+				.format = targetImageInfo->format,
+				.extent = { targetImageInfo->extent.width, targetImageInfo->extent.height, 1 },
+				.mipLevels = 1,
+				.arrayLayers = 1,
+				.samples = vk::SampleCountFlagBits::e8,
+				.usage = vk::ImageUsageFlagBits::eColorAttachment,
+				.sharingMode = vk::SharingMode::eExclusive,
 		};
 		auto mainFramebufferImage = DeviceContext.createImage(
 			imageCreateInfo,
@@ -176,13 +176,13 @@ namespace drk::UserInterfaces::Renderers {
 
 		vk::ImageCreateInfo depthImageCreateInfo{
 			.imageType = vk::ImageType::e2D,
-			.format = DeviceContext.DepthFormat,
-			.extent = {targetImageInfo->extent.width, targetImageInfo->extent.height, 1},
-			.mipLevels = 1,
-			.arrayLayers = 1,
-			.samples = vk::SampleCountFlagBits::e8,
-			.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
-			.sharingMode = vk::SharingMode::eExclusive,
+				.format = DeviceContext.DepthFormat,
+				.extent = { targetImageInfo->extent.width, targetImageInfo->extent.height, 1 },
+				.mipLevels = 1,
+				.arrayLayers = 1,
+				.samples = vk::SampleCountFlagBits::e8,
+				.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
+				.sharingMode = vk::SharingMode::eExclusive,
 		};
 		auto mainFramebufferDepthImage = DeviceContext.createImage(
 			depthImageCreateInfo,
@@ -216,15 +216,15 @@ namespace drk::UserInterfaces::Renderers {
 	}
 
 	void UserInterfaceRenderer::CreateMainFramebuffers() {
-		for (const auto& swapChainImageView: targetImageViews) {
+		for (const auto& swapChainImageView : targetImageViews) {
 			std::array<vk::ImageView, 3> attachments{
 				MainFramebufferTexture->imageView,
-				MainFramebufferDepthTexture->imageView,
-				swapChainImageView
+					MainFramebufferDepthTexture->imageView,
+					swapChainImageView
 			};
 			vk::FramebufferCreateInfo framebufferCreateInfo = {
 				.renderPass = MainRenderPass,
-				.attachmentCount = (uint32_t) attachments.size(),
+				.attachmentCount = (uint32_t)attachments.size(),
 				.pAttachments = attachments.data(),
 				.width = targetImageInfo->extent.width,
 				.height = targetImageInfo->extent.height,
@@ -236,24 +236,24 @@ namespace drk::UserInterfaces::Renderers {
 	}
 	void UserInterfaceRenderer::CreateImguiResources() {
 		vk::DescriptorPoolSize poolSizes[] =
-			{
-				{vk::DescriptorType::eSampler,              1000},
-				{vk::DescriptorType::eCombinedImageSampler, 1000},
-				{vk::DescriptorType::eSampledImage,         1000},
-				{vk::DescriptorType::eStorageImage,         1000},
-				{vk::DescriptorType::eUniformTexelBuffer,   1000},
-				{vk::DescriptorType::eStorageTexelBuffer,   1000},
-				{vk::DescriptorType::eUniformBuffer,        1000},
-				{vk::DescriptorType::eStorageBuffer,        1000},
-				{vk::DescriptorType::eUniformBufferDynamic, 1000},
-				{vk::DescriptorType::eStorageBufferDynamic, 1000},
-				{vk::DescriptorType::eInputAttachment,      1000}
-			};
+		{
+			{vk::DescriptorType::eSampler,              1000},
+			{vk::DescriptorType::eCombinedImageSampler, 1000},
+			{vk::DescriptorType::eSampledImage,         1000},
+			{vk::DescriptorType::eStorageImage,         1000},
+			{vk::DescriptorType::eUniformTexelBuffer,   1000},
+			{vk::DescriptorType::eStorageTexelBuffer,   1000},
+			{vk::DescriptorType::eUniformBuffer,        1000},
+			{vk::DescriptorType::eStorageBuffer,        1000},
+			{vk::DescriptorType::eUniformBufferDynamic, 1000},
+			{vk::DescriptorType::eStorageBufferDynamic, 1000},
+			{vk::DescriptorType::eInputAttachment,      1000}
+		};
 
 		vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
 			.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
 			.maxSets = 1000u,
-			.poolSizeCount = (uint32_t) std::size(poolSizes),
+			.poolSizeCount = (uint32_t)std::size(poolSizes),
 			.pPoolSizes = poolSizes,
 		};
 
@@ -271,11 +271,11 @@ namespace drk::UserInterfaces::Renderers {
 			.Queue = DeviceContext.GraphicQueue,
 			.PipelineCache = VK_NULL_HANDLE,
 			.DescriptorPool = ImGuiDescriptorPool,
-			.Subpass =0,
-			.MinImageCount=2,
-			.ImageCount=2,
+			.Subpass = 0,
+			.MinImageCount = 2,
+			.ImageCount = 2,
 			//TODO: Use configurable sample count
-			.MSAASamples = (VkSampleCountFlagBits) vk::SampleCountFlagBits::e8,
+			.MSAASamples = (VkSampleCountFlagBits)vk::SampleCountFlagBits::e8,
 			.Allocator = nullptr,
 			.CheckVkResultFn = nullptr
 		};
@@ -310,7 +310,7 @@ namespace drk::UserInterfaces::Renderers {
 			.color = {std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}
 		};
 		vk::ClearValue depthClearValue{
-			.depthStencil = {1.0f, 0}
+			.depthStencil = { 1.0f, 0 }
 		};
 		std::array<vk::ClearValue, 3> clearValues{colorClearValue, depthClearValue, colorClearValue};
 
@@ -318,7 +318,7 @@ namespace drk::UserInterfaces::Renderers {
 			.renderPass = MainRenderPass,
 			.framebuffer = MainFramebuffers[targetImageIndex],
 			.renderArea = {0, 0, {targetImageInfo->extent.width, targetImageInfo->extent.height}},
-			.clearValueCount = (uint32_t) clearValues.size(),
+			.clearValueCount = (uint32_t)clearValues.size(),
 			.pClearValues = clearValues.data(),
 		};
 		commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);

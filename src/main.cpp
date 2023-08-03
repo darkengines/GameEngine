@@ -32,6 +32,7 @@
 
 int main(int argc, char** argv) {
 
+	auto currentPath = std::filesystem::current_path();
 
 	auto injector = boost::di::make_injector(
 		drk::Configuration::AddConfiguration(),

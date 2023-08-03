@@ -94,7 +94,7 @@ namespace drk::Spatials {
 			}
 		);
 		registry.view<Objects::Dirty<Components::Spatial>>().each(
-			[&](const entt::entity entity) {
+			[&](entt::entity entity, Objects::Dirty<Components::Spatial>& dirtySpatial) {
 				const auto& relationship = registry.get<Objects::Relationship>(entity);
 				const auto& object = registry.get<Objects::Object>(entity);
 				//std::cout << fmt::format("{0} {1}", GetDepth(entity), object.Name) << std::endl;
