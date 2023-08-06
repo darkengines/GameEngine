@@ -275,10 +275,11 @@ namespace drk::UserInterfaces::Renderers {
 			.MinImageCount = 2,
 			.ImageCount = 2,
 			//TODO: Use configurable sample count
-			.MSAASamples = (VkSampleCountFlagBits)vk::SampleCountFlagBits::e8,
-			.Allocator = nullptr,
-			.CheckVkResultFn = nullptr
+			.MSAASamples = VK_SAMPLE_COUNT_8_BIT,
+			.UseDynamicRendering = false,
+			.ColorAttachmentFormat  = (VkFormat)targetImageInfo->format
 		};
+		
 		ImGui_ImplVulkan_Init(&infos, MainRenderPass);
 		if (!isImGuiInitialized) {
 			auto commandBuffer = Devices::Device::beginSingleTimeCommands(

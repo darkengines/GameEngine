@@ -1,5 +1,7 @@
 #pragma once
 #define VULKAN_HPP_NO_CONSTRUCTORS
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 
 #include <vulkan/vulkan.hpp>
 
@@ -130,12 +132,8 @@ namespace drk::Devices {
 				[](const auto &memoryType) {
 					return memoryType.propertyFlags & vk::MemoryPropertyFlagBits::eHostVisible;
 				}
-			);
-			const uint32_t stagingMemoryTypeIndex = std::distance(
-				properties.memoryTypes.begin(),
-				stagingMemoryTypeIterator
-			);
-			const auto stagingMemoryHeap = properties.memoryHeaps[stagingMemoryTypeIndex];
+			); 
+			const auto stagingMemoryHeap = properties.memoryHeaps[stagingMemoryTypeIterator->heapIndex];
 			const auto itemSize = sizeof(TBuffer);
 			vk::DeviceSize bufferLength = std::accumulate(
 				buffers.begin(), buffers.end(), 0, [](size_t totalBytes, const auto &buffer) {

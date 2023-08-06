@@ -2,6 +2,7 @@
 #include "Device.hpp"
 #include "../Common/Common.hpp"
 #include "VulkanInstanceConfiguration.hpp"
+#include <fmt/format.h>
 
 namespace drk::Devices {
 
@@ -15,7 +16,7 @@ namespace drk::Devices {
 		Instance = drk::Devices::Device::createInstance(
 			requiredInstanceExtensions,
 			enableValidationLayer ? requiredValidationLayers
-								  : std::vector<const char*>{}
+			: std::vector<const char*>{}
 		);
 		Surface = surfaceProvider(Instance);
 		PhysicalDevice = drk::Devices::Device::pickPhysicalDevice(
@@ -31,11 +32,11 @@ namespace drk::Devices {
 			requiredValidationLayers
 		);
 		device = logicalDevice.device,
-		GraphicQueue = logicalDevice.graphicQueue,
-		PresentQueue = logicalDevice.presentQueue,
-		ComputeQueue = logicalDevice.computeQueue,
+			GraphicQueue = logicalDevice.graphicQueue,
+			PresentQueue = logicalDevice.presentQueue,
+			ComputeQueue = logicalDevice.computeQueue,
 
-		Allocator = Device::createAllocator(Instance, PhysicalDevice, device);
+			Allocator = Device::createAllocator(Instance, PhysicalDevice, device);
 
 		MaxSampleCount = Device::getMaxSampleCount(PhysicalDevice);
 		DepthFormat = Device::findDepthFormat(PhysicalDevice);
@@ -54,20 +55,20 @@ namespace drk::Devices {
 
 		const auto glfwExtensions = Windows::Window::getVulkanInstanceExtension();
 		std::vector<const char*> requiredInstanceExtensions;
-		for (const auto& requiredInstanceExtension: vulkanInstanceConfiguration.RequiredInstanceExtensions) {
+		for (const auto& requiredInstanceExtension : vulkanInstanceConfiguration.RequiredInstanceExtensions) {
 			requiredInstanceExtensions.push_back(requiredInstanceExtension.c_str());
 		}
-		for (const auto& requiredInstanceExtension: glfwExtensions) {
+		for (const auto& requiredInstanceExtension : glfwExtensions) {
 			requiredInstanceExtensions.push_back(requiredInstanceExtension);
 		}
 
 		std::vector<const char*> requiredValidationLayers;
-		for (const auto& requiredValidationLayer: vulkanInstanceConfiguration.RequiredValidationLayers) {
+		for (const auto& requiredValidationLayer : vulkanInstanceConfiguration.RequiredValidationLayers) {
 			requiredValidationLayers.push_back(requiredValidationLayer.c_str());
 		}
 
 		std::vector<const char*> requiredDeviceExtensions;
-		for (const auto& requiredDeviceExtension: vulkanInstanceConfiguration.RequiredDeviceExtensions) {
+		for (const auto& requiredDeviceExtension : vulkanInstanceConfiguration.RequiredDeviceExtensions) {
 			requiredDeviceExtensions.push_back(requiredDeviceExtension.c_str());
 		}
 
@@ -78,10 +79,10 @@ namespace drk::Devices {
 
 		vk::SurfaceKHR surface;
 		auto result = glfwCreateWindowSurface(
-			(VkInstance) Instance,
+			(VkInstance)Instance,
 			window.GetWindow(),
 			nullptr,
-			(VkSurfaceKHR*) &Surface
+			(VkSurfaceKHR*)&Surface
 		);
 		if (result != VK_SUCCESS) {
 			throw "Failed to create surface.";
@@ -98,10 +99,15 @@ namespace drk::Devices {
 			vulkanInstanceConfiguration.EnableValidationLayers,
 			requiredValidationLayers
 		);
-		device = logicalDevice.device,
-		GraphicQueue = logicalDevice.graphicQueue,
-		PresentQueue = logicalDevice.presentQueue,
-		ComputeQueue = logicalDevice.computeQueue,
+		device = logicalDevice.device;
+		GraphicQueue = logicalDevice.graphicQueue;
+		PresentQueue = logicalDevice.presentQueue;
+		ComputeQueue = logicalDevice.computeQueue;
+
+		auto properties = PhysicalDevice.getProperties();
+
+		std::cout << fmt::format("Using Vulkan {0}", VK_API_VERSION_1_3) << std::endl;
+		std::cout << fmt::format("Using physical device #{0} ({1})", properties.deviceID, properties.deviceName.data()) << std::endl;
 
 		Allocator = Device::createAllocator(Instance, PhysicalDevice, device);
 
@@ -123,12 +129,12 @@ namespace drk::Devices {
 	}
 
 	Buffer
-	DeviceContext::CreateBuffer(
-		vk::MemoryPropertyFlags properties,
-		vk::BufferUsageFlags usage,
-		const VmaAllocationCreateInfo& allocationCreationInfo,
-		vk::DeviceSize size
-	) const {
+		DeviceContext::CreateBuffer(
+			vk::MemoryPropertyFlags properties,
+			vk::BufferUsageFlags usage,
+			const VmaAllocationCreateInfo& allocationCreationInfo,
+			vk::DeviceSize size
+		) const {
 		return Device::createBuffer(Allocator, properties, usage, allocationCreationInfo, size);
 	}
 
@@ -137,10 +143,10 @@ namespace drk::Devices {
 	}
 
 	Image
-	DeviceContext::createImage(
-		const vk::ImageCreateInfo& imageCreationInfo,
-		vk::MemoryPropertyFlags properties
-	) const {
+		DeviceContext::createImage(
+			const vk::ImageCreateInfo& imageCreationInfo,
+			vk::MemoryPropertyFlags properties
+		) const {
 		return Device::createImage(Allocator, imageCreationInfo, properties);
 	}
 

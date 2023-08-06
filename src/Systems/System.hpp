@@ -50,22 +50,22 @@ namespace drk::Systems {
 			: engineState(engineState), registry(registry) {}
 		virtual void Update(TDrawModel& model, const TComponents& ... components) = 0;
 		void Store() {
-			auto componentView = registry.view<TComponents> (entt::exclude<Stores::StoreItem<TDrawModel>>);
+			auto componentView = registry.view<TComponents>(entt::exclude<Stores::StoreItem<TDrawModel>>);
 			auto drawModelStoreStore = engineState.frameStates[engineState.frameIndex].getUniformStore<TDrawModel>();
 			auto drawIndex = 0u;
 			componentView.each(
 				[&drawModelStoreStore, &drawIndex, this](
 					const entt::entity& entity,
 					const TComponents& ... components
-			)
-			{
-				auto& pointDrawStoreItem = drawModelStoreStore->Get(drawIndex);
-				registry.emplace<TDrawModel>(
-					entity,
-					pointDrawStoreItem
-				);
-				drawIndex++;
-			}
+					)
+				{
+					auto& pointDrawStoreItem = drawModelStoreStore->Get(drawIndex);
+					registry.emplace<TDrawModel>(
+						entity,
+						pointDrawStoreItem
+					);
+					drawIndex++;
+				}
 			);
 		}
 	};

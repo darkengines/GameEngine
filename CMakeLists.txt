@@ -196,10 +196,10 @@ file(
 
 foreach (GLSL ${GLSL_SOURCES})
     get_filename_component(FILE_NAME ${GLSL} NAME)
-    set(SPIRV "${PROJECT_BINARY_DIR}/$<CONFIG>/shaders/spv/${FILE_NAME}.spv")
+    set(SPIRV "${PROJECT_BINARY_DIR}/shaders/spv/${FILE_NAME}.spv")
     add_custom_command(
         OUTPUT ${SPIRV}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/$<CONFIG>/shaders/spv/"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/shaders/spv/"
         COMMAND glslc -g --target-env=vulkan1.3 ${GLSL} -o ${SPIRV}
         COMMAND
         DEPENDS ${GLSL})
@@ -213,7 +213,7 @@ add_custom_target(
 
 add_executable(drk ${HEADERS} ${SOURCES} src/Scenes/SceneSystem.cpp src/Scenes/SceneSystem.hpp src/Scenes/Draws/SceneDraw.hpp src/Draws/DrawSystem.hpp src/Meshes/Components/MeshDraw.hpp src/Draws/DrawVertexBufferInfo.cpp src/Draws/DrawVertexBufferInfo.hpp src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp src/UserInterfaces/Renderers/UserInterfaceRenderer.hpp src/Devices/ImageInfo.hpp src/Devices/DeviceImageInfo.hpp src/Scenes/Renderers/SceneRenderOperation.hpp src/Spatials/Components/SpatialEditor.cpp src/Spatials/Components/SpatialEditor.hpp src/UserInterfaces/AssetExplorer.cpp src/UserInterfaces/AssetExplorer.hpp src/Materials/Components/MaterialCollection.hpp src/Meshes/Components/Mesh.hpp)
 add_dependencies(drk Shaders)
-file (GENERATE OUTPUT $<CONFIG>/settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
+file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 
 find_package(Vulkan REQUIRED)
 find_package(VulkanMemoryAllocator REQUIRED)

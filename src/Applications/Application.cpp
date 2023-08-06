@@ -37,26 +37,26 @@ namespace drk::Applications {
 		UserInterfaces::AssetExplorer& assetExplorer
 	)
 		: window(window),
-		  deviceContext(deviceContext),
-		  engineState(engineState),
-		  textureSystem(textureSystem),
-		  materialSystem(materialSystem),
-		  meshSystem(meshSystem),
-		  spatialSystem(spatialSystem),
-		  objectSystem(objectSystem),
-		  cameraSystem(cameraSystem),
-		  globalSystem(globalSystem),
-		  loader(loader),
-		  graphics(graphics),
-		  flyCamController(flyCamController),
-		  userInterface(userInterface),
-		  registry(registry),
-		  userInterfaceRenderer(userInterfaceRenderer),
-		  sceneRenderer(sceneRenderer),
-		  sceneSystem(sceneSystem),
-		  pointSystem(pointSystem),
-		  windowExtent(window.GetExtent()),
-		  assetExplorer(assetExplorer) {
+		deviceContext(deviceContext),
+		engineState(engineState),
+		textureSystem(textureSystem),
+		materialSystem(materialSystem),
+		meshSystem(meshSystem),
+		spatialSystem(spatialSystem),
+		objectSystem(objectSystem),
+		cameraSystem(cameraSystem),
+		globalSystem(globalSystem),
+		loader(loader),
+		graphics(graphics),
+		flyCamController(flyCamController),
+		userInterface(userInterface),
+		registry(registry),
+		userInterfaceRenderer(userInterfaceRenderer),
+		sceneRenderer(sceneRenderer),
+		sceneSystem(sceneSystem),
+		pointSystem(pointSystem),
+		windowExtent(window.GetExtent()),
+		assetExplorer(assetExplorer) {
 		//ImGui::GetIO().IniFilename = NULL;
 		const auto& glfwWindow = window.GetWindow();
 		glfwSetCursorPosCallback(glfwWindow, CursorPosCallback);
@@ -99,8 +99,8 @@ namespace drk::Applications {
 		const auto swapchain = graphics.GetSwapchain();
 		userInterfaceRenderer.SetTargetImageViews(
 			{
-				.extent= {swapchain.extent.width, swapchain.extent.height, 1},
-				.format= swapchain.imageFormat
+				.extent = {swapchain.extent.width, swapchain.extent.height, 1},
+				.format = swapchain.imageFormat
 			}, swapchain.imageViews
 		);
 
@@ -133,7 +133,8 @@ namespace drk::Applications {
 			if (shouldRecreateSwapchain || swapchainImageAcquisitionResult.result == vk::Result::eSuboptimalKHR ||
 				swapchainImageAcquisitionResult.result == vk::Result::eErrorOutOfDateKHR) {
 				RecreateSwapchain(windowExtent);
-			} else {
+			}
+			else {
 				const auto& resetFenceResult = deviceContext.device.resetFences(1, &fence);
 
 				frameState.commandBuffer.reset();
@@ -161,8 +162,8 @@ namespace drk::Applications {
 						const auto swapchain = graphics.GetSwapchain();
 						userInterfaceRenderer.SetTargetImageViews(
 							{
-								.extent= swapchain.extent,
-								.format= swapchain.imageFormat
+								.extent = swapchain.extent,
+								.format = swapchain.imageFormat
 							}, swapchain.imageViews
 						);
 						shouldRecreateSwapchain = false;
@@ -189,12 +190,12 @@ namespace drk::Applications {
 					}
 					if (isDemoWindowOpen) ImGui::ShowDemoWindow(&isDemoWindowOpen);
 					auto windowExtent = window.GetExtent();
-//					ImGui::SetNextWindowSize(
-//						ImVec2(
-//							windowExtent.width,
-//							windowExtent.height - ImGui::GetTextLineHeightWithSpacing()),
-//						ImGuiCond_FirstUseEver
-//					);
+					ImGui::SetNextWindowSize(
+						ImVec2(
+							windowExtent.width,
+							windowExtent.height - ImGui::GetTextLineHeightWithSpacing()),
+						ImGuiCond_FirstUseEver
+					);
 					ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
 
 					ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
@@ -230,14 +231,15 @@ namespace drk::Applications {
 									newSceneExtent,
 									vk::Format::eR8G8B8A8Srgb,
 								},
-								{sceneTexture->imageView}
+								{ sceneTexture->imageView }
 							);
 							sceneTextureExtent = vk::Extent3D{
 								newSceneExtent.width,
 								newSceneExtent.height,
 								1
 							};
-						} else {
+						}
+						else {
 							sceneRenderer.setTargetExtent(newSceneExtent);
 						}
 						sceneExtent = newSceneExtent;
@@ -245,12 +247,12 @@ namespace drk::Applications {
 					ImGui::Image(
 						sceneTextureImageDescriptorSet.value(),
 						viewportPanelSize,
-						{0, 0},
+						{ 0, 0 },
 						{
 							viewportPanelSize.x / sceneTextureExtent.width,
 							viewportPanelSize.y / sceneTextureExtent.height
 						}
-					);
+						);
 					ImGui::End();
 
 
@@ -335,14 +337,15 @@ namespace drk::Applications {
 					.pSignalSemaphores = &frameState.imageRenderedSemaphore,
 				};
 
-				deviceContext.GraphicQueue.submit({submitInfo}, fence);
+				deviceContext.GraphicQueue.submit({ submitInfo }, fence);
 
 
 				vk::Result presentResult;
 				bool outOfDate = false;
 				try {
 					presentResult = graphics.Present(swapchainImageAcquisitionResult.value);
-				} catch (const vk::OutOfDateKHRError& e) {
+				}
+				catch (const vk::OutOfDateKHRError& e) {
 					outOfDate = true;
 				}
 				shouldRecreateSwapchain = outOfDate || presentResult == vk::Result::eSuboptimalKHR;
@@ -365,26 +368,27 @@ namespace drk::Applications {
 		const auto& relationships = registry.view<Objects::Relationship>();
 		relationships.each([this](entt::entity entity, Objects::Relationship& relationship) {
 			if (relationship.parent == entt::null) renderEntity(entity);
-		});
+			});
 	}
 
 	void Application::renderEntity(entt::entity entity) {
 		const auto& [relationship, object] = registry.get<Objects::Relationship, Objects::Object>(entity);
 		if (relationship.children.size() > 0) {
 			auto isOpen = ImGui::TreeNode(
-				(void*) entity,
+				(void*)entity,
 				fmt::format("{0}", object.Name).c_str()
 			);
 			if (ImGui::IsItemClicked()) {
 				selectedEntity = entity;
 			}
 			if (isOpen) {
-				for (const auto& childEntity: relationship.children) {
+				for (const auto& childEntity : relationship.children) {
 					renderEntity(childEntity);
 				}
 				ImGui::TreePop();
 			}
-		} else {
+		}
+		else {
 			ImGui::Text(fmt::format("{0}", object.Name).c_str());
 			if (ImGui::IsItemClicked()) {
 				selectedEntity = entity;
@@ -394,7 +398,7 @@ namespace drk::Applications {
 
 	void Application::renderProperties(entt::entity entity) {
 		ImGui::Begin("Properties");
-		for (auto&& curr: registry.storage()) {
+		for (auto&& curr : registry.storage()) {
 			entt::id_type id = curr.first;
 
 			if (auto& storage = curr.second; storage.contains(entity)) {
@@ -446,8 +450,8 @@ namespace drk::Applications {
 		const auto swapchain = graphics.GetSwapchain();
 		userInterfaceRenderer.SetTargetImageViews(
 			{
-				.extent= swapchain.extent,
-				.format= swapchain.imageFormat
+				.extent = swapchain.extent,
+				.format = swapchain.imageFormat
 			}, swapchain.imageViews
 		);
 		shouldRecreateSwapchain = false;
