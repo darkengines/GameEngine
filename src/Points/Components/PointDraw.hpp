@@ -6,7 +6,7 @@
 
 namespace drk::Points::Components {
 	struct PointDraw {
-		Spatials::Components::Spatial spatial;
-		bool hasTransparency;
+		alignas(8) Stores::Models::StoreItemLocation pointItemLocation;
+		alignas(8) Stores::Models::StoreItemLocation objectItemLocation;
 	};
 }

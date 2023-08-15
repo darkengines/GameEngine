@@ -58,6 +58,11 @@ file(
     src/Meshes/Pipelines/MeshPipeline.cpp
     src/Renderers/Renderer.cpp
     src/Scenes/Renderers/SceneRenderer.cpp
+    src/Scenes/SceneSystem.cpp 
+    src/Draws/DrawVertexBufferInfo.cpp 
+    src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp 
+    src/Spatials/Components/SpatialEditor.cpp 
+    src/UserInterfaces/AssetExplorer.cpp 
     src/ImGui/imgui_stdlib.cpp
 )
 
@@ -183,15 +188,28 @@ file(
     src/Scenes/Renderers/SceneRenderer.hpp
     src/Pipelines/Pipeline.hpp
     src/Renderers/Renderer.hpp
+    src/Scenes/SceneSystem.hpp 
+    src/Scenes/Draws/SceneDraw.hpp 
+    src/Meshes/Components/MeshDraw.hpp 
+    src/Draws/DrawSystem.hpp 
+    src/Draws/DrawVertexBufferInfo.hpp 
+    src/Devices/ImageInfo.hpp 
+    src/UserInterfaces/Renderers/UserInterfaceRenderer.hpp 
+    src/Devices/DeviceImageInfo.hpp 
+    src/Scenes/Renderers/SceneRenderOperation.hpp 
+    src/Spatials/Components/SpatialEditor.hpp 
+    src/UserInterfaces/AssetExplorer.hpp 
+    src/Materials/Components/MaterialCollection.hpp 
+    src/Meshes/Components/Mesh.hpp
     src/ImGui/imgui_stdlib.h
 )
 
 file(
     GLOB GLSL_SOURCES
-    "src/Graphics/Shaders/main.vert"
-    "src/Graphics/Shaders/main.frag"
-    "src/Geometries/Shaders/PointPrimitive.vert"
-    "src/Geometries/Shaders/PointPrimitive.frag"
+    "src/Meshes/Shaders/Mesh.vert"
+    "src/Meshes/Shaders/Mesh.frag"
+    "src/Points/Shaders/Point.vert"
+    "src/Points/Shaders/Point.frag"
 )
 
 foreach (GLSL ${GLSL_SOURCES})
@@ -211,7 +229,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/Scenes/SceneSystem.cpp src/Scenes/SceneSystem.hpp src/Scenes/Draws/SceneDraw.hpp src/Draws/DrawSystem.hpp src/Meshes/Components/MeshDraw.hpp src/Draws/DrawVertexBufferInfo.cpp src/Draws/DrawVertexBufferInfo.hpp src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp src/UserInterfaces/Renderers/UserInterfaceRenderer.hpp src/Devices/ImageInfo.hpp src/Devices/DeviceImageInfo.hpp src/Scenes/Renderers/SceneRenderOperation.hpp src/Spatials/Components/SpatialEditor.cpp src/Spatials/Components/SpatialEditor.hpp src/UserInterfaces/AssetExplorer.cpp src/UserInterfaces/AssetExplorer.hpp src/Materials/Components/MaterialCollection.hpp src/Meshes/Components/Mesh.hpp)
+add_executable(drk ${HEADERS} ${SOURCES})
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 

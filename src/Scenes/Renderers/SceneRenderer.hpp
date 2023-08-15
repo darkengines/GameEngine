@@ -6,6 +6,7 @@
 #include "../../Renderers/Renderer.hpp"
 #include "../../Engine/EngineState.hpp"
 #include "../../Meshes/Pipelines/MeshPipeline.hpp"
+#include "../../Points/PointPrimitivePipeline.hpp"
 #include "../../Devices/ImageInfo.hpp"
 #include "../../Draws/DrawSystem.hpp"
 #include "../Draws/SceneDraw.hpp"
@@ -23,12 +24,14 @@ namespace drk::Scenes::Renderers {
 		std::optional<Devices::ImageInfo> targetImageInfo;
 		std::vector<vk::ImageView> targetImageViews;
 		std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline;
+		std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline;
 		vk::RenderPass renderPass;
 	public:
 		SceneRenderer(
 			const Devices::DeviceContext& deviceContext,
 			entt::registry& registry,
-			std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline
+			std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
+			std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline
 		);
 		~SceneRenderer();
 		void render(uint32_t targetImageIndex, const vk::CommandBuffer& sceneDraw);
@@ -39,6 +42,7 @@ namespace drk::Scenes::Renderers {
 		);
 		void setTargetExtent(vk::Extent3D extent2D);
 	protected:
+		Pipelines::Pipeline* getPipeline(std::type_index pipelineTypeIndex);
 		void createFramebufferResources();
 		void destroyFramebufferResources();
 		void createFramebuffers();

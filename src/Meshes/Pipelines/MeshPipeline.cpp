@@ -121,8 +121,8 @@ namespace drk::Meshes::Pipelines {
 	}
 
 	void MeshPipeline::createShaderModules() {
-		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/main.vert.spv");
-		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/main.frag.spv");
+		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/Mesh.vert.spv");
+		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/Mesh.frag.spv");
 	}
 	void MeshPipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();

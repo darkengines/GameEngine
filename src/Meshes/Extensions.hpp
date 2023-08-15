@@ -2,6 +2,7 @@
 
 #include <boost/di.hpp>
 #include "MeshSystem.hpp"
+#include "Pipelines/MeshPipeline.hpp"
 namespace drk::Meshes {
 	auto AddMeshes() {
 		return boost::di::make_injector(

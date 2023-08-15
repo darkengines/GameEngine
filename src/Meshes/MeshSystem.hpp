@@ -26,7 +26,7 @@ namespace drk::Meshes {
 		static void RemoveMeshSystem(entt::registry& registry);
 		static void OnMeshConstruct(entt::registry& registry, entt::entity meshEntity);
 		void UploadMeshes();
-		void EmitDraws();
+		bool EmitDraws();
 		void UpdateDraw(entt::entity drawEntity, int drawIndex);
 		void UpdateDraws() { throw std::runtime_error("Not supported"); }
 		Draws::DrawVertexBufferInfo GetVertexBufferInfo(entt::entity drawEntity);

@@ -1,6 +1,6 @@
-#include "StoreItemLocation.glsl"
+#include "../../Graphics/Shaders/StoreItemLocation.glsl"
 
-struct Draw {
+struct MeshDraw {
     StoreItemLocation meshItemLocation;
     StoreItemLocation objectItemLocation;
 };

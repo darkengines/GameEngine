@@ -1,48 +1,49 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier: enable
+#extension GL_KHR_vulkan_glsl: enable
 
-#include "../../Graphics/Shaders/Draw.glsl"
-#include "../../Graphics/Shaders/Point.glsl"
+#include "MeshDraw.glsl"
+#include "MeshVertex.glsl"
+#include "Mesh.glsl"
+
 #include "../../Graphics/Shaders/StoreItemLocation.glsl"
 #include "../../Graphics/Shaders/Global.glsl"
-
 #include "../../Materials/shaders/Material.glsl"
-#include "../../Meshes/shaders/Mesh.glsl"
 #include "../../Spatials/shaders/Spatial.glsl"
 #include "../../Objects/shaders/Object.glsl"
 #include "../../Cameras/shaders/Camera.glsl"
 
 layout (set = 0, binding = 0) uniform sampler2D textures[];
-layout (set = 1, binding = 0) readonly buffer materialLayout {
-    Material[] materials;
-} materialBuffer[];
-layout (set = 1, binding = 0) readonly buffer meshLayout {
-    Mesh[] meshes;
-} meshBuffer[];
-layout (set = 1, binding = 0) readonly buffer spatialLayout {
-    Spatial[] spatials;
-} spatialBuffer[];
-layout (set = 1, binding = 0) readonly buffer objectLayout {
-    Object[] objects;
-} objectBuffer[];
-layout (set = 1, binding = 0) readonly buffer cameraLayout {
-    Camera[] cameras;
-} cameraBuffer[];
-layout (set = 2, binding = 0) readonly buffer drawLayout {
-    Draw[] draws;
-} drawBuffer[];
-layout(set = 3, binding = 0) uniform globalLayout {
+layout (set = 1, binding = 0) readonly buffer drawLayout {
+    MeshDraw[] meshDraws;
+} meshDrawBuffer[];
+layout(set = 2, binding = 0) uniform globalLayout {
     Global global;
 } globalBuffer;
+layout (set = 3, binding = 0) readonly buffer materialLayout {
+    Material[] materials;
+} materialBuffer[];
+layout (set = 3, binding = 0) readonly buffer meshLayout {
+    Mesh[] meshes;
+} meshBuffer[];
+layout (set = 3, binding = 0) readonly buffer spatialLayout {
+    Spatial[] spatials;
+} spatialBuffer[];
+layout (set = 3, binding = 0) readonly buffer objectLayout {
+    Object[] objects;
+} objectBuffer[];
+layout (set = 3, binding = 0) readonly buffer cameraLayout {
+    Camera[] cameras;
+} cameraBuffer[];
 
-layout(location = 0) in Point point;
+layout(location = 0) in MeshVertex point;
 layout(location = 10) flat in StoreItemLocation drawItemLocation;
 
 layout(location = 0) out vec4 outColor;
 
 void main() {
 
-    Draw draw = drawBuffer[drawItemLocation.storeIndex].draws[drawItemLocation.itemIndex];
+    MeshDraw draw = meshDrawBuffer[drawItemLocation.storeIndex].meshDraws[drawItemLocation.itemIndex];
     Mesh mesh = meshBuffer[draw.meshItemLocation.storeIndex].meshes[draw.meshItemLocation.itemIndex];
     Object object = objectBuffer[draw.objectItemLocation.storeIndex].objects[draw.objectItemLocation.itemIndex];
     Material material = materialBuffer[mesh.materialItemLocation.storeIndex].materials[mesh.materialItemLocation.itemIndex];

@@ -308,8 +308,8 @@ namespace drk::Graphics {
 	}
 
 	void MeshPipeline::createShaderModules() {
-		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/main.vert.spv");
-		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/main.frag.spv");
+		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/Mesh.vert.spv");
+		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/Mesh.frag.spv");
 	}
 
 	void MeshPipeline::render(const vk::CommandBuffer& commandBuffer) const {

@@ -9,12 +9,18 @@ namespace drk::Points {
 
 	class PointSystem : public Systems::System<Models::Point, Components::Point>, public Draws::DrawSystem {
 	public:
-		PointSystem(Engine::EngineState& engineState, entt::registry& registry);
+		PointSystem(Engine::EngineState& engineState, entt::registry& registry, Devices::DeviceContext& deviceContext);
+		~PointSystem();
 		void UpdateDraw(entt::entity drawEntity, int drawIndex);
-		void EmitDraws();
+		bool EmitDraws();
 		void UpdateDraws() { throw std::runtime_error("Not supported"); }
 		Draws::DrawVertexBufferInfo GetVertexBufferInfo(entt::entity drawEntity);
 		void Update(Models::Point& model, const Components::Point& point) override;
+		void CreateResources();
+	protected:
+		Devices::DeviceContext& deviceContext;
+		Devices::BufferView pointVertexBufferView;
+		Devices::BufferView pointIndexBufferView;
 	};
 
 }

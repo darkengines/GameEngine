@@ -1,4 +1,4 @@
-
+#include <map>
 #include "SceneSystem.hpp"
 #include "Draws/SceneDraw.hpp"
 #include "../Draws/DrawSystem.hpp"
@@ -10,6 +10,8 @@ namespace drk::Scenes {
 
 	}
 	void SceneSystem::UpdateDraws() {
+		auto synchronizables = registry.view<Graphics::SynchronizationState<Draws::SceneDraw>>();
+		if (synchronizables.begin() == synchronizables.end()) return;
 		registry.sort<Scenes::Draws::SceneDraw>(
 			[](const Draws::SceneDraw& leftDraw, const Draws::SceneDraw& rightDraw) {
 				if (leftDraw.hasTransparency < rightDraw.hasTransparency)
@@ -29,6 +31,11 @@ namespace drk::Scenes {
 				if (leftDraw.drawSystem > rightDraw.drawSystem)
 					return false;
 
+				if (leftDraw.pipelineTypeIndex < rightDraw.pipelineTypeIndex)
+					return true;
+				if (leftDraw.pipelineTypeIndex > rightDraw.pipelineTypeIndex)
+					return false;
+
 				if (leftDraw.indexBufferView.byteOffset < rightDraw.indexBufferView.byteOffset)
 					return true;
 
@@ -36,18 +43,24 @@ namespace drk::Scenes {
 			}
 		);
 
-		auto& frameState = engineState.getCurrentFrameState();
-		auto& drawStore = frameState.getUniformStore<Scenes::Draws::SceneDraw>();
-
 		auto sceneDrawEntities = registry.view<Scenes::Draws::SceneDraw>();
 
-		auto drawIndex = 0u;
 		//std::cout << "----------------------" << std::endl;
+		std::map<std::type_index, int> pipelineDrawIndices;
 		sceneDrawEntities.each(
-			[&drawIndex, &drawStore](entt::entity sceneDrawEntity, Draws::SceneDraw& draw) {
+			[&pipelineDrawIndices, this](entt::entity sceneDrawEntity, Draws::SceneDraw& draw) {
+				if (!pipelineDrawIndices.contains(draw.pipelineTypeIndex)) {
+					pipelineDrawIndices[draw.pipelineTypeIndex] = 0;
+				}
+				draw.drawSystem->UpdateDraw(sceneDrawEntity, pipelineDrawIndices[draw.pipelineTypeIndex]);
+				if (registry.any_of<Graphics::SynchronizationState<Draws::SceneDraw>>(sceneDrawEntity)) {
+					auto& synchronizationState = registry.get<Graphics::SynchronizationState<Draws::SceneDraw>>(sceneDrawEntity);
+					if (!synchronizationState.Update(engineState.getFrameIndex())) {
+						registry.remove<Graphics::SynchronizationState<Draws::SceneDraw>>(sceneDrawEntity);
+					}
+				}
 				//std::cout << draw.hasTransparency << " " << draw.depth << std::endl;
-				draw.drawSystem->UpdateDraw(sceneDrawEntity, drawIndex);
-				drawIndex++;
+				pipelineDrawIndices[draw.pipelineTypeIndex]++;
 			}
 		);
 		//std::cout << "----------------------" << std::endl;

@@ -1,4 +1,7 @@
 #include "Application.hpp"
+#include "glm/ext.hpp"
+#include "glm/glm.hpp"
+#include "glm/gtc/random.hpp"
 #include "../Objects/Dirty.hpp"
 #include "../Objects/Relationship.hpp"
 #include <imgui.h>
@@ -12,6 +15,7 @@
 #include "../UserInterfaces/UserInterface.hpp"
 #include <entt/entt.hpp>
 #include <stack>
+#include <cstdlib>
 
 namespace drk::Applications {
 	Application::Application(
@@ -111,6 +115,44 @@ namespace drk::Applications {
 
 		glm::vec2 previousMousePosition{0, 0};
 		auto isDemoWindowOpen = false;
+
+		Materials::Components::Material pointMaterial {
+			.name = "Point",
+				.source = "User",
+				.baseColor = { 0.0f, 1.0f, 0.0f, 1.0f },
+				.ambientColor = { 0.0f, 1.0f, 0.0f, 1.0f },
+				.diffuseColor = { 0.0f, 1.0f, 0.0f, 1.0f },
+				.specularColor = { 0.0f, 1.0f, 0.0f, 1.0f }
+		};
+		auto pointMaterialPointer = std::make_shared<Materials::Components::Material>(std::move(pointMaterial));
+
+		auto pointMaterialEntity = registry.create();
+		registry.emplace<std::shared_ptr<Materials::Components::Material>>(pointMaterialEntity, pointMaterialPointer);
+
+		/*for (auto pointIndex = 0; pointIndex < 2097152 / 2; pointIndex++) {
+			auto r = glm::ballRand<float>(16.0);
+			Points::Components::Point point {
+				.materialEntity = pointMaterialEntity
+			};
+
+			Spatials::Components::Spatial pointSpatial {
+				.relativeScale = { 1.0f, 1.0f, 1.0f, 1.0f },
+					.relativeRotation = glm::quatLookAt(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+					.relativePosition = glm::vec4(r, 1.0),
+					.relativeModel = glm::identity<glm::mat4>()
+			};
+
+			Objects::Relationship pointRelationship;
+			Objects::Object pointObject {.Name = "Point" };
+
+			auto pointEntity = registry.create();
+
+			registry.emplace<Points::Components::Point>(pointEntity, std::move(point));
+			registry.emplace<Spatials::Components::Spatial>(pointEntity, std::move(pointSpatial));
+			registry.emplace<Objects::Relationship>(pointEntity, std::move(pointRelationship));
+			registry.emplace<Objects::Object>(pointEntity, std::move(pointObject));
+		}*/
+
 		while (!glfwWindowShouldClose(window.GetWindow())) {
 			glfwPollEvents();
 
@@ -279,6 +321,7 @@ namespace drk::Applications {
 				//Resources to GPU
 				materialSystem.Store();
 				meshSystem.Store();
+				pointSystem.Store();
 				spatialSystem.Store();
 				objectSystem.Store();
 				cameraSystem.Store();
@@ -293,17 +336,18 @@ namespace drk::Applications {
 				//Store updates to GPU
 				materialSystem.UpdateStore();
 				meshSystem.UpdateStore();
+				pointSystem.UpdateStore();
 				spatialSystem.UpdateStore();
 				objectSystem.UpdateStore();
 				cameraSystem.UpdateStore();
 				globalSystem.Update();
 
-				auto draws = registry.view<Scenes::Draws::SceneDraw>();
-				registry.destroy(draws.begin(), draws.end());
+				//auto draws = registry.view<Scenes::Draws::SceneDraw>();
+				//registry.destroy(draws.begin(), draws.end());
 
 				//Emit draws
-				meshSystem.EmitDraws();
-				//pointSystem.EmitDraws();
+				auto hasNewDraws = meshSystem.EmitDraws();
+				hasNewDraws |= pointSystem.EmitDraws();
 
 				//Stores draws to GPU
 				sceneSystem.UpdateDraws();
@@ -368,7 +412,7 @@ namespace drk::Applications {
 		const auto& relationships = registry.view<Objects::Relationship>();
 		relationships.each([this](entt::entity entity, Objects::Relationship& relationship) {
 			if (relationship.parent == entt::null) renderEntity(entity);
-			});
+						   });
 	}
 
 	void Application::renderEntity(entt::entity entity) {

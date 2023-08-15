@@ -1,156 +1,41 @@
 #pragma once
-#define VULKAN_HPP_NO_CONSTRUCTORS
-#include <vulkan/vulkan.hpp>
+#include "../Devices/Device.hpp"
 #include "../Devices/DeviceContext.hpp"
-#include "../Graphics/Graphics.hpp"
-#include "Models/PointVertex.hpp"
-#include "../Objects/Models/Object.hpp"
-#include "Components/PointDraw.hpp"
-#include "../Cameras/Components/Camera.hpp"
-#include "../Geometries/Primitives.hpp"
-#include "Models/PointDraw.hpp"
-#include <algorithm>
+#include "../Engine/EngineState.hpp"
+#include "../Pipelines/Pipeline.hpp"
 
 namespace drk::Points {
-	class PointPrimitivePipeline {
-	protected:
-		const Devices::DeviceContext& deviceContext;
-		const vk::PipelineLayout& mainPipelineLayout;
-		const Engine::EngineState& engineState;
-		const entt::registry& registry;
-		const Geometries::Primitives& primitives;
-		const vk::ShaderModule vertexShaderModule;
-		const vk::ShaderModule fragmentShaderModule;
-	public:
-		const vk::ShaderModule& getVertexShaderModule() const;
-		const vk::ShaderModule& getFragmentShaderModule() const;
-
+	class PointPrimitivePipeline : public drk::Pipelines::Pipeline {
 	public:
 		PointPrimitivePipeline(
 			const Devices::DeviceContext& deviceContext,
-			const vk::PipelineLayout& mainPipelineLayout,
-			const entt::registry& registry,
-			const Geometries::Primitives& primitives,
-			const Engine::EngineState& engineState
+			Engine::EngineState& engineState,
+			const Engine::DescriptorSetLayouts& descriptorSetLayouts
 		);
-		~PointPrimitivePipeline() {
-			deviceContext.device.destroyShaderModule(vertexShaderModule);
-			deviceContext.device.destroyShaderModule(fragmentShaderModule);
-		}
+		~PointPrimitivePipeline();
 
+		void bind(const vk::CommandBuffer& commandBuffer);
+		void configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configure);
+		void destroyPipeline();
 
-		vk::Pipeline BuildGraphicsPipeline(const vk::RenderPass& renderPass, const vk::Extent2D& extent);
+	protected:
+		const Devices::DeviceContext& deviceContext;
+		const Engine::EngineState& engineState;
+		vk::ShaderModule mainVertexShaderModule;
+		vk::ShaderModule mainFragmentShaderModule;
+		vk::Pipeline pipeline;
+		std::array<vk::DescriptorSetLayout, 4> descriptorSetLayouts;
+		vk::PipelineLayout pipelineLayout;
 
-//		std::vector<Draws::DrawCommand> BuildMainRenderPass() const {
-//			auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Models::PointVertex, Spatials::Components::Spatial>();
-//			std::vector<Components::PointDraw> draws;
-//			std::vector<Components::PointDraw> transparencyDraws;
-//			objectEntities.each(
-//				[&](
-//					entt::entity pointEntity,
-//					auto& objectStoreItem,
-//					auto& point,
-//					auto& spatial
-//				) {
-//					auto frameIndex = engineState.getFrameIndex();
-//					const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[frameIndex];
-//					const auto pointStoreItem = registry.get<Stores::StoreItem<Models::PointVertex>>(pointEntity);
-//					const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[frameIndex];
-//					Components::PointDraw draw = {
-//						.point = point,
-//						.pointStoreItem = {
-//							.storeIndex = pointStoreItemLocation.pStore->descriptorArrayElement,
-//							.itemIndex = pointStoreItemLocation.index
-//						},
-//						.objectLocation = {
-//							.storeIndex = objectStoreItemLocation.pStore->descriptorArrayElement,
-//							.itemIndex = objectStoreItemLocation.index
-//						},
-//						.spatial = spatial,
-//						.hasTransparency = false
-//					};
-//					if (point.materialEntity != entt::null) {
-//						const auto& material = registry.get<Materials::Components::Material>(point.materialEntity);
-//						draw.hasTransparency = material.hasTransparency;
-//					}
-//					if (draw.hasTransparency) {
-//						transparencyDraws.push_back(draw);
-//					} else {
-//						draws.push_back(draw);
-//					}
-//				}
-//			);
-//
-//			auto cameraEntity = engineState.CameraEntity;
-//			auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
-//
-//			std::stable_sort(
-//				transparencyDraws.begin(),
-//				transparencyDraws.end(),
-//				[&camera](const Components::PointDraw& leftDraw, const Components::PointDraw& rightDraw) {
-//					auto leftDistance = glm::distance(camera.absolutePosition, leftDraw.spatial.absolutePosition);
-//					auto rightDistance = glm::distance(camera.absolutePosition, rightDraw.spatial.absolutePosition);
-//					return leftDistance > rightDistance;
-//				}
-//			);
-//		}
-//
-//		void PopulateDrawContext(
-//			const std::vector<Components::PointDraw>& draws,
-//			uint32_t drawOffset
-//		) const {
-//			auto& frameState = engineState.getCurrentFrameState();
-//			auto& drawStore = frameState.getUniformStore<Models::PointDraw>();
-//			const Components::PointDraw* previousDraw = nullptr;
-//
-//			if (!drawContext.drawSets.empty() && !drawContext.drawSets.back().draws.empty())
-//				previousDraw = &drawContext.drawSets.back().draws.back();
-//
-//			for (auto drawIndex = 0u; drawIndex < draws.size(); drawIndex++) {
-//				auto& draw = draws[drawIndex];
-//
-//				if (previousDraw != nullptr && previousDraw->point == draw.point) {
-//					drawContext.drawSets.back().drawCommands.back().instanceCount++;
-//				} else {
-//					if (previousDraw == nullptr ||
-//						draw.mesh.IndexBufferView.buffer.buffer != previousDraw->mesh.IndexBufferView.buffer.buffer) {
-//						drawContext.drawSets.push_back(
-//							{
-//								.indexBuffer = draw.mesh.IndexBufferView.buffer,
-//								.vertexBuffer = draw.mesh.VertexBufferView.buffer,
-//							}
-//						);
-//					}
-//					drawContext.drawSets.back().drawCommands.push_back(
-//						{
-//							.indexCount = (uint32_t) draw.meshInfo->indices.size(),
-//							.instanceCount = 1,
-//							.firstIndex = static_cast<uint32_t>(draw.mesh.IndexBufferView.byteOffset /
-//																sizeof(Meshes::VertexIndex)),
-//							.vertexOffset = static_cast<uint32_t>(draw.mesh.VertexBufferView.byteOffset /
-//																  sizeof(Meshes::Vertex)),
-//							.firstInstance = drawIndex + drawOffset
-//						}
-//					);
-//				}
-//
-//				drawContext.drawSets.back().draws.push_back(draw);
-//
-//				const auto drawItemLocation = drawStore->Get(drawIndex + drawOffset);
-//
-//				const Models::Draw drawModel = {
-//					.meshItemLocation = draw.meshStoreItem,
-//					.objectItemLocation = draw.objectLocation,
-//				};
-//
-//				drawItemLocation.pItem->meshItemLocation.storeIndex = drawModel.meshItemLocation.storeIndex;
-//				drawItemLocation.pItem->meshItemLocation.itemIndex = drawModel.meshItemLocation.itemIndex;
-//				drawItemLocation.pItem->objectItemLocation.storeIndex = drawModel.objectItemLocation.storeIndex;
-//				drawItemLocation.pItem->objectItemLocation.itemIndex = drawModel.objectItemLocation.itemIndex;
-//
-//				previousDraw = &draw;
-//			}
-//		}
+		void createShaderModules();
+		void destroyShaderModules();
 
+		void createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo);
+
+		static vk::PipelineLayout createPipelineLayout(
+			const Devices::DeviceContext& deviceContext,
+			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+		);
+		vk::GraphicsPipelineCreateInfo getDefaultGraphicPipelineCreateInfo();
 	};
 }

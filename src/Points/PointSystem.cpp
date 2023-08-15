@@ -1,5 +1,6 @@
 
 #include "PointSystem.hpp"
+#include "../Objects/Models/Object.hpp"
 #include "../Materials/Models/Material.hpp"
 #include "../Cameras/Components/Camera.hpp"
 #include "../Spatials/Components/Spatial.hpp"
@@ -7,15 +8,63 @@
 #include "Models/PointDraw.hpp"
 #include "../Scenes/Draws/SceneDraw.hpp"
 #include "PointPrimitivePipeline.hpp"
+#include <typeindex>
 
 namespace drk::Points {
-	PointSystem::PointSystem(Engine::EngineState& engineState, entt::registry& registry)
-		: Systems::System<Models::Point, Components::Point>(engineState, registry) {
-
+	PointSystem::PointSystem(Engine::EngineState& engineState, entt::registry& registry, Devices::DeviceContext& deviceContext)
+		: Systems::System<Models::Point, Components::Point>(engineState, registry), deviceContext(deviceContext) {
+		CreateResources();
+	}
+	PointSystem::~PointSystem()
+	{
+		deviceContext.DestroyBuffer(pointIndexBufferView.buffer);
+		deviceContext.DestroyBuffer(pointVertexBufferView.buffer);
 	}
 	void PointSystem::Update(Models::Point& model, const Components::Point& point) {
 		const auto& materialModel = registry.get<Stores::StoreItem<Materials::Models::Material>>(point.materialEntity);
 		model.materialItemLocation = materialModel.frameStoreItems[engineState.getFrameIndex()];
+	}
+	void PointSystem::CreateResources() {
+		std::string pointMeshName = "Point";
+		Models::PointVertex pointVertex {
+			.position = glm::vec4(0.0, 0.0, 0.0, 1.0),
+				.diffuseColor = glm::vec4(0.0, 1.0, 0.0, 1.0),
+				.textureCoordinates = glm::vec2(0.0, 0.0),
+		};
+		vk::DeviceSize vertexOffset = 0;
+		vk::DeviceSize indexOffset = 0;
+		std::vector<Models::PointVertex> pointVertices { pointVertex };
+		auto vertexResult = Devices::Device::uploadBuffers<Models::PointVertex>(
+			deviceContext.PhysicalDevice,
+			deviceContext.device,
+			deviceContext.GraphicQueue,
+			deviceContext.CommandPool,
+			deviceContext.Allocator,
+			{ pointVertices },
+			vk::BufferUsageFlagBits::eVertexBuffer
+		);
+		auto vertexBuffer = vertexResult.buffer;
+		pointVertexBufferView = {
+			.buffer = vertexBuffer,
+			.byteOffset = vertexOffset,
+			.byteLength = sizeof(Points::Models::PointVertex)
+		};
+		std::vector<unsigned int> pointIndices { 0u };
+		auto indexResult = Devices::Device::uploadBuffers<unsigned int>(
+			deviceContext.PhysicalDevice,
+			deviceContext.device,
+			deviceContext.GraphicQueue,
+			deviceContext.CommandPool,
+			deviceContext.Allocator,
+			{ pointIndices },
+			vk::BufferUsageFlagBits::eIndexBuffer
+		);
+		auto indexBuffer = indexResult.buffer;
+		pointIndexBufferView = {
+			.buffer = indexBuffer,
+			.byteOffset = indexOffset,
+			.byteLength = sizeof(uint32_t)
+		};
 	}
 	void PointSystem::UpdateDraw(entt::entity drawEntity, int drawIndex) {
 		const auto& pointDraw = registry.get<Models::PointDraw>(drawEntity);
@@ -25,38 +74,54 @@ namespace drk::Points {
 		const auto& pointItemLocation = drawStore.get(drawIndex);
 		pointItemLocation.pItem->pointItemLocation.storeIndex = pointDraw.pointItemLocation.storeIndex;
 		pointItemLocation.pItem->pointItemLocation.itemIndex = pointDraw.pointItemLocation.itemIndex;
+		pointItemLocation.pItem->objectItemLocation.storeIndex = pointDraw.objectItemLocation.storeIndex;
+		pointItemLocation.pItem->objectItemLocation.itemIndex = pointDraw.objectItemLocation.itemIndex;
 	}
-	void PointSystem::EmitDraws() {
-		auto pointEntities = registry.view<Stores::StoreItem<Models::Point>, Components::Point, Spatials::Components::Spatial>();
-		auto cameraEntity = engineState.CameraEntity;
-		auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
-		pointEntities.each(
-			[&](
-				entt::entity pointEntity,
-				auto& pointStoreItem,
-				auto& point,
-				auto& spatial
-			) {
-				const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[engineState.getFrameIndex()];
-				const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(pointEntity);
-				Scenes::Draws::SceneDraw draw = {
-					.drawSystem = this,
-					.indexBufferView = nullptr,
-					.vertexBufferView = nullptr,
-					.hasTransparency = point.pMaterial->hasTransparency,
-					.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition)
-				};
-				Models::PointDraw pointDraw = {
-					.pointItemLocation = pointStoreItemLocation,
-				};
+	bool PointSystem::EmitDraws() {
+		auto pointEntities = registry.view<
+			Stores::StoreItem<Models::Point>, 
+			Components::Point, Spatials::Components::Spatial, 
+			Stores::StoreItem<Objects::Models::Object>>(entt::exclude<Models::PointDraw>);
+		auto hasEntities = pointEntities.begin() != pointEntities.end();
+		if (hasEntities) {
+			auto cameraEntity = engineState.CameraEntity;
+			auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
+			pointEntities.each(
+				[&](
+					entt::entity pointEntity,
+					auto& pointStoreItem,
+					auto& point,
+					auto& spatial,
+					auto& objectStoreItem
+					) {
+						const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[engineState.getFrameIndex()];
+						const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
+						const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(point.materialEntity);
 
-				auto entity = registry.create();
-				registry.emplace<Scenes::Draws::SceneDraw>(entity, draw);
-				registry.emplace<Models::PointDraw>(entity, pointDraw);
-			}
-		);
+						Scenes::Draws::SceneDraw draw = {
+							.drawSystem = this,
+							.pipelineTypeIndex = std::type_index(typeid(PointPrimitivePipeline)),
+							.indexBufferView = pointIndexBufferView,
+							.vertexBufferView = pointVertexBufferView,
+							.hasTransparency = material->hasTransparency,
+							.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition)
+						};
+						Models::PointDraw pointDraw = {
+							.pointItemLocation = pointStoreItemLocation,
+							.objectItemLocation = objectStoreItemLocation
+						};
+
+						//auto entity = registry.create();
+						registry.emplace<Scenes::Draws::SceneDraw>(pointEntity, draw);
+						registry.emplace<Models::PointDraw>(pointEntity, pointDraw);
+						registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(pointEntity, engineState.getFrameCount());
+				}
+			);
+		}
+		return hasEntities;
 	}
+
 	Draws::DrawVertexBufferInfo PointSystem::GetVertexBufferInfo(entt::entity drawEntity) {
-		return Draws::DrawVertexBufferInfo{0, 0, 0};
+		return Draws::DrawVertexBufferInfo{1, 0, 0};
 	}
 }
