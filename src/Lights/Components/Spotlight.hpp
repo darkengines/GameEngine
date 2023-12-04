@@ -3,7 +3,7 @@
 #include <optional>
 #include <glm/mat4x4.hpp>
 
-namespace drk::Lights {
+namespace drk::Lights::Components {
 	struct Spotlight {
 		glm::vec4 relativePosition;
 		glm::vec4 relativeDirection;

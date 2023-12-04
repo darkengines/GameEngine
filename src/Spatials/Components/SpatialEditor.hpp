@@ -2,8 +2,8 @@
 #pragma once
 
 #include "Spatial.hpp"
-#include <imgui.h>
 #include <vector>
+#include <imgui.h>
 
 namespace drk::Spatials::Components {
 	class SpatialEditor {

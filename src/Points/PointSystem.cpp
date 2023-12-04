@@ -11,12 +11,15 @@
 #include <typeindex>
 
 namespace drk::Points {
-	PointSystem::PointSystem(Engine::EngineState& engineState, entt::registry& registry, Devices::DeviceContext& deviceContext)
+	PointSystem::PointSystem(
+		Engine::EngineState& engineState,
+		entt::registry& registry,
+		Devices::DeviceContext& deviceContext
+	)
 		: Systems::System<Models::Point, Components::Point>(engineState, registry), deviceContext(deviceContext) {
 		CreateResources();
 	}
-	PointSystem::~PointSystem()
-	{
+	PointSystem::~PointSystem() {
 		deviceContext.DestroyBuffer(pointIndexBufferView.buffer);
 		deviceContext.DestroyBuffer(pointVertexBufferView.buffer);
 	}
@@ -26,21 +29,21 @@ namespace drk::Points {
 	}
 	void PointSystem::CreateResources() {
 		std::string pointMeshName = "Point";
-		Models::PointVertex pointVertex {
+		Models::PointVertex pointVertex{
 			.position = glm::vec4(0.0, 0.0, 0.0, 1.0),
-				.diffuseColor = glm::vec4(0.0, 1.0, 0.0, 1.0),
-				.textureCoordinates = glm::vec2(0.0, 0.0),
+			.diffuseColor = glm::vec4(0.0, 1.0, 0.0, 1.0),
+			.textureCoordinates = glm::vec2(0.0, 0.0),
 		};
 		vk::DeviceSize vertexOffset = 0;
 		vk::DeviceSize indexOffset = 0;
-		std::vector<Models::PointVertex> pointVertices { pointVertex };
+		std::vector<Models::PointVertex> pointVertices{pointVertex};
 		auto vertexResult = Devices::Device::uploadBuffers<Models::PointVertex>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{ pointVertices },
+			{pointVertices},
 			vk::BufferUsageFlagBits::eVertexBuffer
 		);
 		auto vertexBuffer = vertexResult.buffer;
@@ -49,14 +52,14 @@ namespace drk::Points {
 			.byteOffset = vertexOffset,
 			.byteLength = sizeof(Points::Models::PointVertex)
 		};
-		std::vector<unsigned int> pointIndices { 0u };
+		std::vector<unsigned int> pointIndices{0u};
 		auto indexResult = Devices::Device::uploadBuffers<unsigned int>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{ pointIndices },
+			{pointIndices},
 			vk::BufferUsageFlagBits::eIndexBuffer
 		);
 		auto indexBuffer = indexResult.buffer;
@@ -79,8 +82,8 @@ namespace drk::Points {
 	}
 	bool PointSystem::EmitDraws() {
 		auto pointEntities = registry.view<
-			Stores::StoreItem<Models::Point>, 
-			Components::Point, Spatials::Components::Spatial, 
+			Stores::StoreItem<Models::Point>,
+			Components::Point, Spatials::Components::Spatial,
 			Stores::StoreItem<Objects::Models::Object>>(entt::exclude<Models::PointDraw>);
 		auto hasEntities = pointEntities.begin() != pointEntities.end();
 		if (hasEntities) {
@@ -93,28 +96,30 @@ namespace drk::Points {
 					auto& point,
 					auto& spatial,
 					auto& objectStoreItem
-					) {
-						const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[engineState.getFrameIndex()];
-						const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
-						const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(point.materialEntity);
+				) {
+					const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[engineState.getFrameIndex()];
+					const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
+					const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(point.materialEntity);
 
-						Scenes::Draws::SceneDraw draw = {
-							.drawSystem = this,
-							.pipelineTypeIndex = std::type_index(typeid(PointPrimitivePipeline)),
-							.indexBufferView = pointIndexBufferView,
-							.vertexBufferView = pointVertexBufferView,
-							.hasTransparency = material->hasTransparency,
-							.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition)
-						};
-						Models::PointDraw pointDraw = {
-							.pointItemLocation = pointStoreItemLocation,
-							.objectItemLocation = objectStoreItemLocation
-						};
+					Scenes::Draws::SceneDraw draw = {
+						.drawSystem = this,
+						.pipelineTypeIndex = std::type_index(typeid(PointPrimitivePipeline)),
+						.indexBufferView = pointIndexBufferView,
+						.vertexBufferView = pointVertexBufferView,
+						.hasTransparency = material->hasTransparency,
+						.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition)
+					};
+					Models::PointDraw pointDraw = {
+						.pointItemLocation = pointStoreItemLocation,
+						.objectItemLocation = objectStoreItemLocation
+					};
 
-						//auto entity = registry.create();
-						registry.emplace<Scenes::Draws::SceneDraw>(pointEntity, draw);
-						registry.emplace<Models::PointDraw>(pointEntity, pointDraw);
-						registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(pointEntity, engineState.getFrameCount());
+					//auto entity = registry.create();
+					registry.emplace<Scenes::Draws::SceneDraw>(pointEntity, draw);
+					registry.emplace<Models::PointDraw>(pointEntity, pointDraw);
+					registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
+						pointEntity,
+						engineState.getFrameCount());
 				}
 			);
 		}

@@ -1,9 +1,10 @@
+
 #pragma once
 
-#include <glm/mat4x4.hpp>
+#include <glm/glm.hpp>
 #include <optional>
 
-namespace drk::Lights {
+namespace drk::Lights::Models {
 	struct DirectionalLight {
 		glm::mat4 perspective;
 		glm::mat4 view;

@@ -29,6 +29,7 @@
 #include "Stores/Extensions.hpp"
 #include "Scenes/Extensions.hpp"
 #include "Points/Extensions.hpp"
+#include "Lines/Extensions.hpp"
 
 int main(int argc, char** argv) {
 
@@ -54,6 +55,7 @@ int main(int argc, char** argv) {
 		drk::UserInterfaces::AddUserInterfaces(),
 		drk::Scenes::AddScenes(),
 		drk::Points::AddPoints(),
+		drk::Lines::AddLines(),
 		boost::di::bind<entt::registry>.to<entt::registry>(),
 		drk::Applications::AddApplications()
 	);

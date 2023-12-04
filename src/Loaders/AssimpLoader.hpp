@@ -30,7 +30,8 @@ namespace drk::Loaders {
 		void loadLights(
 			std::span<aiLight*> aiLights,
 			std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightNameMap,
-			entt::registry& registry
+			entt::registry& registry,
+			LoadResult& loadResult
 		) const;
 		void loadCameras(
 			std::span<aiCamera*> aiCameras,

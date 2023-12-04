@@ -1,21 +1,13 @@
 #include "Application.hpp"
-#include "glm/ext.hpp"
-#include "glm/glm.hpp"
-#include "glm/gtc/random.hpp"
 #include "../Objects/Dirty.hpp"
-#include "../Objects/Relationship.hpp"
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_vulkan.h>
 #include <iostream>
-#include <imfilebrowser.h>
-#include <GLFW/glfw3.h>
-#include "../Scenes/Draws/SceneDraw.hpp"
 #include "../Spatials/Components/SpatialEditor.hpp"
-#include "../UserInterfaces/UserInterface.hpp"
 #include <entt/entt.hpp>
 #include <stack>
-#include <cstdlib>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
+#include <imgui.h>
+#include <imfilebrowser.h>
 
 namespace drk::Applications {
 	Application::Application(
@@ -38,29 +30,37 @@ namespace drk::Applications {
 		Scenes::Renderers::SceneRenderer& sceneRenderer,
 		Scenes::SceneSystem& sceneSystem,
 		Points::PointSystem& pointSystem,
+		Lines::LineSystem& lineSystem,
+		Lights::PointLightSystem& pointLightSystem,
+		Lights::DirectionalLightSystem& directionalLightSystem,
+		Lights::SpotlightSystem& spotlightSystem,
 		UserInterfaces::AssetExplorer& assetExplorer
 	)
 		: window(window),
-		deviceContext(deviceContext),
-		engineState(engineState),
-		textureSystem(textureSystem),
-		materialSystem(materialSystem),
-		meshSystem(meshSystem),
-		spatialSystem(spatialSystem),
-		objectSystem(objectSystem),
-		cameraSystem(cameraSystem),
-		globalSystem(globalSystem),
-		loader(loader),
-		graphics(graphics),
-		flyCamController(flyCamController),
-		userInterface(userInterface),
-		registry(registry),
-		userInterfaceRenderer(userInterfaceRenderer),
-		sceneRenderer(sceneRenderer),
-		sceneSystem(sceneSystem),
-		pointSystem(pointSystem),
-		windowExtent(window.GetExtent()),
-		assetExplorer(assetExplorer) {
+		  deviceContext(deviceContext),
+		  engineState(engineState),
+		  textureSystem(textureSystem),
+		  materialSystem(materialSystem),
+		  meshSystem(meshSystem),
+		  spatialSystem(spatialSystem),
+		  objectSystem(objectSystem),
+		  cameraSystem(cameraSystem),
+		  globalSystem(globalSystem),
+		  loader(loader),
+		  graphics(graphics),
+		  flyCamController(flyCamController),
+		  userInterface(userInterface),
+		  registry(registry),
+		  userInterfaceRenderer(userInterfaceRenderer),
+		  sceneRenderer(sceneRenderer),
+		  sceneSystem(sceneSystem),
+		  pointSystem(pointSystem),
+		  lineSystem(lineSystem),
+		  pointLightSystem(pointLightSystem),
+		  directionalLightSystem(directionalLightSystem),
+		  spotlightSystem(spotlightSystem),
+		  windowExtent(window.GetExtent()),
+		  assetExplorer(assetExplorer) {
 		//ImGui::GetIO().IniFilename = NULL;
 		const auto& glfwWindow = window.GetWindow();
 		glfwSetCursorPosCallback(glfwWindow, CursorPosCallback);
@@ -116,13 +116,13 @@ namespace drk::Applications {
 		glm::vec2 previousMousePosition{0, 0};
 		auto isDemoWindowOpen = false;
 
-		Materials::Components::Material pointMaterial {
+		Materials::Components::Material pointMaterial{
 			.name = "Point",
-				.source = "User",
-				.baseColor = { 0.0f, 1.0f, 0.0f, 1.0f },
-				.ambientColor = { 0.0f, 1.0f, 0.0f, 1.0f },
-				.diffuseColor = { 0.0f, 1.0f, 0.0f, 1.0f },
-				.specularColor = { 0.0f, 1.0f, 0.0f, 1.0f }
+			.source = "User",
+			.baseColor = {0.0f, 1.0f, 0.0f, 1.0f},
+			.ambientColor = {0.0f, 1.0f, 0.0f, 1.0f},
+			.diffuseColor = {0.0f, 1.0f, 0.0f, 1.0f},
+			.specularColor = {0.0f, 1.0f, 0.0f, 1.0f}
 		};
 		auto pointMaterialPointer = std::make_shared<Materials::Components::Material>(std::move(pointMaterial));
 
@@ -152,6 +152,29 @@ namespace drk::Applications {
 			registry.emplace<Objects::Relationship>(pointEntity, std::move(pointRelationship));
 			registry.emplace<Objects::Object>(pointEntity, std::move(pointObject));
 		}*/
+//		for (auto pointIndex = 0; pointIndex < 2097152 / 1024; pointIndex++) {
+//			auto r = glm::ballRand<float>(16.0);
+//			Lines::Components::Line line{
+//				.materialEntity = pointMaterialEntity
+//			};
+//
+//			Spatials::Components::Spatial lineSpatial{
+//				.relativeScale = {1.0f, 1.0f, 1.0f, 1.0f},
+//				.relativeRotation = glm::quatLookAt(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+//				.relativePosition = glm::vec4(r, 1.0),
+//				.relativeModel = glm::identity<glm::mat4>()
+//			};
+//
+//			Objects::Relationship lineRelationship;
+//			Objects::Object lineObject{.Name = "Line"};
+//
+//			auto lineEntity = registry.create();
+//
+//			registry.emplace<Lines::Components::Line>(lineEntity, std::move(line));
+//			registry.emplace<Spatials::Components::Spatial>(lineEntity, std::move(lineSpatial));
+//			registry.emplace<Objects::Relationship>(lineEntity, std::move(lineRelationship));
+//			registry.emplace<Objects::Object>(lineEntity, std::move(lineObject));
+//		}
 
 		while (!glfwWindowShouldClose(window.GetWindow())) {
 			glfwPollEvents();
@@ -175,8 +198,7 @@ namespace drk::Applications {
 			if (shouldRecreateSwapchain || swapchainImageAcquisitionResult.result == vk::Result::eSuboptimalKHR ||
 				swapchainImageAcquisitionResult.result == vk::Result::eErrorOutOfDateKHR) {
 				RecreateSwapchain(windowExtent);
-			}
-			else {
+			} else {
 				const auto& resetFenceResult = deviceContext.device.resetFences(1, &fence);
 
 				frameState.commandBuffer.reset();
@@ -273,15 +295,14 @@ namespace drk::Applications {
 									newSceneExtent,
 									vk::Format::eR8G8B8A8Srgb,
 								},
-								{ sceneTexture->imageView }
+								{sceneTexture->imageView}
 							);
 							sceneTextureExtent = vk::Extent3D{
 								newSceneExtent.width,
 								newSceneExtent.height,
 								1
 							};
-						}
-						else {
+						} else {
 							sceneRenderer.setTargetExtent(newSceneExtent);
 						}
 						sceneExtent = newSceneExtent;
@@ -289,12 +310,12 @@ namespace drk::Applications {
 					ImGui::Image(
 						sceneTextureImageDescriptorSet.value(),
 						viewportPanelSize,
-						{ 0, 0 },
+						{0, 0},
 						{
 							viewportPanelSize.x / sceneTextureExtent.width,
 							viewportPanelSize.y / sceneTextureExtent.height
 						}
-						);
+					);
 					ImGui::End();
 
 
@@ -308,6 +329,9 @@ namespace drk::Applications {
 					fileBrowser.Display();
 					if (fileBrowser.HasSelected()) {
 						auto loadResult = loader.Load(fileBrowser.GetSelected(), registry);
+						globalSystem.setPointLightCount(loadResult.pointLights.size());
+						globalSystem.setDirectionalLightCount(loadResult.directionalLights.size());
+						globalSystem.setSpotlightCount(loadResult.spotlights.size());
 						loadResults.emplace_back(std::move(loadResult));
 						fileBrowser.ClearSelected();
 					}
@@ -322,9 +346,13 @@ namespace drk::Applications {
 				materialSystem.Store();
 				meshSystem.Store();
 				pointSystem.Store();
+				lineSystem.Store();
 				spatialSystem.Store();
 				objectSystem.Store();
 				cameraSystem.Store();
+				pointLightSystem.Store();
+				directionalLightSystem.Store();
+				spotlightSystem.Store();
 
 				//Alterations
 				flyCamController.Step();
@@ -337,17 +365,22 @@ namespace drk::Applications {
 				materialSystem.UpdateStore();
 				meshSystem.UpdateStore();
 				pointSystem.UpdateStore();
+				lineSystem.UpdateStore();
 				spatialSystem.UpdateStore();
 				objectSystem.UpdateStore();
 				cameraSystem.UpdateStore();
+				pointLightSystem.UpdateStore();
+				directionalLightSystem.UpdateStore();
+				spotlightSystem.UpdateStore();
 				globalSystem.Update();
 
 				//auto draws = registry.view<Scenes::Draws::SceneDraw>();
 				//registry.destroy(draws.begin(), draws.end());
 
 				//Emit draws
-				auto hasNewDraws = meshSystem.EmitDraws();
-				hasNewDraws |= pointSystem.EmitDraws();
+				meshSystem.EmitDraws();
+				pointSystem.EmitDraws();
+				lineSystem.EmitDraws();
 
 				//Stores draws to GPU
 				sceneSystem.UpdateDraws();
@@ -381,7 +414,7 @@ namespace drk::Applications {
 					.pSignalSemaphores = &frameState.imageRenderedSemaphore,
 				};
 
-				deviceContext.GraphicQueue.submit({ submitInfo }, fence);
+				deviceContext.GraphicQueue.submit({submitInfo}, fence);
 
 
 				vk::Result presentResult;
@@ -410,16 +443,18 @@ namespace drk::Applications {
 
 	void Application::renderEntities() {
 		const auto& relationships = registry.view<Objects::Relationship>();
-		relationships.each([this](entt::entity entity, Objects::Relationship& relationship) {
-			if (relationship.parent == entt::null) renderEntity(entity);
-						   });
+		relationships.each(
+			[this](entt::entity entity, Objects::Relationship& relationship) {
+				if (relationship.parent == entt::null) renderEntity(entity);
+			}
+		);
 	}
 
 	void Application::renderEntity(entt::entity entity) {
-		const auto& [relationship, object] = registry.get<Objects::Relationship, Objects::Object>(entity);
+		const auto&[relationship, object] = registry.get<Objects::Relationship, Objects::Object>(entity);
 		if (relationship.children.size() > 0) {
 			auto isOpen = ImGui::TreeNode(
-				(void*)entity,
+				(void*) entity,
 				fmt::format("{0}", object.Name).c_str()
 			);
 			if (ImGui::IsItemClicked()) {
@@ -431,8 +466,7 @@ namespace drk::Applications {
 				}
 				ImGui::TreePop();
 			}
-		}
-		else {
+		} else {
 			ImGui::Text(fmt::format("{0}", object.Name).c_str());
 			if (ImGui::IsItemClicked()) {
 				selectedEntity = entity;

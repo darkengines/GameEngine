@@ -64,6 +64,9 @@ file(
     src/Spatials/Components/SpatialEditor.cpp 
     src/UserInterfaces/AssetExplorer.cpp 
     src/ImGui/imgui_stdlib.cpp
+    src/Lines/LinePipeline.cpp
+    src/Lines/Models/LineVertex.cpp
+    src/Lines/LineSystem.cpp
 )
 
 file(
@@ -90,9 +93,10 @@ file(
     src/Lights/Light.hpp
     src/Cameras/Components/Camera.hpp
     src/Spatials/Components/Spatial.hpp
-    src/Lights/Spotlight.hpp
+    src/Lights/Models/Spotlight.hpp
+    src/Lights/Components/Spotlight.hpp
     src/Lights/PointLight.hpp
-    src/Lights/DirectionalLight.hpp
+    src/Lights/Models/DirectionalLight.hpp
     src/Geometries/Plane.hpp
     src/Geometries/AxisAlignedBoundingBox.hpp
     src/Geometries/Frustum.cpp src/Geometries/Frustum.hpp
@@ -210,6 +214,8 @@ file(
     "src/Meshes/Shaders/Mesh.frag"
     "src/Points/Shaders/Point.vert"
     "src/Points/Shaders/Point.frag"
+    "src/Lines/Shaders/Line.vert"
+    "src/Lines/Shaders/Line.frag"
 )
 
 foreach (GLSL ${GLSL_SOURCES})
@@ -229,7 +235,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES})
+add_executable(drk ${HEADERS} ${SOURCES} src/Lights/Components/DirectionalLight.hpp)
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 

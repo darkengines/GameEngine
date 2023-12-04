@@ -44,7 +44,7 @@ namespace drk::Graphics {
 					components
 				) {
 					if (!synchronizationState.Update(frameIndex)) {
-						registry.remove<SynchronizationState<TModel >>(entity);
+						registry.remove<SynchronizationState<TModel>>(entity);
 					}
 					auto model = storeItem.frameStoreItems[frameIndex].pItem;
 					updater(*model, components...);

@@ -1,9 +1,9 @@
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_vulkan.h>
 #include "Window.hpp"
 #include "../Configuration/Extensions.hpp"
 #include "WindowConfiguration.hpp"
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
+#include <imgui.h>
 
 namespace drk::Windows {
 

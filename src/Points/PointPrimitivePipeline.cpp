@@ -22,7 +22,7 @@ namespace drk::Points {
 			descriptorSetLayouts.storeDescriptorSetLayout,
 			descriptorSetLayouts.globalDescriptorSetLayout,
 			descriptorSetLayouts.storeDescriptorSetLayout
-	},
+		},
 		pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
 		engineState(engineState) {
 		createShaderModules();
@@ -42,7 +42,7 @@ namespace drk::Points {
 	void PointPrimitivePipeline::createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo) {
 
 		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicPipelineCreateInfo);
-		if ((VkResult)result.result != VK_SUCCESS) {
+		if ((VkResult) result.result != VK_SUCCESS) {
 			throw new std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		pipeline = result.value;
@@ -79,7 +79,7 @@ namespace drk::Points {
 		pipelineInputAssemblyStateCreateInfo.topology = vk::PrimitiveTopology::ePointList;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{ 1024u, 768u },
+			{1024u, 768u},
 			viewport,
 			scissor
 		);
@@ -114,10 +114,10 @@ namespace drk::Points {
 	}
 
 	vk::PipelineLayout
-		PointPrimitivePipeline::createPipelineLayout(
-			const Devices::DeviceContext& deviceContext,
-			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
-		) {
+	PointPrimitivePipeline::createPipelineLayout(
+		const Devices::DeviceContext& deviceContext,
+		const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+	) {
 		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
 			.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
 			.pSetLayouts = descriptorSetLayouts.data(),
@@ -134,9 +134,9 @@ namespace drk::Points {
 		const auto& drawDescriptorSet = frameState.getUniformStore<Models::PointDraw>().descriptorSet;
 		std::array<vk::DescriptorSet, 4> descriptorSets{
 			engineState.textureDescriptorSet,
-				drawDescriptorSet,
-				frameState.globalDescriptorSet,
-				frameState.storeDescriptorSet
+			drawDescriptorSet,
+			frameState.globalDescriptorSet,
+			frameState.storeDescriptorSet
 		};
 		frameState.commandBuffer.bindDescriptorSets(
 			vk::PipelineBindPoint::eGraphics,
