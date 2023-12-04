@@ -1,8 +1,6 @@
 #include "AssimpLoader.hpp"
-#include "../Lights/PointLight.hpp"
+#include "../Lights/Components/PointLight.hpp"
 #include "../Geometries/AxisAlignedBoundingBox.hpp"
-#include "../Lights/DirectionalLight.hpp"
-#include "../Lights/Spotlight.hpp"
 #include "../Lights/Light.hpp"
 #include "../Cameras/Components/Camera.hpp"
 #include "../Spatials/Components/Spatial.hpp"
@@ -15,6 +13,8 @@
 #include <glm/gtx/quaternion.hpp>
 #include "../Materials/Components/MaterialCollection.hpp"
 #include "../Meshes/Components/Mesh.hpp"
+#include "../Lights/Components/Spotlight.hpp"
+#include "../Lights/Components/DirectionalLight.hpp"
 
 namespace drk::Loaders {
 	AssimpLoader::AssimpLoader() {}
@@ -48,7 +48,7 @@ namespace drk::Loaders {
 		std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>> lightMap;
 		std::unordered_map<std::string, entt::entity> cameraMap;
 
-		loadLights(aiLights, lightMap, registry);
+		loadLights(aiLights, lightMap, registry, loadResult);
 		loadCameras(aiCameras, cameraMap, registry);
 
 		auto rootEntity = loadNode(aiScene->mRootNode, lightMap, cameraMap, loadResult, registry);
@@ -69,7 +69,7 @@ namespace drk::Loaders {
 			auto aiMaterial = aiMaterials[aiMaterialIndex];
 			std::unordered_map<std::string, entt::entity> textureNameMap;
 			std::unordered_map<Textures::TextureType, entt::entity> textureTypeMap;
-			for (auto textureTypePair: TextureTypeMap) {
+			for (auto textureTypePair : TextureTypeMap) {
 				if (aiMaterial->GetTextureCount(textureTypePair.first)) {
 					aiString aiTexturePath;
 					auto result = aiMaterial->GetTexture(textureTypePair.first, 0, &aiTexturePath);
@@ -166,7 +166,7 @@ namespace drk::Loaders {
 				.name = materialName,
 				.baseColor = glm::vec4(ambientColor.r, ambientColor.g, ambientColor.b, ambientColor.a),
 				.ambientColor = glm::vec4(ambientColor.r, ambientColor.g, ambientColor.b, ambientColor.a),
-				.diffuseColor =  glm::vec4(diffuseColor.r, diffuseColor.g, diffuseColor.b, diffuseColor.a),
+				.diffuseColor = glm::vec4(diffuseColor.r, diffuseColor.g, diffuseColor.b, diffuseColor.a),
 				.specularColor = glm::vec4(specularColor.r, specularColor.g, specularColor.b, specularColor.a),
 				.baseColorTexture = baseColorTexture,
 				.ambientColorTexture = ambientColorTexture,
@@ -251,7 +251,7 @@ namespace drk::Loaders {
 			auto materialEntity = loadResult.materialIdEntityMap[aiMesh->mMaterialIndex];
 			Meshes::Components::MeshResource mesh = {
 				.name = meshName,
-				.vertices =vertices,
+				.vertices = vertices,
 				.indices = indices,
 			};
 			auto meshPtr = std::make_shared<Meshes::Components::MeshResource>(mesh);
@@ -273,22 +273,24 @@ namespace drk::Loaders {
 	void AssimpLoader::loadLights(
 		std::span<aiLight*> aiLights,
 		std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightNameMap,
-		entt::registry& registry
+		entt::registry& registry,
+		LoadResult& loadResult
 	) const {
-		for (auto aiLight: aiLights) {
+		for (auto aiLight : aiLights) {
 			auto entity = registry.create();
 			auto lightName = std::string(aiLight->mName.C_Str());
 			if (aiLight->mType == aiLightSourceType::aiLightSource_POINT) {
-				Lights::PointLight pointLight;
+				Lights::Components::PointLight pointLight;
 				pointLight.constantAttenuation = aiLight->mAttenuationConstant;
 				pointLight.linearAttenuation = aiLight->mAttenuationLinear;
 				pointLight.quadraticAttenuation = aiLight->mAttenuationQuadratic;
 				pointLight.relativePosition = {aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1};
 
-				registry.emplace<Lights::PointLight>(entity, pointLight);
+				registry.emplace<Lights::Components::PointLight>(entity, pointLight);
+				loadResult.pointLights.emplace_back(pointLight);
 			}
 			if (aiLight->mType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
-				Lights::DirectionalLight directionalLight;
+				Lights::Components::DirectionalLight directionalLight;
 				directionalLight.relativeDirection = {
 					aiLight->mDirection.x,
 					aiLight->mDirection.y,
@@ -297,10 +299,11 @@ namespace drk::Loaders {
 				};
 				directionalLight.relativeUp = {aiLight->mUp.x, aiLight->mUp.y, aiLight->mUp.z, 0};
 
-				registry.emplace<Lights::DirectionalLight>(entity, directionalLight);
+				registry.emplace<Lights::Components::DirectionalLight>(entity, directionalLight);
+				loadResult.directionalLights.emplace_back(directionalLight);
 			}
 			if (aiLight->mType == aiLightSourceType::aiLightSource_SPOT) {
-				Lights::Spotlight spotlight;
+				Lights::Components::Spotlight spotlight;
 				spotlight.constantAttenuation = aiLight->mAttenuationConstant;
 				spotlight.linearAttenuation = aiLight->mAttenuationLinear;
 				spotlight.quadraticAttenuation = aiLight->mAttenuationQuadratic;
@@ -310,7 +313,8 @@ namespace drk::Loaders {
 				spotlight.innerConeAngle = aiLight->mAngleInnerCone;
 				spotlight.outerConeAngle = aiLight->mAngleOuterCone;
 
-				registry.emplace<Lights::Spotlight>(entity, spotlight);
+				registry.emplace<Lights::Components::Spotlight>(entity, spotlight);
+				loadResult.spotlights.emplace_back(spotlight);
 			}
 			Lights::Light light = {
 				{aiLight->mColorAmbient.r,  aiLight->mColorAmbient.g,  aiLight->mColorAmbient.b,  1},
@@ -327,7 +331,7 @@ namespace drk::Loaders {
 		std::unordered_map<std::string, entt::entity>& cameraNameMap,
 		entt::registry& registry
 	) const {
-		for (auto aiCamera: aiCameras) {
+		for (auto aiCamera : aiCameras) {
 			auto cameraName = std::string(aiCamera->mName.C_Str());
 			auto relativePosition = glm::vec4{
 				aiCamera->mPosition.x,
@@ -405,16 +409,16 @@ namespace drk::Loaders {
 			entity = std::get<0>(light->second);
 			auto lightType = std::get<1>(light->second);
 			if (lightType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
-				auto& directionalLight = registry.get<Lights::DirectionalLight>(entity);
+				auto& directionalLight = registry.get<Lights::Components::DirectionalLight>(entity);
 				spatial.relativeRotation = spatial.relativeRotation * glm::quatLookAt(
 					glm::vec3(directionalLight.relativeDirection),
 					glm::vec3(directionalLight.relativeUp)
 				);
 			} else if (lightType == aiLightSourceType::aiLightSource_POINT) {
-				auto& pointLight = registry.get<Lights::PointLight>(entity);
+				auto& pointLight = registry.get<Lights::Components::PointLight>(entity);
 				spatial.relativePosition = spatial.relativePosition + pointLight.relativePosition;
 			} else if (lightType == aiLightSourceType::aiLightSource_SPOT) {
-				auto& spotlight = registry.get<Lights::Spotlight>(entity);
+				auto& spotlight = registry.get<Lights::Components::Spotlight>(entity);
 				spatial.relativeRotation = spatial.relativeRotation * glm::quatLookAt(
 					glm::vec3(spotlight.relativeDirection),
 					glm::vec3(spotlight.relativeUp)

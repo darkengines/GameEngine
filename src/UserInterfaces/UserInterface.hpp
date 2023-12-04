@@ -1,11 +1,11 @@
 #pragma once
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_vulkan.h>
 #include <GLFW/glfw3.h>
 #include "../Windows/Window.hpp"
 #include "../Controllers/FlyCamController.hpp"
-#include <imgui.h>
 #include <glm/glm.hpp>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
+#include <imgui.h>
 
 namespace drk::UserInterfaces {
 	class UserInterface {

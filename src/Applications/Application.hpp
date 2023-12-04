@@ -1,11 +1,14 @@
 #pragma once
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include "../Loaders/AssimpLoader.hpp"
 #include "../Devices/DeviceContext.hpp"
+#include "../Lights/PointLightSystem.hpp"
+#include "../Lights/SpotlightSystem.hpp"
+#include "../Lights/DirectionalLightSystem.hpp"
 #include "../Graphics/Graphics.hpp"
 #include "../Windows/Window.hpp"
 #include "../Engine/EngineState.hpp"
-#include "../Loaders/AssimpLoader.hpp"
 #include "../Textures/TextureSystem.hpp"
 #include "../Meshes/MeshSystem.hpp"
 #include "../Materials/MaterialSystem.hpp"
@@ -20,6 +23,7 @@
 #include "../UserInterfaces/Renderers/UserInterfaceRenderer.hpp"
 #include "../Scenes/SceneSystem.hpp"
 #include "../Points/PointSystem.hpp"
+#include "../Lines/LineSystem.hpp"
 #include "../UserInterfaces/AssetExplorer.hpp"
 #include <memory>
 
@@ -46,6 +50,10 @@ namespace drk::Applications {
 			Scenes::Renderers::SceneRenderer&,
 			Scenes::SceneSystem&,
 			Points::PointSystem&,
+			Lines::LineSystem&,
+			Lights::PointLightSystem&,
+			Lights::DirectionalLightSystem&,
+			Lights::SpotlightSystem&,
 			UserInterfaces::AssetExplorer&
 		>;
 
@@ -69,6 +77,10 @@ namespace drk::Applications {
 			Scenes::Renderers::SceneRenderer& sceneRenderer,
 			Scenes::SceneSystem& sceneSystem,
 			Points::PointSystem& pointSystem,
+			Lines::LineSystem&,
+			Lights::PointLightSystem& pointLightSystem,
+			Lights::DirectionalLightSystem& directionalLightSystem,
+			Lights::SpotlightSystem& spotlightSystem,
 			UserInterfaces::AssetExplorer& assetExplorer
 		);
 		~Application();
@@ -95,6 +107,10 @@ namespace drk::Applications {
 		Scenes::Renderers::SceneRenderer& sceneRenderer;
 		Scenes::SceneSystem& sceneSystem;
 		Points::PointSystem& pointSystem;
+		Lines::LineSystem& lineSystem;
+		Lights::PointLightSystem& pointLightSystem;
+		Lights::DirectionalLightSystem& directionalLightSystem;
+		Lights::SpotlightSystem& spotlightSystem;
 		entt::entity selectedEntity = entt::null;
 		UserInterfaces::AssetExplorer& assetExplorer;
 

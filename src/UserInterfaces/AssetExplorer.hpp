@@ -1,13 +1,13 @@
 
 #pragma once
 
-#include <imgui.h>
-#include "../ImGui/imgui_stdlib.h"
 #include "../Loaders/AssimpLoader.hpp"
 
-#include <imfilebrowser.h>
 #include <iostream>
 #include <regex>
+#include <imgui.h>
+#include "../ImGui/imgui_stdlib.h"
+#include <imfilebrowser.h>
 
 namespace drk::UserInterfaces {
 	class AssetExplorer {

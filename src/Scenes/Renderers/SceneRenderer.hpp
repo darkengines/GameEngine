@@ -11,6 +11,7 @@
 #include "../../Draws/DrawSystem.hpp"
 #include "../Draws/SceneDraw.hpp"
 #include "SceneRenderOperation.hpp"
+#include "../../Lines/LinePipeline.hpp"
 
 
 namespace drk::Scenes::Renderers {
@@ -25,13 +26,15 @@ namespace drk::Scenes::Renderers {
 		std::vector<vk::ImageView> targetImageViews;
 		std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline;
 		std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline;
+		std::unique_ptr<Lines::LinePipeline> linePipeline;
 		vk::RenderPass renderPass;
 	public:
 		SceneRenderer(
 			const Devices::DeviceContext& deviceContext,
 			entt::registry& registry,
 			std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
-			std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline
+			std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline,
+			std::unique_ptr<Lines::LinePipeline> linePipeline
 		);
 		~SceneRenderer();
 		void render(uint32_t targetImageIndex, const vk::CommandBuffer& sceneDraw);

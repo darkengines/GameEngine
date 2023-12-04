@@ -1,12 +1,18 @@
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.hpp>
 #include <algorithm>
-#include "MeshPipeline.hpp"
-#include "../../Graphics/Graphics.hpp"
-#include "../../Meshes/MeshGroup.hpp"
 
-namespace drk::Meshes::Pipelines {
-	MeshPipeline::MeshPipeline(
+#include "LinePipeline.hpp"
+#include "../Graphics/Graphics.hpp"
+#include "../Objects/Models/Object.hpp"
+#include "../Meshes/MeshGroup.hpp"
+#include "../Cameras/Components/Camera.hpp"
+#include "Models/LineVertex.hpp"
+#include "Models/LineDraw.hpp"
+
+namespace drk::Lines {
+
+	LinePipeline::LinePipeline(
 		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
 		const Engine::DescriptorSetLayouts& descriptorSetLayouts
@@ -15,34 +21,34 @@ namespace drk::Meshes::Pipelines {
 			descriptorSetLayouts.textureDescriptorSetLayout,
 			descriptorSetLayouts.storeDescriptorSetLayout,
 			descriptorSetLayouts.globalDescriptorSetLayout,
-			descriptorSetLayouts.storeDescriptorSetLayout,
-		},
+			descriptorSetLayouts.storeDescriptorSetLayout
+	},
 		pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
 		engineState(engineState) {
 		createShaderModules();
 	}
 
-	MeshPipeline::~MeshPipeline() {
+	LinePipeline::~LinePipeline() {
 		deviceContext.device.destroyPipeline(pipeline);
 		destroyShaderModules();
 		deviceContext.device.destroyPipelineLayout(pipelineLayout);
 	}
 
-	void MeshPipeline::destroyShaderModules() {
+	void LinePipeline::destroyShaderModules() {
 		deviceContext.device.destroyShaderModule(mainFragmentShaderModule);
 		deviceContext.device.destroyShaderModule(mainVertexShaderModule);
 	}
 
-	void MeshPipeline::createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo) {
+	void LinePipeline::createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo) {
 
 		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicPipelineCreateInfo);
-		if ((VkResult) result.result != VK_SUCCESS) {
+		if ((VkResult)result.result != VK_SUCCESS) {
 			throw new std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		pipeline = result.value;
 	}
 
-	void MeshPipeline::configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configuration) {
+	void LinePipeline::configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configuration) {
 		vk::PipelineShaderStageCreateInfo vertexPipelineShaderStageCreateInfo = {
 			.stage = vk::ShaderStageFlagBits::eVertex,
 			.module = mainVertexShaderModule,
@@ -60,8 +66,8 @@ namespace drk::Meshes::Pipelines {
 		};
 
 		vk::PipelineColorBlendAttachmentState pipelineColorBlendAttachmentState;
-		std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions = Meshes::Vertex::getBindingDescriptions();
-		std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions = Meshes::Vertex::getAttributeDescriptions();
+		std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions = Models::LineVertex::getBindingDescriptions();
+		std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions = Models::LineVertex::getAttributeDescriptions();
 		vk::Viewport viewport;
 		vk::Rect2D scissor;
 
@@ -69,9 +75,11 @@ namespace drk::Meshes::Pipelines {
 			vertexInputBindingDescriptions,
 			vertexInputAttributeDescriptions
 		);
-		const auto& pipelineInputAssemblyStateCreateInfo = Graphics::Graphics::DefaultPipelineInputAssemblyStateCreateInfo();
+		auto pipelineInputAssemblyStateCreateInfo = Graphics::Graphics::DefaultPipelineInputAssemblyStateCreateInfo();
+		pipelineInputAssemblyStateCreateInfo.topology = vk::PrimitiveTopology::eLineList;
+
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{1024u, 768u},
+			{ 1024u, 768u },
 			viewport,
 			scissor
 		);
@@ -100,33 +108,35 @@ namespace drk::Meshes::Pipelines {
 		configuration(graphicPipelineCreateInfo);
 		createPipeline(graphicPipelineCreateInfo);
 	}
-	void MeshPipeline::destroyPipeline() {
+	void LinePipeline::destroyPipeline() {
+		deviceContext.device.waitIdle();
 		deviceContext.device.destroyPipeline(pipeline);
 	}
 
 	vk::PipelineLayout
-	MeshPipeline::createPipelineLayout(
-		const Devices::DeviceContext& deviceContext,
-		const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
-	) {
+		LinePipeline::createPipelineLayout(
+			const Devices::DeviceContext& deviceContext,
+			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+		) {
 		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
 			.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
 			.pSetLayouts = descriptorSetLayouts.data(),
 		};
 		return deviceContext.device.createPipelineLayout(pipelineLayoutCreateInfo);
 	}
-	void MeshPipeline::createShaderModules() {
-		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/Mesh.vert.spv");
-		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/Mesh.frag.spv");
+
+	void LinePipeline::createShaderModules() {
+		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/Line.vert.spv");
+		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/Line.frag.spv");
 	}
-	void MeshPipeline::bind(const vk::CommandBuffer& commandBuffer) {
+	void LinePipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();
-		const auto& drawDescriptorSet = frameState.getUniformStore<Models::MeshDraw>().descriptorSet;
+		const auto& drawDescriptorSet = frameState.getUniformStore<Models::LineDraw>().descriptorSet;
 		std::array<vk::DescriptorSet, 4> descriptorSets{
 			engineState.textureDescriptorSet,
-			drawDescriptorSet,
-			frameState.globalDescriptorSet,
-			frameState.storeDescriptorSet
+				drawDescriptorSet,
+				frameState.globalDescriptorSet,
+				frameState.storeDescriptorSet
 		};
 		frameState.commandBuffer.bindDescriptorSets(
 			vk::PipelineBindPoint::eGraphics,

@@ -8,11 +8,13 @@ namespace drk::Scenes::Renderers {
 		const Devices::DeviceContext& deviceContext,
 		entt::registry& registry,
 		std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
-		std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline
+		std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline,
+		std::unique_ptr<Lines::LinePipeline> linePipeline
 	)
 		: deviceContext(deviceContext), registry(registry),
-		meshPipeline(std::move(meshPipeline)),
-		pointPrimitivePipeline(std::move(pointPrimitivePipeline)) {}
+		  meshPipeline(std::move(meshPipeline)),
+		  pointPrimitivePipeline(std::move(pointPrimitivePipeline)),
+		  linePipeline(std::move(linePipeline)) {}
 
 	SceneRenderer::~SceneRenderer() {
 		destroyFramebuffers();
@@ -22,6 +24,7 @@ namespace drk::Scenes::Renderers {
 	Pipelines::Pipeline* SceneRenderer::getPipeline(std::type_index pipelineTypeIndex) {
 		if (std::type_index(typeid(Meshes::Pipelines::MeshPipeline)) == pipelineTypeIndex) return meshPipeline.get();
 		if (std::type_index(typeid(Points::PointPrimitivePipeline)) == pipelineTypeIndex) return pointPrimitivePipeline.get();
+		if (std::type_index(typeid(Lines::LinePipeline)) == pipelineTypeIndex) return linePipeline.get();
 		throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
 	}
 	void SceneRenderer::destroyFramebuffers() {
@@ -38,13 +41,13 @@ namespace drk::Scenes::Renderers {
 	void SceneRenderer::createFramebufferResources() {
 		vk::ImageCreateInfo imageCreateInfo{
 			.imageType = vk::ImageType::e2D,
-				.format = targetImageInfo->format,
-				.extent = { targetImageInfo->extent.width, targetImageInfo->extent.height, 1 },
-				.mipLevels = 1,
-				.arrayLayers = 1,
-				.samples = deviceContext.MaxSampleCount,
-				.usage = vk::ImageUsageFlagBits::eColorAttachment,
-				.sharingMode = vk::SharingMode::eExclusive,
+			.format = targetImageInfo->format,
+			.extent = {targetImageInfo->extent.width, targetImageInfo->extent.height, 1},
+			.mipLevels = 1,
+			.arrayLayers = 1,
+			.samples = deviceContext.MaxSampleCount,
+			.usage = vk::ImageUsageFlagBits::eColorAttachment,
+			.sharingMode = vk::SharingMode::eExclusive,
 		};
 		auto mainFramebufferImage = deviceContext.createImage(
 			imageCreateInfo,
@@ -70,13 +73,13 @@ namespace drk::Scenes::Renderers {
 
 		vk::ImageCreateInfo depthImageCreateInfo{
 			.imageType = vk::ImageType::e2D,
-				.format = deviceContext.DepthFormat,
-				.extent = { targetImageInfo->extent.width, targetImageInfo->extent.height, 1 },
-				.mipLevels = 1,
-				.arrayLayers = 1,
-				.samples = deviceContext.MaxSampleCount,
-				.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
-				.sharingMode = vk::SharingMode::eExclusive,
+			.format = deviceContext.DepthFormat,
+			.extent = {targetImageInfo->extent.width, targetImageInfo->extent.height, 1},
+			.mipLevels = 1,
+			.arrayLayers = 1,
+			.samples = deviceContext.MaxSampleCount,
+			.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
+			.sharingMode = vk::SharingMode::eExclusive,
 		};
 		auto mainFramebufferDepthImage = deviceContext.createImage(
 			depthImageCreateInfo,
@@ -114,12 +117,12 @@ namespace drk::Scenes::Renderers {
 		for (const auto& swapChainImageView : targetImageViews) {
 			std::array<vk::ImageView, 3> attachments{
 				colorTexture->imageView,
-					depthTexture->imageView,
-					swapChainImageView
+				depthTexture->imageView,
+				swapChainImageView
 			};
 			vk::FramebufferCreateInfo framebufferCreateInfo = {
 				.renderPass = renderPass,
-				.attachmentCount = (uint32_t)attachments.size(),
+				.attachmentCount = (uint32_t) attachments.size(),
 				.pAttachments = attachments.data(),
 				.width = targetImageInfo->extent.width,
 				.height = targetImageInfo->extent.height,
@@ -203,8 +206,8 @@ namespace drk::Scenes::Renderers {
 
 		std::vector<vk::AttachmentDescription> attachments{
 			colorAttachment,
-				depthAttachment,
-				resolvedColorAttachment
+			depthAttachment,
+			resolvedColorAttachment
 		};
 		vk::RenderPassCreateInfo renderPassCreationInfo = {
 			.attachmentCount = static_cast<uint32_t>(attachments.size()),
@@ -234,7 +237,7 @@ namespace drk::Scenes::Renderers {
 		vk::Rect2D scissor;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{ targetImageInfo.extent.width, targetImageInfo.extent.height },
+			{targetImageInfo.extent.width, targetImageInfo.extent.height},
 			viewport,
 			scissor
 		);
@@ -250,6 +253,12 @@ namespace drk::Scenes::Renderers {
 				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
 			}
 		);
+		linePipeline->configure(
+			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
+				graphicsPipelineCreateInfo.renderPass = renderPass;
+				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
+			}
+		);
 
 		createFramebufferResources();
 		createFramebuffers();
@@ -259,7 +268,7 @@ namespace drk::Scenes::Renderers {
 			.color = {std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}
 		};
 		vk::ClearValue depthClearValue{
-			.depthStencil = { 1.0f, 0 }
+			.depthStencil = {1.0f, 0}
 		};
 		std::array<vk::ClearValue, 3> clearValues{colorClearValue, depthClearValue, colorClearValue};
 		auto extent = targetImageInfo.value().extent;
@@ -285,11 +294,13 @@ namespace drk::Scenes::Renderers {
 		std::map<std::type_index, int> pipelineDrawIndices;
 		pipelineDrawIndices[std::type_index(typeid(pointPrimitivePipeline))] = 0;
 		pipelineDrawIndices[std::type_index(typeid(meshPipeline))] = 0;
+		pipelineDrawIndices[std::type_index(typeid(linePipeline))] = 0;
 
 		draws.each(
 			[&](entt::entity drawEntity, const Draws::SceneDraw& sceneDraw) {
 				SceneRenderOperation operations = SceneRenderOperation::None;
-				if (!previousSceneDraw.has_value() || previousSceneDraw->pipelineTypeIndex != sceneDraw.pipelineTypeIndex) {
+				if (!previousSceneDraw.has_value() ||
+					previousSceneDraw->pipelineTypeIndex != sceneDraw.pipelineTypeIndex) {
 					operations |= SceneRenderOperation::BindPipeline;
 				}
 				if (previousDrawEntity == entt::null ||
@@ -302,8 +313,7 @@ namespace drk::Scenes::Renderers {
 				}
 				if (previousDrawEntity == entt::null) {
 					doOperations(commandBuffer, operations, sceneDraw);
-				}
-				else {
+				} else {
 					if (operations != SceneRenderOperation::None) {
 						draw(
 							previousDrawEntity,
@@ -384,16 +394,16 @@ namespace drk::Scenes::Renderers {
 		deviceContext.device.destroyRenderPass(renderPass);
 	}
 	Devices::Texture
-		SceneRenderer::BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent) {
+	SceneRenderer::BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent) {
 		vk::ImageCreateInfo imageCreateInfo{
 			.imageType = vk::ImageType::e2D,
-				.format = vk::Format::eR8G8B8A8Srgb,
-				.extent = extent,
-				.mipLevels = 1,
-				.arrayLayers = 1,
-				.samples = vk::SampleCountFlagBits::e1,
-				.usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
-				.sharingMode = vk::SharingMode::eExclusive,
+			.format = vk::Format::eR8G8B8A8Srgb,
+			.extent = extent,
+			.mipLevels = 1,
+			.arrayLayers = 1,
+			.samples = vk::SampleCountFlagBits::e1,
+			.usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
+			.sharingMode = vk::SharingMode::eExclusive,
 		};
 		auto memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal;
 		auto mainFramebufferImage = deviceContext.createImage(
@@ -429,6 +439,7 @@ namespace drk::Scenes::Renderers {
 		return target;
 	}
 	void SceneRenderer::setTargetExtent(vk::Extent3D extent) {
+		linePipeline->destroyPipeline();
 		pointPrimitivePipeline->destroyPipeline();
 		meshPipeline->destroyPipeline();
 
@@ -436,7 +447,7 @@ namespace drk::Scenes::Renderers {
 		vk::Rect2D scissor;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{ extent.width, extent.height },
+			{extent.width, extent.height},
 			viewport,
 			scissor
 		);
@@ -447,6 +458,12 @@ namespace drk::Scenes::Renderers {
 			}
 		);
 		pointPrimitivePipeline->configure(
+			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
+				graphicsPipelineCreateInfo.renderPass = renderPass;
+				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
+			}
+		);
+		linePipeline->configure(
 			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
 				graphicsPipelineCreateInfo.renderPass = renderPass;
 				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
