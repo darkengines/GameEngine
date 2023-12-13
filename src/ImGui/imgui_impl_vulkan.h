@@ -9,13 +9,16 @@
 // Important: on 32-bit systems, user texture binding is only supported if your imconfig file has '#define ImTextureID ImU64'.
 // See imgui_impl_vulkan.cpp file for details.
 
-// You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
-// Prefer including the entire imgui/ repository into your project (either as a copy or as a submodule), and only build the backends you need.
-// If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
-// Read online: https://github.com/ocornut/imgui/tree/master/docs
-
 // The aim of imgui_impl_vulkan.h/.cpp is to be usable in your engine without any modification.
 // IF YOU FEEL YOU NEED TO MAKE ANY CHANGE TO THIS CODE, please share them and your feedback at https://github.com/ocornut/imgui/
+
+// You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
+// Prefer including the entire imgui/ repository into your project (either as a copy or as a submodule), and only build the backends you need.
+// Learn about Dear ImGui:
+// - FAQ                  https://dearimgui.com/faq
+// - Getting Started      https://dearimgui.com/getting-started
+// - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
+// - Introduction, links and more at the top of imgui.cpp
 
 // Important note to the reader who wish to integrate imgui_impl_vulkan.cpp/.h in their own engine/app.
 // - Common ImGui_ImplVulkan_XXX functions and structures are used to interface with imgui_impl_vulkan.cpp/.h.
@@ -50,25 +53,25 @@
 // [Please zero-clear before use!]
 struct ImGui_ImplVulkan_InitInfo
 {
-    VkInstance                      Instance;
-    VkPhysicalDevice                PhysicalDevice;
-    VkDevice                        Device;
-    uint32_t                        QueueFamily;
-    VkQueue                         Queue;
-    VkPipelineCache                 PipelineCache;
-    VkDescriptorPool                DescriptorPool;
-    uint32_t                        Subpass;
-    uint32_t                        MinImageCount;          // >= 2
-    uint32_t                        ImageCount;             // >= MinImageCount
-    VkSampleCountFlagBits           MSAASamples;            // >= VK_SAMPLE_COUNT_1_BIT (0 -> default to VK_SAMPLE_COUNT_1_BIT)
+	VkInstance                      Instance;
+	VkPhysicalDevice                PhysicalDevice;
+	VkDevice                        Device;
+	uint32_t                        QueueFamily;
+	VkQueue                         Queue;
+	VkPipelineCache                 PipelineCache;
+	VkDescriptorPool                DescriptorPool;
+	uint32_t                        Subpass;
+	uint32_t                        MinImageCount;          // >= 2
+	uint32_t                        ImageCount;             // >= MinImageCount
+	VkSampleCountFlagBits           MSAASamples;            // >= VK_SAMPLE_COUNT_1_BIT (0 -> default to VK_SAMPLE_COUNT_1_BIT)
 
-    // Dynamic Rendering (Optional)
-    bool                            UseDynamicRendering;    // Need to explicitly enable VK_KHR_dynamic_rendering extension to use this, even for Vulkan 1.3.
-    VkFormat                        ColorAttachmentFormat;  // Required for dynamic rendering
+	// Dynamic Rendering (Optional)
+	bool                            UseDynamicRendering;    // Need to explicitly enable VK_KHR_dynamic_rendering extension to use this, even for Vulkan 1.3.
+	VkFormat                        ColorAttachmentFormat;  // Required for dynamic rendering
 
-    // Allocation, Debugging
-    const VkAllocationCallbacks* Allocator;
-    void                            (*CheckVkResultFn)(VkResult err);
+	// Allocation, Debugging
+	const VkAllocationCallbacks*    Allocator;
+	void                            (*CheckVkResultFn)(VkResult err);
 };
 
 // Called by user code
@@ -76,8 +79,8 @@ IMGUI_IMPL_API bool         ImGui_ImplVulkan_Init(ImGui_ImplVulkan_InitInfo* inf
 IMGUI_IMPL_API void         ImGui_ImplVulkan_Shutdown();
 IMGUI_IMPL_API void         ImGui_ImplVulkan_NewFrame();
 IMGUI_IMPL_API void         ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer command_buffer, VkPipeline pipeline = VK_NULL_HANDLE);
-IMGUI_IMPL_API bool         ImGui_ImplVulkan_CreateFontsTexture(VkCommandBuffer command_buffer);
-IMGUI_IMPL_API void         ImGui_ImplVulkan_DestroyFontUploadObjects();
+IMGUI_IMPL_API bool         ImGui_ImplVulkan_CreateFontsTexture();
+IMGUI_IMPL_API void         ImGui_ImplVulkan_DestroyFontsTexture();
 IMGUI_IMPL_API void         ImGui_ImplVulkan_SetMinImageCount(uint32_t min_image_count); // To override MinImageCount after initialization (e.g. if swap chain is recreated)
 
 // Register a texture (VkDescriptorSet == ImTextureID)
@@ -121,47 +124,47 @@ IMGUI_IMPL_API int                  ImGui_ImplVulkanH_GetMinImageCountFromPresen
 // [Please zero-clear before use!]
 struct ImGui_ImplVulkanH_Frame
 {
-    VkCommandPool       CommandPool;
-    VkCommandBuffer     CommandBuffer;
-    VkFence             Fence;
-    VkImage             Backbuffer;
-    VkImageView         BackbufferView;
-    VkFramebuffer       Framebuffer;
+	VkCommandPool       CommandPool;
+	VkCommandBuffer     CommandBuffer;
+	VkFence             Fence;
+	VkImage             Backbuffer;
+	VkImageView         BackbufferView;
+	VkFramebuffer       Framebuffer;
 };
 
 struct ImGui_ImplVulkanH_FrameSemaphores
 {
-    VkSemaphore         ImageAcquiredSemaphore;
-    VkSemaphore         RenderCompleteSemaphore;
+	VkSemaphore         ImageAcquiredSemaphore;
+	VkSemaphore         RenderCompleteSemaphore;
 };
 
 // Helper structure to hold the data needed by one rendering context into one OS window
 // (Used by example's main.cpp. Used by multi-viewport features. Probably NOT used by your own engine/app.)
 struct ImGui_ImplVulkanH_Window
 {
-    int                 Width;
-    int                 Height;
-    VkSwapchainKHR      Swapchain;
-    VkSurfaceKHR        Surface;
-    VkSurfaceFormatKHR  SurfaceFormat;
-    VkPresentModeKHR    PresentMode;
-    VkRenderPass        RenderPass;
-    VkPipeline          Pipeline;               // The window pipeline may uses a different VkRenderPass than the one passed in ImGui_ImplVulkan_InitInfo
-    bool                UseDynamicRendering;
-    bool                ClearEnable;
-    VkClearValue        ClearValue;
-    uint32_t            FrameIndex;             // Current frame being rendered to (0 <= FrameIndex < FrameInFlightCount)
-    uint32_t            ImageCount;             // Number of simultaneous in-flight frames (returned by vkGetSwapchainImagesKHR, usually derived from min_image_count)
-    uint32_t            SemaphoreIndex;         // Current set of swapchain wait semaphores we're using (needs to be distinct from per frame data)
-    ImGui_ImplVulkanH_Frame* Frames;
-    ImGui_ImplVulkanH_FrameSemaphores* FrameSemaphores;
+	int                 Width;
+	int                 Height;
+	VkSwapchainKHR      Swapchain;
+	VkSurfaceKHR        Surface;
+	VkSurfaceFormatKHR  SurfaceFormat;
+	VkPresentModeKHR    PresentMode;
+	VkRenderPass        RenderPass;
+	VkPipeline          Pipeline;               // The window pipeline may uses a different VkRenderPass than the one passed in ImGui_ImplVulkan_InitInfo
+	bool                UseDynamicRendering;
+	bool                ClearEnable;
+	VkClearValue        ClearValue;
+	uint32_t            FrameIndex;             // Current frame being rendered to (0 <= FrameIndex < FrameInFlightCount)
+	uint32_t            ImageCount;             // Number of simultaneous in-flight frames (returned by vkGetSwapchainImagesKHR, usually derived from min_image_count)
+	uint32_t            SemaphoreIndex;         // Current set of swapchain wait semaphores we're using (needs to be distinct from per frame data)
+	ImGui_ImplVulkanH_Frame*            Frames;
+	ImGui_ImplVulkanH_FrameSemaphores*  FrameSemaphores;
 
-    ImGui_ImplVulkanH_Window()
-    {
-        memset((void*)this, 0, sizeof(*this));
-        PresentMode = (VkPresentModeKHR)~0;     // Ensure we get an error if user doesn't set this.
-        ClearEnable = true;
-    }
+	ImGui_ImplVulkanH_Window()
+	{
+		memset((void*)this, 0, sizeof(*this));
+		PresentMode = (VkPresentModeKHR)~0;     // Ensure we get an error if user doesn't set this.
+		ClearEnable = true;
+	}
 };
 
 #endif // #ifndef IMGUI_DISABLE

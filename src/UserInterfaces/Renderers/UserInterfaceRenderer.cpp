@@ -281,21 +281,6 @@ namespace drk::UserInterfaces::Renderers {
 		};
 		
 		ImGui_ImplVulkan_Init(&infos, MainRenderPass);
-		if (!isImGuiInitialized) {
-			auto commandBuffer = Devices::Device::beginSingleTimeCommands(
-				DeviceContext.device,
-				DeviceContext.CommandPool
-			);
-
-			ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-			Devices::Device::endSingleTimeCommands(
-				DeviceContext.device,
-				DeviceContext.GraphicQueue,
-				DeviceContext.CommandPool,
-				commandBuffer
-			);
-			ImGui_ImplVulkan_DestroyFontUploadObjects();
-		}
 		isImGuiInitialized = true;
 	}
 
