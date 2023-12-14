@@ -1499,7 +1499,7 @@ void ImGui_ImplVulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device, V
 
 		// We do not create a pipeline by default as this is also used by examples' main.cpp,
 		// but secondary viewport in multi-viewport mode may want to create one with:
-		//ImGui_ImplVulkan_CreatePipeline(device, allocator, VK_NULL_HANDLE, wd->RenderPass, VK_SAMPLE_COUNT_1_BIT, &wd->Pipeline, bd->Subpass);
+		ImGui_ImplVulkan_CreatePipeline(device, allocator, VK_NULL_HANDLE, wd->RenderPass, VK_SAMPLE_COUNT_1_BIT, &wd->Pipeline, 0);
 	}
 
 	// Create The Image Views
@@ -1656,9 +1656,9 @@ static void ImGui_ImplVulkan_CreateWindow(ImGuiViewport* viewport)
 	// Select Surface Format
 	const VkFormat requestSurfaceImageFormat[] = {
 #if defined(IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING)
-		v->UseDynamicRendering && v->ColorAttachmentFormat ? v->ColorAttachmentFormat : VK_FORMAT_B8G8R8A8_UNORM,
+		v->UseDynamicRendering && v->ColorAttachmentFormat ? v->ColorAttachmentFormat : VK_FORMAT_B8G8R8A8_SRGB,
 #endif
-		VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
+		VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
 	const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 	wd->SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat(v->PhysicalDevice, wd->Surface, requestSurfaceImageFormat, (size_t)IM_ARRAYSIZE(requestSurfaceImageFormat), requestSurfaceColorSpace);
 
