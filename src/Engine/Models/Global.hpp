@@ -5,12 +5,14 @@
 
 namespace drk::Engine::Models {
 	struct Global {
-		alignas(8) Stores::Models::StoreItemLocation cameraItemLocation;
-		alignas(8) uint32_t  pointLightArrayIndex;
-		alignas(8) uint32_t pointLightCount;
-		alignas(8) uint32_t  directionalLightArrayIndex;
-		alignas(8) uint32_t directionalLightCount;
-		alignas(8) uint32_t  spotlightArrayIndex;
-		alignas(8) uint32_t spotlightCount;
+		uint32_t cameraStoreIndex;
+		uint32_t cameraItemIndex;
+		uint32_t  pointLightArrayIndex;
+		uint32_t pointLightCount;
+		uint32_t  directionalLightArrayIndex;
+		uint32_t directionalLightCount;
+		uint32_t  spotlightArrayIndex;
+		uint32_t spotlightCount;
+
 	};
 }

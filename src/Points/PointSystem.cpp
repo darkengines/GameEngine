@@ -36,14 +36,14 @@ namespace drk::Points {
 		};
 		vk::DeviceSize vertexOffset = 0;
 		vk::DeviceSize indexOffset = 0;
-		std::vector<Models::PointVertex> pointVertices{pointVertex};
+		std::vector<Models::PointVertex> pointVertices{ pointVertex };
 		auto vertexResult = Devices::Device::uploadBuffers<Models::PointVertex>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{pointVertices},
+			{ pointVertices },
 			vk::BufferUsageFlagBits::eVertexBuffer
 		);
 		auto vertexBuffer = vertexResult.buffer;
@@ -52,14 +52,14 @@ namespace drk::Points {
 			.byteOffset = vertexOffset,
 			.byteLength = sizeof(Points::Models::PointVertex)
 		};
-		std::vector<unsigned int> pointIndices{0u};
+		std::vector<unsigned int> pointIndices{ 0u };
 		auto indexResult = Devices::Device::uploadBuffers<unsigned int>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{pointIndices},
+			{ pointIndices },
 			vk::BufferUsageFlagBits::eIndexBuffer
 		);
 		auto indexBuffer = indexResult.buffer;
@@ -85,17 +85,16 @@ namespace drk::Points {
 			Stores::StoreItem<Models::Point>,
 			Components::Point, Spatials::Components::Spatial,
 			Stores::StoreItem<Objects::Models::Object>>(entt::exclude<Models::PointDraw>);
-		auto hasEntities = pointEntities.begin() != pointEntities.end();
-		if (hasEntities) {
-			auto cameraEntity = engineState.CameraEntity;
-			auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
-			pointEntities.each(
-				[&](
-					entt::entity pointEntity,
-					auto& pointStoreItem,
-					auto& point,
-					auto& spatial,
-					auto& objectStoreItem
+
+		auto cameraEntity = engineState.CameraEntity;
+		auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
+		pointEntities.each(
+			[&](
+				entt::entity pointEntity,
+				auto& pointStoreItem,
+				auto& point,
+				auto& spatial,
+				auto& objectStoreItem
 				) {
 					const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[engineState.getFrameIndex()];
 					const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
@@ -120,13 +119,13 @@ namespace drk::Points {
 					registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
 						pointEntity,
 						engineState.getFrameCount());
-				}
-			);
-		}
-		return hasEntities;
+			}
+		);
+
+		return true;
 	}
 
 	Draws::DrawVertexBufferInfo PointSystem::GetVertexBufferInfo(entt::entity drawEntity) {
-		return Draws::DrawVertexBufferInfo{1, 0, 0};
+		return Draws::DrawVertexBufferInfo{ 1, 0, 0 };
 	}
 }

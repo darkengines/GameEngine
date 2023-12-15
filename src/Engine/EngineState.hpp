@@ -35,7 +35,6 @@ namespace drk::Engine {
 		const vk::Sampler textureSampler;
 		uint32_t frameCount = FRAME_COUNT;
 		uint32_t frameIndex = 0;
-		std::vector<FrameState> frameStates;
 		std::vector<Devices::Buffer> buffers;
 
 		static vk::Sampler CreateTextureSampler(const Devices::DeviceContext& deviceContext);
@@ -45,6 +44,7 @@ namespace drk::Engine {
 		);
 	public:
 
+		std::vector<FrameState> frameStates;
 		const vk::DescriptorSet textureDescriptorSet;
 		std::unique_ptr<Stores::TextureStore> textureStore;
 		Common::IndexGenerator<uint32_t> IndexGenerator;

@@ -62,7 +62,7 @@ namespace drk::Scenes::Renderers {
 		void doOperations(
 			const vk::CommandBuffer& commandBuffer,
 			SceneRenderOperation sceneRenderOperation,
-			Draws::SceneDraw sceneDraw
+			const Draws::SceneDraw& sceneDraw
 		);
 	};
 }

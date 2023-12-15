@@ -1,4 +1,5 @@
 #include <glm/glm.hpp>
+#include "../../Stores/Models/StoreItemLocation.hpp"
 
 namespace drk::Lights::Models {
 	struct PointLight {
@@ -32,5 +33,8 @@ namespace drk::Lights::Models {
 		float linearAttenuation;
 		float quadraticAttenuation;
 		float far;
+
+		Stores::Models::StoreItemLocation lightStoreItemLocation;
+		Stores::Models::StoreItemLocation spatialStoreItemLocation;
 	};
 }

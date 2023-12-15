@@ -60,7 +60,7 @@ void main() {
     Object object = objectBuffer[draw.objectItemLocation.storeIndex].objects[draw.objectItemLocation.itemIndex];
     Material material = materialBuffer[mesh.materialItemLocation.storeIndex].materials[mesh.materialItemLocation.itemIndex];
     Spatial spatial = spatialBuffer[object.spatialItemLocation.storeIndex].spatials[object.spatialItemLocation.itemIndex];
-    Camera camera = cameraBuffer[globalBuffer.global.cameraItemLocation.storeIndex].cameras[globalBuffer.global.cameraItemLocation.itemIndex];
+    Camera camera = cameraBuffer[globalBuffer.global.cameraStoreIndex].cameras[globalBuffer.global.cameraItemIndex];
 
     vec4 normal = point.normal;
     if (material.hasNormalMap) {
@@ -83,6 +83,21 @@ void main() {
     vec4 albedo = material.diffuseColor;
     if (material.hasDiffuseColorTexture) {
         albedo = texture(textures[material.diffuseColorTextureIndex], point.texCoord);
+    }
+
+    for(uint pointLightIndex = 0;pointLightIndex < globalBuffer.global.pointLightCount; pointLightIndex++) {
+        PointLight pointLight = pointLightBuffer[globalBuffer.global.pointLightArrayIndex].pointLights[pointLightIndex];
+        vec4 x = pointLight.absolutePosition;
+    }
+
+    for(uint directionalLightIndex = 0;directionalLightIndex < globalBuffer.global.directionalLightCount; directionalLightIndex++) {
+        DirectionalLight directionalLight = directionalLightBuffer[globalBuffer.global.directionalLightArrayIndex].directionalLights[directionalLightIndex];
+        vec4 x = directionalLight.absoluteDirection;
+    }
+
+    for(uint spotlightIndex = 0;spotlightIndex < globalBuffer.global.spotlightCount; spotlightIndex++) {
+        Spotlight spotlight = spotlightBuffer[globalBuffer.global.spotlightArrayIndex].spotlights[spotlightIndex];
+        vec4 x = spotlight.absolutePosition;
     }
 
     if (albedo.a < 0.33f) {

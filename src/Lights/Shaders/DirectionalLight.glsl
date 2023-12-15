@@ -1,3 +1,5 @@
+#include "../../Graphics/Shaders/StoreItemLocation.glsl"
+
 struct DirectionalLight {
 	mat4 perspective;
 	mat4 view;
@@ -6,5 +8,6 @@ struct DirectionalLight {
 	vec4 absoluteDirection;
 	vec4 absoluteUp;
 	vec4 shadowMapRect;
-	uint lightStateId;
+	StoreItemLocation lightStoreItemLocation;
+	StoreItemLocation spatialStoreItemLocation;
 };

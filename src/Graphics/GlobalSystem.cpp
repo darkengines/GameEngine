@@ -43,6 +43,28 @@ namespace drk::Graphics {
 		return spotlightCount;
 	}
 
+	void GlobalSystem::setPointLightBufferIndex(uint32_t pointLightBufferIndex) {
+		this->pointLightBufferIndex = pointLightBufferIndex;
+		GlobalSynchronizationState.Reset();
+	}
+	uint32_t GlobalSystem::getPointLightBufferIndex() {
+		return pointLightBufferIndex;
+	}
+	void GlobalSystem::setDirectionalLightBufferIndex(uint32_t directionalLightBufferIndex) {
+		this->directionalLightBufferIndex = directionalLightBufferIndex;
+		GlobalSynchronizationState.Reset();
+	}
+	uint32_t GlobalSystem::getDirectionalLightBufferIndex() {
+		return directionalLightBufferIndex;
+	}
+	void GlobalSystem::setSpotlightBufferIndex(uint32_t spotlightdBufferIndex) {
+		this->spotlightBufferIndex = spotlightdBufferIndex;
+		GlobalSynchronizationState.Reset();
+	}
+	uint32_t GlobalSystem::getSpotlightBufferIndex() {
+		return spotlightBufferIndex;
+	}
+
 	void GlobalSystem::Update() {
 		if (GlobalSynchronizationState.ShouldUpdate(EngineState.getFrameIndex())) {
 			const auto& camera = Registry.get<Stores::StoreItem<Cameras::Models::Camera>>(CameraEntity);
@@ -50,37 +72,44 @@ namespace drk::Graphics {
 			const auto frameIndex = EngineState.getFrameIndex();
 			const auto& frameStoreItem = camera.frameStoreItems[frameIndex];
 			auto& frameState = EngineState.getCurrentFrameState();
+
+			Engine::Models::Global global{};
+
 			Stores::Models::StoreItemLocation cameraItemLocation = {
 				.storeIndex = frameStoreItem.pStore->descriptorArrayElement,
 				.itemIndex = frameStoreItem.index
 			};
 
+			global.cameraItemIndex = cameraItemLocation.itemIndex;
+			global.cameraStoreIndex = cameraItemLocation.storeIndex;
+
 			auto pointLightStoreItems = Registry.view<Stores::StoreItem<Lights::Models::PointLight>>();
 			auto directionalLightStoreItems = Registry.view<Stores::StoreItem<Lights::Models::DirectionalLight>>();
 			auto spotlightStoreItems = Registry.view<Stores::StoreItem<Lights::Models::Spotlight>>();
 
-			for(const auto& entity: pointLightStoreItems) {
+			for (const auto& entity : pointLightStoreItems) {
 				auto pointLightStoreItem = Registry.get<Stores::StoreItem<Lights::Models::PointLight>>(entity);
-				frameState.Global->pointLightArrayIndex = pointLightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
+				global.pointLightArrayIndex = pointLightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
 				break;
 			}
-			frameState.Global->pointLightCount = pointLightCount;
+			global.pointLightCount = pointLightCount;
 
-			for(const auto& entity: directionalLightStoreItems) {
+			for (const auto& entity : directionalLightStoreItems) {
 				auto directionalLightStoreItem = Registry.get<Stores::StoreItem<Lights::Models::DirectionalLight>>(entity);
-				frameState.Global->directionalLightArrayIndex = directionalLightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
+				global.directionalLightArrayIndex = directionalLightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
 				break;
 			}
-			frameState.Global->directionalLightCount = directionalLightCount;
+			global.directionalLightCount = directionalLightCount;
 
-			for(const auto& entity: spotlightStoreItems) {
+			for (const auto& entity : spotlightStoreItems) {
 				auto spotlightStoreItem = Registry.get<Stores::StoreItem<Lights::Models::Spotlight>>(entity);
-				frameState.Global->spotlightArrayIndex = spotlightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
+				global.spotlightArrayIndex = spotlightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
 				break;
 			}
-			frameState.Global->spotlightCount = spotlightCount;
+			global.spotlightCount = spotlightCount;
 
-			frameState.Global->cameraItemLocation = cameraItemLocation;
+			*frameState.Global = global;
+
 			GlobalSynchronizationState.Update(frameIndex);
 		}
 	}

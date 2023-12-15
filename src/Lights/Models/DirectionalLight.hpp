@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <optional>
+#include "../../Stores/Models/StoreItemLocation.hpp"
 
 namespace drk::Lights::Models {
 	struct DirectionalLight {
@@ -13,5 +14,7 @@ namespace drk::Lights::Models {
 		glm::vec4 absoluteDirection;
 		glm::vec4 absoluteUp;
 		std::optional<glm::vec4> shadowMapRect;
+		Stores::Models::StoreItemLocation lightStoreItemLocation;
+		Stores::Models::StoreItemLocation spatialStoreItemLocation;
 	};
 }

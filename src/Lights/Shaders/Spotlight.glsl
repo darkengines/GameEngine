@@ -1,3 +1,5 @@
+#include "../../Graphics/Shaders/StoreItemLocation.glsl"
+
 struct Spotlight {
 	vec4 relativePosition;
 	vec4 relativeDirection;
@@ -14,4 +16,6 @@ struct Spotlight {
 	float linearAttenuation;
 	float quadraticAttenuation;
 	uint lightStateId;
+	StoreItemLocation lightStoreItemLocation;
+	StoreItemLocation spatialStoreItemLocation;
 };

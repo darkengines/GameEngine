@@ -12,9 +12,9 @@ namespace drk::Scenes::Renderers {
 		std::unique_ptr<Lines::LinePipeline> linePipeline
 	)
 		: deviceContext(deviceContext), registry(registry),
-		  meshPipeline(std::move(meshPipeline)),
-		  pointPrimitivePipeline(std::move(pointPrimitivePipeline)),
-		  linePipeline(std::move(linePipeline)) {}
+		meshPipeline(std::move(meshPipeline)),
+		pointPrimitivePipeline(std::move(pointPrimitivePipeline)),
+		linePipeline(std::move(linePipeline)) {}
 
 	SceneRenderer::~SceneRenderer() {
 		destroyFramebuffers();
@@ -122,7 +122,7 @@ namespace drk::Scenes::Renderers {
 			};
 			vk::FramebufferCreateInfo framebufferCreateInfo = {
 				.renderPass = renderPass,
-				.attachmentCount = (uint32_t) attachments.size(),
+				.attachmentCount = (uint32_t)attachments.size(),
 				.pAttachments = attachments.data(),
 				.width = targetImageInfo->extent.width,
 				.height = targetImageInfo->extent.height,
@@ -237,7 +237,7 @@ namespace drk::Scenes::Renderers {
 		vk::Rect2D scissor;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{targetImageInfo.extent.width, targetImageInfo.extent.height},
+			{ targetImageInfo.extent.width, targetImageInfo.extent.height },
 			viewport,
 			scissor
 		);
@@ -270,8 +270,8 @@ namespace drk::Scenes::Renderers {
 		vk::ClearValue depthClearValue{
 			.depthStencil = {1.0f, 0}
 		};
-		std::array<vk::ClearValue, 3> clearValues{colorClearValue, depthClearValue, colorClearValue};
-		auto extent = targetImageInfo.value().extent;
+		std::array<vk::ClearValue, 3> clearValues{ colorClearValue, depthClearValue, colorClearValue };
+		const auto& extent = targetImageInfo.value().extent;
 		vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
 			.renderPass = renderPass,
 			.framebuffer = framebuffers[targetImageIndex],
@@ -286,7 +286,7 @@ namespace drk::Scenes::Renderers {
 		commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
 
 		const auto& draws = registry.view<Draws::SceneDraw>();
-		std::optional<Draws::SceneDraw> previousSceneDraw;
+		const Draws::SceneDraw* previousSceneDraw = nullptr;
 		entt::entity previousDrawEntity = entt::null;
 
 		uint32_t instanceCount = 0u;
@@ -295,12 +295,14 @@ namespace drk::Scenes::Renderers {
 		pipelineDrawIndices[std::type_index(typeid(pointPrimitivePipeline))] = 0;
 		pipelineDrawIndices[std::type_index(typeid(meshPipeline))] = 0;
 		pipelineDrawIndices[std::type_index(typeid(linePipeline))] = 0;
+		bool isFirst = true;
 
 		draws.each(
 			[&](entt::entity drawEntity, const Draws::SceneDraw& sceneDraw) {
 				SceneRenderOperation operations = SceneRenderOperation::None;
-				if (!previousSceneDraw.has_value() ||
+				if (isFirst ||
 					previousSceneDraw->pipelineTypeIndex != sceneDraw.pipelineTypeIndex) {
+					isFirst = false;
 					operations |= SceneRenderOperation::BindPipeline;
 				}
 				if (previousDrawEntity == entt::null ||
@@ -313,11 +315,12 @@ namespace drk::Scenes::Renderers {
 				}
 				if (previousDrawEntity == entt::null) {
 					doOperations(commandBuffer, operations, sceneDraw);
-				} else {
+				}
+				else {
 					if (operations != SceneRenderOperation::None) {
 						draw(
 							previousDrawEntity,
-							previousSceneDraw.value(),
+							*previousSceneDraw,
 							commandBuffer,
 							instanceCount,
 							pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex]
@@ -331,7 +334,7 @@ namespace drk::Scenes::Renderers {
 						sceneDraw
 					);
 				}
-				previousSceneDraw = sceneDraw;
+				previousSceneDraw = &sceneDraw;
 				previousDrawEntity = drawEntity;
 				instanceCount++;
 			}
@@ -339,7 +342,7 @@ namespace drk::Scenes::Renderers {
 		if (previousDrawEntity != entt::null) {
 			this->draw(
 				previousDrawEntity,
-				previousSceneDraw.value(),
+				*previousSceneDraw,
 				commandBuffer,
 				instanceCount,
 				pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex]
@@ -367,7 +370,7 @@ namespace drk::Scenes::Renderers {
 	void SceneRenderer::doOperations(
 		const vk::CommandBuffer& commandBuffer,
 		SceneRenderOperation sceneRenderOperation,
-		Draws::SceneDraw sceneDraw
+		const Draws::SceneDraw& sceneDraw
 	) {
 		if ((sceneRenderOperation & SceneRenderOperation::BindPipeline) == SceneRenderOperation::BindPipeline) {
 			const auto& pipeline = getPipeline(sceneDraw.pipelineTypeIndex);
@@ -394,7 +397,7 @@ namespace drk::Scenes::Renderers {
 		deviceContext.device.destroyRenderPass(renderPass);
 	}
 	Devices::Texture
-	SceneRenderer::BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent) {
+		SceneRenderer::BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent) {
 		vk::ImageCreateInfo imageCreateInfo{
 			.imageType = vk::ImageType::e2D,
 			.format = vk::Format::eR8G8B8A8Srgb,
@@ -447,7 +450,7 @@ namespace drk::Scenes::Renderers {
 		vk::Rect2D scissor;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{extent.width, extent.height},
+			{ extent.width, extent.height },
 			viewport,
 			scissor
 		);

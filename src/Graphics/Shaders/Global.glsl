@@ -1,8 +1,12 @@
 #include "StoreItemLocation.glsl"
 
 struct Global {
-    StoreItemLocation cameraItemLocation;
-    uint pointLightCount;
-    uint directionalLightCount;
-    uint spotlightCount;
+	uint cameraStoreIndex;
+	uint cameraItemIndex;
+	uint pointLightArrayIndex;
+	uint pointLightCount;
+	uint directionalLightArrayIndex;
+	uint directionalLightCount;
+	uint spotlightArrayIndex;
+	uint spotlightCount;
 };

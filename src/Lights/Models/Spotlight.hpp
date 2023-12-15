@@ -2,6 +2,7 @@
 #include <glm/vec4.hpp>
 #include <optional>
 #include <glm/mat4x4.hpp>
+#include "../../Stores/Models/StoreItemLocation.hpp"
 
 namespace drk::Lights::Models {
 	struct Spotlight {
@@ -14,10 +15,14 @@ namespace drk::Lights::Models {
 		std::optional<glm::vec4> shadowMapRect;
 		glm::mat4 view;
 		glm::mat4 perspective;
+
 		float innerConeAngle;
 		float outerConeAngle;
 		float constantAttenuation;
 		float linearAttenuation;
 		float quadraticAttenuation;
+
+		Stores::Models::StoreItemLocation lightStoreItemLocation;
+		Stores::Models::StoreItemLocation spatialStoreItemLocation;
 	};
 }

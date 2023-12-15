@@ -13,11 +13,12 @@ namespace drk::Stores {
 	public:
 		uint32_t nextIndex;
 		uint32_t maxIndexCount;
+		uint32_t count;
 		std::queue<uint32_t> availableIndices;
 		uint32_t descriptorArrayElement;
 
 		GenericStoreBuffer(uint32_t maxIndexCount, uint32_t descriptorArrayElement, void *const pMappedMemory)
-			: maxIndexCount(maxIndexCount), descriptorArrayElement(descriptorArrayElement), pMappedMemory(pMappedMemory) {
+			: maxIndexCount(maxIndexCount), descriptorArrayElement(descriptorArrayElement), pMappedMemory(pMappedMemory), count(0) {
 			nextIndex = 0;
 		}
 		~GenericStoreBuffer() = default;
@@ -38,6 +39,7 @@ namespace drk::Stores {
 						"Failed to yield new index: maximum index count reached ({0}).",
 						maxIndexCount
 					));
+			count++;
 			return nextIndex++;
 		}
 
@@ -52,6 +54,7 @@ namespace drk::Stores {
 						));
 				availableIndices.push(index);
 			}
+			count--;
 			return 0;
 		}
 	};

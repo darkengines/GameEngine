@@ -12,10 +12,10 @@ namespace drk::Stores {
 	class GenericStore {
 	protected:
 		StoreBufferAllocator& storeAllocator;
-		std::vector<std::unique_ptr<GenericStoreBuffer>> stores;
 		uint32_t ItemPerBuffer;
 
 	public:
+		std::vector<std::unique_ptr<GenericStoreBuffer>> stores;
 		GenericStore(StoreBufferAllocator& storeBufferAllocator) :
 			storeAllocator(storeBufferAllocator),
 			ItemPerBuffer(131072u) /* todo: make this ItemPerBuffer(1024u) configurable */ {

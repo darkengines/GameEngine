@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
+if(MSVC)
+ target_compile_options(<target> PRIVATE "/MP")
+endif()
 
 project(drk CXX)
 set(CMAKE_CXX_STANDARD 20)
