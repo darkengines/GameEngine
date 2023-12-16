@@ -31,12 +31,12 @@ namespace drk::Lights::Systems {
 	}
 
 	void DirectionalLightSystem::ProcessDirtyItems() {
-		auto dirtyCameraView = registry.view<
+		auto dirtyDirectionalLightView = registry.view<
 			Components::DirectionalLight, 
 			Spatials::Components::Spatial, 
 			Objects::Dirty<Spatials::Components::Spatial>
 		>();
-		dirtyCameraView.each(
+		dirtyDirectionalLightView.each(
 			[&](
 				entt::entity directionalLightEntity,
 				Components::DirectionalLight& directionalLight,

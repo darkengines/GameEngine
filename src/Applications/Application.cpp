@@ -32,6 +32,7 @@ namespace drk::Applications {
 		Scenes::SceneSystem& sceneSystem,
 		Points::PointSystem& pointSystem,
 		Lines::LineSystem& lineSystem,
+		Lights::Systems::LightSystem& lightSystem,
 		Lights::Systems::PointLightSystem& pointLightSystem,
 		Lights::Systems::DirectionalLightSystem& directionalLightSystem,
 		Lights::Systems::SpotlightSystem& spotlightSystem,
@@ -57,6 +58,7 @@ namespace drk::Applications {
 		sceneSystem(sceneSystem),
 		pointSystem(pointSystem),
 		lineSystem(lineSystem),
+		lightSystem(lightSystem),
 		pointLightSystem(pointLightSystem),
 		directionalLightSystem(directionalLightSystem),
 		spotlightSystem(spotlightSystem),
@@ -356,6 +358,7 @@ namespace drk::Applications {
 				spatialSystem.Store();
 				objectSystem.Store();
 				cameraSystem.Store();
+				lightSystem.Store();
 				pointLightSystem.Store();
 				directionalLightSystem.Store();
 				spotlightSystem.Store();
@@ -366,6 +369,9 @@ namespace drk::Applications {
 				//Change propagations
 				spatialSystem.PropagateChanges();
 				cameraSystem.ProcessDirtyItems();
+				directionalLightSystem.ProcessDirtyItems();
+				pointLightSystem.ProcessDirtyItems();
+				spotlightSystem.ProcessDirtyItems();
 
 				//Store updates to GPU
 				materialSystem.UpdateStore();
@@ -375,6 +381,7 @@ namespace drk::Applications {
 				spatialSystem.UpdateStore();
 				objectSystem.UpdateStore();
 				cameraSystem.UpdateStore();
+				lightSystem.UpdateStore();
 				pointLightSystem.UpdateStore();
 				directionalLightSystem.UpdateStore();
 				spotlightSystem.UpdateStore();
@@ -447,81 +454,7 @@ namespace drk::Applications {
 		if (sceneTexture.has_value()) deviceContext.destroyTexture(sceneTexture.value());
 	}
 
-	void Application::renderEntities() {
-		const auto& relationships = registry.view<Objects::Relationship>();
-		relationships.each(
-			[this](entt::entity entity, Objects::Relationship& relationship) {
-				if (relationship.parent == entt::null) renderEntity(entity);
-			}
-		);
-	}
 
-	void Application::renderEntity(entt::entity entity) {
-		const auto& [relationship, object] = registry.get<Objects::Relationship, Objects::Object>(entity);
-		if (relationship.children.size() > 0) {
-			auto isOpen = ImGui::TreeNode(
-				(void*)entity,
-				fmt::format("{0}", object.Name).c_str()
-			);
-			if (ImGui::IsItemClicked()) {
-				selectedEntity = entity;
-			}
-			if (isOpen) {
-				for (const auto& childEntity : relationship.children) {
-					renderEntity(childEntity);
-				}
-				ImGui::TreePop();
-			}
-		}
-		else {
-			ImGui::Text(fmt::format("{0}", object.Name).c_str());
-			if (ImGui::IsItemClicked()) {
-				selectedEntity = entity;
-			}
-		}
-	}
-
-	void Application::renderProperties(entt::entity entity) {
-		ImGui::Begin("Properties");
-		for (auto&& curr : registry.storage()) {
-			entt::id_type id = curr.first;
-
-			if (auto& storage = curr.second; storage.contains(entity)) {
-				auto typeInfo = storage.type();
-				auto component = storage.find(entity);
-				ImGui::Text(typeInfo.name().data());
-				auto spatialComponentTypeId = entt::type_id<Spatials::Components::Spatial>();
-				if (typeInfo == spatialComponentTypeId) {
-					auto& spatial = registry.get<Spatials::Components::Spatial>(entity);
-					if (Spatials::Components::SpatialEditor::Spatial(spatial)) {
-						spatialSystem.MakeDirty(entity);
-					}
-				}
-			}
-		}
-		ImGui::End();
-	};
-
-	void Application::renderStorageBuffers() {
-		ImGui::Begin("StorageBuffers");
-		auto frameIndex = 0;
-		for (auto& frameState : engineState.frameStates) {
-			for (auto& store : frameState.Stores) {
-				for (auto& storeBuffer : store.second.get()->stores) {
-					ImGui::Text(
-						fmt::format(
-							"frame:{0}, type:{1}, buffer index:{2}, count:{3}",
-							frameIndex,
-							store.first.name(),
-							storeBuffer.get()->descriptorArrayElement,
-							storeBuffer.get()->count
-						).c_str());
-				}
-			}
-			frameIndex++;
-		}
-		ImGui::End();
-	};
 
 	void Application::OnWindowSizeChanged(uint32_t width, uint32_t height) {
 

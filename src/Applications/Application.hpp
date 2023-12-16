@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include "../Loaders/AssimpLoader.hpp"
 #include "../Devices/DeviceContext.hpp"
+#include "../Lights/Systems/LightSystem.hpp"
 #include "../Lights/Systems/PointLightSystem.hpp"
 #include "../Lights/Systems/SpotlightSystem.hpp"
 #include "../Lights/Systems/DirectionalLightSystem.hpp"
@@ -30,7 +31,7 @@
 namespace drk::Applications {
 	class Application {
 	public:
-		using boost_di_inject__ = boost::di::inject<
+		using boost_di_inject__ = boost::di::inject <
 			const Windows::Window&,
 			const Devices::DeviceContext&,
 			Engine::EngineState&,
@@ -51,11 +52,12 @@ namespace drk::Applications {
 			Scenes::SceneSystem&,
 			Points::PointSystem&,
 			Lines::LineSystem&,
+			Lights::Systems::LightSystem&,
 			Lights::Systems::PointLightSystem&,
 			Lights::Systems::DirectionalLightSystem&,
 			Lights::Systems::SpotlightSystem&,
 			UserInterfaces::AssetExplorer&
-		>;
+		> ;
 
 		Application(
 			const Windows::Window& window,
@@ -78,6 +80,7 @@ namespace drk::Applications {
 			Scenes::SceneSystem& sceneSystem,
 			Points::PointSystem& pointSystem,
 			Lines::LineSystem&,
+			Lights::Systems::LightSystem& lightSystem,
 			Lights::Systems::PointLightSystem& pointLightSystem,
 			Lights::Systems::DirectionalLightSystem& directionalLightSystem,
 			Lights::Systems::SpotlightSystem& spotlightSystem,
@@ -108,6 +111,7 @@ namespace drk::Applications {
 		Scenes::SceneSystem& sceneSystem;
 		Points::PointSystem& pointSystem;
 		Lines::LineSystem& lineSystem;
+		Lights::Systems::LightSystem& lightSystem;
 		Lights::Systems::PointLightSystem& pointLightSystem;
 		Lights::Systems::DirectionalLightSystem& directionalLightSystem;
 		Lights::Systems::SpotlightSystem& spotlightSystem;

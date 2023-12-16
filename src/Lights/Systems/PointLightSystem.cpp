@@ -1,5 +1,9 @@
-
 #include "PointLightSystem.hpp"
+#include "../../Spatials/Components/Spatial.hpp"
+#include "../../Objects/Dirty.hpp"
+#include <glm/gtx/quaternion.hpp>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 namespace drk::Lights::Systems {
 	PointLightSystem::PointLightSystem(
@@ -44,33 +48,20 @@ namespace drk::Lights::Systems {
 		model.spatialStoreItemLocation = spatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
 	}
 
-	void CameraSystem::ProcessDirtyItems() {
-		auto dirtyCameraView = registry.view<Components::Camera, Spatials::Components::Spatial, Objects::Dirty<Spatials::Components::Spatial>>();
-		dirtyCameraView.each(
+	void PointLightSystem::ProcessDirtyItems() {
+		auto dirtyPointLightView = registry.view<Components::PointLight, Spatials::Components::Spatial, Objects::Dirty<Spatials::Components::Spatial>>();
+		dirtyPointLightView.each(
 			[&](
-				entt::entity cameraEntity,
-				Components::Camera& camera,
+				entt::entity pointLightEntity,
+				Components::PointLight& pointLight,
 				Spatials::Components::Spatial& spatial,
 				Objects::Dirty<Spatials::Components::Spatial>& dirty
 				) {
-					camera.absolutePosition = spatial.absolutePosition;
+					pointLight.absolutePosition = spatial.absolutePosition;
 					auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
-					camera.absoluteFront = absoluteRotation * camera.relativeFront;
-					camera.absoluteUp = absoluteRotation * camera.relativeUp;
-					camera.view = glm::lookAt(
-						glm::make_vec3(camera.absolutePosition),
-						glm::make_vec3(camera.absolutePosition + camera.absoluteFront),
-						glm::make_vec3(camera.absoluteUp));
-					camera.perspective = glm::perspectiveZO(
-						camera.verticalFov,
-						camera.aspectRatio,
-						camera.near,
-						camera.far
-					);
-					camera.perspective[1][1] *= -1.0f;
 
-					registry.emplace_or_replace<Graphics::SynchronizationState<Models::Camera>>(
-						cameraEntity,
+					registry.emplace_or_replace<Graphics::SynchronizationState<Models::PointLight>>(
+						pointLightEntity,
 						static_cast<uint32_t>(engineState.getFrameCount())
 					);
 			}

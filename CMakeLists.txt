@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.14)
 
 project(drk CXX)
+
 set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(dependencies)
 file(
     GLOB SOURCES
     src/Applications/Application.cpp
+    src/Applications/Application.UserInterface.cpp
     src/Cameras/CameraSystem.cpp
     src/Common/Common.cpp
     src/Common/IndexGenerator.cpp
@@ -129,15 +131,15 @@ file(
     src/Graphics/SynchronizationState.hpp
     src/ImGui/imgui_stdlib.h
     src/Lights/Components/Spotlight.hpp
-    src/Lights/DirectionalLightSystem.hpp
+    src/Lights/Systems/DirectionalLightSystem.hpp
     src/Lights/Extensions.hpp
     src/Lights/Light.hpp
-    src/Lights/LightSystem.hpp
+    src/Lights/Systems/LightSystem.hpp
     src/Lights/Models/DirectionalLight.hpp
     src/Lights/Models/Spotlight.hpp
     src/Lights/PointLight.hpp
-    src/Lights/PointLightSystem.hpp
-    src/Lights/SpotlightSystem.hpp
+    src/Lights/Systems/PointLightSystem.hpp
+    src/Lights/Systems/SpotlightSystem.hpp
     src/Loaders/AssimpLoader.hpp
     src/Loaders/Extensions.hpp
     src/Loaders/LoadResult.hpp

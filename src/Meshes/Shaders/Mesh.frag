@@ -2,6 +2,8 @@
 #extension GL_EXT_nonuniform_qualifier: enable
 #extension GL_KHR_vulkan_glsl: enable
 
+const float PI = 3.14159265359;
+
 #include "MeshDraw.glsl"
 #include "MeshVertex.glsl"
 #include "Mesh.glsl"
@@ -12,9 +14,11 @@
 #include "../../Spatials/shaders/Spatial.glsl"
 #include "../../Objects/shaders/Object.glsl"
 #include "../../Cameras/shaders/Camera.glsl"
+#include "../../Lights/Shaders/Light.glsl"
 #include "../../Lights/Shaders/PointLight.glsl"
 #include "../../Lights/Shaders/DirectionalLight.glsl"
 #include "../../Lights/Shaders/Spotlight.glsl"
+#include "../../Lights/Shaders/Lights.glsl"
 
 layout (set = 0, binding = 0) uniform sampler2D textures[];
 layout (set = 1, binding = 0) readonly buffer drawLayout {
@@ -38,6 +42,9 @@ layout (set = 3, binding = 0) readonly buffer objectLayout {
 layout (set = 3, binding = 0) readonly buffer cameraLayout {
     Camera[] cameras;
 } cameraBuffer[];
+layout (set = 3, binding = 0) readonly buffer lightLayout {
+    Light[] lights;
+} lightBuffer[];
 layout (set = 3, binding = 0) readonly buffer pointLightLayout {
     PointLight[] pointLights;
 } pointLightBuffer[];
@@ -87,21 +94,62 @@ void main() {
 
     for(uint pointLightIndex = 0;pointLightIndex < globalBuffer.global.pointLightCount; pointLightIndex++) {
         PointLight pointLight = pointLightBuffer[globalBuffer.global.pointLightArrayIndex].pointLights[pointLightIndex];
-        vec4 x = pointLight.absolutePosition;
+        Light light = lightBuffer[pointLight.lightStoreItemLocation.storeIndex].lights[pointLight.lightStoreItemLocation.itemIndex];
+        Spatial pointLightSpatial = spatialBuffer[pointLight.spatialStoreItemLocation.storeIndex].spatials[pointLight.spatialStoreItemLocation.itemIndex];
+
+        vec3 lightPosition = (pointLightSpatial.absoluteModel * pointLight.absolutePosition).xyz;
+		float fragmentLightDistance = distance(lightPosition, point.position.xyz);
+		vec3 lightDirection = normalize(lightPosition - point.position.xyz);
+		float attenuation = 1.0 / (pointLight.constantAttenuation + pointLight.linearAttenuation * fragmentLightDistance + pointLight.quadraticAttenuation * fragmentLightDistance * fragmentLightDistance);
+				
+		color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz);
     }
 
     for(uint directionalLightIndex = 0;directionalLightIndex < globalBuffer.global.directionalLightCount; directionalLightIndex++) {
         DirectionalLight directionalLight = directionalLightBuffer[globalBuffer.global.directionalLightArrayIndex].directionalLights[directionalLightIndex];
-        vec4 x = directionalLight.absoluteDirection;
+        Light light = lightBuffer[directionalLight.lightStoreItemLocation.storeIndex].lights[directionalLight.lightStoreItemLocation.itemIndex];
+        Spatial directionalLightSpatial = spatialBuffer[directionalLight.spatialStoreItemLocation.storeIndex].spatials[directionalLight.spatialStoreItemLocation.itemIndex];
+
+        //vec4 directionalLightPosition = directionalLight.projection * directionalLight.view * point.position;
+		//vec4 shadowMap = texture(textures[0], lightPointPosition.xy * 0.5 + 0.5);
+
+		vec3 lightOrientation = normalize(mat3(directionalLightSpatial.absoluteModel) * vec3(directionalLight.absoluteDirection));
+		color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, -lightOrientation.xyz, 1, viewDirection.xyz);
+		//float shadowFactor = 1;
+
+		//if (lightPointPosition.z > shadowMap.r) {
+		//	shadowFactor *= 0.1;
+		//}
+
+		//color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, lightState.diffuseColor.rgb, -lightOrientation.xyz, 1, viewDirection.xyz) * shadowFactor;
     }
 
     for(uint spotlightIndex = 0;spotlightIndex < globalBuffer.global.spotlightCount; spotlightIndex++) {
         Spotlight spotlight = spotlightBuffer[globalBuffer.global.spotlightArrayIndex].spotlights[spotlightIndex];
-        vec4 x = spotlight.absolutePosition;
+        Light light = lightBuffer[spotlight.lightStoreItemLocation.storeIndex].lights[spotlight.lightStoreItemLocation.itemIndex];
+        Spatial spotlightSpatial = spatialBuffer[spotlight.spatialStoreItemLocation.storeIndex].spatials[spotlight.spatialStoreItemLocation.itemIndex];
+
+        vec3 lightPosition = (spotlightSpatial.absoluteModel * spotlightSpatial.absolutePosition).xyz;
+		vec3 lightOrientation = normalize(mat3(spotlightSpatial.absoluteModel) * vec3(spotlight.absoluteDirection));
+		vec3 lightDirection = normalize(lightPosition - point.position.xyz);
+
+		float orientationDotDirection = -dot(lightOrientation, lightDirection);
+		if (orientationDotDirection > cos(spotlight.outerConeAngle)) {
+			float attenuation = 1;
+			if (orientationDotDirection <= cos(spotlight.innerConeAngle)) {
+				attenuation = 1 - (acos(orientationDotDirection) - spotlight.innerConeAngle) / (spotlight.outerConeAngle - spotlight.innerConeAngle);
+			}
+
+			float fragmentLightDistance = distance(lightPosition, point.position.xyz);
+			attenuation *= 1.0 / (spotlight.constantAttenuation + spotlight.linearAttenuation * fragmentLightDistance + spotlight.quadraticAttenuation * fragmentLightDistance * fragmentLightDistance);
+			//vec3 radiance = attenuation * pointLightState.diffuseColor.rgb;
+
+			color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz);
+		}
     }
 
     if (albedo.a < 0.33f) {
         discard;
     }
-    outColor = albedo;
+    outColor = vec4(color, 1.0f);
 }
