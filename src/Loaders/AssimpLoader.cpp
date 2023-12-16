@@ -1,7 +1,7 @@
 #include "AssimpLoader.hpp"
 #include "../Lights/Components/PointLight.hpp"
 #include "../Geometries/AxisAlignedBoundingBox.hpp"
-#include "../Lights/Light.hpp"
+#include "../Lights/Components/Light.hpp"
 #include "../Cameras/Components/Camera.hpp"
 #include "../Spatials/Components/Spatial.hpp"
 #include "../Meshes/MeshGroup.hpp"
@@ -316,12 +316,12 @@ namespace drk::Loaders {
 				registry.emplace<Lights::Components::Spotlight>(entity, spotlight);
 				loadResult.spotlights.emplace_back(spotlight);
 			}
-			Lights::Light light = {
+			Lights::Components::Light light = {
 				{aiLight->mColorAmbient.r,  aiLight->mColorAmbient.g,  aiLight->mColorAmbient.b,  1},
 				{aiLight->mColorDiffuse.r,  aiLight->mColorDiffuse.g,  aiLight->mColorDiffuse.b,  1},
 				{aiLight->mColorSpecular.r, aiLight->mColorSpecular.g, aiLight->mColorSpecular.b, 1}
 			};
-			registry.emplace<Lights::Light>(entity, light);
+			registry.emplace<Lights::Components::Light>(entity, light);
 			lightNameMap[lightName] = {entity, aiLight->mType};
 		}
 	}

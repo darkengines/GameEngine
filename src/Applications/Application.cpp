@@ -32,9 +32,9 @@ namespace drk::Applications {
 		Scenes::SceneSystem& sceneSystem,
 		Points::PointSystem& pointSystem,
 		Lines::LineSystem& lineSystem,
-		Lights::PointLightSystem& pointLightSystem,
-		Lights::DirectionalLightSystem& directionalLightSystem,
-		Lights::SpotlightSystem& spotlightSystem,
+		Lights::Systems::PointLightSystem& pointLightSystem,
+		Lights::Systems::DirectionalLightSystem& directionalLightSystem,
+		Lights::Systems::SpotlightSystem& spotlightSystem,
 		UserInterfaces::AssetExplorer& assetExplorer
 	)
 		: window(window),

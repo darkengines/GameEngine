@@ -1,214 +1,212 @@
 cmake_minimum_required(VERSION 3.14)
-if(MSVC)
- target_compile_options(<target> PRIVATE "/MP")
-endif()
 
 project(drk CXX)
 set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(dependencies)
 file(
     GLOB SOURCES
-    src/main.cpp
-    src/Devices/Device.cpp
-    src/Meshes/Vertex.cpp
-    src/Meshes/Vertex.cpp
-    src/Textures/ImageInfo.cpp
-    src/Devices/Texture.cpp
-    src/Windows/Window.cpp
-    src/Geometries/Plane.cpp
-    src/Geometries/AxisAlignedBoundingBox.cpp
-    src/GlmExtensions.cpp
-    src/Graphics/Graphics.cpp
-    src/Devices/DeviceContext.cpp
+    src/Applications/Application.cpp
+    src/Cameras/CameraSystem.cpp
     src/Common/Common.cpp
+    src/Common/IndexGenerator.cpp
+    src/Controllers/FlyCamController.cpp
+    src/Devices/Device.cpp
+    src/Devices/DeviceContext.cpp
+    src/Devices/Image.cpp
+    src/Devices/Texture.cpp
+    src/Devices/VulkanInstanceConfiguration.cpp
+    src/Draws/DrawVertexBufferInfo.cpp 
+    src/Engine/DescriptorSetAllocator.cpp
+    src/Engine/DescriptorSetLayoutCache.cpp
+    src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.cpp
+    src/Engine/DescriptorSetLayouts.cpp
     src/Engine/EngineState.cpp
     src/Engine/FrameState.cpp
-    src/Stores/StoreBuffer.cpp
-    src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.cpp
-    src/Engine/DescriptorSetLayoutCache.cpp
-    src/Engine/DescriptorSetAllocator.cpp
-    src/Applications/Application.cpp
-    src/Loaders/AssimpLoader.cpp
-    src/Common/IndexGenerator.cpp
-    src/Textures/TextureSystem.cpp
-    src/Devices/Image.cpp
-    src/Meshes/MeshSystem.cpp
-    src/Materials/MaterialSystem.cpp
-    src/Spatials/SpatialSystem.cpp
-    src/Objects/ObjectSystem.cpp
-    src/Graphics/SynchronizationState.cpp
-    src/Stores/Store.cpp
-    src/Stores/StoreBufferAllocator.cpp
-    src/Objects/Dirty.cpp
-    src/Cameras/CameraSystem.cpp
-    src/Relationships/RelationshipSystem.cpp
-    src/Lights/SpotlightSystem.cpp
-    src/Stores/TextureStore.cpp
+    src/Geometries/AxisAlignedBoundingBox.cpp
+    src/Geometries/Plane.cpp
+    src/GlmExtensions.cpp
     src/Graphics/GlobalSystem.cpp
-    src/Controllers/FlyCamController.cpp
-    src/Lights/DirectionalLightSystem.cpp
-    src/Lights/LightSystem.cpp
-    src/Lights/PointLightSystem.cpp
-    src/ImGui/imgui_impl_vulkan.cpp
+    src/Graphics/Graphics.cpp
+    src/Graphics/SynchronizationState.cpp
     src/ImGui/imgui_impl_glfw.cpp
-    src/UserInterfaces/UserInterface.cpp
-    src/Devices/VulkanInstanceConfiguration.cpp
-    src/Points/PointPrimitivePipeline.cpp
-    src/Points/Models/PointVertex.cpp
-    src/Systems/System.cpp
-    src/Points/PointSystem.cpp
-    src/Engine/DescriptorSetLayouts.cpp
+    src/ImGui/imgui_impl_vulkan.cpp
+    src/ImGui/imgui_stdlib.cpp
+    src/Lights/SpotlightSystem.cpp
+    src/Lights/Systems/DirectionalLightSystem.cpp
+    src/Lights/Systems/LightSystem.cpp
+    src/Lights/Systems/PointLightSystem.cpp
+    src/Lights/Systems/SpotlightSystem.cpp
+    src/Lines/LinePipeline.cpp
+    src/Lines/LineSystem.cpp
+    src/Lines/Models/LineVertex.cpp
+    src/Loaders/AssimpLoader.cpp
+    src/Materials/MaterialSystem.cpp
+    src/Meshes/MeshSystem.cpp
     src/Meshes/Pipelines/MeshPipeline.cpp
+    src/Meshes/Vertex.cpp
+    src/Meshes/Vertex.cpp
+    src/Objects/Dirty.cpp
+    src/Objects/ObjectSystem.cpp
+    src/Points/Models/PointVertex.cpp
+    src/Points/PointPrimitivePipeline.cpp
+    src/Points/PointSystem.cpp
+    src/Relationships/RelationshipSystem.cpp
     src/Renderers/Renderer.cpp
     src/Scenes/Renderers/SceneRenderer.cpp
     src/Scenes/SceneSystem.cpp 
-    src/Draws/DrawVertexBufferInfo.cpp 
-    src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp 
     src/Spatials/Components/SpatialEditor.cpp 
+    src/Spatials/SpatialSystem.cpp
+    src/Stores/Store.cpp
+    src/Stores/StoreBuffer.cpp
+    src/Stores/StoreBufferAllocator.cpp
+    src/Stores/TextureStore.cpp
+    src/Systems/System.cpp
+    src/Textures/ImageInfo.cpp
+    src/Textures/TextureSystem.cpp
     src/UserInterfaces/AssetExplorer.cpp 
-    src/ImGui/imgui_stdlib.cpp
-    src/Lines/LinePipeline.cpp
-    src/Lines/Models/LineVertex.cpp
-    src/Lines/LineSystem.cpp
+    src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp 
+    src/UserInterfaces/UserInterface.cpp
+    src/Windows/Window.cpp
+    src/main.cpp
 )
 
 file(
     GLOB HEADERS
-    src/implemantations.hpp
+    src/Applications/Application.hpp
+    src/Applications/Extentions.hpp
+    src/Cameras/CameraSystem.hpp
+    src/Cameras/Components/Camera.hpp
+    src/Cameras/Extensions.hpp
+    src/Cameras/Models/Camera.hpp
+    src/Common/Common.hpp
+    src/Common/ComponentIndex.hpp
+    src/Common/IndexGenerator.hpp
+    src/Configuration/Extensions.hpp
+    src/Controllers/Extensions.hpp
+    src/Controllers/FlyCamController.hpp
+    src/Devices/Buffer.hpp
+    src/Devices/BufferUploadResult.hpp
+    src/Devices/BufferView.hpp
+    src/Devices/Device.hpp
     src/Devices/DeviceContext.hpp
+    src/Devices/DeviceImageInfo.hpp 
+    src/Devices/Extensions.hpp
+    src/Devices/Image.hpp
+    src/Devices/ImageInfo.hpp 
     src/Devices/QueueFamilyIndices.hpp
     src/Devices/SwapChainSupportDetails.hpp
-    src/Devices/VulkanLogicalDeviceInfo.hpp
-    src/Devices/Device.hpp
-    src/system.hpp
-    src/Meshes/Vertex.hpp
-    src/Meshes/Vertex.hpp
-    src/Textures/ImageInfo.hpp
-    src/Textures/TextureType.hpp
-    src/Common/ComponentIndex.hpp
-    src/Meshes/Components/MeshResource.hpp
-    src/Materials/Components/Material.hpp
-    src/Devices/Texture.hpp
-    src/Devices/BufferView.hpp
-    src/Devices/Buffer.hpp
     src/Devices/Swapchain.hpp
-    src/Windows/Window.hpp
-    src/Lights/Light.hpp
-    src/Cameras/Components/Camera.hpp
-    src/Spatials/Components/Spatial.hpp
-    src/Lights/Models/Spotlight.hpp
-    src/Lights/Components/Spotlight.hpp
-    src/Lights/PointLight.hpp
-    src/Lights/Models/DirectionalLight.hpp
-    src/Geometries/Plane.hpp
-    src/Geometries/AxisAlignedBoundingBox.hpp
-    src/Geometries/Frustum.cpp src/Geometries/Frustum.hpp
-    src/GlmExtensions.hpp
-    src/Graphics/Graphics.hpp
-    src/Common/Common.hpp
-    src/Engine/EngineState.hpp
-    src/Engine/FrameState.hpp
-    src/Stores/StoreBuffer.hpp
-    src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.hpp
-    src/Engine/DescriptorSetLayoutCache.hpp
-    src/Engine/DescriptorSetAllocator.hpp
-    src/Applications/Application.hpp
-    src/Loaders/AssimpLoader.hpp
-    src/Loaders/LoadResult.hpp
-    src/Common/IndexGenerator.hpp
-    src/Meshes/MeshGroup.hpp
-    src/Objects/Relationship.hpp
-    src/Textures/TextureSystem.hpp
-    src/Devices/Image.hpp
-    src/Meshes/MeshSystem.hpp
-    src/Materials/MaterialSystem.hpp
-    src/Devices/BufferUploadResult.hpp
-    src/Engine/MeshUploadResult.hpp
-    src/Meshes/Components/MeshBufferView.hpp
-    src/Graphics/SynchronizationState.hpp
-    src/Materials/Models/Material.hpp
-    src/Stores/StoreBufferAllocator.hpp
-    src/Stores/Store.hpp
-    src/Stores/StoreItem.hpp
-    src/Graphics/Draw.hpp
-    src/Graphics/Models/Draw.hpp
-    src/Meshes/Models/MeshDraw.hpp
-    src/Stores/Models/StoreItemLocation.hpp
-    src/Objects/Object.hpp
-    src/Draws/DrawCommand.hpp
-    src/Meshes/Models/Mesh.hpp
-    src/Objects/Models/Object.hpp
-    src/Objects/ObjectSystem.hpp
-    src/Spatials/SpatialSystem.hpp
-    src/Spatials/Models/Spatial.hpp
-    src/Objects/Dirty.hpp
-    src/Graphics/DrawSet.hpp
-    src/Graphics/DrawContext.hpp
-    src/Cameras/CameraSystem.hpp
-    src/Cameras/Models/Camera.hpp
-    src/Relationships/RelationshipSystem.hpp
-    src/Stores/StoreItemLocation.hpp
-    src/Engine/Models/Global.hpp
-    src/Lights/SpotlightSystem.hpp
-    src/Stores/TextureStore.hpp
-    src/Graphics/GlobalSystem.hpp
-    src/Controllers/FlyCamController.hpp
-    src/Lights/DirectionalLightSystem.hpp
-    src/Lights/LightSystem.hpp
-    src/Lights/PointLightSystem.hpp
-    src/UserInterfaces/UserInterface.hpp
-    src/Devices/Extensions.hpp
-    src/Windows/Extensions.hpp
-    src/Configuration/Extensions.hpp
-    src/Windows/WindowConfiguration.hpp
+    src/Devices/Texture.hpp
     src/Devices/VulkanInstanceConfiguration.hpp
-    src/Graphics/Extentions.hpp
-    src/Applications/Extentions.hpp
-    src/Cameras/Extensions.hpp
-    src/Lights/Extensions.hpp
-    src/Loaders/Extensions.hpp
-    src/Materials/Extensions.hpp
-    src/Meshes/Extensions.hpp
-    src/Objects/Extensions.hpp
-    src/Relationships/Extensions.hpp
-    src/Spatials/Extensions.hpp
-    src/Textures/Extensions.hpp
-    src/Controllers/Extensions.hpp
-    src/UserInterfaces/Extensions.hpp
-    src/Points/PointPrimitivePipeline.hpp
-    src/Points/Models/PointVertex.hpp
-    src/Points/Components/PointDraw.hpp
-    src/Points/Components/Point.hpp
-    src/Geometries/Primitives.hpp
-    src/Systems/System.hpp
-    src/Points/PointSystem.hpp
-    src/Points/Models/Point.hpp
+    src/Devices/VulkanLogicalDeviceInfo.hpp
     src/Draws/Draw.hpp
-    src/Points/Models/PointDraw.hpp
-    src/Draws/Extentions.hpp
-    src/Stores/Extensions.hpp
-    src/Engine/DescriptorSetLayouts.hpp
-    src/Engine/Extensions.hpp
-    src/Meshes/Components/Draw.hpp
-    src/Meshes/Pipelines/MeshPipeline.hpp
+    src/Draws/DrawCommand.hpp
     src/Draws/DrawSet.hpp
-    src/Scenes/Renderers/SceneRenderer.hpp
-    src/Pipelines/Pipeline.hpp
-    src/Renderers/Renderer.hpp
-    src/Scenes/SceneSystem.hpp 
-    src/Scenes/Draws/SceneDraw.hpp 
-    src/Meshes/Components/MeshDraw.hpp 
     src/Draws/DrawSystem.hpp 
     src/Draws/DrawVertexBufferInfo.hpp 
-    src/Devices/ImageInfo.hpp 
-    src/UserInterfaces/Renderers/UserInterfaceRenderer.hpp 
-    src/Devices/DeviceImageInfo.hpp 
-    src/Scenes/Renderers/SceneRenderOperation.hpp 
-    src/Spatials/Components/SpatialEditor.hpp 
-    src/UserInterfaces/AssetExplorer.hpp 
-    src/Materials/Components/MaterialCollection.hpp 
-    src/Meshes/Components/Mesh.hpp
+    src/Draws/Extentions.hpp
+    src/Engine/DescriptorSetAllocator.hpp
+    src/Engine/DescriptorSetLayoutCache.hpp
+    src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.hpp
+    src/Engine/DescriptorSetLayouts.hpp
+    src/Engine/EngineState.hpp
+    src/Engine/Extensions.hpp
+    src/Engine/FrameState.hpp
+    src/Engine/MeshUploadResult.hpp
+    src/Engine/Models/Global.hpp
+    src/Geometries/AxisAlignedBoundingBox.hpp
+    src/Geometries/Frustum.cpp src/Geometries/Frustum.hpp
+    src/Geometries/Plane.hpp
+    src/Geometries/Primitives.hpp
+    src/GlmExtensions.hpp
+    src/Graphics/Draw.hpp
+    src/Graphics/DrawContext.hpp
+    src/Graphics/DrawSet.hpp
+    src/Graphics/Extentions.hpp
+    src/Graphics/GlobalSystem.hpp
+    src/Graphics/Graphics.hpp
+    src/Graphics/Models/Draw.hpp
+    src/Graphics/SynchronizationState.hpp
     src/ImGui/imgui_stdlib.h
+    src/Lights/Components/Spotlight.hpp
+    src/Lights/DirectionalLightSystem.hpp
+    src/Lights/Extensions.hpp
+    src/Lights/Light.hpp
+    src/Lights/LightSystem.hpp
+    src/Lights/Models/DirectionalLight.hpp
+    src/Lights/Models/Spotlight.hpp
+    src/Lights/PointLight.hpp
+    src/Lights/PointLightSystem.hpp
+    src/Lights/SpotlightSystem.hpp
+    src/Loaders/AssimpLoader.hpp
+    src/Loaders/Extensions.hpp
+    src/Loaders/LoadResult.hpp
+    src/Materials/Components/Material.hpp
+    src/Materials/Components/MaterialCollection.hpp 
+    src/Materials/Extensions.hpp
+    src/Materials/MaterialSystem.hpp
+    src/Materials/Models/Material.hpp
+    src/Meshes/Components/Draw.hpp
+    src/Meshes/Components/Mesh.hpp
+    src/Meshes/Components/MeshBufferView.hpp
+    src/Meshes/Components/MeshDraw.hpp 
+    src/Meshes/Components/MeshResource.hpp
+    src/Meshes/Extensions.hpp
+    src/Meshes/MeshGroup.hpp
+    src/Meshes/MeshSystem.hpp
+    src/Meshes/Models/Mesh.hpp
+    src/Meshes/Models/MeshDraw.hpp
+    src/Meshes/Pipelines/MeshPipeline.hpp
+    src/Meshes/Vertex.hpp
+    src/Meshes/Vertex.hpp
+    src/Objects/Dirty.hpp
+    src/Objects/Extensions.hpp
+    src/Objects/Models/Object.hpp
+    src/Objects/Object.hpp
+    src/Objects/ObjectSystem.hpp
+    src/Objects/Relationship.hpp
+    src/Pipelines/Pipeline.hpp
+    src/Points/Components/Point.hpp
+    src/Points/Components/PointDraw.hpp
+    src/Points/Models/Point.hpp
+    src/Points/Models/PointDraw.hpp
+    src/Points/Models/PointVertex.hpp
+    src/Points/PointPrimitivePipeline.hpp
+    src/Points/PointSystem.hpp
+    src/Relationships/Extensions.hpp
+    src/Relationships/RelationshipSystem.hpp
+    src/Renderers/Renderer.hpp
+    src/Scenes/Draws/SceneDraw.hpp 
+    src/Scenes/Renderers/SceneRenderOperation.hpp 
+    src/Scenes/Renderers/SceneRenderer.hpp
+    src/Scenes/SceneSystem.hpp 
+    src/Spatials/Components/Spatial.hpp
+    src/Spatials/Components/SpatialEditor.hpp 
+    src/Spatials/Extensions.hpp
+    src/Spatials/Models/Spatial.hpp
+    src/Spatials/SpatialSystem.hpp
+    src/Stores/Extensions.hpp
+    src/Stores/Models/StoreItemLocation.hpp
+    src/Stores/Store.hpp
+    src/Stores/StoreBuffer.hpp
+    src/Stores/StoreBufferAllocator.hpp
+    src/Stores/StoreItem.hpp
+    src/Stores/StoreItemLocation.hpp
+    src/Stores/TextureStore.hpp
+    src/Systems/System.hpp
+    src/Textures/Extensions.hpp
+    src/Textures/ImageInfo.hpp
+    src/Textures/TextureSystem.hpp
+    src/Textures/TextureType.hpp
+    src/UserInterfaces/AssetExplorer.hpp 
+    src/UserInterfaces/Extensions.hpp
+    src/UserInterfaces/Renderers/UserInterfaceRenderer.hpp 
+    src/UserInterfaces/UserInterface.hpp
+    src/Windows/Extensions.hpp
+    src/Windows/Window.hpp
+    src/Windows/WindowConfiguration.hpp
+    src/implemantations.hpp
+    src/system.hpp
 )
 
 file(
@@ -238,7 +236,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/Lights/Components/DirectionalLight.hpp)
+add_executable(drk ${HEADERS} ${SOURCES})
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 

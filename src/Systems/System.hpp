@@ -30,42 +30,11 @@ namespace drk::Systems {
 		void UpdateStore() {
 			auto updater = [this](TModel& model, const TComponents&... components) {
 				this->Update(model, components...);
-			};
+				};
 			Graphics::SynchronizationState<TModel>::template Update<TComponents...>(
 				registry,
 				engineState.getFrameIndex(),
 				updater
-			);
-		}
-	};
-
-	template<typename TDrawModel, typename ...TComponents>
-	class DrawSystem {
-	protected:
-		Engine::EngineState& engineState;
-		entt::registry& registry;
-
-	public:
-		DrawSystem(Engine::EngineState& engineState, entt::registry& registry)
-			: engineState(engineState), registry(registry) {}
-		virtual void Update(TDrawModel& model, const TComponents& ... components) = 0;
-		void Store() {
-			auto componentView = registry.view<TComponents>(entt::exclude<Stores::StoreItem<TDrawModel>>);
-			auto drawModelStoreStore = engineState.frameStates[engineState.frameIndex].getUniformStore<TDrawModel>();
-			auto drawIndex = 0u;
-			componentView.each(
-				[&drawModelStoreStore, &drawIndex, this](
-					const entt::entity& entity,
-					const TComponents& ... components
-					)
-				{
-					auto& pointDrawStoreItem = drawModelStoreStore->Get(drawIndex);
-					registry.emplace<TDrawModel>(
-						entity,
-						pointDrawStoreItem
-					);
-					drawIndex++;
-				}
 			);
 		}
 	};

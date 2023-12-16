@@ -3,9 +3,9 @@
 #include <GLFW/glfw3.h>
 #include "../Loaders/AssimpLoader.hpp"
 #include "../Devices/DeviceContext.hpp"
-#include "../Lights/PointLightSystem.hpp"
-#include "../Lights/SpotlightSystem.hpp"
-#include "../Lights/DirectionalLightSystem.hpp"
+#include "../Lights/Systems/PointLightSystem.hpp"
+#include "../Lights/Systems/SpotlightSystem.hpp"
+#include "../Lights/Systems/DirectionalLightSystem.hpp"
 #include "../Graphics/Graphics.hpp"
 #include "../Windows/Window.hpp"
 #include "../Engine/EngineState.hpp"
@@ -51,9 +51,9 @@ namespace drk::Applications {
 			Scenes::SceneSystem&,
 			Points::PointSystem&,
 			Lines::LineSystem&,
-			Lights::PointLightSystem&,
-			Lights::DirectionalLightSystem&,
-			Lights::SpotlightSystem&,
+			Lights::Systems::PointLightSystem&,
+			Lights::Systems::DirectionalLightSystem&,
+			Lights::Systems::SpotlightSystem&,
 			UserInterfaces::AssetExplorer&
 		>;
 
@@ -78,9 +78,9 @@ namespace drk::Applications {
 			Scenes::SceneSystem& sceneSystem,
 			Points::PointSystem& pointSystem,
 			Lines::LineSystem&,
-			Lights::PointLightSystem& pointLightSystem,
-			Lights::DirectionalLightSystem& directionalLightSystem,
-			Lights::SpotlightSystem& spotlightSystem,
+			Lights::Systems::PointLightSystem& pointLightSystem,
+			Lights::Systems::DirectionalLightSystem& directionalLightSystem,
+			Lights::Systems::SpotlightSystem& spotlightSystem,
 			UserInterfaces::AssetExplorer& assetExplorer
 		);
 		~Application();
@@ -108,9 +108,9 @@ namespace drk::Applications {
 		Scenes::SceneSystem& sceneSystem;
 		Points::PointSystem& pointSystem;
 		Lines::LineSystem& lineSystem;
-		Lights::PointLightSystem& pointLightSystem;
-		Lights::DirectionalLightSystem& directionalLightSystem;
-		Lights::SpotlightSystem& spotlightSystem;
+		Lights::Systems::PointLightSystem& pointLightSystem;
+		Lights::Systems::DirectionalLightSystem& directionalLightSystem;
+		Lights::Systems::SpotlightSystem& spotlightSystem;
 		entt::entity selectedEntity = entt::null;
 		UserInterfaces::AssetExplorer& assetExplorer;
 

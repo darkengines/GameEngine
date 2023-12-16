@@ -48,7 +48,7 @@ void main() {
     Object object = objectBuffer[draw.objectItemLocation.storeIndex].objects[draw.objectItemLocation.itemIndex];
     Material material = materialBuffer[line.materialItemLocation.storeIndex].materials[line.materialItemLocation.itemIndex];
     Spatial spatial = spatialBuffer[object.spatialItemLocation.storeIndex].spatials[object.spatialItemLocation.itemIndex];
-    Camera camera = cameraBuffer[globalBuffer.global.cameraItemLocation.storeIndex].cameras[globalBuffer.global.cameraItemLocation.itemIndex];
+    Camera camera = cameraBuffer[globalBuffer.global.cameraStoreIndex].cameras[globalBuffer.global.cameraItemIndex];
 
     vec4 normal = fragment.normal;
     if (material.hasNormalMap) {

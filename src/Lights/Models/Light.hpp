@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/vec4.hpp>
 
-namespace drk::Lights {
+namespace drk::Lights::Models {
 	struct Light {
 		glm::vec4 ambientColor;
 		glm::vec4 diffuseColor;
