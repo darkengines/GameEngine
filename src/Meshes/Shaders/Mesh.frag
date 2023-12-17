@@ -97,12 +97,12 @@ void main() {
         Light light = lightBuffer[pointLight.lightStoreItemLocation.storeIndex].lights[pointLight.lightStoreItemLocation.itemIndex];
         Spatial pointLightSpatial = spatialBuffer[pointLight.spatialStoreItemLocation.storeIndex].spatials[pointLight.spatialStoreItemLocation.itemIndex];
 
-        vec3 lightPosition = (pointLightSpatial.absoluteModel * pointLight.absolutePosition).xyz;
+        vec3 lightPosition = pointLightSpatial.absolutePosition.xyz;
 		float fragmentLightDistance = distance(lightPosition, point.position.xyz);
 		vec3 lightDirection = normalize(lightPosition - point.position.xyz);
 		float attenuation = 1.0 / (pointLight.constantAttenuation + pointLight.linearAttenuation * fragmentLightDistance + pointLight.quadraticAttenuation * fragmentLightDistance * fragmentLightDistance);
 				
-		color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz);
+		color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.ambientColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz);
     }
 
     for(uint directionalLightIndex = 0;directionalLightIndex < globalBuffer.global.directionalLightCount; directionalLightIndex++) {
@@ -113,8 +113,8 @@ void main() {
         //vec4 directionalLightPosition = directionalLight.projection * directionalLight.view * point.position;
 		//vec4 shadowMap = texture(textures[0], lightPointPosition.xy * 0.5 + 0.5);
 
-		vec3 lightOrientation = normalize(mat3(directionalLightSpatial.absoluteModel) * vec3(directionalLight.absoluteDirection));
-		color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, -lightOrientation.xyz, 1, viewDirection.xyz);
+		vec3 lightOrientation = normalize(directionalLightSpatial.absoluteRotation.xyz * directionalLight.absoluteDirection.xyz);
+		color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.ambientColor.rgb, -lightOrientation.xyz, 1, viewDirection.xyz);
 		//float shadowFactor = 1;
 
 		//if (lightPointPosition.z > shadowMap.r) {
@@ -129,8 +129,8 @@ void main() {
         Light light = lightBuffer[spotlight.lightStoreItemLocation.storeIndex].lights[spotlight.lightStoreItemLocation.itemIndex];
         Spatial spotlightSpatial = spatialBuffer[spotlight.spatialStoreItemLocation.storeIndex].spatials[spotlight.spatialStoreItemLocation.itemIndex];
 
-        vec3 lightPosition = (spotlightSpatial.absoluteModel * spotlightSpatial.absolutePosition).xyz;
-		vec3 lightOrientation = normalize(mat3(spotlightSpatial.absoluteModel) * vec3(spotlight.absoluteDirection));
+        vec3 lightPosition = spotlightSpatial.absolutePosition.xyz;
+		vec3 lightOrientation = normalize(spotlightSpatial.absoluteRotation.xyz * spotlight.absoluteDirection.xyz);
 		vec3 lightDirection = normalize(lightPosition - point.position.xyz);
 
 		float orientationDotDirection = -dot(lightOrientation, lightDirection);
@@ -144,7 +144,7 @@ void main() {
 			attenuation *= 1.0 / (spotlight.constantAttenuation + spotlight.linearAttenuation * fragmentLightDistance + spotlight.quadraticAttenuation * fragmentLightDistance * fragmentLightDistance);
 			//vec3 radiance = attenuation * pointLightState.diffuseColor.rgb;
 
-			color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz);
+			color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.ambientColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz);
 		}
     }
 

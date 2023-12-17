@@ -1,13 +1,11 @@
 #include "Application.hpp"
 #include "../Objects/Dirty.hpp"
 #include <iostream>
-#include "../Spatials/Components/SpatialEditor.hpp"
 #include <entt/entt.hpp>
 #include <stack>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 #include <imgui.h>
-#include <imfilebrowser.h>
 #include <chrono>
 
 namespace drk::Applications {
