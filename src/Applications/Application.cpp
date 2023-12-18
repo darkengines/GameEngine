@@ -335,9 +335,7 @@ namespace drk::Applications {
 					fileBrowser.Display();
 					if (fileBrowser.HasSelected()) {
 						auto loadResult = loader.Load(fileBrowser.GetSelected(), registry);
-						globalSystem.setPointLightCount(loadResult.pointLights.size());
-						globalSystem.setDirectionalLightCount(loadResult.directionalLights.size());
-						globalSystem.setSpotlightCount(loadResult.spotlights.size());
+						globalSystem.GlobalSynchronizationState.Reset();
 						loadResults.emplace_back(std::move(loadResult));
 						fileBrowser.ClearSelected();
 					}
@@ -370,6 +368,8 @@ namespace drk::Applications {
 				directionalLightSystem.ProcessDirtyItems();
 				pointLightSystem.ProcessDirtyItems();
 				spotlightSystem.ProcessDirtyItems();
+
+				meshSystem.ProcessDirtyDraws();
 
 				//Store updates to GPU
 				materialSystem.UpdateStore();

@@ -102,7 +102,7 @@ void main() {
 		vec3 lightDirection = normalize(lightPosition - point.position.xyz);
 		float attenuation = 1.0 / (pointLight.constantAttenuation + pointLight.linearAttenuation * fragmentLightDistance + pointLight.quadraticAttenuation * fragmentLightDistance * fragmentLightDistance);
 				
-		color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.ambientColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz);
+		color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz);
     }
 
     for(uint directionalLightIndex = 0;directionalLightIndex < globalBuffer.global.directionalLightCount; directionalLightIndex++) {
@@ -114,7 +114,7 @@ void main() {
 		//vec4 shadowMap = texture(textures[0], lightPointPosition.xy * 0.5 + 0.5);
 
 		vec3 lightOrientation = normalize(directionalLightSpatial.absoluteRotation.xyz * directionalLight.absoluteDirection.xyz);
-		color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.ambientColor.rgb, -lightOrientation.xyz, 1, viewDirection.xyz);
+		color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, -lightOrientation.xyz, 1, viewDirection.xyz);
 		//float shadowFactor = 1;
 
 		//if (lightPointPosition.z > shadowMap.r) {
@@ -144,12 +144,17 @@ void main() {
 			attenuation *= 1.0 / (spotlight.constantAttenuation + spotlight.linearAttenuation * fragmentLightDistance + spotlight.quadraticAttenuation * fragmentLightDistance * fragmentLightDistance);
 			//vec3 radiance = attenuation * pointLightState.diffuseColor.rgb;
 
-			color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.ambientColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz);
+			color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz);
 		}
     }
 
-    if (albedo.a < 0.33f) {
-        discard;
-    }
-    outColor = vec4(color, 1.0f);
+//    if (albedo.a < 0.33f) {
+//        discard;
+//    }
+    //outColor = albedo;
+    float exposure = 1;
+
+	color = vec3(1.0) - exp(-color * exposure);
+    outColor = vec4(pow(color.rgb, vec3(1/gamma)), albedo.a);
+    //outColor = vec4(color, albedo.a);
 }

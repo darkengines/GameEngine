@@ -31,8 +31,9 @@ namespace drk::Meshes {
 		void UpdateDraws() { throw std::runtime_error("Not supported"); }
 		Draws::DrawVertexBufferInfo GetVertexBufferInfo(entt::entity drawEntity);
 		static entt::entity
-		copyMeshEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
+			copyMeshEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
 		static MeshGroup
-		copyMeshGroup(const entt::registry& source, entt::registry& destination, const MeshGroup& sourceMeshGroup);
+			copyMeshGroup(const entt::registry& source, entt::registry& destination, const MeshGroup& sourceMeshGroup);
+		void ProcessDirtyDraws();
 	};
 }

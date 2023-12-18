@@ -24,7 +24,7 @@ namespace drk::Lights::Systems {
 		model.relativeUp = directionalLight.relativeUp;
 		model.absoluteDirection = directionalLight.absoluteDirection;
 		model.absoluteUp = directionalLight.absoluteUp;
-		model.shadowMapRect = directionalLight.shadowMapRect;
+		model.shadowMapRect = directionalLight.shadowMapRect.value_or(glm::zero<glm::vec4>());
 
 		model.lightStoreItemLocation = lightStoreItem.frameStoreItems[engineState.getFrameIndex()];
 		model.spatialStoreItemLocation = spatialStoreItem.frameStoreItems[engineState.getFrameIndex()];

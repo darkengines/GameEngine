@@ -4,6 +4,9 @@
 #include "../Engine/EngineState.hpp"
 #include <entt/entity/entity.hpp>
 #include "../Cameras/Models/Camera.hpp"
+#include "../Lights/Systems/DirectionalLightSystem.hpp";
+#include "../Lights/Systems/PointLightSystem.hpp";
+#include "../Lights/Systems/SpotlightSystem.hpp";
 
 namespace drk::Graphics {
 	class GlobalSystem {
@@ -11,30 +14,27 @@ namespace drk::Graphics {
 		Engine::EngineState& EngineState;
 		entt::registry& Registry;
 		entt::entity CameraEntity;
+		Lights::Systems::DirectionalLightSystem& directionalLightSystem;
+		Lights::Systems::SpotlightSystem& spotlightSystem;
+		Lights::Systems::PointLightSystem& pointLightSystem;
 		uint32_t pointLightBufferIndex;
 		uint32_t pointLightCount;
 		uint32_t directionalLightCount;
 		uint32_t directionalLightBufferIndex;
 		uint32_t spotlightCount;
 		uint32_t spotlightBufferIndex;
-		SynchronizationState<Engine::Models::Global> GlobalSynchronizationState;
 	public:
-		GlobalSystem(Engine::EngineState& engineState, entt::registry& registry);
+		SynchronizationState<Engine::Models::Global> GlobalSynchronizationState;
+		GlobalSystem(
+			Engine::EngineState& engineState,
+			entt::registry& registry,
+			Lights::Systems::DirectionalLightSystem& directionalLightSystem,
+			Lights::Systems::SpotlightSystem& spotlightSystem,
+			Lights::Systems::PointLightSystem& pointLightSystem
+		);
 
 		void SetCamera(entt::entity cameraEntity);
 
 		void Update();
-		void setPointLightCount(uint32_t pointLightCount);
-		uint32_t getPointLightCount();
-		void setDirectionalLightCount(uint32_t directionalLightCount);
-		uint32_t getDirectionalLightCount();
-		void setSpotlightCount(uint32_t spotlightCount);
-		uint32_t getSpotlightCount();
-		void setPointLightBufferIndex(uint32_t pointLightCount);
-		uint32_t getPointLightBufferIndex();
-		void setDirectionalLightBufferIndex(uint32_t directionalLightCount);
-		uint32_t getDirectionalLightBufferIndex();
-		void setSpotlightBufferIndex(uint32_t spotlightCount);
-		uint32_t getSpotlightBufferIndex();
 	};
 }

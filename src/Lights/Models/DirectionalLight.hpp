@@ -13,7 +13,7 @@ namespace drk::Lights::Models {
 		glm::vec4 relativeUp;
 		glm::vec4 absoluteDirection;
 		glm::vec4 absoluteUp;
-		std::optional<glm::vec4> shadowMapRect;
+		glm::vec4 shadowMapRect;
 		Stores::Models::StoreItemLocation lightStoreItemLocation;
 		Stores::Models::StoreItemLocation spatialStoreItemLocation;
 	};

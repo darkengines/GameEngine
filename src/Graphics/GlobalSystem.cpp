@@ -1,12 +1,19 @@
 #include "GlobalSystem.hpp"
-#include "../Lights/Models/PointLight.hpp"
-#include "../Lights/Models/DirectionalLight.hpp"
-#include "../Lights/Models/Spotlight.hpp"
 
 namespace drk::Graphics {
 
-	GlobalSystem::GlobalSystem(Engine::EngineState& engineState, entt::registry& registry)
-		: EngineState(engineState), Registry(registry), GlobalSynchronizationState(EngineState.getFrameCount()) {
+	GlobalSystem::GlobalSystem(
+		Engine::EngineState& engineState,
+		entt::registry& registry,
+		Lights::Systems::DirectionalLightSystem& directionalLightSystem,
+		Lights::Systems::SpotlightSystem& spotlightSystem,
+		Lights::Systems::PointLightSystem& pointLightSystem
+	) : EngineState(engineState),
+		Registry(registry),
+		GlobalSynchronizationState(EngineState.getFrameCount()),
+		directionalLightSystem(directionalLightSystem),
+		spotlightSystem(spotlightSystem),
+		pointLightSystem(pointLightSystem) {
 
 	}
 
@@ -14,55 +21,6 @@ namespace drk::Graphics {
 		CameraEntity = cameraEntity;
 		EngineState.CameraEntity = CameraEntity;
 		GlobalSynchronizationState.Reset();
-	}
-
-	void GlobalSystem::setPointLightCount(uint32_t pointLightCount) {
-		this->pointLightCount = pointLightCount;
-		GlobalSynchronizationState.Reset();
-	}
-
-	uint32_t GlobalSystem::getPointLightCount() {
-		return pointLightCount;
-	}
-
-	void GlobalSystem::setDirectionalLightCount(uint32_t directionalLightCount) {
-		this->directionalLightCount = directionalLightCount;
-		GlobalSynchronizationState.Reset();
-	}
-
-	uint32_t GlobalSystem::getDirectionalLightCount() {
-		return directionalLightCount;
-	}
-
-	void GlobalSystem::setSpotlightCount(uint32_t spotlightCount) {
-		this->spotlightCount = spotlightCount;
-		GlobalSynchronizationState.Reset();
-	}
-
-	uint32_t GlobalSystem::getSpotlightCount() {
-		return spotlightCount;
-	}
-
-	void GlobalSystem::setPointLightBufferIndex(uint32_t pointLightBufferIndex) {
-		this->pointLightBufferIndex = pointLightBufferIndex;
-		GlobalSynchronizationState.Reset();
-	}
-	uint32_t GlobalSystem::getPointLightBufferIndex() {
-		return pointLightBufferIndex;
-	}
-	void GlobalSystem::setDirectionalLightBufferIndex(uint32_t directionalLightBufferIndex) {
-		this->directionalLightBufferIndex = directionalLightBufferIndex;
-		GlobalSynchronizationState.Reset();
-	}
-	uint32_t GlobalSystem::getDirectionalLightBufferIndex() {
-		return directionalLightBufferIndex;
-	}
-	void GlobalSystem::setSpotlightBufferIndex(uint32_t spotlightdBufferIndex) {
-		this->spotlightBufferIndex = spotlightdBufferIndex;
-		GlobalSynchronizationState.Reset();
-	}
-	uint32_t GlobalSystem::getSpotlightBufferIndex() {
-		return spotlightBufferIndex;
 	}
 
 	void GlobalSystem::Update() {
@@ -92,21 +50,21 @@ namespace drk::Graphics {
 				global.pointLightArrayIndex = pointLightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
 				break;
 			}
-			global.pointLightCount = pointLightCount;
+			global.pointLightCount = pointLightSystem.getItemCount();
 
 			for (const auto& entity : directionalLightStoreItems) {
 				auto directionalLightStoreItem = Registry.get<Stores::StoreItem<Lights::Models::DirectionalLight>>(entity);
 				global.directionalLightArrayIndex = directionalLightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
 				break;
 			}
-			global.directionalLightCount = directionalLightCount;
+			global.directionalLightCount = directionalLightSystem.getItemCount();
 
 			for (const auto& entity : spotlightStoreItems) {
 				auto spotlightStoreItem = Registry.get<Stores::StoreItem<Lights::Models::Spotlight>>(entity);
 				global.spotlightArrayIndex = spotlightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
 				break;
 			}
-			global.spotlightCount = spotlightCount;
+			global.spotlightCount = spotlightSystem.getItemCount();
 
 			*frameState.Global = global;
 

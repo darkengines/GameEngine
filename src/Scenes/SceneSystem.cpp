@@ -21,9 +21,9 @@ namespace drk::Scenes {
 
 				if (leftDraw.hasTransparency && rightDraw.hasTransparency) {
 					if (leftDraw.depth < rightDraw.depth)
-						return true;
-					if (leftDraw.depth > rightDraw.depth)
 						return false;
+					if (leftDraw.depth > rightDraw.depth)
+						return true;
 				}
 
 				if (leftDraw.drawSystem < rightDraw.drawSystem)

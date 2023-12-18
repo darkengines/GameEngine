@@ -14,6 +14,7 @@
 #include "Components/MeshDraw.hpp"
 #include "../Materials/MaterialSystem.hpp"
 #include <algorithm>
+#include "../Objects/Dirty.hpp"
 
 namespace drk::Meshes {
 
@@ -125,6 +126,20 @@ namespace drk::Meshes {
 			);
 		}
 		return hasEntities;
+	}
+	void MeshSystem::ProcessDirtyDraws() {
+		if (registry.try_get<Objects::Dirty<Spatials::Components::Spatial>>(engineState.CameraEntity) != nullptr) {
+			auto camera = registry.get<Cameras::Components::Camera>(engineState.CameraEntity);
+			auto view = registry.view<Components::MeshDrawCollection>();
+			view.each([&](entt::entity meshDrawCollectionEntity, const Components::MeshDrawCollection& meshDrawCollection) {
+				const auto& spatial = registry.get<Spatials::Components::Spatial>(meshDrawCollectionEntity);
+				for (entt::entity meshDrawEntity : meshDrawCollection.meshDrawEntities) {
+					auto& meshDraw = registry.get<Scenes::Draws::SceneDraw>(meshDrawEntity);
+					meshDraw.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition);
+					registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(meshDrawEntity, engineState.getFrameCount());
+				}
+			});
+		}
 	}
 	Draws::DrawVertexBufferInfo MeshSystem::GetVertexBufferInfo(entt::entity drawEntity) {
 		auto meshDraw = registry.get<Components::MeshDraw>(drawEntity);
