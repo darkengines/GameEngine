@@ -140,6 +140,7 @@ file(
     src/Lights/Components/DirectionalLight.hpp
     src/Lights/Components/Light.hpp
     src/Lights/Components/LightPerspective.hpp
+    src/Lights/Components/LightPerspectiveCollection.hpp
     src/Lights/Extensions.hpp
     src/Lights/Models/Light.hpp
     src/Lights/Models/DirectionalLight.hpp

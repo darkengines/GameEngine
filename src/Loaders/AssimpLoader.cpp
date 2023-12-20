@@ -1,4 +1,5 @@
 #include "AssimpLoader.hpp"
+#include "../GlmExtensions.hpp"
 #include "../Lights/Components/PointLight.hpp"
 #include "../Geometries/AxisAlignedBoundingBox.hpp"
 #include "../Lights/Components/Light.hpp"
@@ -15,6 +16,8 @@
 #include "../Meshes/Components/Mesh.hpp"
 #include "../Lights/Components/Spotlight.hpp"
 #include "../Lights/Components/DirectionalLight.hpp"
+#include "../Lights/Components/LightPerspective.hpp"
+#include "../Lights/Components/LightPerspectiveCollection.hpp"
 
 namespace drk::Loaders {
 	AssimpLoader::AssimpLoader() {}
@@ -82,15 +85,16 @@ namespace drk::Loaders {
 								int textureIndex = 0;
 								sscanf_s(texturePath, "*%d", &textureIndex);
 								auto aiTexture = aiTextures[textureIndex];
-								std::span<unsigned char> data((unsigned char*) aiTexture->pcData, aiTexture->mWidth);
+								std::span<unsigned char> data((unsigned char*)aiTexture->pcData, aiTexture->mWidth);
 								image = Textures::ImageInfo::fromMemory(
 									std::string(texturePath),
 									data,
 									textureTypePair.second
 								);
-							} else {
+							}
+							else {
 								auto textureFileSystemPath = workingDirectoryPath.make_preferred() /
-															 std::filesystem::path(texturePath).make_preferred().relative_path();
+									std::filesystem::path(texturePath).make_preferred().relative_path();
 								image = Textures::ImageInfo::fromFile(
 									textureFileSystemPath.string(),
 									textureFileSystemPath.string(),
@@ -105,7 +109,8 @@ namespace drk::Loaders {
 								loadResult.images.push_back(std::move(image));
 							}
 							aiTextureIndex++;
-						} else {
+						}
+						else {
 							textureTypeMap[textureTypePair.second] = texturePathPair->second;
 						}
 					}
@@ -156,9 +161,9 @@ namespace drk::Loaders {
 				baseColorTexture != entt::null &&
 				registry.get<std::shared_ptr<Textures::ImageInfo>>(baseColorTexture)->depth > 3
 				|| ambientColorTexture != entt::null &&
-				   registry.get<std::shared_ptr<Textures::ImageInfo>>(ambientColorTexture)->depth > 3
+				registry.get<std::shared_ptr<Textures::ImageInfo>>(ambientColorTexture)->depth > 3
 				|| diffuseColorTexture != entt::null &&
-				   registry.get<std::shared_ptr<Textures::ImageInfo>>(diffuseColorTexture)->depth > 3
+				registry.get<std::shared_ptr<Textures::ImageInfo>>(diffuseColorTexture)->depth > 3
 				|| hasAmbientColor && ambientColor.a < 1
 				|| hasDiffuseColor && diffuseColor.a < 1;
 
@@ -213,13 +218,13 @@ namespace drk::Loaders {
 					aiMesh->mTangents[vertexIndex].y,
 					aiMesh->mTangents[vertexIndex].z,
 					0
-				} : glm::vec4{0, 0, 0, 0};
+				} : glm::vec4{ 0, 0, 0, 0 };
 				glm::vec4 bitangent = aiMesh->mBitangents != nullptr ? glm::vec4{
 					aiMesh->mBitangents[vertexIndex].x,
 					aiMesh->mBitangents[vertexIndex].y,
 					aiMesh->mBitangents[vertexIndex].z,
 					0
-				} : glm::vec4{0, 0, 0, 0};
+				} : glm::vec4{ 0, 0, 0, 0 };
 				glm::vec4 diffuseColor;
 				glm::vec2 texel;
 				if (aiMesh->HasVertexColors(0)) {
@@ -227,15 +232,17 @@ namespace drk::Loaders {
 					diffuseColor.g = aiMesh->mColors[0][vertexIndex].g;
 					diffuseColor.b = aiMesh->mColors[0][vertexIndex].b;
 					diffuseColor.a = aiMesh->mColors[0][vertexIndex].a;
-				} else {
-					diffuseColor = {1.0, 1.0, 1.0, 1.0};
+				}
+				else {
+					diffuseColor = { 1.0, 1.0, 1.0, 1.0 };
 				}
 
 				if (aiMesh->HasTextureCoords(0)) {
 					texel.x = aiMesh->mTextureCoords[0][vertexIndex].x;
 					texel.y = 1 - aiMesh->mTextureCoords[0][vertexIndex].y;
-				} else {
-					texel = {0.0, 0.0};
+				}
+				else {
+					texel = { 0.0, 0.0 };
 				}
 				vertices[vertexIndex] = {
 					position,
@@ -284,22 +291,115 @@ namespace drk::Loaders {
 				pointLight.constantAttenuation = aiLight->mAttenuationConstant;
 				pointLight.linearAttenuation = aiLight->mAttenuationLinear;
 				pointLight.quadraticAttenuation = aiLight->mAttenuationQuadratic;
-				pointLight.relativePosition = {aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1};
+
+				Spatials::Components::Spatial lightSpatial{
+					.relativePosition = {aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1}
+				};
+
+				Lights::Components::LightPerspective frontLightPerspective = {
+					.relativeFront = GlmExtensions::front,
+					.relativeUp = GlmExtensions::up,
+					.verticalFov = glm::half_pi<float>(),
+					.aspectRatio = 1.0f,
+					.near = 0.0f,
+					.far = 128.0f
+				};
+
+				Lights::Components::LightPerspective backLightPerspective = {
+					.relativeFront = GlmExtensions::back,
+					.relativeUp = GlmExtensions::up,
+					.verticalFov = glm::half_pi<float>(),
+					.aspectRatio = 1.0f,
+					.near = 0.0f,
+					.far = 128.0f
+				};
+
+				Lights::Components::LightPerspective leftLightPerspective = {
+					.relativeFront = GlmExtensions::left,
+					.relativeUp = GlmExtensions::up,
+					.verticalFov = glm::half_pi<float>(),
+					.aspectRatio = 1.0f,
+					.near = 0.0f,
+					.far = 128.0f
+				};
+
+				Lights::Components::LightPerspective rightLightPerspective = {
+					.relativeFront = GlmExtensions::right,
+					.relativeUp = GlmExtensions::up,
+					.verticalFov = glm::half_pi<float>(),
+					.aspectRatio = 1.0f,
+					.near = 0.0f,
+					.far = 128.0f
+				};
+
+				Lights::Components::LightPerspective upLightPerspective = {
+					.relativeFront = GlmExtensions::up,
+					.relativeUp = GlmExtensions::left,
+					.verticalFov = glm::half_pi<float>(),
+					.aspectRatio = 1.0f,
+					.near = 0.0f,
+					.far = 128.0f
+				};
+
+				Lights::Components::LightPerspective downLightPerspective = {
+					.relativeFront = GlmExtensions::down,
+					.relativeUp = GlmExtensions::left,
+					.verticalFov = glm::half_pi<float>(),
+					.aspectRatio = 1.0f,
+					.near = 0.0f,
+					.far = 128.0f
+				};
+
+				auto frontLightPerspectiveEntity = registry.create();
+				registry.emplace<Lights::Components::LightPerspective>(frontLightPerspectiveEntity, std::move(frontLightPerspective));
+				auto backLightPerspectiveEntity = registry.create();
+				registry.emplace<Lights::Components::LightPerspective>(backLightPerspectiveEntity, std::move(backLightPerspective));
+				auto leftLightPerspectiveEntity = registry.create();
+				registry.emplace<Lights::Components::LightPerspective>(leftLightPerspectiveEntity, std::move(leftLightPerspective));
+				auto rightLightPerspectiveEntity = registry.create();
+				registry.emplace<Lights::Components::LightPerspective>(rightLightPerspectiveEntity, std::move(rightLightPerspective));
+				auto upLightPerspectiveEntity = registry.create();
+				registry.emplace<Lights::Components::LightPerspective>(upLightPerspectiveEntity, std::move(upLightPerspective));
+				auto downLightPerspectiveEntity = registry.create();
+				registry.emplace<Lights::Components::LightPerspective>(downLightPerspectiveEntity, std::move(downLightPerspective));
+
+				Lights::Components::LightPerspectiveCollection lightPerspectiveCollection{
+					.lightPerspectives = {
+						frontLightPerspectiveEntity,
+						backLightPerspectiveEntity,
+						leftLightPerspectiveEntity,
+						rightLightPerspectiveEntity,
+						upLightPerspectiveEntity,
+						downLightPerspectiveEntity
+					}
+				};
 
 				registry.emplace<Lights::Components::PointLight>(entity, pointLight);
+				registry.emplace<Spatials::Components::Spatial>(entity, lightSpatial);
+				registry.emplace<Lights::Components::LightPerspectiveCollection>(entity, lightPerspectiveCollection);
+
 				loadResult.pointLights.emplace_back(pointLight);
 			}
 			if (aiLight->mType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
-				Lights::Components::DirectionalLight directionalLight;
-				directionalLight.relativeDirection = {
-					aiLight->mDirection.x,
-					aiLight->mDirection.y,
-					aiLight->mDirection.z,
-					0
+				Lights::Components::LightPerspective lightPerspective{
+					.relativeFront = {
+						aiLight->mDirection.x,
+						aiLight->mDirection.y,
+						aiLight->mDirection.z,
+						0
+					},
+					.relativeUp = {
+						aiLight->mUp.x,
+						aiLight->mUp.y,
+						aiLight->mUp.z,
+						0
+					}
 				};
-				directionalLight.relativeUp = {aiLight->mUp.x, aiLight->mUp.y, aiLight->mUp.z, 0};
+				Lights::Components::DirectionalLight directionalLight;
 
 				registry.emplace<Lights::Components::DirectionalLight>(entity, directionalLight);
+				registry.emplace<Lights::Components::LightPerspective>(entity, lightPerspective);
+
 				loadResult.directionalLights.emplace_back(directionalLight);
 			}
 			if (aiLight->mType == aiLightSourceType::aiLightSource_SPOT) {
@@ -307,13 +407,25 @@ namespace drk::Loaders {
 				spotlight.constantAttenuation = aiLight->mAttenuationConstant;
 				spotlight.linearAttenuation = aiLight->mAttenuationLinear;
 				spotlight.quadraticAttenuation = aiLight->mAttenuationQuadratic;
-				spotlight.relativePosition = {aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1};
-				spotlight.relativeDirection = {aiLight->mDirection.x, aiLight->mDirection.y, aiLight->mDirection.z, 0};
-				spotlight.relativeUp = {aiLight->mUp.x, aiLight->mUp.y, aiLight->mUp.z, 0};
 				spotlight.innerConeAngle = aiLight->mAngleInnerCone;
 				spotlight.outerConeAngle = aiLight->mAngleOuterCone;
 
+				Spatials::Components::Spatial lightSpatial{
+					.relativePosition = { aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1 },
+				};
+
+				Lights::Components::LightPerspective lightPerspective{
+					.relativeFront = { aiLight->mDirection.x, aiLight->mDirection.y, aiLight->mDirection.z, 0 },
+					.relativeUp = { aiLight->mUp.x, aiLight->mUp.y, aiLight->mUp.z, 0 },
+					.verticalFov = spotlight.outerConeAngle,
+					.aspectRatio = 1.0f,
+					.near = 0.0f,
+					.far = 128.0f
+				};
+
 				registry.emplace<Lights::Components::Spotlight>(entity, spotlight);
+				registry.emplace<Spatials::Components::Spatial>(entity, lightSpatial);
+				registry.emplace<Lights::Components::LightPerspective>(entity, lightPerspective);
 				loadResult.spotlights.emplace_back(spotlight);
 			}
 			Lights::Components::Light light = {
@@ -322,7 +434,7 @@ namespace drk::Loaders {
 				{aiLight->mColorSpecular.r, aiLight->mColorSpecular.g, aiLight->mColorSpecular.b, 1}
 			};
 			registry.emplace<Lights::Components::Light>(entity, light);
-			lightNameMap[lightName] = {entity, aiLight->mType};
+			lightNameMap[lightName] = { entity, aiLight->mType };
 		}
 	}
 
@@ -339,8 +451,8 @@ namespace drk::Loaders {
 				aiCamera->mPosition.z,
 				1.0f
 			};
-			auto relativeFront = glm::vec4{aiCamera->mLookAt.x, aiCamera->mLookAt.y, aiCamera->mLookAt.z, 0.0f};
-			auto relativeUp = glm::vec4{aiCamera->mUp.x, aiCamera->mUp.y, aiCamera->mUp.z, 0.0f};
+			auto relativeFront = glm::vec4{ aiCamera->mLookAt.x, aiCamera->mLookAt.y, aiCamera->mLookAt.z, 0.0f };
+			auto relativeUp = glm::vec4{ aiCamera->mUp.x, aiCamera->mUp.y, aiCamera->mUp.z, 0.0f };
 			auto perspective = glm::perspectiveZO(
 				aiCamera->mHorizontalFOV,
 				aiCamera->mAspect,
@@ -403,27 +515,26 @@ namespace drk::Loaders {
 		};
 
 		entt::entity entity = entt::null;
-
+		bool shouldEmplaceSpatial = true;
 		auto light = lightMap.find(nodeName);
 		if (light != lightMap.end()) {
+			shouldEmplaceSpatial = false;
 			entity = std::get<0>(light->second);
 			auto lightType = std::get<1>(light->second);
 			if (lightType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
-				auto& directionalLight = registry.get<Lights::Components::DirectionalLight>(entity);
-				spatial.relativeRotation = spatial.relativeRotation * glm::quatLookAt(
-					glm::vec3(directionalLight.relativeDirection),
-					glm::vec3(directionalLight.relativeUp)
-				);
-			} else if (lightType == aiLightSourceType::aiLightSource_POINT) {
+				auto& directionalLightSpatial = registry.get<Spatials::Components::Spatial>(entity);
+				directionalLightSpatial.relativeRotation = spatial.relativeRotation;
+			}
+			else if (lightType == aiLightSourceType::aiLightSource_POINT) {
 				auto& pointLight = registry.get<Lights::Components::PointLight>(entity);
-				spatial.relativePosition = spatial.relativePosition + pointLight.relativePosition;
-			} else if (lightType == aiLightSourceType::aiLightSource_SPOT) {
+				auto& pointLightSpatial = registry.get<Spatials::Components::Spatial>(entity);
+				pointLightSpatial.relativePosition += spatial.relativePosition;
+			}
+			else if (lightType == aiLightSourceType::aiLightSource_SPOT) {
 				auto& spotlight = registry.get<Lights::Components::Spotlight>(entity);
-				spatial.relativeRotation = spatial.relativeRotation * glm::quatLookAt(
-					glm::vec3(spotlight.relativeDirection),
-					glm::vec3(spotlight.relativeUp)
-				);
-				spatial.relativePosition = spatial.relativePosition + spotlight.relativePosition;
+				auto& spotlightSpatial = registry.get<Spatials::Components::Spatial>(entity);
+				spotlightSpatial.relativeRotation = spatial.relativeRotation;
+				spatial.relativePosition += spatial.relativePosition;
 			}
 		}
 		auto cameraEntity = cameraMap.find(nodeName);
@@ -443,11 +554,11 @@ namespace drk::Loaders {
 			registry.emplace<Meshes::MeshGroup>(entity, meshGroup);
 		}
 
-		registry.emplace<Spatials::Components::Spatial>(entity, spatial);
+		if (shouldEmplaceSpatial) registry.emplace<Spatials::Components::Spatial>(entity, spatial);
 
 		Objects::Relationship relationship;
 		Objects::Relationship* previousRelationship = nullptr;
-		entt::entity previousSibling{entt::null};
+		entt::entity previousSibling{ entt::null };
 
 		if (loadResult.rootEntity == entt::null) {
 			loadResult.rootEntity = entity;
@@ -498,5 +609,5 @@ namespace drk::Loaders {
 		{aiTextureType::aiTextureType_UNKNOWN,           Textures::TextureType::RoughnessMetalnessMap}
 	};
 
-	glm::vec3& AssimpLoader::toVector(const aiVector3D& aiVector) { return (*(glm::vec3*) &aiVector); }
+	glm::vec3& AssimpLoader::toVector(const aiVector3D& aiVector) { return (*(glm::vec3*)&aiVector); }
 }
