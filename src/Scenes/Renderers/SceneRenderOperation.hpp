@@ -1,5 +1,5 @@
-
 #pragma once
+#include <type_traits>
 
 namespace drk::Scenes::Renderers {
 	enum class SceneRenderOperation {
@@ -8,6 +8,7 @@ namespace drk::Scenes::Renderers {
 		BindIndexBuffer = 0x02,
 		BindVertexBuffer = 0x04,
 		BindPipeline = 0x08,
+		SetScissor = 0x10
 	};
 
 	inline SceneRenderOperation operator|(SceneRenderOperation lhs, SceneRenderOperation rhs) {

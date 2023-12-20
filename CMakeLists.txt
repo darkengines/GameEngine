@@ -35,11 +35,11 @@ file(
     src/ImGui/imgui_impl_glfw.cpp
     src/ImGui/imgui_impl_vulkan.cpp
     src/ImGui/imgui_stdlib.cpp
-    src/Lights/SpotlightSystem.cpp
     src/Lights/Systems/DirectionalLightSystem.cpp
     src/Lights/Systems/LightSystem.cpp
     src/Lights/Systems/PointLightSystem.cpp
     src/Lights/Systems/SpotlightSystem.cpp
+    src/Lights/Systems/LightPerspectiveSystem.cpp
     src/Lines/LinePipeline.cpp
     src/Lines/LineSystem.cpp
     src/Lines/Models/LineVertex.cpp
@@ -47,6 +47,7 @@ file(
     src/Materials/MaterialSystem.cpp
     src/Meshes/MeshSystem.cpp
     src/Meshes/Pipelines/MeshPipeline.cpp
+    src/Meshes/Pipelines/ShadowMeshPipeline.cpp
     src/Meshes/Vertex.cpp
     src/Meshes/Vertex.cpp
     src/Objects/Dirty.cpp
@@ -57,6 +58,7 @@ file(
     src/Relationships/RelationshipSystem.cpp
     src/Renderers/Renderer.cpp
     src/Scenes/Renderers/SceneRenderer.cpp
+    src/Scenes/Renderers/ShadowSceneRenderer.cpp
     src/Scenes/SceneSystem.cpp 
     src/Spatials/Components/SpatialEditor.cpp 
     src/Spatials/SpatialSystem.cpp
@@ -70,6 +72,7 @@ file(
     src/UserInterfaces/AssetExplorer.cpp 
     src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp 
     src/UserInterfaces/UserInterface.cpp
+    src/Common/KGuillotineAllocator.cpp
     src/Windows/Window.cpp
     src/main.cpp
 )
@@ -133,13 +136,19 @@ file(
     src/Graphics/SynchronizationState.hpp
     src/ImGui/imgui_stdlib.h
     src/Lights/Components/Spotlight.hpp
-    src/Lights/Systems/DirectionalLightSystem.hpp
+    src/Lights/Components/PointLight.hpp
+    src/Lights/Components/DirectionalLight.hpp
+    src/Lights/Components/Light.hpp
+    src/Lights/Components/LightPerspective.hpp
     src/Lights/Extensions.hpp
-    src/Lights/Light.hpp
-    src/Lights/Systems/LightSystem.hpp
+    src/Lights/Models/Light.hpp
     src/Lights/Models/DirectionalLight.hpp
     src/Lights/Models/Spotlight.hpp
-    src/Lights/PointLight.hpp
+    src/Lights/Models/PointLight.hpp
+    src/Lights/Models/LightPerspective.hpp
+    src/Lights/Systems/LightSystem.hpp
+    src/Lights/Systems/DirectionalLightSystem.hpp
+    src/Lights/Systems/LightPerspectiveSystem.hpp
     src/Lights/Systems/PointLightSystem.hpp
     src/Lights/Systems/SpotlightSystem.hpp
     src/Loaders/AssimpLoader.hpp
@@ -161,6 +170,7 @@ file(
     src/Meshes/Models/Mesh.hpp
     src/Meshes/Models/MeshDraw.hpp
     src/Meshes/Pipelines/MeshPipeline.hpp
+    src/Meshes/Pipelines/ShadowMeshPipeline.hpp
     src/Meshes/Vertex.hpp
     src/Meshes/Vertex.hpp
     src/Objects/Dirty.hpp
@@ -181,8 +191,10 @@ file(
     src/Relationships/RelationshipSystem.hpp
     src/Renderers/Renderer.hpp
     src/Scenes/Draws/SceneDraw.hpp 
+    src/Scenes/Draws/ShadowSceneDraw.hpp
     src/Scenes/Renderers/SceneRenderOperation.hpp 
     src/Scenes/Renderers/SceneRenderer.hpp
+    src/Scenes/Renderers/ShadowSceneRenderer.hpp
     src/Scenes/SceneSystem.hpp 
     src/Spatials/Components/Spatial.hpp
     src/Spatials/Components/SpatialEditor.hpp 
@@ -210,6 +222,7 @@ file(
     src/Windows/Window.hpp
     src/Windows/WindowConfiguration.hpp
     src/implemantations.hpp
+    src/Common/KGuillotineAllocator.hpp
     src/system.hpp
 )
 

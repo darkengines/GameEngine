@@ -12,5 +12,6 @@ namespace drk::Scenes {
 	public:
 		SceneSystem(entt::registry& registry, Engine::EngineState& engineState);
 		void UpdateDraws();
+		void UpdateShadowDraws();
 	};
 }

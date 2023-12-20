@@ -3,4 +3,5 @@
 struct MeshDraw {
     StoreItemLocation meshItemLocation;
     StoreItemLocation objectItemLocation;
+    StoreItemLocation cameraItemLocation;
 };

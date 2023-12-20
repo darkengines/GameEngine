@@ -28,6 +28,7 @@ namespace drk::Lights::Systems {
 
 		model.lightStoreItemLocation = lightStoreItem.frameStoreItems[engineState.getFrameIndex()];
 		model.spatialStoreItemLocation = spatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
+		model.perspectiveStoreItemLocation = 
 	}
 
 	void DirectionalLightSystem::ProcessDirtyItems() {

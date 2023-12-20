@@ -11,5 +11,6 @@ namespace drk::Meshes::Components {
 		MeshBufferView meshBufferView;
 		alignas(8) Stores::Models::StoreItemLocation meshItemLocation;
 		alignas(8) Stores::Models::StoreItemLocation objectItemLocation;
+		alignas(8) Stores::Models::StoreItemLocation cameraItemLocation;
 	};
 }
