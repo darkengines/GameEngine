@@ -34,6 +34,7 @@ namespace drk::Applications {
 		Lights::Systems::PointLightSystem& pointLightSystem,
 		Lights::Systems::DirectionalLightSystem& directionalLightSystem,
 		Lights::Systems::SpotlightSystem& spotlightSystem,
+		Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
 		UserInterfaces::AssetExplorer& assetExplorer
 	)
 		: window(window),
@@ -60,6 +61,7 @@ namespace drk::Applications {
 		pointLightSystem(pointLightSystem),
 		directionalLightSystem(directionalLightSystem),
 		spotlightSystem(spotlightSystem),
+		lightPerspectiveSystem(lightPerspectiveSystem),
 		windowExtent(window.GetExtent()),
 		assetExplorer(assetExplorer) {
 		//ImGui::GetIO().IniFilename = NULL;
@@ -335,13 +337,13 @@ namespace drk::Applications {
 					fileBrowser.Display();
 					if (fileBrowser.HasSelected()) {
 						auto loadResult = loader.Load(fileBrowser.GetSelected(), registry);
-						globalSystem.GlobalSynchronizationState.Reset();
 						loadResults.emplace_back(std::move(loadResult));
 						fileBrowser.ClearSelected();
 					}
 				}
 				ImGui::EndFrame();
 
+				globalSystem.GlobalSynchronizationState.Reset();
 				//Resources to GPU
 				textureSystem.UploadTextures();
 				meshSystem.UploadMeshes();
@@ -355,6 +357,7 @@ namespace drk::Applications {
 				objectSystem.Store();
 				cameraSystem.Store();
 				lightSystem.Store();
+				lightPerspectiveSystem.Store();
 				pointLightSystem.Store();
 				directionalLightSystem.Store();
 				spotlightSystem.Store();
@@ -365,6 +368,7 @@ namespace drk::Applications {
 				//Change propagations
 				spatialSystem.PropagateChanges();
 				cameraSystem.ProcessDirtyItems();
+				lightPerspectiveSystem.ProcessDirtyItems();
 				directionalLightSystem.ProcessDirtyItems();
 				pointLightSystem.ProcessDirtyItems();
 				spotlightSystem.ProcessDirtyItems();
@@ -383,6 +387,7 @@ namespace drk::Applications {
 				pointLightSystem.UpdateStore();
 				directionalLightSystem.UpdateStore();
 				spotlightSystem.UpdateStore();
+				lightPerspectiveSystem.UpdateStore();
 				globalSystem.Update();
 
 				//auto draws = registry.view<Scenes::Draws::SceneDraw>();

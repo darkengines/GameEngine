@@ -10,8 +10,8 @@ namespace drk::Lights::Models {
 		float linearAttenuation;
 		float quadraticAttenuation;
 
-		Stores::Models::StoreItemLocation perspectiveStoreItemLocation;
 		Stores::Models::StoreItemLocation lightStoreItemLocation;
 		Stores::Models::StoreItemLocation spatialStoreItemLocation;
+		Stores::Models::StoreItemLocation lightPerspectiveStoreItemLocation;
 	};
 }

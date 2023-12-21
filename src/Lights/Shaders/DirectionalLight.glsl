@@ -3,4 +3,5 @@
 struct DirectionalLight {
 	StoreItemLocation lightStoreItemLocation;
 	StoreItemLocation spatialStoreItemLocation;
+	StoreItemLocation lightPerspectiveStoreItemLocation;
 };

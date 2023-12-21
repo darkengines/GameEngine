@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../Systems/System.hpp"
-#include "../Models/LightPerspective.hpp"
 #include "../Components/LightPerspective.hpp"
+#include "../Models/LightPerspective.hpp"
+#include "../../Systems/System.hpp"
 
 namespace drk::Lights::Systems {
 	class LightPerspectiveSystem : public drk::Systems::System<

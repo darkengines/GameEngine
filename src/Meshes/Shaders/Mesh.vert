@@ -15,6 +15,7 @@
 #include "../../Lights/Shaders/PointLight.glsl"
 #include "../../Lights/Shaders/DirectionalLight.glsl"
 #include "../../Lights/Shaders/Spotlight.glsl"
+#include "../../Lights/Shaders/LightPerspective.glsl"
 
 layout (set = 1, binding = 0) readonly buffer drawLayout {
     MeshDraw[] meshDraws;
@@ -46,6 +47,9 @@ layout (set = 3, binding = 0) readonly buffer directionalLightLayout {
 layout (set = 3, binding = 0) readonly buffer spotlightLayout {
     Spotlight[] spotlights;
 } spotlightBuffer[];
+layout (set = 3, binding = 0) readonly buffer lightPerspectiveLayout {
+    LightPerspective[] lightPerspectives;
+} lightPerspectiveBuffer[];
 
 layout(location = 0) in vec4 inPosition;
 layout(location = 1) in vec4 inNormal;

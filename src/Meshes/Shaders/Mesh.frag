@@ -19,6 +19,7 @@ const float PI = 3.14159265359;
 #include "../../Lights/Shaders/DirectionalLight.glsl"
 #include "../../Lights/Shaders/Spotlight.glsl"
 #include "../../Lights/Shaders/Lights.glsl"
+#include "../../Lights/Shaders/LightPerspective.glsl"
 
 layout (set = 0, binding = 0) uniform sampler2D textures[];
 layout (set = 1, binding = 0) readonly buffer drawLayout {
@@ -54,6 +55,9 @@ layout (set = 3, binding = 0) readonly buffer directionalLightLayout {
 layout (set = 3, binding = 0) readonly buffer spotlightLayout {
     Spotlight[] spotlights;
 } spotlightBuffer[];
+layout (set = 3, binding = 0) readonly buffer lightPerspectiveLayout {
+    LightPerspective[] lightPerspectives;
+} lightPerspectiveBuffer[];
 
 layout(location = 0) in MeshVertex point;
 layout(location = 10) flat in StoreItemLocation drawItemLocation;
@@ -109,11 +113,12 @@ void main() {
         DirectionalLight directionalLight = directionalLightBuffer[globalBuffer.global.directionalLightArrayIndex].directionalLights[directionalLightIndex];
         Light light = lightBuffer[directionalLight.lightStoreItemLocation.storeIndex].lights[directionalLight.lightStoreItemLocation.itemIndex];
         Spatial directionalLightSpatial = spatialBuffer[directionalLight.spatialStoreItemLocation.storeIndex].spatials[directionalLight.spatialStoreItemLocation.itemIndex];
+        LightPerspective lightPerspective = lightPerspectiveBuffer[directionalLight.lightPerspectiveStoreItemLocation.storeIndex].lightPerspectives[directionalLight.lightPerspectiveStoreItemLocation.itemIndex];
 
         //vec4 directionalLightPosition = directionalLight.projection * directionalLight.view * point.position;
 		//vec4 shadowMap = texture(textures[0], lightPointPosition.xy * 0.5 + 0.5);
 
-		vec3 lightOrientation = normalize(directionalLightSpatial.absoluteRotation.xyz * directionalLight.absoluteDirection.xyz);
+		vec3 lightOrientation = normalize(lightPerspective.absoluteFront).xyz;
 		color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, -lightOrientation.xyz, 1, viewDirection.xyz);
 		//float shadowFactor = 1;
 
@@ -128,9 +133,10 @@ void main() {
         Spotlight spotlight = spotlightBuffer[globalBuffer.global.spotlightArrayIndex].spotlights[spotlightIndex];
         Light light = lightBuffer[spotlight.lightStoreItemLocation.storeIndex].lights[spotlight.lightStoreItemLocation.itemIndex];
         Spatial spotlightSpatial = spatialBuffer[spotlight.spatialStoreItemLocation.storeIndex].spatials[spotlight.spatialStoreItemLocation.itemIndex];
+        LightPerspective lightPerspective = lightPerspectiveBuffer[spotlight.lightPerspectiveStoreItemLocation.storeIndex].lightPerspectives[spotlight.lightPerspectiveStoreItemLocation.itemIndex];
 
         vec3 lightPosition = spotlightSpatial.absolutePosition.xyz;
-		vec3 lightOrientation = normalize(spotlightSpatial.absoluteRotation.xyz * spotlight.absoluteDirection.xyz);
+		vec3 lightOrientation = normalize(lightPerspective.absoluteFront).xyz;
 		vec3 lightDirection = normalize(lightPosition - point.position.xyz);
 
 		float orientationDotDirection = -dot(lightOrientation, lightDirection);

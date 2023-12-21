@@ -1,6 +1,9 @@
-#define VULKAN_HPP_NO_CONSTRUCTORS
+#pragma once
 #include <vulkan/vulkan.hpp>
 #include <glm/glm.hpp>
+
+#undef near
+#undef far
 
 namespace drk::Lights::Components {
 	struct LightPerspective {

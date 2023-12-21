@@ -4,9 +4,9 @@
 #include "../Engine/EngineState.hpp"
 #include <entt/entity/entity.hpp>
 #include "../Cameras/Models/Camera.hpp"
-#include "../Lights/Systems/DirectionalLightSystem.hpp";
-#include "../Lights/Systems/PointLightSystem.hpp";
-#include "../Lights/Systems/SpotlightSystem.hpp";
+#include "../Lights/Systems/DirectionalLightSystem.hpp"
+#include "../Lights/Systems/PointLightSystem.hpp"
+#include "../Lights/Systems/SpotlightSystem.hpp"
 
 namespace drk::Graphics {
 	class GlobalSystem {

@@ -37,17 +37,17 @@ namespace drk::Lights::Systems {
 		>();
 		dirtyLightPerspectiveView.each(
 			[&](
-				entt::entity LightPerspectiveEntity,
+				entt::entity lightPerspectiveEntity,
 				Components::LightPerspective& lightPerspective,
 				Spatials::Components::Spatial& spatial,
 				Objects::Dirty<Spatials::Components::Spatial>& dirty
 				) {
 					auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
-					lightPerspective.absoluteDirection = absoluteRotation * lightPerspective.relativeDirection;
+					lightPerspective.absoluteFront = absoluteRotation * lightPerspective.relativeFront;
 					lightPerspective.absoluteUp = absoluteRotation * lightPerspective.relativeUp;
 					lightPerspective.view = glm::lookAt(
 						glm::zero<glm::vec3>(),
-						glm::make_vec3(glm::zero<glm::vec4>() + lightPerspective.absoluteDirection),
+						glm::make_vec3(glm::zero<glm::vec4>() + lightPerspective.absoluteFront),
 						glm::make_vec3(lightPerspective.absoluteUp));
 					lightPerspective.perspective = glm::perspectiveZO<float>(
 						1,
@@ -58,7 +58,7 @@ namespace drk::Lights::Systems {
 					lightPerspective.perspective[1][1] *= -1.0f;
 
 					registry.emplace_or_replace<Graphics::SynchronizationState<Models::LightPerspective>>(
-						LightPerspectiveEntity,
+						lightPerspectiveEntity,
 						static_cast<uint32_t>(engineState.getFrameCount())
 					);
 			}

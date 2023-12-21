@@ -7,6 +7,7 @@
 #include "../Lights/Systems/PointLightSystem.hpp"
 #include "../Lights/Systems/SpotlightSystem.hpp"
 #include "../Lights/Systems/DirectionalLightSystem.hpp"
+#include "../Lights/Systems/LightPerspectiveSystem.hpp"
 #include "../Graphics/Graphics.hpp"
 #include "../Windows/Window.hpp"
 #include "../Engine/EngineState.hpp"
@@ -56,6 +57,7 @@ namespace drk::Applications {
 			Lights::Systems::PointLightSystem&,
 			Lights::Systems::DirectionalLightSystem&,
 			Lights::Systems::SpotlightSystem&,
+			Lights::Systems::LightPerspectiveSystem&,
 			UserInterfaces::AssetExplorer&
 		> ;
 
@@ -84,6 +86,7 @@ namespace drk::Applications {
 			Lights::Systems::PointLightSystem& pointLightSystem,
 			Lights::Systems::DirectionalLightSystem& directionalLightSystem,
 			Lights::Systems::SpotlightSystem& spotlightSystem,
+			Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
 			UserInterfaces::AssetExplorer& assetExplorer
 		);
 		~Application();
@@ -115,6 +118,7 @@ namespace drk::Applications {
 		Lights::Systems::PointLightSystem& pointLightSystem;
 		Lights::Systems::DirectionalLightSystem& directionalLightSystem;
 		Lights::Systems::SpotlightSystem& spotlightSystem;
+		Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem;
 		entt::entity selectedEntity = entt::null;
 		UserInterfaces::AssetExplorer& assetExplorer;
 

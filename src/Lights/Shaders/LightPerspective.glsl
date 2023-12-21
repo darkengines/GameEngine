@@ -7,6 +7,7 @@ struct LightPerspective {
 	vec4 relativeUp;
 	vec4 absoluteFront;
 	vec4 absoluteUp;
+	vec4 shadowMapRect;
 
 	float verticalFov;
 	float aspectRatio;

@@ -18,12 +18,12 @@
 #include "../Materials/MaterialSystem.hpp"
 #include <algorithm>
 #include "../Objects/Dirty.hpp"
-#include "../Lights/Components/PointLight.hpp";
-#include "../Lights/Components/DirectionalLight.hpp";
-#include "../Lights/Components/Spotlight.hpp";
-#include "../Lights/Models/PointLight.hpp";
-#include "../Lights/Models/DirectionalLight.hpp";
-#include "../Lights/Models/Spotlight.hpp";
+#include "../Lights/Components/PointLight.hpp"
+#include "../Lights/Components/DirectionalLight.hpp"
+#include "../Lights/Components/Spotlight.hpp"
+#include "../Lights/Models/PointLight.hpp"
+#include "../Lights/Models/DirectionalLight.hpp"
+#include "../Lights/Models/Spotlight.hpp"
 
 namespace drk::Meshes {
 
@@ -150,9 +150,9 @@ namespace drk::Meshes {
 			pointLightView.each([&](
 				entt::entity pointLightEntity,
 				const Lights::Components::PointLight& pointLight,
-				const Stores::StoreItem<Lights::Models::Spotlight>& pointLightStoreItem
+				const Stores::StoreItem<Lights::Models::PointLight>& pointLightStoreItem
 				) {
-					objectEntities.each(
+					/*objectEntities.each(
 						[&](
 							entt::entity objectEntity,
 							auto& objectStoreItem,
@@ -198,7 +198,7 @@ namespace drk::Meshes {
 								}
 								registry.emplace<Components::MeshDrawCollection>(objectEntity, std::move(meshDrawCollection));
 						}
-					);
+					);*/
 				});
 
 			directionalLightView.each([](

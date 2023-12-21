@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Models/LightPerspective.hpp"
 #include "../../Systems/System.hpp"
 #include "../Models/DirectionalLight.hpp"
 #include "../Components/DirectionalLight.hpp"
@@ -11,7 +12,8 @@ namespace drk::Lights::Systems {
 		Models::DirectionalLight,
 		Components::DirectionalLight,
 		Stores::StoreItem<Models::Light>,
-		Stores::StoreItem<Spatials::Models::Spatial>
+		Stores::StoreItem<Spatials::Models::Spatial>,
+		Stores::StoreItem<Models::LightPerspective>
 	> {
 	public:
 		DirectionalLightSystem(
@@ -23,7 +25,8 @@ namespace drk::Lights::Systems {
 			Models::DirectionalLight& model,
 			const Components::DirectionalLight& directionalLight,
 			const Stores::StoreItem<Models::Light>& lightStoreItem,
-			const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem
+			const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem,
+			const Stores::StoreItem<Models::LightPerspective>& lightPerspective
 		);
 		void ProcessDirtyItems();
 	};

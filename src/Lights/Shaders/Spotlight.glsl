@@ -10,4 +10,5 @@ struct Spotlight {
 
 	StoreItemLocation lightStoreItemLocation;
 	StoreItemLocation spatialStoreItemLocation;
+	StoreItemLocation lightPerspectiveStoreItemLocation;
 };

@@ -1,3 +1,4 @@
+#include "../Lights/Components/LightPerspective.hpp"
 #include "AssimpLoader.hpp"
 #include "../GlmExtensions.hpp"
 #include "../Lights/Components/PointLight.hpp"
@@ -16,7 +17,6 @@
 #include "../Meshes/Components/Mesh.hpp"
 #include "../Lights/Components/Spotlight.hpp"
 #include "../Lights/Components/DirectionalLight.hpp"
-#include "../Lights/Components/LightPerspective.hpp"
 #include "../Lights/Components/LightPerspectiveCollection.hpp"
 
 namespace drk::Loaders {
@@ -397,6 +397,11 @@ namespace drk::Loaders {
 				};
 				Lights::Components::DirectionalLight directionalLight;
 
+				Spatials::Components::Spatial lightSpatial{
+					.relativePosition = { aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1 },
+				};
+
+				registry.emplace<Spatials::Components::Spatial>(entity, lightSpatial);
 				registry.emplace<Lights::Components::DirectionalLight>(entity, directionalLight);
 				registry.emplace<Lights::Components::LightPerspective>(entity, lightPerspective);
 
@@ -524,17 +529,19 @@ namespace drk::Loaders {
 			if (lightType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
 				auto& directionalLightSpatial = registry.get<Spatials::Components::Spatial>(entity);
 				directionalLightSpatial.relativeRotation = spatial.relativeRotation;
+				directionalLightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 1.0f);
 			}
 			else if (lightType == aiLightSourceType::aiLightSource_POINT) {
 				auto& pointLight = registry.get<Lights::Components::PointLight>(entity);
 				auto& pointLightSpatial = registry.get<Spatials::Components::Spatial>(entity);
-				pointLightSpatial.relativePosition += spatial.relativePosition;
+				pointLightSpatial.relativeRotation = spatial.relativeRotation;
+				pointLightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 1.0f);
 			}
 			else if (lightType == aiLightSourceType::aiLightSource_SPOT) {
 				auto& spotlight = registry.get<Lights::Components::Spotlight>(entity);
 				auto& spotlightSpatial = registry.get<Spatials::Components::Spatial>(entity);
 				spotlightSpatial.relativeRotation = spatial.relativeRotation;
-				spatial.relativePosition += spatial.relativePosition;
+				spotlightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 1.0f);
 			}
 		}
 		auto cameraEntity = cameraMap.find(nodeName);
