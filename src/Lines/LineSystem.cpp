@@ -42,14 +42,14 @@ namespace drk::Lines {
 		};
 		vk::DeviceSize vertexOffset = 0;
 		vk::DeviceSize indexOffset = 0;
-		std::vector<Models::LineVertex> lineVertices{lineOriginVertex, lineEndVertex};
+		std::vector<Models::LineVertex> lineVertices{ lineOriginVertex, lineEndVertex };
 		auto vertexResult = Devices::Device::uploadBuffers<Models::LineVertex>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{lineVertices},
+			{ lineVertices },
 			vk::BufferUsageFlagBits::eVertexBuffer
 		);
 		auto vertexBuffer = vertexResult.buffer;
@@ -58,14 +58,14 @@ namespace drk::Lines {
 			.byteOffset = vertexOffset,
 			.byteLength = sizeof(Lines::Models::LineVertex) * lineVertices.size()
 		};
-		std::vector<unsigned int> lineIndices{0u, 1u};
+		std::vector<unsigned int> lineIndices{ 0u, 1u };
 		auto indexResult = Devices::Device::uploadBuffers<unsigned int>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{lineIndices},
+			{ lineIndices },
 			vk::BufferUsageFlagBits::eIndexBuffer
 		);
 		auto indexBuffer = indexResult.buffer;
@@ -86,6 +86,9 @@ namespace drk::Lines {
 		lineItemLocation.pItem->objectItemLocation.storeIndex = lineDraw.objectItemLocation.storeIndex;
 		lineItemLocation.pItem->objectItemLocation.itemIndex = lineDraw.objectItemLocation.itemIndex;
 	}
+	void LineSystem::UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex) {
+
+	}
 	bool LineSystem::EmitDraws() {
 		auto lineEntities = registry.view<
 			Stores::StoreItem<Models::Line>,
@@ -102,31 +105,31 @@ namespace drk::Lines {
 					auto& line,
 					auto& spatial,
 					auto& objectStoreItem
-				) {
-					const auto& lineStoreItemLocation = lineStoreItem.frameStoreItems[engineState.getFrameIndex()];
-					const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
-					const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(line.materialEntity);
+					) {
+						const auto& lineStoreItemLocation = lineStoreItem.frameStoreItems[engineState.getFrameIndex()];
+						const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
+						const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(line.materialEntity);
 
-					Scenes::Draws::SceneDraw draw = {
-						.drawSystem = this,
-						.pipelineTypeIndex = std::type_index(typeid(LinePipeline)),
-						.indexBufferView = lineIndexBufferView,
-						.vertexBufferView = lineVertexBufferView,
-						.hasTransparency = material->hasTransparency,
-						.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition)
-					};
-					Models::LineDraw lineDraw = {
-						.lineItemLocation = lineStoreItemLocation,
-						.objectItemLocation = objectStoreItemLocation
-					};
+						Scenes::Draws::SceneDraw draw = {
+							.drawSystem = this,
+							.pipelineTypeIndex = std::type_index(typeid(LinePipeline)),
+							.indexBufferView = lineIndexBufferView,
+							.vertexBufferView = lineVertexBufferView,
+							.hasTransparency = material->hasTransparency,
+							.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition)
+						};
+						Models::LineDraw lineDraw = {
+							.lineItemLocation = lineStoreItemLocation,
+							.objectItemLocation = objectStoreItemLocation
+						};
 
-					//auto entity = registry.create();
-					registry.emplace<Scenes::Draws::SceneDraw>(lineEntity, draw);
-					registry.emplace<Models::LineDraw>(lineEntity, lineDraw);
-					registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
-						lineEntity,
-						engineState.getFrameCount()
-					);
+						//auto entity = registry.create();
+						registry.emplace<Scenes::Draws::SceneDraw>(lineEntity, draw);
+						registry.emplace<Models::LineDraw>(lineEntity, lineDraw);
+						registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
+							lineEntity,
+							engineState.getFrameCount()
+						);
 				}
 			);
 		}
@@ -134,6 +137,6 @@ namespace drk::Lines {
 	}
 
 	Draws::DrawVertexBufferInfo LineSystem::GetVertexBufferInfo(entt::entity drawEntity) {
-		return Draws::DrawVertexBufferInfo{2, 0, 0};
+		return Draws::DrawVertexBufferInfo{ 2, 0, 0 };
 	}
 }

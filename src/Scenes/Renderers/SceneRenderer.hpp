@@ -12,6 +12,7 @@
 #include "../Draws/SceneDraw.hpp"
 #include "SceneRenderOperation.hpp"
 #include "../../Lines/LinePipeline.hpp"
+#include "./ShadowSceneRenderer.hpp"
 
 
 namespace drk::Scenes::Renderers {
@@ -27,6 +28,8 @@ namespace drk::Scenes::Renderers {
 		std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline;
 		std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline;
 		std::unique_ptr<Lines::LinePipeline> linePipeline;
+		std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer;
+		std::vector<vk::ImageView> shadowTargetImageViews;
 		vk::RenderPass renderPass;
 	public:
 		SceneRenderer(
@@ -34,7 +37,8 @@ namespace drk::Scenes::Renderers {
 			entt::registry& registry,
 			std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
 			std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline,
-			std::unique_ptr<Lines::LinePipeline> linePipeline
+			std::unique_ptr<Lines::LinePipeline> linePipeline,
+			std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer
 		);
 		~SceneRenderer();
 		void render(uint32_t targetImageIndex, const vk::CommandBuffer& sceneDraw);

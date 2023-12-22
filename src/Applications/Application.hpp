@@ -20,7 +20,6 @@
 #include "../Graphics/GlobalSystem.hpp"
 #include "../Controllers/FlyCamController.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
-#include "../Graphics/MeshPipeline.hpp"
 #include "../Scenes/Renderers/SceneRenderer.hpp"
 #include "../UserInterfaces/Renderers/UserInterfaceRenderer.hpp"
 #include "../Scenes/SceneSystem.hpp"

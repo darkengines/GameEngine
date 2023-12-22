@@ -5,7 +5,7 @@
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Renderers/Renderer.hpp"
 #include "../../Engine/EngineState.hpp"
-#include "../../Meshes/Pipelines/MeshPipeline.hpp"
+#include "../../Meshes/Pipelines/ShadowMeshPipeline.hpp"
 #include "../../Points/PointPrimitivePipeline.hpp"
 #include "../../Devices/ImageInfo.hpp"
 #include "../../Draws/DrawSystem.hpp"
@@ -22,7 +22,7 @@ namespace drk::Scenes::Renderers {
 		std::vector<vk::Framebuffer> framebuffers;
 		std::optional<Devices::ImageInfo> targetImageInfo;
 		std::vector<vk::ImageView> targetImageViews;
-		std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline;
+		std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshPipeline;
 		std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline;
 		std::unique_ptr<Lines::LinePipeline> linePipeline;
 		vk::RenderPass renderPass;
@@ -30,7 +30,7 @@ namespace drk::Scenes::Renderers {
 		ShadowSceneRenderer(
 			const Devices::DeviceContext& deviceContext,
 			entt::registry& registry,
-			std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
+			std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshPipeline,
 			std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline,
 			std::unique_ptr<Lines::LinePipeline> linePipeline
 		);

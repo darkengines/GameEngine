@@ -394,11 +394,13 @@ namespace drk::Applications {
 				//registry.destroy(draws.begin(), draws.end());
 
 				//Emit draws
+				meshSystem.EmitShadowDraws();
 				meshSystem.EmitDraws();
 				pointSystem.EmitDraws();
 				lineSystem.EmitDraws();
 
 				//Stores draws to GPU
+				sceneSystem.UpdateShadowDraws();
 				sceneSystem.UpdateDraws();
 
 				//Clear frame

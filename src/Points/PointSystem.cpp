@@ -80,6 +80,9 @@ namespace drk::Points {
 		pointItemLocation.pItem->objectItemLocation.storeIndex = pointDraw.objectItemLocation.storeIndex;
 		pointItemLocation.pItem->objectItemLocation.itemIndex = pointDraw.objectItemLocation.itemIndex;
 	}
+	void PointSystem::UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex) {
+
+	}
 	bool PointSystem::EmitDraws() {
 		auto pointEntities = registry.view<
 			Stores::StoreItem<Models::Point>,

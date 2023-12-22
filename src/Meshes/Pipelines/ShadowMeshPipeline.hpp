@@ -2,7 +2,7 @@
 #include "../../Devices/Device.hpp"
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
-#include "../Models/MeshDraw.hpp"
+#include "../Models/ShadowMeshDraw.hpp"
 #include "../../Pipelines/Pipeline.hpp"
 
 namespace drk::Meshes::Pipelines {
@@ -23,7 +23,6 @@ namespace drk::Meshes::Pipelines {
 		const Devices::DeviceContext& deviceContext;
 		const Engine::EngineState& engineState;
 		vk::ShaderModule mainVertexShaderModule;
-		vk::ShaderModule mainFragmentShaderModule;
 		vk::Pipeline pipeline;
 		std::array<vk::DescriptorSetLayout, 4> descriptorSetLayouts;
 		vk::PipelineLayout pipelineLayout;
@@ -37,6 +36,5 @@ namespace drk::Meshes::Pipelines {
 			const Devices::DeviceContext& deviceContext,
 			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
 		);
-		vk::GraphicsPipelineCreateInfo getDefaultGraphicPipelineCreateInfo();
 	};
 }

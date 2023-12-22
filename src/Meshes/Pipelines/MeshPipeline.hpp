@@ -37,6 +37,5 @@ namespace drk::Meshes::Pipelines {
 			const Devices::DeviceContext& deviceContext,
 			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
 		);
-		vk::GraphicsPipelineCreateInfo getDefaultGraphicPipelineCreateInfo();
 	};
 }

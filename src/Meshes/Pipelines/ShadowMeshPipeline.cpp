@@ -29,7 +29,6 @@ namespace drk::Meshes::Pipelines {
 	}
 
 	void ShadowMeshPipeline::destroyShaderModules() {
-		deviceContext.device.destroyShaderModule(mainFragmentShaderModule);
 		deviceContext.device.destroyShaderModule(mainVertexShaderModule);
 	}
 
@@ -48,15 +47,9 @@ namespace drk::Meshes::Pipelines {
 			.module = mainVertexShaderModule,
 			.pName = "main"
 		};
-		vk::PipelineShaderStageCreateInfo fragmentPipelineShaderStageCreateInfo = {
-			.stage = vk::ShaderStageFlagBits::eFragment,
-			.module = mainFragmentShaderModule,
-			.pName = "main"
-		};
 
 		std::vector<vk::PipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos = {
-			vertexPipelineShaderStageCreateInfo,
-			fragmentPipelineShaderStageCreateInfo
+			vertexPipelineShaderStageCreateInfo
 		};
 
 		vk::PipelineColorBlendAttachmentState pipelineColorBlendAttachmentState;
@@ -116,12 +109,11 @@ namespace drk::Meshes::Pipelines {
 		return deviceContext.device.createPipelineLayout(pipelineLayoutCreateInfo);
 	}
 	void ShadowMeshPipeline::createShaderModules() {
-		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/Mesh.vert.spv");
-		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/Mesh.frag.spv");
+		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/ShadowMesh.vert.spv");
 	}
 	void ShadowMeshPipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();
-		const auto& drawDescriptorSet = frameState.getUniformStore<Models::MeshDraw>().descriptorSet;
+		const auto& drawDescriptorSet = frameState.getUniformStore<Models::ShadowMeshDraw>().descriptorSet;
 		std::array<vk::DescriptorSet, 4> descriptorSets{
 			engineState.textureDescriptorSet,
 			drawDescriptorSet,

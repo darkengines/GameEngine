@@ -9,12 +9,24 @@ namespace drk::Scenes::Renderers {
 		entt::registry& registry,
 		std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
 		std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline,
-		std::unique_ptr<Lines::LinePipeline> linePipeline
+		std::unique_ptr<Lines::LinePipeline> linePipeline,
+		std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer
 	)
 		: deviceContext(deviceContext), registry(registry),
 		meshPipeline(std::move(meshPipeline)),
 		pointPrimitivePipeline(std::move(pointPrimitivePipeline)),
-		linePipeline(std::move(linePipeline)) {}
+		linePipeline(std::move(linePipeline)),
+		shadowSceneRenderer(std::move(shadowSceneRenderer)) {
+		for (auto targetImageIndex = 0; targetImageIndex < 2; targetImageIndex++) {
+			auto texture = shadowSceneRenderer->BuildSceneRenderTargetTexture(deviceContext, { 8192, 8192, 1 });
+			shadowTargetImageViews.push_back(texture.imageView);
+		}
+		shadowSceneRenderer->setTargetImageViews({
+			.extent = {8192, 8192},
+			.format = deviceContext.DepthFormat
+												 },
+												 shadowTargetImageViews);
+	}
 
 	SceneRenderer::~SceneRenderer() {
 		destroyFramebuffers();

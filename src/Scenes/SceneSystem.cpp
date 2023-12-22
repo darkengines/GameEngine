@@ -113,7 +113,7 @@ namespace drk::Scenes {
 				if (!pipelineDrawIndices.contains(shadowSceneDraw.pipelineTypeIndex)) {
 					pipelineDrawIndices[shadowSceneDraw.pipelineTypeIndex] = 0;
 				}
-				shadowSceneDraw.drawSystem->UpdateDraw(shadowSceneDrawEntity, pipelineDrawIndices[shadowSceneDraw.pipelineTypeIndex]);
+				shadowSceneDraw.drawSystem->UpdateShadowDraw(shadowSceneDrawEntity, pipelineDrawIndices[shadowSceneDraw.pipelineTypeIndex]);
 				if (registry.any_of<Graphics::SynchronizationState<Draws::ShadowSceneDraw>>(shadowSceneDrawEntity)) {
 					auto& synchronizationState = registry.get<Graphics::SynchronizationState<Draws::ShadowSceneDraw>>(shadowSceneDrawEntity);
 					if (!synchronizationState.Update(engineState.getFrameIndex())) {

@@ -7,6 +7,14 @@
 #include "../Systems/System.hpp"
 #include "MeshGroup.hpp"
 #include "Components/Mesh.hpp"
+#include "../Objects/Models/Object.hpp"
+#include "../Cameras/Components/Camera.hpp"
+#include "../Cameras/Models/Camera.hpp"
+#include "../Lights/Components/LightPerspective.hpp"
+#include "../Lights/Models/LightPerspective.hpp"
+#include "../Spatials/Components/Spatial.hpp"
+#include "Components/ShadowMeshDrawCollection.hpp"
+#include "MeshGroup.hpp"
 
 namespace drk::Meshes {
 	class MeshSystem : public Draws::DrawSystem, public Systems::System<Models::Mesh, Components::Mesh> {
@@ -15,7 +23,18 @@ namespace drk::Meshes {
 		void Update(Models::Mesh& model, const Components::Mesh& mesh) override;
 	protected:
 		const Devices::DeviceContext& deviceContext;
-
+		void ProcessObjectEntity(
+			entt::entity objectEntity,
+			Stores::StoreItem<Objects::Models::Object>& objectStoreItem,
+			const MeshGroup& meshGroup,
+			const Spatials::Components::Spatial& spatial,
+			const Cameras::Components::Camera& camera,
+			const Stores::StoreItemLocation<Cameras::Models::Camera>& cameraStoreItemLocation,
+			entt::entity lightEntity,
+			const Lights::Components::LightPerspective& perspective,
+			const Stores::StoreItemLocation<Lights::Models::LightPerspective>& perspectiveStoreItemLocation,
+			Components::ShadowMeshDrawCollection& shadowMeshDrawCollection
+		);
 	public:
 		MeshSystem(
 			const Devices::DeviceContext& deviceContext,
@@ -29,6 +48,7 @@ namespace drk::Meshes {
 		bool EmitDraws();
 		bool EmitShadowDraws();
 		void UpdateDraw(entt::entity drawEntity, int drawIndex);
+		void UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex);
 		void UpdateDraws() { throw std::runtime_error("Not supported"); }
 		Draws::DrawVertexBufferInfo GetVertexBufferInfo(entt::entity drawEntity);
 		static entt::entity
