@@ -5,8 +5,8 @@
 #include "./Systems/DirectionalLightSystem.hpp"
 #include "./Systems/SpotlightSystem.hpp"
 #include "./Systems/PointLightSystem.hpp"
-#include "../Common/KGuillotineAllocator.hpp"
 #include "./Systems/LightPerspectiveSystem.hpp"
+#include "./Systems/ShadowMappingSystem.hpp"
 
 namespace drk::Lights {
 	auto AddLights() {
@@ -16,7 +16,7 @@ namespace drk::Lights {
 			boost::di::bind<Systems::SpotlightSystem>.to<Systems::SpotlightSystem>(),
 			boost::di::bind<Systems::DirectionalLightSystem>.to<Systems::DirectionalLightSystem>(),
 			boost::di::bind<Systems::LightPerspectiveSystem>.to<Systems::LightPerspectiveSystem>(),
-			boost::di::bind<drk::guillotine::Allocator>.to(drk::guillotine::Allocator({ 2048, 2048 }, {}))
+			boost::di::bind<Systems::ShadowMappingSystem>.to<Systems::ShadowMappingSystem>()
 		);
 	}
 }

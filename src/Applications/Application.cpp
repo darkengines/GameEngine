@@ -384,10 +384,10 @@ namespace drk::Applications {
 				objectSystem.UpdateStore();
 				cameraSystem.UpdateStore();
 				lightSystem.UpdateStore();
+				lightPerspectiveSystem.UpdateStore();
 				pointLightSystem.UpdateStore();
 				directionalLightSystem.UpdateStore();
 				spotlightSystem.UpdateStore();
-				lightPerspectiveSystem.UpdateStore();
 				globalSystem.Update();
 
 				//auto draws = registry.view<Scenes::Draws::SceneDraw>();

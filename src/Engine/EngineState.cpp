@@ -18,6 +18,7 @@ namespace drk::Engine {
 		descriptorSetLayoutCache(descriptorSetLayoutCache),
 		registry(registry),
 		textureSampler(CreateTextureSampler(deviceContext)),
+		shadowTextureSampler(CreateShadowTextureSampler(deviceContext)),
 		descriptorSetAllocator(descriptorSetAllocator),
 		descriptorSetLayouts(descriptorSetLayouts),
 		textureDescriptorSet(
@@ -30,7 +31,7 @@ namespace drk::Engine {
 		frameStates.emplace_back(deviceContext, descriptorSetLayouts, descriptorSetAllocator);
 		frameStates.emplace_back(deviceContext, descriptorSetLayouts, descriptorSetAllocator);
 
-		textureStore = std::make_unique<Stores::TextureStore>(deviceContext, textureDescriptorSet, textureSampler);
+		textureStore = std::make_unique<Stores::TextureStore>(deviceContext, textureDescriptorSet, textureSampler, shadowTextureSampler);
 	}
 
 	Devices::Texture EngineState::UploadTexture(const Textures::ImageInfo* const imageInfo) {
@@ -64,11 +65,35 @@ namespace drk::Engine {
 		return sampler;
 	}
 
+	vk::Sampler EngineState::CreateShadowTextureSampler(const Devices::DeviceContext& deviceContext) {
+		vk::SamplerCreateInfo samplerCreateInfo{
+			.magFilter = vk::Filter::eNearest,
+			.minFilter = vk::Filter::eNearest,
+			.mipmapMode = vk::SamplerMipmapMode::eLinear,
+			.addressModeU = vk::SamplerAddressMode::eRepeat,
+			.addressModeV = vk::SamplerAddressMode::eRepeat,
+			.addressModeW = vk::SamplerAddressMode::eRepeat,
+			.mipLodBias = 0,
+			//TODO: Make Anisotropy configurable
+			.anisotropyEnable = VK_FALSE,
+			.maxAnisotropy = 16,
+			.compareEnable = VK_FALSE,
+			.compareOp = vk::CompareOp::eAlways,
+			.minLod = 0,
+			.maxLod = 16,
+			.borderColor = vk::BorderColor::eIntOpaqueBlack,
+			.unnormalizedCoordinates = VK_FALSE
+		};
+		const auto sampler = deviceContext.device.createSampler(samplerCreateInfo);
+		return sampler;
+	}
+
 	EngineState::~EngineState() {
 		for (const auto buffer: buffers) {
 			deviceContext.DestroyBuffer(buffer);
 		}
 		deviceContext.device.destroySampler(textureSampler);
+		deviceContext.device.destroySampler(shadowTextureSampler);
 	}
 
 	MeshUploadResult EngineState::UploadMeshes(const std::vector<std::shared_ptr<Meshes::Components::MeshResource>>& meshInfos) {

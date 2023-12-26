@@ -113,6 +113,10 @@ namespace drk::Points {
 		deviceContext.device.destroyPipeline(pipeline);
 	}
 
+	Draws::DrawVertexBufferInfo PointPrimitivePipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
+		return Draws::DrawVertexBufferInfo{ 1, 0, 0 };
+	}
+
 	vk::PipelineLayout
 	PointPrimitivePipeline::createPipelineLayout(
 		const Devices::DeviceContext& deviceContext,

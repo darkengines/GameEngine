@@ -13,6 +13,7 @@ namespace drk::Scenes::Draws {
 		Devices::BufferView vertexBufferView;
 		entt::entity lightEntity;
 		vk::Rect2D scissor;
+		entt::entity lightPerspectiveEntity;
 		bool hasTransparency;
 		float depth;
 	};

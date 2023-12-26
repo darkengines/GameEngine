@@ -127,8 +127,4 @@ namespace drk::Points {
 
 		return true;
 	}
-
-	Draws::DrawVertexBufferInfo PointSystem::GetVertexBufferInfo(entt::entity drawEntity) {
-		return Draws::DrawVertexBufferInfo{ 1, 0, 0 };
-	}
 }

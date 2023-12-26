@@ -50,15 +50,17 @@ namespace drk::Scenes::Renderers {
 		void destroyRenderPass();
 		void draw(
 			entt::entity previousDrawEntity,
-			Draws::ShadowSceneDraw previousSceneDraw,
+			const Draws::ShadowSceneDraw& previousSceneDraw,
 			const vk::CommandBuffer& commandBuffer,
 			int instanceCount,
-			int firstInstance
+			int firstInstance,
+			Pipelines::Pipeline const* pPipeline
 		);
 		void doOperations(
 			const vk::CommandBuffer& commandBuffer,
 			SceneRenderOperation sceneRenderOperation,
-			const Draws::ShadowSceneDraw& sceneDraw
+			const Draws::ShadowSceneDraw& sceneDraw,
+			Pipelines::Pipeline const** ppPipeline
 		);
 	};
 }

@@ -4,6 +4,7 @@
 #include "MeshPipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
 #include "../../Meshes/MeshGroup.hpp"
+#include "../Components/MeshDraw.hpp"
 
 namespace drk::Meshes::Pipelines {
 	MeshPipeline::MeshPipeline(
@@ -40,6 +41,16 @@ namespace drk::Meshes::Pipelines {
 			throw new std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		pipeline = result.value;
+	}
+
+	Draws::DrawVertexBufferInfo MeshPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
+		auto meshDraw = registry.get<Components::MeshDraw>(drawEntity);
+		Draws::DrawVertexBufferInfo bufferInfo{
+			static_cast<uint32_t>(meshDraw.meshResource->indices.size()),
+				static_cast<uint32_t>(meshDraw.meshBufferView.IndexBufferView.byteOffset / sizeof(VertexIndex)),
+				static_cast<int32_t>(meshDraw.meshBufferView.VertexBufferView.byteOffset / sizeof(Vertex))
+		};
+		return bufferInfo;
 	}
 
 	void MeshPipeline::configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configuration) {

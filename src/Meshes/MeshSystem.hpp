@@ -13,6 +13,7 @@
 #include "../Lights/Components/LightPerspective.hpp"
 #include "../Lights/Models/LightPerspective.hpp"
 #include "../Spatials/Components/Spatial.hpp"
+#include "../Spatials/Models/Spatial.hpp"
 #include "Components/ShadowMeshDrawCollection.hpp"
 #include "MeshGroup.hpp"
 
@@ -31,8 +32,10 @@ namespace drk::Meshes {
 			const Cameras::Components::Camera& camera,
 			const Stores::StoreItemLocation<Cameras::Models::Camera>& cameraStoreItemLocation,
 			entt::entity lightEntity,
+			entt::entity lightPerspectiveEntity,
 			const Lights::Components::LightPerspective& perspective,
 			const Stores::StoreItemLocation<Lights::Models::LightPerspective>& perspectiveStoreItemLocation,
+			const Stores::StoreItemLocation<Spatials::Models::Spatial>& perspectiveSpatialStoreItemLocation,
 			Components::ShadowMeshDrawCollection& shadowMeshDrawCollection
 		);
 	public:
@@ -56,5 +59,6 @@ namespace drk::Meshes {
 		static MeshGroup
 			copyMeshGroup(const entt::registry& source, entt::registry& destination, const MeshGroup& sourceMeshGroup);
 		void ProcessDirtyDraws();
+		void ProcessShadowDirtyDraws();
 	};
 }

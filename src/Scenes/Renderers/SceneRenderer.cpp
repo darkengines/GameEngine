@@ -10,22 +10,21 @@ namespace drk::Scenes::Renderers {
 		std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
 		std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline,
 		std::unique_ptr<Lines::LinePipeline> linePipeline,
-		std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer
+		std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer,
+		Lights::Systems::ShadowMappingSystem& shadowMappingSystem
 	)
 		: deviceContext(deviceContext), registry(registry),
 		meshPipeline(std::move(meshPipeline)),
 		pointPrimitivePipeline(std::move(pointPrimitivePipeline)),
 		linePipeline(std::move(linePipeline)),
-		shadowSceneRenderer(std::move(shadowSceneRenderer)) {
-		for (auto targetImageIndex = 0; targetImageIndex < 2; targetImageIndex++) {
-			auto texture = shadowSceneRenderer->BuildSceneRenderTargetTexture(deviceContext, { 8192, 8192, 1 });
-			shadowTargetImageViews.push_back(texture.imageView);
-		}
-		shadowSceneRenderer->setTargetImageViews({
-			.extent = {8192, 8192},
-			.format = deviceContext.DepthFormat
-												 },
-												 shadowTargetImageViews);
+		shadowSceneRenderer(std::move(shadowSceneRenderer)),
+		shadowMappingSystem(shadowMappingSystem)
+	{
+		this->shadowSceneRenderer->setTargetImageViews({
+			.extent = shadowMappingSystem.shadowMappingTexture->imageCreateInfo.extent,
+			.format = shadowMappingSystem.shadowMappingTexture->imageCreateInfo.format },
+													   { shadowMappingSystem.shadowMappingTexture->imageView }
+		);
 	}
 
 	SceneRenderer::~SceneRenderer() {
@@ -276,6 +275,9 @@ namespace drk::Scenes::Renderers {
 		createFramebuffers();
 	}
 	void SceneRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) {
+
+		shadowSceneRenderer->render(0, commandBuffer);
+
 		vk::ClearValue colorClearValue = {
 			.color = {std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}
 		};
@@ -308,6 +310,7 @@ namespace drk::Scenes::Renderers {
 		pipelineDrawIndices[std::type_index(typeid(meshPipeline))] = 0;
 		pipelineDrawIndices[std::type_index(typeid(linePipeline))] = 0;
 		bool isFirst = true;
+		Pipelines::Pipeline const* pCurrentPipeline;
 
 		draws.each(
 			[&](entt::entity drawEntity, const Draws::SceneDraw& sceneDraw) {
@@ -326,7 +329,7 @@ namespace drk::Scenes::Renderers {
 					operations |= SceneRenderOperation::Draw;
 				}
 				if (previousDrawEntity == entt::null) {
-					doOperations(commandBuffer, operations, sceneDraw);
+					doOperations(commandBuffer, operations, sceneDraw, &pCurrentPipeline);
 				}
 				else {
 					if (operations != SceneRenderOperation::None) {
@@ -335,7 +338,8 @@ namespace drk::Scenes::Renderers {
 							*previousSceneDraw,
 							commandBuffer,
 							instanceCount,
-							pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex]
+							pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
+							pCurrentPipeline
 						);
 						pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex] += instanceCount;
 						instanceCount = 0u;
@@ -343,7 +347,8 @@ namespace drk::Scenes::Renderers {
 					doOperations(
 						commandBuffer,
 						operations,
-						sceneDraw
+						sceneDraw,
+						&pCurrentPipeline
 					);
 				}
 				previousSceneDraw = &sceneDraw;
@@ -357,20 +362,21 @@ namespace drk::Scenes::Renderers {
 				*previousSceneDraw,
 				commandBuffer,
 				instanceCount,
-				pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex]
+				pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
+				pCurrentPipeline
 			);
 		}
 		commandBuffer.endRenderPass();
 	}
 	void SceneRenderer::draw(
 		entt::entity previousDrawEntity,
-		Draws::SceneDraw previousSceneDraw,
+		const Draws::SceneDraw& previousSceneDraw,
 		const vk::CommandBuffer& commandBuffer,
 		int instanceCount,
-		int firstInstance
+		int firstInstance,
+		Pipelines::Pipeline const* pPipeline
 	) {
-		auto sceneDraw = registry.get<Draws::SceneDraw>(previousDrawEntity);
-		auto bufferInfo = sceneDraw.drawSystem->GetVertexBufferInfo(previousDrawEntity);
+		auto bufferInfo = pPipeline->getBufferInfo(registry, previousDrawEntity);
 		commandBuffer.drawIndexed(
 			bufferInfo.indexCount,
 			instanceCount,
@@ -382,10 +388,12 @@ namespace drk::Scenes::Renderers {
 	void SceneRenderer::doOperations(
 		const vk::CommandBuffer& commandBuffer,
 		SceneRenderOperation sceneRenderOperation,
-		const Draws::SceneDraw& sceneDraw
+		const Draws::SceneDraw& sceneDraw,
+		Pipelines::Pipeline const** ppPipeline
 	) {
 		if ((sceneRenderOperation & SceneRenderOperation::BindPipeline) == SceneRenderOperation::BindPipeline) {
 			const auto& pipeline = getPipeline(sceneDraw.pipelineTypeIndex);
+			*ppPipeline = pipeline;
 			pipeline->bind(commandBuffer);
 		}
 		if ((sceneRenderOperation & SceneRenderOperation::BindIndexBuffer) == SceneRenderOperation::BindIndexBuffer) {

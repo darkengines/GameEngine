@@ -135,8 +135,4 @@ namespace drk::Lines {
 		}
 		return hasEntities;
 	}
-
-	Draws::DrawVertexBufferInfo LineSystem::GetVertexBufferInfo(entt::entity drawEntity) {
-		return Draws::DrawVertexBufferInfo{ 2, 0, 0 };
-	}
 }

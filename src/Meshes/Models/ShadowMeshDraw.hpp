@@ -9,5 +9,6 @@ namespace drk::Meshes::Models {
 		alignas(8) Stores::Models::StoreItemLocation objectItemLocation;
 		alignas(8) Stores::Models::StoreItemLocation cameraItemLocation;
 		alignas(8) Stores::Models::StoreItemLocation LightPerspectiveItemLocation;
+		alignas(8) Stores::Models::StoreItemLocation LightPerspectiveSpatialItemLocation;
 	};
 }

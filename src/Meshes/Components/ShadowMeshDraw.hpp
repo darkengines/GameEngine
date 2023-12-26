@@ -13,5 +13,6 @@ namespace drk::Meshes::Components {
 		alignas(8) Stores::Models::StoreItemLocation objectItemLocation;
 		alignas(8) Stores::Models::StoreItemLocation cameraItemLocation;
 		alignas(8) Stores::Models::StoreItemLocation lightPerspectiveItemLocation;
+		alignas(8) Stores::Models::StoreItemLocation lightPerspectiveSpatialItemLocation;
 	};
 }

@@ -33,11 +33,13 @@ namespace drk::Engine {
 		DescriptorSetAllocator& descriptorSetAllocator;
 		const DescriptorSetLayouts& descriptorSetLayouts;
 		const vk::Sampler textureSampler;
+		const vk::Sampler shadowTextureSampler;
 		uint32_t frameCount = FRAME_COUNT;
 		uint32_t frameIndex = 0;
 		std::vector<Devices::Buffer> buffers;
 
 		static vk::Sampler CreateTextureSampler(const Devices::DeviceContext& deviceContext);
+		static vk::Sampler CreateShadowTextureSampler(const Devices::DeviceContext& deviceContext);
 		static vk::DescriptorSet CreateTextureDescriptorSet(
 			DescriptorSetAllocator& descriptorSetAllocator,
 			vk::DescriptorSetLayout descriptorSetLayout

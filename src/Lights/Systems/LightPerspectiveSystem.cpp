@@ -9,8 +9,10 @@ namespace drk::Lights::Systems {
 	LightPerspectiveSystem::LightPerspectiveSystem(
 		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
-		entt::registry& registry
-	) : System(engineState, registry) {}
+		entt::registry& registry,
+		ShadowMappingSystem& shadowMappingSystem
+	) : shadowMappingSystem(shadowMappingSystem),
+		System(engineState, registry) {}
 	void LightPerspectiveSystem::Update(
 		Models::LightPerspective& model,
 		const Components::LightPerspective& lightPerspective
@@ -21,12 +23,16 @@ namespace drk::Lights::Systems {
 		model.relativeUp = lightPerspective.relativeUp;
 		model.absoluteFront = lightPerspective.absoluteFront;
 		model.absoluteUp = lightPerspective.absoluteUp;
-		model.shadowMapRect = { 
-			lightPerspective.shadowMapRect.offset.x, 
-			lightPerspective.shadowMapRect.offset.y, 
-			lightPerspective.shadowMapRect.extent.width, 
-			lightPerspective.shadowMapRect.extent.height 
+		model.shadowMapRect = {
+			lightPerspective.shadowMapRect.offset.x / (float)ShadowMappingSystem::shadowMapWidth,
+			lightPerspective.shadowMapRect.offset.y / (float)ShadowMappingSystem::shadowMapHeight,
+			lightPerspective.shadowMapRect.extent.width / (float)ShadowMappingSystem::shadowMapWidth,
+			lightPerspective.shadowMapRect.extent.height / (float)ShadowMappingSystem::shadowMapHeight
 		};
+		model.near = lightPerspective.near;
+		model.far = lightPerspective.far;
+		model.aspectRatio = lightPerspective.aspectRatio;
+		model.verticalFov = lightPerspective.verticalFov;
 	}
 
 	void LightPerspectiveSystem::ProcessDirtyItems() {
@@ -42,18 +48,22 @@ namespace drk::Lights::Systems {
 				Spatials::Components::Spatial& spatial,
 				Objects::Dirty<Spatials::Components::Spatial>& dirty
 				) {
-					auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
-					lightPerspective.absoluteFront = absoluteRotation * lightPerspective.relativeFront;
-					lightPerspective.absoluteUp = absoluteRotation * lightPerspective.relativeUp;
+					if (lightPerspective.shadowMapRect.extent.width == 0) {
+						auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({ 512, 512 });
+						lightPerspective.shadowMapRect = allocation.scissor;
+					}
+					lightPerspective.absoluteFront = spatial.absoluteRotation * lightPerspective.relativeFront;
+					lightPerspective.absoluteUp = spatial.absoluteRotation * lightPerspective.relativeUp;
+					//lightPerspective.absoluteUp = lightPerspective.relativeUp;
 					lightPerspective.view = glm::lookAt(
-						glm::zero<glm::vec3>(),
-						glm::make_vec3(glm::zero<glm::vec4>() + lightPerspective.absoluteFront),
+						glm::make_vec3(spatial.absolutePosition),
+						glm::make_vec3(spatial.absolutePosition + lightPerspective.absoluteFront),
 						glm::make_vec3(lightPerspective.absoluteUp));
 					lightPerspective.perspective = glm::perspectiveZO<float>(
-						1,
-						1,
-						0.1,
-						1024
+						lightPerspective.verticalFov,
+						lightPerspective.aspectRatio,
+						lightPerspective.near,
+						lightPerspective.far
 					);
 					lightPerspective.perspective[1][1] *= -1.0f;
 

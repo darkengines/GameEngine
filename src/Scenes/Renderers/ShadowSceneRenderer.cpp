@@ -56,7 +56,7 @@ namespace drk::Scenes::Renderers {
 		vk::AttachmentDescription depthAttachment = {
 			.format = deviceContext.DepthFormat,
 			//TODO: Use configurable sample count
-			.samples = vk::SampleCountFlagBits::e8,
+			.samples = vk::SampleCountFlagBits::e1,
 			.loadOp = vk::AttachmentLoadOp::eClear,
 			.storeOp = vk::AttachmentStoreOp::eStore,
 			.stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
@@ -146,13 +146,10 @@ namespace drk::Scenes::Renderers {
 		createFramebuffers();
 	}
 	void ShadowSceneRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) {
-		vk::ClearValue colorClearValue = {
-			.color = {std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}
-		};
 		vk::ClearValue depthClearValue{
 			.depthStencil = {1.0f, 0}
 		};
-		std::array<vk::ClearValue, 3> clearValues{ colorClearValue, depthClearValue, colorClearValue };
+		std::array<vk::ClearValue, 1> clearValues{ depthClearValue };
 		const auto& extent = targetImageInfo.value().extent;
 		vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
 			.renderPass = renderPass,
@@ -178,6 +175,7 @@ namespace drk::Scenes::Renderers {
 		pipelineDrawIndices[std::type_index(typeid(meshPipeline))] = 0;
 		pipelineDrawIndices[std::type_index(typeid(linePipeline))] = 0;
 		bool isFirst = true;
+		Pipelines::Pipeline const* pCurrentPipeline;
 
 		draws.each(
 			[&](entt::entity drawEntity, const Draws::ShadowSceneDraw& sceneDraw) {
@@ -191,12 +189,16 @@ namespace drk::Scenes::Renderers {
 					(previousSceneDraw->indexBufferView.buffer.buffer != sceneDraw.indexBufferView.buffer.buffer)) {
 					operations |= SceneRenderOperation::BindIndexBuffer | SceneRenderOperation::BindVertexBuffer;
 				}
+				if (previousDrawEntity == entt::null ||
+					(previousSceneDraw->lightPerspectiveEntity != sceneDraw.lightPerspectiveEntity)) {
+					operations |= SceneRenderOperation::SetScissor;
+				}
 				if (previousDrawEntity != entt::null &&
 					previousSceneDraw->indexBufferView.byteOffset != sceneDraw.indexBufferView.byteOffset) {
 					operations |= SceneRenderOperation::Draw;
 				}
 				if (previousDrawEntity == entt::null) {
-					doOperations(commandBuffer, operations, sceneDraw);
+					doOperations(commandBuffer, operations, sceneDraw, &pCurrentPipeline);
 				}
 				else {
 					if (operations != SceneRenderOperation::None) {
@@ -205,7 +207,8 @@ namespace drk::Scenes::Renderers {
 							*previousSceneDraw,
 							commandBuffer,
 							instanceCount,
-							pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex]
+							pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
+							pCurrentPipeline
 						);
 						pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex] += instanceCount;
 						instanceCount = 0u;
@@ -213,7 +216,8 @@ namespace drk::Scenes::Renderers {
 					doOperations(
 						commandBuffer,
 						operations,
-						sceneDraw
+						sceneDraw,
+						&pCurrentPipeline
 					);
 				}
 				previousSceneDraw = &sceneDraw;
@@ -227,20 +231,21 @@ namespace drk::Scenes::Renderers {
 				*previousSceneDraw,
 				commandBuffer,
 				instanceCount,
-				pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex]
+				pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
+				pCurrentPipeline
 			);
 		}
 		commandBuffer.endRenderPass();
 	}
 	void ShadowSceneRenderer::draw(
 		entt::entity previousDrawEntity,
-		Draws::ShadowSceneDraw previousSceneDraw,
+		const Draws::ShadowSceneDraw& previousSceneDraw,
 		const vk::CommandBuffer& commandBuffer,
 		int instanceCount,
-		int firstInstance
+		int firstInstance,
+		Pipelines::Pipeline const* pPipeline
 	) {
-		auto sceneDraw = registry.get<Draws::ShadowSceneDraw>(previousDrawEntity);
-		auto bufferInfo = sceneDraw.drawSystem->GetVertexBufferInfo(previousDrawEntity);
+		auto bufferInfo = pPipeline->getBufferInfo(registry, previousDrawEntity);
 		commandBuffer.drawIndexed(
 			bufferInfo.indexCount,
 			instanceCount,
@@ -252,10 +257,12 @@ namespace drk::Scenes::Renderers {
 	void ShadowSceneRenderer::doOperations(
 		const vk::CommandBuffer& commandBuffer,
 		SceneRenderOperation sceneRenderOperation,
-		const Draws::ShadowSceneDraw& sceneDraw
+		const Draws::ShadowSceneDraw& sceneDraw,
+		Pipelines::Pipeline const** ppPipeline
 	) {
 		if ((sceneRenderOperation & SceneRenderOperation::BindPipeline) == SceneRenderOperation::BindPipeline) {
 			const auto& pipeline = getPipeline(sceneDraw.pipelineTypeIndex);
+			*ppPipeline = pipeline;
 			pipeline->bind(commandBuffer);
 		}
 		if ((sceneRenderOperation & SceneRenderOperation::BindIndexBuffer) == SceneRenderOperation::BindIndexBuffer) {
@@ -276,6 +283,16 @@ namespace drk::Scenes::Renderers {
 		}
 		if ((sceneRenderOperation & SceneRenderOperation::SetScissor) == SceneRenderOperation::SetScissor) {
 			vk::DeviceSize offset = 0u;
+			vk::Viewport viewport{
+				.x = static_cast<float>(sceneDraw.scissor.offset.x),
+				.y = static_cast<float>(sceneDraw.scissor.offset.y),
+				.width = static_cast<float>(sceneDraw.scissor.extent.width),
+				.height = static_cast<float>(sceneDraw.scissor.extent.height),
+				.minDepth = 0.0f,
+				.maxDepth = 1.0f
+			};
+			std::vector<vk::Viewport> viewports{ viewport };
+			commandBuffer.setViewport(0, viewports);
 			commandBuffer.setScissor(0, 1, &sceneDraw.scissor);
 		}
 	}
@@ -286,12 +303,12 @@ namespace drk::Scenes::Renderers {
 		ShadowSceneRenderer::BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent) {
 		vk::ImageCreateInfo imageCreateInfo{
 			.imageType = vk::ImageType::e2D,
-			.format = vk::Format::eR8G8B8A8Srgb,
+			.format = deviceContext.DepthFormat,
 			.extent = extent,
 			.mipLevels = 1,
 			.arrayLayers = 1,
 			.samples = vk::SampleCountFlagBits::e1,
-			.usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
+			.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled,
 			.sharingMode = vk::SharingMode::eExclusive,
 		};
 		auto memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal;
@@ -301,7 +318,7 @@ namespace drk::Scenes::Renderers {
 		);
 
 		vk::ImageSubresourceRange subresourceRange = {
-			.aspectMask = vk::ImageAspectFlagBits::eColor,
+			.aspectMask = vk::ImageAspectFlagBits::eDepth,
 			.baseMipLevel = 0,
 			.levelCount = 1,
 			.baseArrayLayer = 0,
@@ -311,7 +328,7 @@ namespace drk::Scenes::Renderers {
 		vk::ImageViewCreateInfo imageViewCreateInfo = {
 			.image = mainFramebufferImage.image,
 			.viewType = vk::ImageViewType::e2D,
-			.format = vk::Format::eR8G8B8A8Srgb,
+			.format = deviceContext.DepthFormat,
 			.subresourceRange = subresourceRange
 		};
 

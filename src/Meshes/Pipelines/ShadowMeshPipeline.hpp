@@ -17,12 +17,14 @@ namespace drk::Meshes::Pipelines {
 
 		void bind(const vk::CommandBuffer& commandBuffer);
 		void configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configure);
+		Draws::DrawVertexBufferInfo getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const;
 		void destroyPipeline();
 
 	protected:
 		const Devices::DeviceContext& deviceContext;
 		const Engine::EngineState& engineState;
 		vk::ShaderModule mainVertexShaderModule;
+		vk::ShaderModule mainFragmentShaderModule;
 		vk::Pipeline pipeline;
 		std::array<vk::DescriptorSetLayout, 4> descriptorSetLayouts;
 		vk::PipelineLayout pipelineLayout;

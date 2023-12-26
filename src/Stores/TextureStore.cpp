@@ -4,25 +4,29 @@ namespace drk::Stores {
 
 	TextureStore::TextureStore(
 		const Devices::DeviceContext& deviceContext,
-		const vk::DescriptorSet &descriptorSet,
-		const vk::Sampler &textureSampler
+		const vk::DescriptorSet& descriptorSet,
+		const vk::Sampler& textureSampler,
+		const vk::Sampler& shadowTextureSampler
 	) :
-		DeviceContext(deviceContext), DescriptorSet(descriptorSet), TextureSampler(textureSampler) {
+		DeviceContext(deviceContext),
+		DescriptorSet(descriptorSet),
+		TextureSampler(textureSampler),
+		shadowTextureSampler(shadowTextureSampler) {
 
 	}
 
 	std::vector<Devices::Texture>
-	TextureStore::UploadTextures(std::vector<const Textures::ImageInfo *> imageInfos) {
+		TextureStore::UploadTextures(std::vector<const Textures::ImageInfo*> imageInfos) {
 		const auto textureIndexOffset = Textures.size();
 		std::vector<Devices::Texture> uploadedTextures(imageInfos.size());
 		std::vector<vk::DescriptorImageInfo> descriptorImageInfos(imageInfos.size());
 
 		for (auto imageInfoIndex = 0u; imageInfoIndex < imageInfos.size(); imageInfoIndex++) {
-			const auto &imageInfo = imageInfos[imageInfoIndex];
+			const auto& imageInfo = imageInfos[imageInfoIndex];
 			VmaAllocationCreateInfo stagingAllocationCreationInfo = {
 				.flags = VmaAllocationCreateFlagBits::VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
 				.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
-				.requiredFlags = (VkMemoryPropertyFlags) (vk::MemoryPropertyFlagBits::eHostVisible |
+				.requiredFlags = (VkMemoryPropertyFlags)(vk::MemoryPropertyFlagBits::eHostVisible |
 														  vk::MemoryPropertyFlagBits::eHostCoherent),
 			};
 			const auto imageByteLength = imageInfo->width * imageInfo->height * 4 * sizeof(unsigned char);
@@ -33,8 +37,8 @@ namespace drk::Stores {
 				imageByteLength
 			);
 
-			unsigned char *stagingMemory;
-			Devices::Device::mapBuffer(DeviceContext.Allocator, stagingBuffer, (void **) &stagingMemory);
+			unsigned char* stagingMemory;
+			Devices::Device::mapBuffer(DeviceContext.Allocator, stagingBuffer, (void**)&stagingMemory);
 
 			memcpy(stagingMemory, imageInfo->pixels.data(), imageByteLength);
 
@@ -98,7 +102,8 @@ namespace drk::Stores {
 					imageInfo->height,
 					mipLevels
 				);
-			} else {
+			}
+			else {
 				Devices::Device::transitionLayout(
 					commandBuffer,
 					image.image,
@@ -159,5 +164,35 @@ namespace drk::Stores {
 		DeviceContext.device.updateDescriptorSets(std::array<vk::WriteDescriptorSet, 1>{write}, {});
 
 		return uploadedTextures;
+	}
+
+	void TextureStore::registerTextures(Devices::Texture* pTextures, uint32_t textureCount) {
+		const auto textureIndexOffset = Textures.size();
+		std::vector<vk::DescriptorImageInfo> descriptorImageInfos(textureCount);
+		for (auto textureIndex = 0; textureIndex < textureCount; textureIndex++) {
+			auto& texture = pTextures[textureIndex];
+			Textures.push_back(texture);
+			vk::DescriptorImageInfo descriptorImageInfo = {
+				.sampler = shadowTextureSampler,
+				.imageView = texture.imageView,
+				.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal
+			};
+			texture.index = textureIndex + textureIndexOffset;
+			descriptorImageInfos[textureIndex] = descriptorImageInfo;
+		}
+		vk::WriteDescriptorSet write = {
+			.dstSet = DescriptorSet,
+			.dstBinding = 0,
+			.dstArrayElement = static_cast<uint32_t>(textureIndexOffset),
+			.descriptorCount = static_cast<uint32_t>(textureCount),
+			.descriptorType = vk::DescriptorType::eCombinedImageSampler,
+			.pImageInfo = descriptorImageInfos.data(),
+			.pBufferInfo = nullptr,
+		};
+
+		DeviceContext.device.updateDescriptorSets(std::array<vk::WriteDescriptorSet, 1>{write}, {});
+	}
+	void TextureStore::registerTexture(Devices::Texture& texture) {
+		registerTextures(&texture, 1);
 	}
 }

@@ -4,6 +4,7 @@
 #include "ShadowMeshPipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
 #include "../../Meshes/MeshGroup.hpp"
+#include "../Components/ShadowMeshDraw.hpp"
 
 namespace drk::Meshes::Pipelines {
 	ShadowMeshPipeline::ShadowMeshPipeline(
@@ -16,9 +17,9 @@ namespace drk::Meshes::Pipelines {
 			descriptorSetLayouts.storeDescriptorSetLayout,
 			descriptorSetLayouts.globalDescriptorSetLayout,
 			descriptorSetLayouts.storeDescriptorSetLayout,
-		},
-		pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
-		engineState(engineState) {
+	},
+	pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
+	engineState(engineState) {
 		createShaderModules();
 	}
 
@@ -30,15 +31,26 @@ namespace drk::Meshes::Pipelines {
 
 	void ShadowMeshPipeline::destroyShaderModules() {
 		deviceContext.device.destroyShaderModule(mainVertexShaderModule);
+		deviceContext.device.destroyShaderModule(mainFragmentShaderModule);
 	}
 
 	void ShadowMeshPipeline::createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo) {
 
 		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicPipelineCreateInfo);
-		if ((VkResult) result.result != VK_SUCCESS) {
+		if ((VkResult)result.result != VK_SUCCESS) {
 			throw new std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		pipeline = result.value;
+	}
+
+	Draws::DrawVertexBufferInfo ShadowMeshPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
+		auto meshDraw = registry.get<Components::ShadowMeshDraw>(drawEntity);
+		Draws::DrawVertexBufferInfo bufferInfo{
+			static_cast<uint32_t>(meshDraw.meshResource->indices.size()),
+				static_cast<uint32_t>(meshDraw.meshBufferView.IndexBufferView.byteOffset / sizeof(VertexIndex)),
+				static_cast<int32_t>(meshDraw.meshBufferView.VertexBufferView.byteOffset / sizeof(Vertex))
+		};
+		return bufferInfo;
 	}
 
 	void ShadowMeshPipeline::configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configuration) {
@@ -48,8 +60,15 @@ namespace drk::Meshes::Pipelines {
 			.pName = "main"
 		};
 
+		vk::PipelineShaderStageCreateInfo fragmentPipelineShaderStageCreateInfo = {
+			.stage = vk::ShaderStageFlagBits::eFragment,
+			.module = mainFragmentShaderModule,
+			.pName = "main"
+		};
+
 		std::vector<vk::PipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos = {
-			vertexPipelineShaderStageCreateInfo
+			vertexPipelineShaderStageCreateInfo,
+			fragmentPipelineShaderStageCreateInfo
 		};
 
 		vk::PipelineColorBlendAttachmentState pipelineColorBlendAttachmentState;
@@ -64,18 +83,25 @@ namespace drk::Meshes::Pipelines {
 		);
 		const auto& pipelineInputAssemblyStateCreateInfo = Graphics::Graphics::DefaultPipelineInputAssemblyStateCreateInfo();
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{1024u, 768u},
+			{ 1024u, 768u },
 			viewport,
 			scissor
 		);
 		const auto& pipelineRasterizationStateCreateInfo = Graphics::Graphics::DefaultPipelineRasterizationStateCreateInfo();
 		auto pipelineMultisampleStateCreateInfo = Graphics::Graphics::DefaultPipelineMultisampleStateCreateInfo();
 		//TODO: Use configurable sample count
-		pipelineMultisampleStateCreateInfo.rasterizationSamples = vk::SampleCountFlagBits::e8;
+		pipelineMultisampleStateCreateInfo.rasterizationSamples = vk::SampleCountFlagBits::e1;
 		const auto& pipelineColorBlendStateCreateInfo = Graphics::Graphics::DefaultPipelineColorBlendStateCreateInfo(
 			pipelineColorBlendAttachmentState
 		);
 		const auto& pipelineDepthStencilStateCreateInfo = Graphics::Graphics::DefaultPipelineDepthStencilStateCreateInfo();
+
+		std::vector<vk::DynamicState> dynamicStates{ vk::DynamicState::eScissor, vk::DynamicState::eViewport };
+
+		vk::PipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{
+			.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
+			.pDynamicStates = dynamicStates.data()
+		};
 
 		vk::GraphicsPipelineCreateInfo graphicPipelineCreateInfo = {
 			.stageCount = static_cast<uint32_t>(pipelineShaderStageCreateInfos.size()),
@@ -87,6 +113,7 @@ namespace drk::Meshes::Pipelines {
 			.pMultisampleState = &pipelineMultisampleStateCreateInfo,
 			.pDepthStencilState = &pipelineDepthStencilStateCreateInfo,
 			.pColorBlendState = &pipelineColorBlendStateCreateInfo,
+			.pDynamicState = &pipelineDynamicStateCreateInfo,
 			.layout = pipelineLayout,
 		};
 
@@ -98,10 +125,10 @@ namespace drk::Meshes::Pipelines {
 	}
 
 	vk::PipelineLayout
-	ShadowMeshPipeline::createPipelineLayout(
-		const Devices::DeviceContext& deviceContext,
-		const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
-	) {
+		ShadowMeshPipeline::createPipelineLayout(
+			const Devices::DeviceContext& deviceContext,
+			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+		) {
 		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
 			.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
 			.pSetLayouts = descriptorSetLayouts.data(),
@@ -110,6 +137,7 @@ namespace drk::Meshes::Pipelines {
 	}
 	void ShadowMeshPipeline::createShaderModules() {
 		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/ShadowMesh.vert.spv");
+		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/ShadowMesh.frag.spv");
 	}
 	void ShadowMeshPipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();

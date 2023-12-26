@@ -10,6 +10,5 @@ namespace drk::Draws {
 		virtual void UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex) = 0;
 		virtual void UpdateDraws() = 0;
 		virtual bool EmitDraws() = 0;
-		virtual DrawVertexBufferInfo GetVertexBufferInfo(entt::entity drawEntity) = 0;
 	};
 }

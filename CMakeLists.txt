@@ -43,6 +43,7 @@ file(
     src/Lights/Systems/LightSystem.cpp
     src/Lights/Systems/PointLightSystem.cpp
     src/Lights/Systems/SpotlightSystem.cpp
+    src/Lights/Systems/ShadowMappingSystem.cpp
     src/Lines/LinePipeline.cpp
     src/Lines/LineSystem.cpp
     src/Lines/Models/LineVertex.cpp
@@ -153,6 +154,7 @@ file(
     src/Lights/Systems/LightSystem.hpp
     src/Lights/Systems/PointLightSystem.hpp
     src/Lights/Systems/SpotlightSystem.hpp
+    src/Lights/Systems/ShadowMappingSystem.hpp
     src/Lines/Extensions.hpp
     src/Lines/LinePipeline.hpp
     src/Lines/LineSystem.hpp
@@ -242,6 +244,7 @@ file(
     "src/Meshes/Shaders/Mesh.vert"
     "src/Meshes/Shaders/Mesh.frag"
     "src/Meshes/Shaders/ShadowMesh.vert"
+    "src/Meshes/Shaders/ShadowMesh.frag"
     "src/Points/Shaders/Point.vert"
     "src/Points/Shaders/Point.frag"
     "src/Lines/Shaders/Line.vert"

@@ -71,10 +71,6 @@ namespace drk::Scenes {
 		if (synchronizables.begin() == synchronizables.end()) return;
 		registry.sort<Scenes::Draws::ShadowSceneDraw>(
 			[](const Draws::ShadowSceneDraw& leftDraw, const Draws::ShadowSceneDraw& rightDraw) {
-				if (leftDraw.lightEntity < rightDraw.lightEntity)
-					return true;
-				if (leftDraw.lightEntity > rightDraw.lightEntity)
-					return false;
 				if (leftDraw.hasTransparency < rightDraw.hasTransparency)
 					return true;
 				if (leftDraw.hasTransparency > rightDraw.hasTransparency)
@@ -86,10 +82,14 @@ namespace drk::Scenes {
 					if (leftDraw.depth > rightDraw.depth)
 						return true;
 				}
-
 				if (leftDraw.drawSystem < rightDraw.drawSystem)
 					return true;
 				if (leftDraw.drawSystem > rightDraw.drawSystem)
+					return false;
+
+				if (leftDraw.lightPerspectiveEntity < rightDraw.lightPerspectiveEntity)
+					return true;
+				if (leftDraw.lightPerspectiveEntity > rightDraw.lightPerspectiveEntity)
 					return false;
 
 				if (leftDraw.pipelineTypeIndex < rightDraw.pipelineTypeIndex)

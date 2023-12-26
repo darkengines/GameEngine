@@ -5,6 +5,7 @@
 #include "../../Systems/System.hpp"
 #include "../Models/Light.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
+#include "./ShadowMappingSystem.hpp"
 
 namespace drk::Lights::Systems {
 	class PointLightSystem : public drk::Systems::System<
@@ -15,11 +16,13 @@ namespace drk::Lights::Systems {
 	> {
 	protected:
 		const Devices::DeviceContext& deviceContext;
+		ShadowMappingSystem& shadowMappingSystem;
 	public:
 		PointLightSystem(
 			const Devices::DeviceContext& deviceContext, 
 			Engine::EngineState& engineState, 
-			entt::registry& registry
+			entt::registry& registry,
+			ShadowMappingSystem& shadowMappingSystem
 		);
 		virtual void Update(
 			Models::PointLight& model,

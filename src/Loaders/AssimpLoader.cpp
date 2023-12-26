@@ -301,7 +301,7 @@ namespace drk::Loaders {
 					.relativeUp = GlmExtensions::up,
 					.verticalFov = glm::half_pi<float>(),
 					.aspectRatio = 1.0f,
-					.near = 0.0f,
+					.near = 0.001f,
 					.far = 128.0f
 				};
 
@@ -310,7 +310,7 @@ namespace drk::Loaders {
 					.relativeUp = GlmExtensions::up,
 					.verticalFov = glm::half_pi<float>(),
 					.aspectRatio = 1.0f,
-					.near = 0.0f,
+					.near = 0.001f,
 					.far = 128.0f
 				};
 
@@ -319,7 +319,7 @@ namespace drk::Loaders {
 					.relativeUp = GlmExtensions::up,
 					.verticalFov = glm::half_pi<float>(),
 					.aspectRatio = 1.0f,
-					.near = 0.0f,
+					.near = 0.001f,
 					.far = 128.0f
 				};
 
@@ -328,25 +328,25 @@ namespace drk::Loaders {
 					.relativeUp = GlmExtensions::up,
 					.verticalFov = glm::half_pi<float>(),
 					.aspectRatio = 1.0f,
-					.near = 0.0f,
+					.near = 0.001f,
 					.far = 128.0f
 				};
 
 				Lights::Components::LightPerspective upLightPerspective = {
 					.relativeFront = GlmExtensions::up,
-					.relativeUp = GlmExtensions::left,
+					.relativeUp = GlmExtensions::back,
 					.verticalFov = glm::half_pi<float>(),
 					.aspectRatio = 1.0f,
-					.near = 0.0f,
+					.near = 0.001f,
 					.far = 128.0f
 				};
 
 				Lights::Components::LightPerspective downLightPerspective = {
 					.relativeFront = GlmExtensions::down,
-					.relativeUp = GlmExtensions::left,
+					.relativeUp = GlmExtensions::front,
 					.verticalFov = glm::half_pi<float>(),
 					.aspectRatio = 1.0f,
-					.near = 0.0f,
+					.near = 0.001f,
 					.far = 128.0f
 				};
 
@@ -362,6 +362,13 @@ namespace drk::Loaders {
 				registry.emplace<Lights::Components::LightPerspective>(upLightPerspectiveEntity, std::move(upLightPerspective));
 				auto downLightPerspectiveEntity = registry.create();
 				registry.emplace<Lights::Components::LightPerspective>(downLightPerspectiveEntity, std::move(downLightPerspective));
+
+				pointLight.frontLightPerspectiveEntity = frontLightPerspectiveEntity;
+				pointLight.backLightPerspectiveEntity = backLightPerspectiveEntity;
+				pointLight.leftLightPerspectiveEntity = leftLightPerspectiveEntity;
+				pointLight.rightLightPerspectiveEntity = rightLightPerspectiveEntity;
+				pointLight.topLightPerspectiveEntity = upLightPerspectiveEntity;
+				pointLight.downLightPerspectiveEntity = downLightPerspectiveEntity;
 
 				Lights::Components::LightPerspectiveCollection lightPerspectiveCollection{
 					.lightPerspectives = {
@@ -422,9 +429,9 @@ namespace drk::Loaders {
 				Lights::Components::LightPerspective lightPerspective{
 					.relativeFront = { aiLight->mDirection.x, aiLight->mDirection.y, aiLight->mDirection.z, 0 },
 					.relativeUp = { aiLight->mUp.x, aiLight->mUp.y, aiLight->mUp.z, 0 },
-					.verticalFov = spotlight.outerConeAngle,
+					.verticalFov = spotlight.outerConeAngle * 2.0f,
 					.aspectRatio = 1.0f,
-					.near = 0.0f,
+					.near = 0.001f,
 					.far = 128.0f
 				};
 
@@ -434,9 +441,9 @@ namespace drk::Loaders {
 				loadResult.spotlights.emplace_back(spotlight);
 			}
 			Lights::Components::Light light = {
-				{aiLight->mColorAmbient.r,  aiLight->mColorAmbient.g,  aiLight->mColorAmbient.b,  1},
-				{aiLight->mColorDiffuse.r,  aiLight->mColorDiffuse.g,  aiLight->mColorDiffuse.b,  1},
-				{aiLight->mColorSpecular.r, aiLight->mColorSpecular.g, aiLight->mColorSpecular.b, 1}
+				{aiLight->mColorAmbient.r / 256.0f,  aiLight->mColorAmbient.g / 256.0f,  aiLight->mColorAmbient.b / 256.0f,  1},
+				{aiLight->mColorDiffuse.r / 256.0f,  aiLight->mColorDiffuse.g / 256.0f,  aiLight->mColorDiffuse.b / 256.0f,  1},
+				{aiLight->mColorSpecular.r / 256.0f, aiLight->mColorSpecular.g / 256.0f, aiLight->mColorSpecular.b / 256.0f, 1}
 			};
 			registry.emplace<Lights::Components::Light>(entity, light);
 			lightNameMap[lightName] = { entity, aiLight->mType };
@@ -529,19 +536,19 @@ namespace drk::Loaders {
 			if (lightType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
 				auto& directionalLightSpatial = registry.get<Spatials::Components::Spatial>(entity);
 				directionalLightSpatial.relativeRotation = spatial.relativeRotation;
-				directionalLightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 1.0f);
+				directionalLightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 0.0f);
 			}
 			else if (lightType == aiLightSourceType::aiLightSource_POINT) {
 				auto& pointLight = registry.get<Lights::Components::PointLight>(entity);
 				auto& pointLightSpatial = registry.get<Spatials::Components::Spatial>(entity);
 				pointLightSpatial.relativeRotation = spatial.relativeRotation;
-				pointLightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 1.0f);
+				pointLightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 0.0f);
 			}
 			else if (lightType == aiLightSourceType::aiLightSource_SPOT) {
 				auto& spotlight = registry.get<Lights::Components::Spotlight>(entity);
 				auto& spotlightSpatial = registry.get<Spatials::Components::Spatial>(entity);
 				spotlightSpatial.relativeRotation = spatial.relativeRotation;
-				spotlightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 1.0f);
+				spotlightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 0.0f);
 			}
 		}
 		auto cameraEntity = cameraMap.find(nodeName);

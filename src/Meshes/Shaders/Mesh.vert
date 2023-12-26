@@ -38,16 +38,16 @@ layout (set = 3, binding = 0) readonly buffer objectLayout {
 layout (set = 3, binding = 0) readonly buffer cameraLayout {
     Camera[] cameras;
 } cameraBuffer[];
-layout (set = 3, binding = 0) readonly buffer pointLightLayout {
+layout (std430, set = 3, binding = 0) readonly buffer pointLightLayout {
     PointLight[] pointLights;
 } pointLightBuffer[];
-layout (set = 3, binding = 0) readonly buffer directionalLightLayout {
+layout (std430, set = 3, binding = 0) readonly buffer directionalLightLayout {
     DirectionalLight[] directionalLights;
 } directionalLightBuffer[];
-layout (set = 3, binding = 0) readonly buffer spotlightLayout {
+layout (std430, set = 3, binding = 0) readonly buffer spotlightLayout {
     Spotlight[] spotlights;
 } spotlightBuffer[];
-layout (set = 3, binding = 0) readonly buffer lightPerspectiveLayout {
+layout (std430, set = 3, binding = 0) readonly buffer lightPerspectiveLayout {
     LightPerspective[] lightPerspectives;
 } lightPerspectiveBuffer[];
 

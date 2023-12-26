@@ -112,7 +112,9 @@ namespace drk::Lines {
 		deviceContext.device.waitIdle();
 		deviceContext.device.destroyPipeline(pipeline);
 	}
-
+	Draws::DrawVertexBufferInfo LinePipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
+		return Draws::DrawVertexBufferInfo{ 2, 0, 0 };
+	}
 	vk::PipelineLayout
 		LinePipeline::createPipelineLayout(
 			const Devices::DeviceContext& deviceContext,

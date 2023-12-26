@@ -13,6 +13,7 @@
 #include "SceneRenderOperation.hpp"
 #include "../../Lines/LinePipeline.hpp"
 #include "./ShadowSceneRenderer.hpp"
+#include "../../Lights/Systems/ShadowMappingSystem.hpp"
 
 
 namespace drk::Scenes::Renderers {
@@ -29,7 +30,7 @@ namespace drk::Scenes::Renderers {
 		std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline;
 		std::unique_ptr<Lines::LinePipeline> linePipeline;
 		std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer;
-		std::vector<vk::ImageView> shadowTargetImageViews;
+		Lights::Systems::ShadowMappingSystem& shadowMappingSystem;
 		vk::RenderPass renderPass;
 	public:
 		SceneRenderer(
@@ -38,7 +39,8 @@ namespace drk::Scenes::Renderers {
 			std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
 			std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline,
 			std::unique_ptr<Lines::LinePipeline> linePipeline,
-			std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer
+			std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer,
+			Lights::Systems::ShadowMappingSystem& shadowMappingSystem
 		);
 		~SceneRenderer();
 		void render(uint32_t targetImageIndex, const vk::CommandBuffer& sceneDraw);
@@ -58,15 +60,17 @@ namespace drk::Scenes::Renderers {
 		void destroyRenderPass();
 		void draw(
 			entt::entity previousDrawEntity,
-			Draws::SceneDraw previousSceneDraw,
+			const Draws::SceneDraw& previousSceneDraw,
 			const vk::CommandBuffer& commandBuffer,
 			int instanceCount,
-			int firstInstance
+			int firstInstance,
+			Pipelines::Pipeline const* pPipeline
 		);
 		void doOperations(
 			const vk::CommandBuffer& commandBuffer,
 			SceneRenderOperation sceneRenderOperation,
-			const Draws::SceneDraw& sceneDraw
+			const Draws::SceneDraw& sceneDraw,
+			Pipelines::Pipeline const** ppPipeline
 		);
 	};
 }

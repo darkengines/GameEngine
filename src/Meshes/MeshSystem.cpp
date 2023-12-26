@@ -95,6 +95,7 @@ namespace drk::Meshes {
 		meshItemLocation.pItem->objectItemLocation.itemIndex = meshDraw.objectItemLocation.itemIndex;
 		meshItemLocation.pItem->cameraItemLocation = meshDraw.cameraItemLocation;
 		meshItemLocation.pItem->LightPerspectiveItemLocation = meshDraw.lightPerspectiveItemLocation;
+		meshItemLocation.pItem->LightPerspectiveSpatialItemLocation = meshDraw.lightPerspectiveSpatialItemLocation;
 	}
 	bool MeshSystem::EmitDraws() {
 		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Components::Spatial>(entt::exclude<Components::MeshDrawCollection>);
@@ -151,25 +152,28 @@ namespace drk::Meshes {
 		return hasEntities;
 	}
 	bool MeshSystem::EmitShadowDraws() {
-		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Components::Spatial>(entt::exclude<Components::MeshDrawCollection>);
+		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Components::Spatial>(entt::exclude<Components::ShadowMeshDrawCollection>);
 		auto hasEntities = objectEntities.begin() != objectEntities.end();
 		if (hasEntities) {
 			auto pointLightView = registry.view<
 				Lights::Components::PointLight,
 				Stores::StoreItem<Lights::Models::PointLight>,
-				Lights::Components::LightPerspectiveCollection
+				Lights::Components::LightPerspectiveCollection,
+				Stores::StoreItem<Spatials::Models::Spatial>
 			>();
 			auto directionalLightView = registry.view<
 				Lights::Components::DirectionalLight,
 				Stores::StoreItem<Lights::Models::DirectionalLight>,
 				Lights::Components::LightPerspective,
-				Stores::StoreItem<Lights::Models::LightPerspective>
+				Stores::StoreItem<Lights::Models::LightPerspective>,
+				Stores::StoreItem<Spatials::Models::Spatial>
 			>();
 			auto spotlightView = registry.view<
 				Lights::Components::Spotlight,
 				Stores::StoreItem<Lights::Models::Spotlight>,
 				Lights::Components::LightPerspective,
-				Stores::StoreItem<Lights::Models::LightPerspective>
+				Stores::StoreItem<Lights::Models::LightPerspective>,
+				Stores::StoreItem<Spatials::Models::Spatial>
 			>();
 
 			const auto& [camera, cameraStoreItem] = registry.get<Cameras::Components::Camera, Stores::StoreItem<Cameras::Models::Camera>>(engineState.CameraEntity);
@@ -186,7 +190,8 @@ namespace drk::Meshes {
 						entt::entity pointLightEntity,
 						const Lights::Components::PointLight& pointLight,
 						const Stores::StoreItem<Lights::Models::PointLight>& pointLightStoreItem,
-						const Lights::Components::LightPerspectiveCollection& lightPerspectiveCollection
+						const Lights::Components::LightPerspectiveCollection& lightPerspectiveCollection,
+						const Stores::StoreItem<Spatials::Models::Spatial>& lightPerspectiveSpatialStoreItem
 						) {
 							for (const auto& lightPerspectiveEntity : lightPerspectiveCollection.lightPerspectives) {
 								const auto& [lightPerspective, lightPerspectiveStoreItem] = registry.get<
@@ -194,7 +199,7 @@ namespace drk::Meshes {
 									Stores::StoreItem<Lights::Models::LightPerspective>
 								>(lightPerspectiveEntity);
 								const auto& lightPerspectiveStoreItemLocation = lightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
-
+								const auto& lightPerspectiveSpatialStoreItemLocation = lightPerspectiveSpatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
 								ProcessObjectEntity(
 									objectEntity,
 									objectStoreItem,
@@ -203,8 +208,10 @@ namespace drk::Meshes {
 									camera,
 									cameraStoreItemLocation,
 									pointLightEntity,
+									lightPerspectiveEntity,
 									lightPerspective,
 									lightPerspectiveStoreItemLocation,
+									lightPerspectiveSpatialStoreItemLocation,
 									shadowMeshDrawCollection
 								);
 
@@ -216,10 +223,11 @@ namespace drk::Meshes {
 						const Lights::Components::DirectionalLight& directionalLight,
 						const Stores::StoreItem<Lights::Models::DirectionalLight>& directionalLightStoreItem,
 						const Lights::Components::LightPerspective& lightPerspective,
-						const Stores::StoreItem<Lights::Models::LightPerspective>& lightPerspectiveStoreItem
+						const Stores::StoreItem<Lights::Models::LightPerspective>& lightPerspectiveStoreItem,
+						const Stores::StoreItem<Spatials::Models::Spatial>& lightPerspectiveSpatialStoreItem
 						) {
 							const auto& lightPerspectiveStoreItemLocation = lightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
-
+							const auto& lightPerspectiveSpatialStoreItemLocation = lightPerspectiveSpatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
 							ProcessObjectEntity(
 								objectEntity,
 								objectStoreItem,
@@ -228,8 +236,10 @@ namespace drk::Meshes {
 								camera,
 								cameraStoreItemLocation,
 								directionalLightEntity,
+								directionalLightEntity,
 								lightPerspective,
 								lightPerspectiveStoreItemLocation,
+								lightPerspectiveSpatialStoreItemLocation,
 								shadowMeshDrawCollection
 							);
 
@@ -240,10 +250,11 @@ namespace drk::Meshes {
 						const Lights::Components::Spotlight& spotlight,
 						const Stores::StoreItem<Lights::Models::Spotlight>& spotlightStoreItem,
 						const Lights::Components::LightPerspective& lightPerspective,
-						const Stores::StoreItem<Lights::Models::LightPerspective>& lightPerspectiveStoreItem
+						const Stores::StoreItem<Lights::Models::LightPerspective>& lightPerspectiveStoreItem,
+						const Stores::StoreItem<Spatials::Models::Spatial>& lightPerspectiveSpatialStoreItem
 						) {
 							const auto& lightPerspectiveStoreItemLocation = lightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
-
+							const auto& lightPerspectiveSpatialStoreItemLocation = lightPerspectiveSpatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
 							ProcessObjectEntity(
 								objectEntity,
 								objectStoreItem,
@@ -252,8 +263,10 @@ namespace drk::Meshes {
 								camera,
 								cameraStoreItemLocation,
 								spotlightEntity,
+								spotlightEntity,
 								lightPerspective,
 								lightPerspectiveStoreItemLocation,
+								lightPerspectiveSpatialStoreItemLocation,
 								shadowMeshDrawCollection
 							);
 
@@ -276,6 +289,26 @@ namespace drk::Meshes {
 				}
 					  });
 		}
+	}
+	void MeshSystem::ProcessShadowDirtyDraws() {
+		auto dirtyPointLightView = registry.view<
+			Lights::Components::PointLight,
+			Objects::Dirty<Spatials::Components::Spatial>,
+			Spatials::Components::Spatial,
+			Components::ShadowMeshDrawCollection
+		>();
+		/*dirtyPointLightView.each([&](
+			entt::entity pointlightEntity,
+			Lights::Components::PointLight& pointLight,
+			Objects::Dirty<Spatials::Components::Spatial>& dirtySpatial,
+			Spatials::Components::Spatial& lightSpatial,
+			const Components::ShadowMeshDrawCollection& shadowMeshDrawCollection
+			) {
+				for (const auto& shadowMeshDrawEntity : shadowMeshDrawCollection.meshDrawEntities) {
+					auto& shadowMeshDraw = registry.get<Components::ShadowMeshDraw>(shadowMeshDrawEntity);
+					registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::ShadowSceneDraw>>(shadowMeshDrawEntity, engineState.getFrameCount());
+				}
+			});*/
 	}
 	Draws::DrawVertexBufferInfo MeshSystem::GetVertexBufferInfo(entt::entity drawEntity) {
 		auto meshDraw = registry.get<Components::MeshDraw>(drawEntity);
@@ -335,8 +368,10 @@ namespace drk::Meshes {
 		const Cameras::Components::Camera& camera,
 		const Stores::StoreItemLocation<Cameras::Models::Camera>& cameraStoreItemLocation,
 		entt::entity lightEntity,
+		entt::entity lightPerspectiveEntity,
 		const Lights::Components::LightPerspective& perspective,
 		const Stores::StoreItemLocation<Lights::Models::LightPerspective>& perspectiveStoreItemLocation,
+		const Stores::StoreItemLocation<Spatials::Models::Spatial>& perspectiveSpatialStoreItemLocation,
 		Components::ShadowMeshDrawCollection& shadowMeshDrawCollection
 	) {
 		const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
@@ -359,6 +394,7 @@ namespace drk::Meshes {
 				.vertexBufferView = meshBufferView.VertexBufferView,
 				.lightEntity = lightEntity,
 				.scissor = perspective.shadowMapRect,
+				.lightPerspectiveEntity = lightPerspectiveEntity,
 				.hasTransparency = material->hasTransparency,
 				.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition),
 			};
@@ -368,7 +404,8 @@ namespace drk::Meshes {
 				.meshItemLocation = meshStoreItemLocation,
 				.objectItemLocation = objectStoreItemLocation,
 				.cameraItemLocation = cameraStoreItemLocation,
-				.lightPerspectiveItemLocation = perspectiveStoreItemLocation
+				.lightPerspectiveItemLocation = perspectiveStoreItemLocation,
+				.lightPerspectiveSpatialItemLocation = perspectiveSpatialStoreItemLocation
 			};
 			auto entity = registry.create();
 			shadowMeshDrawCollection.meshDrawEntities.push_back(entity);

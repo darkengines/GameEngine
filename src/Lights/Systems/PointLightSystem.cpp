@@ -12,8 +12,9 @@ namespace drk::Lights::Systems {
 	PointLightSystem::PointLightSystem(
 		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
-		entt::registry& registry
-	) : System(engineState, registry), deviceContext(deviceContext) {}
+		entt::registry& registry,
+		ShadowMappingSystem& shadowMappingSystem
+	) : System(engineState, registry), deviceContext(deviceContext), shadowMappingSystem(shadowMappingSystem) {}
 	void PointLightSystem::Update(
 		Models::PointLight& model,
 		const Components::PointLight& component,
@@ -24,12 +25,26 @@ namespace drk::Lights::Systems {
 		model.linearAttenuation = component.linearAttenuation;
 		model.quadraticAttenuation = component.quadraticAttenuation;
 
+		const auto& frontLightPerspectiveStoreItem = registry.get<Stores::StoreItem<Models::LightPerspective>>(component.frontLightPerspectiveEntity);
+		const auto& backLightPerspectiveStoreItem = registry.get<Stores::StoreItem<Models::LightPerspective>>(component.backLightPerspectiveEntity);
+		const auto& leftLightPerspectiveStoreItem = registry.get<Stores::StoreItem<Models::LightPerspective>>(component.leftLightPerspectiveEntity);
+		const auto& rightLightPerspectiveStoreItem = registry.get<Stores::StoreItem<Models::LightPerspective>>(component.rightLightPerspectiveEntity);
+		const auto& topLightPerspectiveStoreItem = registry.get<Stores::StoreItem<Models::LightPerspective>>(component.topLightPerspectiveEntity);
+		const auto& downLightPerspectiveStoreItem = registry.get<Stores::StoreItem<Models::LightPerspective>>(component.downLightPerspectiveEntity);
+
 		model.lightStoreItemLocation = lightStoreItem.frameStoreItems[engineState.getFrameIndex()];
 		model.spatialStoreItemLocation = spatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
+
+		model.frontLightPerspectiveStoreItemLocation = frontLightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
+		model.backLightPerspectiveStoreItemLocation = backLightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
+		model.topLightPerspectiveStoreItemLocation = topLightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
+		model.downLightPerspectiveStoreItemLocation = downLightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
+		model.leftLightPerspectiveStoreItemLocation = leftLightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
+		model.rightLightPerspectiveStoreItemLocation = rightLightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
 	}
 
 	void PointLightSystem::ProcessDirtyItems() {
-		/*auto dirtyPointLightView = registry.view<
+		auto dirtyPointLightView = registry.view<
 			Components::PointLight,
 			Spatials::Components::Spatial,
 			Components::LightPerspectiveCollection,
@@ -42,30 +57,36 @@ namespace drk::Lights::Systems {
 				Spatials::Components::Spatial& spatial,
 				Components::LightPerspectiveCollection& lightPerspectiveCollection,
 				Objects::Dirty<Spatials::Components::Spatial>& dirty
-			) {
-				for (auto lightPerspectiveEntity : lightPerspectiveCollection.lightPerspectives) {
-					auto& lightPerspective = registry.get<Components::LightPerspective>(lightPerspectiveEntity);
-					auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
-					lightPerspective.absoluteFront = absoluteRotation * lightPerspective.relativeFront;
-					lightPerspective.absoluteUp = absoluteRotation * lightPerspective.relativeUp;
-					lightPerspective.view = glm::lookAt(
-						glm::make_vec3(spatial.absolutePosition),
-						glm::make_vec3(spatial.absolutePosition + lightPerspective.absoluteFront),
-						glm::make_vec3(lightPerspective.absoluteUp));
-					lightPerspective.perspective = glm::perspectiveZO(
-						lightPerspective.verticalFov,
-						lightPerspective.aspectRatio,
-						lightPerspective.near,
-						lightPerspective.far
-					);
-					lightPerspective.perspective[1][1] *= -1.0f;
+				) {
+					for (auto lightPerspectiveEntity : lightPerspectiveCollection.lightPerspectives) {
+						auto& lightPerspective = registry.get<Components::LightPerspective>(lightPerspectiveEntity);
+						if (lightPerspective.shadowMapRect.extent.width == 0) {
+							auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({ 512, 512 });
+							lightPerspective.shadowMapRect = allocation.scissor;
+						}
+						auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
+						/*lightPerspective.absoluteFront = absoluteRotation * lightPerspective.relativeFront;
+						lightPerspective.absoluteUp = absoluteRotation * lightPerspective.relativeUp;*/
+						lightPerspective.absoluteFront = lightPerspective.relativeFront;
+						lightPerspective.absoluteUp = lightPerspective.relativeUp;
+						lightPerspective.view = glm::lookAt(
+							glm::make_vec3(spatial.absolutePosition),
+							glm::make_vec3(spatial.absolutePosition + lightPerspective.absoluteFront),
+							glm::make_vec3(lightPerspective.absoluteUp));
+						lightPerspective.perspective = glm::perspectiveZO(
+							lightPerspective.verticalFov,
+							lightPerspective.aspectRatio,
+							lightPerspective.near,
+							lightPerspective.far
+						);
+						lightPerspective.perspective[1][1] *= -1.0f;
 
-					registry.emplace_or_replace<Graphics::SynchronizationState<Models::LightPerspective>>(
-						lightPerspectiveEntity,
-						static_cast<uint32_t>(engineState.getFrameCount())
-					);
-				}
+						registry.emplace_or_replace<Graphics::SynchronizationState<Models::LightPerspective>>(
+							lightPerspectiveEntity,
+							static_cast<uint32_t>(engineState.getFrameCount())
+						);
+					}
 			}
-		);*/
+		);
 	}
 }
