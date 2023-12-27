@@ -98,7 +98,11 @@ namespace drk::Meshes {
 		meshItemLocation.pItem->LightPerspectiveSpatialItemLocation = meshDraw.lightPerspectiveSpatialItemLocation;
 	}
 	bool MeshSystem::EmitDraws() {
-		auto objectEntities = registry.view<Stores::StoreItem<Objects::Models::Object>, Meshes::MeshGroup, Spatials::Components::Spatial>(entt::exclude<Components::MeshDrawCollection>);
+		auto objectEntities = registry.view<
+			Stores::StoreItem<Objects::Models::Object>, 
+			Meshes::MeshGroup, 
+			Spatials::Components::Spatial
+		>(entt::exclude<Components::MeshDrawCollection>);
 		auto hasEntities = objectEntities.begin() != objectEntities.end();
 		if (hasEntities) {
 			auto cameraEntity = engineState.CameraEntity;
