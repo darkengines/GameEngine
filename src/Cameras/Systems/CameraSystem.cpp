@@ -1,12 +1,12 @@
 #include "CameraSystem.hpp"
-#include "../Objects/Dirty.hpp"
+#include "../../Objects/Dirty.hpp"
 #include <entt/entt.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include "../Spatials/Components/Spatial.hpp"
-#include "../Objects/Relationship.hpp"
-#include "../Objects/Object.hpp"
-#include "../Graphics/SynchronizationState.hpp"
-#include "Models/Camera.hpp"
+#include "../../Spatials/Components/Spatial.hpp"
+#include "../../Objects/Relationship.hpp"
+#include "../../Objects/Object.hpp"
+#include "../../Graphics/SynchronizationState.hpp"
+#include "../Models/Camera.hpp"
 
 namespace drk::Cameras {
 
@@ -39,27 +39,27 @@ namespace drk::Cameras {
 				Components::Camera& camera,
 				Spatials::Components::Spatial& spatial,
 				Objects::Dirty<Spatials::Components::Spatial>& dirty
-			) {
-				camera.absolutePosition = spatial.absolutePosition;
-				auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
-				camera.absoluteFront = absoluteRotation * camera.relativeFront;
-				camera.absoluteUp = absoluteRotation * camera.relativeUp;
-				camera.view = glm::lookAt(
-					glm::make_vec3(camera.absolutePosition),
-					glm::make_vec3(camera.absolutePosition + camera.absoluteFront),
-					glm::make_vec3(camera.absoluteUp));
-				camera.perspective = glm::perspectiveZO(
-					camera.verticalFov,
-					camera.aspectRatio,
-					camera.near,
-					camera.far
-				);
-				camera.perspective[1][1] *= -1.0f;
+				) {
+					camera.absolutePosition = spatial.absolutePosition;
+					auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
+					camera.absoluteFront = absoluteRotation * camera.relativeFront;
+					camera.absoluteUp = absoluteRotation * camera.relativeUp;
+					camera.view = glm::lookAt(
+						glm::make_vec3(camera.absolutePosition),
+						glm::make_vec3(camera.absolutePosition + camera.absoluteFront),
+						glm::make_vec3(camera.absoluteUp));
+					camera.perspective = glm::perspectiveZO(
+						camera.verticalFov,
+						camera.aspectRatio,
+						camera.near,
+						camera.far
+					);
+					camera.perspective[1][1] *= -1.0f;
 
-				registry.emplace_or_replace<Graphics::SynchronizationState<Models::Camera>>(
-					cameraEntity,
-					static_cast<uint32_t>(engineState.getFrameCount())
-				);
+					registry.emplace_or_replace<Graphics::SynchronizationState<Models::Camera>>(
+						cameraEntity,
+						static_cast<uint32_t>(engineState.getFrameCount())
+					);
 			}
 		);
 	}

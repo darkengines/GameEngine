@@ -12,7 +12,8 @@ file(
     src/main.cpp
     src/Applications/Application.cpp
     src/Applications/Application.UserInterface.cpp
-    src/Cameras/CameraSystem.cpp
+    src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.cpp
+    src/Cameras/Systems/CameraSystem.cpp
     src/Common/Common.cpp
     src/Common/IndexGenerator.cpp
     src/Common/KGuillotineAllocator.cpp
@@ -29,6 +30,7 @@ file(
     src/Engine/DescriptorSetLayouts.cpp
     src/Engine/EngineState.cpp
     src/Engine/FrameState.cpp
+    src/Frustums/Systems/FrustumSystem.cpp
     src/Geometries/AxisAlignedBoundingBox.cpp
     src/Geometries/Frustum.cpp
     src/Geometries/Plane.cpp
@@ -55,6 +57,7 @@ file(
     src/Meshes/Pipelines/ShadowMeshPipeline.cpp
     src/Objects/Dirty.cpp
     src/Objects/ObjectSystem.cpp
+    src/Planes/Systems/PlaneSystem.cpp
     src/Points/PointPrimitivePipeline.cpp
     src/Points/PointSystem.cpp
     src/Points/Models/PointVertex.cpp
@@ -85,7 +88,9 @@ file(
     src/system.hpp
     src/Applications/Application.hpp
     src/Applications/Extentions.hpp
-    src/Cameras/CameraSystem.hpp
+    src/BoundingVolumes/Components/AxisAlignedBoundingBox.hpp
+    src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.hpp
+    src/Cameras/Systems/CameraSystem.hpp
     src/Cameras/Extensions.hpp
     src/Cameras/Components/Camera.hpp
     src/Cameras/Models/Camera.hpp
@@ -124,6 +129,8 @@ file(
     src/Engine/FrameState.hpp
     src/Engine/MeshUploadResult.hpp
     src/Engine/Models/Global.hpp
+    src/Frustums/Components/Frustum.hpp
+    src/Frustums/Systems/FrustumSystem.hpp
     src/Geometries/AxisAlignedBoundingBox.hpp
     src/Geometries/Extensions.hpp
     src/Geometries/Frustum.hpp
@@ -194,6 +201,8 @@ file(
     src/Objects/Relationship.hpp
     src/Objects/Models/Object.hpp
     src/Pipelines/Pipeline.hpp
+    src/Planes/Components/Plane.hpp
+    src/Planes/Systems/PlaneSystem.hpp
     src/Points/Extensions.hpp
     src/Points/PointPrimitivePipeline.hpp
     src/Points/PointSystem.hpp

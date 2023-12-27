@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../Devices/DeviceContext.hpp"
-#include "../Engine/EngineState.hpp"
-#include "Components/Camera.hpp"
-#include "Models/Camera.hpp"
-#include "../Systems/System.hpp"
+#include "../../Devices/DeviceContext.hpp"
+#include "../../Engine/EngineState.hpp"
+#include "../Components/Camera.hpp"
+#include "../Models/Camera.hpp"
+#include "../../Systems/System.hpp"
 
 namespace drk::Cameras {
 	class CameraSystem : public Systems::System<Models::Camera, Components::Camera>{

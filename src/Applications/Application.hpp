@@ -16,7 +16,7 @@
 #include "../Materials/MaterialSystem.hpp"
 #include "../Spatials/SpatialSystem.hpp"
 #include "../Objects/ObjectSystem.hpp"
-#include "../Cameras/CameraSystem.hpp"
+#include "../Cameras/Systems/CameraSystem.hpp"
 #include "../Graphics/GlobalSystem.hpp"
 #include "../Controllers/FlyCamController.hpp"
 #include "../UserInterfaces/UserInterface.hpp"

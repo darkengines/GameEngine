@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/di.hpp>
-#include "CameraSystem.hpp"
+#include "Systems/CameraSystem.hpp"
 
 namespace drk::Cameras {
 	auto AddCameras() {
