@@ -1,14 +1,14 @@
 #include "CameraSystem.hpp"
-#include "../../Objects/Dirty.hpp"
+#include "../../Objects/Components/Dirty.hpp"
 #include <entt/entt.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include "../../Spatials/Components/Spatial.hpp"
-#include "../../Objects/Relationship.hpp"
-#include "../../Objects/Object.hpp"
+#include "../../Objects/Components/Relationship.hpp"
+#include "../../Objects/Components/Object.hpp"
 #include "../../Graphics/SynchronizationState.hpp"
 #include "../Models/Camera.hpp"
 
-namespace drk::Cameras {
+namespace drk::Cameras::Systems {
 
 	CameraSystem::CameraSystem(
 		const Devices::DeviceContext& deviceContext,
@@ -32,13 +32,13 @@ namespace drk::Cameras {
 	}
 
 	void CameraSystem::ProcessDirtyItems() {
-		auto dirtyCameraView = registry.view<Components::Camera, Spatials::Components::Spatial, Objects::Dirty<Spatials::Components::Spatial>>();
+		auto dirtyCameraView = registry.view<Components::Camera, Spatials::Components::Spatial, Objects::Components::Dirty<Spatials::Components::Spatial>>();
 		dirtyCameraView.each(
 			[&](
 				entt::entity cameraEntity,
 				Components::Camera& camera,
 				Spatials::Components::Spatial& spatial,
-				Objects::Dirty<Spatials::Components::Spatial>& dirty
+				Objects::Components::Dirty<Spatials::Components::Spatial>& dirty
 				) {
 					camera.absolutePosition = spatial.absolutePosition;
 					auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
@@ -100,17 +100,17 @@ namespace drk::Cameras {
 			.relativeRotation = glm::quat(1, 0, 0, 0),
 			.relativePosition = position
 		};
-		Objects::Relationship cameraRelationship = {
+		Objects::Components::Relationship cameraRelationship = {
 			.parent = entt::null
 		};
-		Objects::Object cameraObject = {
+		Objects::Components::Object cameraObject = {
 			.Name = "Default camera"
 		};
 
 		registry.emplace<Components::Camera>(cameraEntity, std::move(camera));
 		registry.emplace<Spatials::Components::Spatial>(cameraEntity, std::move(cameraSpatial));
-		registry.emplace<Objects::Relationship>(cameraEntity, std::move(cameraRelationship));
-		registry.emplace<Objects::Object>(cameraEntity, std::move(cameraObject));
+		registry.emplace<Objects::Components::Relationship>(cameraEntity, std::move(cameraRelationship));
+		registry.emplace<Objects::Components::Object>(cameraEntity, std::move(cameraObject));
 
 		return cameraEntity;
 	}

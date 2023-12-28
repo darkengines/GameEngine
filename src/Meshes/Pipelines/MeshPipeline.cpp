@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "MeshPipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
-#include "../../Meshes/MeshGroup.hpp"
+#include "../Components/MeshGroup.hpp"
 #include "../Components/MeshDraw.hpp"
 
 namespace drk::Meshes::Pipelines {
@@ -43,9 +43,9 @@ namespace drk::Meshes::Pipelines {
 		pipeline = result.value;
 	}
 
-	Draws::DrawVertexBufferInfo MeshPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
+	Draws::Components::DrawVertexBufferInfo MeshPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
 		auto meshDraw = registry.get<Components::MeshDraw>(drawEntity);
-		Draws::DrawVertexBufferInfo bufferInfo{
+		Draws::Components::DrawVertexBufferInfo bufferInfo{
 			static_cast<uint32_t>(meshDraw.meshResource->indices.size()),
 				static_cast<uint32_t>(meshDraw.meshBufferView.IndexBufferView.byteOffset / sizeof(VertexIndex)),
 				static_cast<int32_t>(meshDraw.meshBufferView.VertexBufferView.byteOffset / sizeof(Vertex))

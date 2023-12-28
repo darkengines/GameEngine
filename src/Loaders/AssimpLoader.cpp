@@ -6,9 +6,9 @@
 #include "../Lights/Components/Light.hpp"
 #include "../Cameras/Components/Camera.hpp"
 #include "../Spatials/Components/Spatial.hpp"
-#include "../Meshes/MeshGroup.hpp"
-#include "../Objects/Relationship.hpp"
-#include "../Objects/Object.hpp"
+#include "../Meshes/Components/MeshGroup.hpp"
+#include "../Objects/Components/Relationship.hpp"
+#include "../Objects/Components/Object.hpp"
 #include <assimp/postprocess.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -557,21 +557,21 @@ namespace drk::Loaders {
 		}
 
 		if (entity == entt::null) entity = registry.create();
-		registry.emplace<Objects::Object>(entity, aiNode->mName.C_Str());
+		registry.emplace<Objects::Components::Object>(entity, aiNode->mName.C_Str());
 
 		if (aiNode->mNumMeshes) {
-			Meshes::MeshGroup meshGroup;
+			Meshes::Components::MeshGroup meshGroup;
 			for (auto meshIndex = 0u; meshIndex < aiNode->mNumMeshes; meshIndex++) {
 				auto meshEntity = loadResult.meshIdEntityMap[aiNode->mMeshes[meshIndex]];
 				meshGroup.meshEntities.push_back(meshEntity);
 			}
-			registry.emplace<Meshes::MeshGroup>(entity, meshGroup);
+			registry.emplace<Meshes::Components::MeshGroup>(entity, meshGroup);
 		}
 
 		if (shouldEmplaceSpatial) registry.emplace<Spatials::Components::Spatial>(entity, spatial);
 
-		Objects::Relationship relationship;
-		Objects::Relationship* previousRelationship = nullptr;
+		Objects::Components::Relationship relationship;
+		Objects::Components::Relationship* previousRelationship = nullptr;
 		entt::entity previousSibling{ entt::null };
 
 		if (loadResult.rootEntity == entt::null) {
@@ -591,12 +591,12 @@ namespace drk::Loaders {
 					depth + 1
 				);
 				relationship.children.push_back(childEntity);
-				auto& childRelationship = registry.get<Objects::Relationship>(childEntity);
+				auto& childRelationship = registry.get<Objects::Components::Relationship>(childEntity);
 				childRelationship.parent = entity;
 			}
 		}
 
-		registry.emplace<Objects::Relationship>(entity, relationship);
+		registry.emplace<Objects::Components::Relationship>(entity, relationship);
 
 		return entity;
 	}

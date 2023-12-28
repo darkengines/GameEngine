@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/di.hpp>
-#include "../Points/PointPrimitivePipeline.hpp"
+#include "../Points/Pipelines/PointPrimitivePipeline.hpp"
 
 namespace drk::Geometries {
 	auto AddGeometries() {

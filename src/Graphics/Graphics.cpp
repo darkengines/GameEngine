@@ -3,11 +3,10 @@
 #include "../Common/Common.hpp"
 #include "../Devices/Device.hpp"
 #include "../Meshes/Vertex.hpp"
-#include "../Objects/Object.hpp"
-#include "../Meshes/MeshGroup.hpp"
+#include "../Objects/Components/Object.hpp"
+#include "../Meshes/Components/MeshGroup.hpp"
 #include "Draw.hpp"
 #include "../Spatials/Components/Spatial.hpp"
-#include "../Draws/DrawCommand.hpp"
 #include "Models/Draw.hpp"
 #include <imgui_impl_vulkan.h>
 #include "../Objects/Models/Object.hpp"

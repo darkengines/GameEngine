@@ -1,13 +1,13 @@
 #pragma once
 
 #include <boost/di.hpp>
-#include "LineSystem.hpp"
-#include "LinePipeline.hpp"
+#include "Systems/LineSystem.hpp"
+#include "Pipelines/LinePipeline.hpp"
 namespace drk::Lines {
 	auto AddLines() {
 		return boost::di::make_injector(
-			boost::di::bind<LineSystem>.to<LineSystem>(),
-			boost::di::bind<Lines::LinePipeline>.to<Lines::LinePipeline>().in(boost::di::unique)
+			boost::di::bind<Systems::LineSystem>.to<Systems::LineSystem>(),
+			boost::di::bind<Lines::Pipelines::LinePipeline>.to<Lines::Pipelines::LinePipeline>().in(boost::di::unique)
 		);
 	}
 }

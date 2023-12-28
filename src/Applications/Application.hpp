@@ -11,20 +11,20 @@
 #include "../Graphics/Graphics.hpp"
 #include "../Windows/Window.hpp"
 #include "../Engine/EngineState.hpp"
-#include "../Textures/TextureSystem.hpp"
-#include "../Meshes/MeshSystem.hpp"
-#include "../Materials/MaterialSystem.hpp"
-#include "../Spatials/SpatialSystem.hpp"
-#include "../Objects/ObjectSystem.hpp"
+#include "../Textures/Systems/TextureSystem.hpp"
+#include "../Meshes/Systems/MeshSystem.hpp"
+#include "../Materials/Systems/MaterialSystem.hpp"
+#include "../Spatials/Systems/SpatialSystem.hpp"
+#include "../Objects/Systems/ObjectSystem.hpp"
 #include "../Cameras/Systems/CameraSystem.hpp"
 #include "../Graphics/GlobalSystem.hpp"
 #include "../Controllers/FlyCamController.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
 #include "../Scenes/Renderers/SceneRenderer.hpp"
 #include "../UserInterfaces/Renderers/UserInterfaceRenderer.hpp"
-#include "../Scenes/SceneSystem.hpp"
-#include "../Points/PointSystem.hpp"
-#include "../Lines/LineSystem.hpp"
+#include "../Scenes/Systems/SceneSystem.hpp"
+#include "../Points/Systems/PointSystem.hpp"
+#include "../Lines/Systems/LineSystem.hpp"
 #include "../UserInterfaces/AssetExplorer.hpp"
 #include <memory>
 
@@ -35,12 +35,12 @@ namespace drk::Applications {
 			const Windows::Window&,
 			const Devices::DeviceContext&,
 			Engine::EngineState&,
-			Textures::TextureSystem&,
-			Materials::MaterialSystem&,
-			Meshes::MeshSystem&,
-			Spatials::SpatialSystem&,
-			Objects::ObjectSystem&,
-			Cameras::CameraSystem&,
+			Textures::Systems::TextureSystem&,
+			Materials::Systems::MaterialSystem&,
+			Meshes::Systems::MeshSystem&,
+			Spatials::Systems::SpatialSystem&,
+			Objects::Systems::ObjectSystem&,
+			Cameras::Systems::CameraSystem&,
 			Graphics::GlobalSystem&,
 			const Loaders::AssimpLoader&,
 			Graphics::Graphics&,
@@ -49,9 +49,9 @@ namespace drk::Applications {
 			entt::registry&,
 			UserInterfaces::Renderers::UserInterfaceRenderer&,
 			Scenes::Renderers::SceneRenderer&,
-			Scenes::SceneSystem&,
-			Points::PointSystem&,
-			Lines::LineSystem&,
+			Scenes::Systems::SceneSystem&,
+			Points::Systems::PointSystem&,
+			Lines::Systems::LineSystem&,
 			Lights::Systems::LightSystem&,
 			Lights::Systems::PointLightSystem&,
 			Lights::Systems::DirectionalLightSystem&,
@@ -64,12 +64,12 @@ namespace drk::Applications {
 			const Windows::Window& window,
 			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
-			Textures::TextureSystem& textureSystem,
-			Materials::MaterialSystem& materialSystem,
-			Meshes::MeshSystem& meshSystem,
-			Spatials::SpatialSystem& spatialSystem,
-			Objects::ObjectSystem& objectSystem,
-			Cameras::CameraSystem& cameraSystem,
+			Textures::Systems::TextureSystem& textureSystem,
+			Materials::Systems::MaterialSystem& materialSystem,
+			Meshes::Systems::MeshSystem& meshSystem,
+			Spatials::Systems::SpatialSystem& spatialSystem,
+			Objects::Systems::ObjectSystem& objectSystem,
+			Cameras::Systems::CameraSystem& cameraSystem,
 			Graphics::GlobalSystem& globalSystem,
 			const Loaders::AssimpLoader& loader,
 			Graphics::Graphics& graphics,
@@ -78,9 +78,9 @@ namespace drk::Applications {
 			entt::registry& registry,
 			UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer,
 			Scenes::Renderers::SceneRenderer& sceneRenderer,
-			Scenes::SceneSystem& sceneSystem,
-			Points::PointSystem& pointSystem,
-			Lines::LineSystem&,
+			Scenes::Systems::SceneSystem& sceneSystem,
+			Points::Systems::PointSystem& pointSystem,
+			Lines::Systems::LineSystem&,
 			Lights::Systems::LightSystem& lightSystem,
 			Lights::Systems::PointLightSystem& pointLightSystem,
 			Lights::Systems::DirectionalLightSystem& directionalLightSystem,
@@ -96,12 +96,12 @@ namespace drk::Applications {
 		const Windows::Window& window;
 		const Devices::DeviceContext& deviceContext;
 		Engine::EngineState& engineState;
-		Textures::TextureSystem& textureSystem;
-		Materials::MaterialSystem& materialSystem;
-		Meshes::MeshSystem& meshSystem;
-		Spatials::SpatialSystem& spatialSystem;
-		Objects::ObjectSystem& objectSystem;
-		Cameras::CameraSystem& cameraSystem;
+		Textures::Systems::TextureSystem& textureSystem;
+		Materials::Systems::MaterialSystem& materialSystem;
+		Meshes::Systems::MeshSystem& meshSystem;
+		Spatials::Systems::SpatialSystem& spatialSystem;
+		Objects::Systems::ObjectSystem& objectSystem;
+		Cameras::Systems::CameraSystem& cameraSystem;
 		Graphics::GlobalSystem& globalSystem;
 		const Loaders::AssimpLoader& loader;
 		Graphics::Graphics& graphics;
@@ -110,9 +110,9 @@ namespace drk::Applications {
 		entt::registry& registry;
 		UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer;
 		Scenes::Renderers::SceneRenderer& sceneRenderer;
-		Scenes::SceneSystem& sceneSystem;
-		Points::PointSystem& pointSystem;
-		Lines::LineSystem& lineSystem;
+		Scenes::Systems::SceneSystem& sceneSystem;
+		Points::Systems::PointSystem& pointSystem;
+		Lines::Systems::LineSystem& lineSystem;
 		Lights::Systems::LightSystem& lightSystem;
 		Lights::Systems::PointLightSystem& pointLightSystem;
 		Lights::Systems::DirectionalLightSystem& directionalLightSystem;

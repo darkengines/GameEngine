@@ -10,16 +10,16 @@
 
 namespace drk::Applications {
 	void Application::renderEntities() {
-		const auto& relationships = registry.view<Objects::Relationship>();
+		const auto& relationships = registry.view<Objects::Components::Relationship>();
 		relationships.each(
-			[this](entt::entity entity, Objects::Relationship& relationship) {
+			[this](entt::entity entity, Objects::Components::Relationship& relationship) {
 				if (relationship.parent == entt::null) renderEntity(entity);
 			}
 		);
 	}
 
 	void Application::renderEntity(entt::entity entity) {
-		const auto& [relationship, object] = registry.get<Objects::Relationship, Objects::Object>(entity);
+		const auto& [relationship, object] = registry.get<Objects::Components::Relationship, Objects::Components::Object>(entity);
 		if (relationship.children.size() > 0) {
 			auto isOpen = ImGui::TreeNode(
 				(void*)entity,

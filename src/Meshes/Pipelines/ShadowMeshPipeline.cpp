@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "ShadowMeshPipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
-#include "../../Meshes/MeshGroup.hpp"
+#include "../Components/MeshGroup.hpp"
 #include "../Components/ShadowMeshDraw.hpp"
 
 namespace drk::Meshes::Pipelines {
@@ -43,9 +43,9 @@ namespace drk::Meshes::Pipelines {
 		pipeline = result.value;
 	}
 
-	Draws::DrawVertexBufferInfo ShadowMeshPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
+	Draws::Components::DrawVertexBufferInfo ShadowMeshPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
 		auto meshDraw = registry.get<Components::ShadowMeshDraw>(drawEntity);
-		Draws::DrawVertexBufferInfo bufferInfo{
+		Draws::Components::DrawVertexBufferInfo bufferInfo{
 			static_cast<uint32_t>(meshDraw.meshResource->indices.size()),
 				static_cast<uint32_t>(meshDraw.meshBufferView.IndexBufferView.byteOffset / sizeof(VertexIndex)),
 				static_cast<int32_t>(meshDraw.meshBufferView.VertexBufferView.byteOffset / sizeof(Vertex))

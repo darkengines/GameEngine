@@ -1,11 +1,11 @@
 #pragma once
 
 #include <boost/di.hpp>
-#include "MaterialSystem.hpp"
+#include "Systems/MaterialSystem.hpp"
 namespace drk::Materials {
 	auto AddMaterials() {
 		return boost::di::make_injector(
-			boost::di::bind<MaterialSystem>.to<MaterialSystem>()
+			boost::di::bind<Systems::MaterialSystem>.to<Systems::MaterialSystem>()
 		);
 	}
 }

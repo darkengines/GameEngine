@@ -6,7 +6,7 @@
 namespace drk::Cameras {
 	auto AddCameras() {
 		return boost::di::make_injector(
-			boost::di::bind<CameraSystem>.to<CameraSystem>()
+			boost::di::bind<Systems::CameraSystem>.to<Systems::CameraSystem>()
 		);
 	}
 }

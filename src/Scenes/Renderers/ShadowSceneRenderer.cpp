@@ -8,8 +8,8 @@ namespace drk::Scenes::Renderers {
 		const Devices::DeviceContext& deviceContext,
 		entt::registry& registry,
 		std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshPipeline,
-		std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline,
-		std::unique_ptr<Lines::LinePipeline> linePipeline
+		std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline,
+		std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline
 	)
 		: deviceContext(deviceContext), registry(registry),
 		meshPipeline(std::move(meshPipeline)),
@@ -22,8 +22,8 @@ namespace drk::Scenes::Renderers {
 	}
 	Pipelines::Pipeline* ShadowSceneRenderer::getPipeline(std::type_index pipelineTypeIndex) {
 		if (std::type_index(typeid(Meshes::Pipelines::ShadowMeshPipeline)) == pipelineTypeIndex) return meshPipeline.get();
-		if (std::type_index(typeid(Points::PointPrimitivePipeline)) == pipelineTypeIndex) return pointPrimitivePipeline.get();
-		if (std::type_index(typeid(Lines::LinePipeline)) == pipelineTypeIndex) return linePipeline.get();
+		if (std::type_index(typeid(Points::Pipelines::PointPrimitivePipeline)) == pipelineTypeIndex) return pointPrimitivePipeline.get();
+		if (std::type_index(typeid(Lines::Pipelines::LinePipeline)) == pipelineTypeIndex) return linePipeline.get();
 		throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
 	}
 	void ShadowSceneRenderer::destroyFramebuffers() {

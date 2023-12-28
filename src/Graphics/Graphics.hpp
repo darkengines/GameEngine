@@ -6,7 +6,6 @@
 #include "../Devices/DeviceContext.hpp"
 #include "../Devices/Swapchain.hpp"
 #include "../Engine/EngineState.hpp"
-#include "DrawContext.hpp"
 
 namespace drk::Graphics {
 	class Graphics {

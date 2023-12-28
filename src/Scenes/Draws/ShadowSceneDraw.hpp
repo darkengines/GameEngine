@@ -2,12 +2,12 @@
 
 #include "../../Pipelines/Pipeline.hpp"
 #include "../../Devices/BufferView.hpp"
-#include "../../Draws/DrawSystem.hpp"
+#include "../../Draws/Systems/DrawSystem.hpp"
 #include <typeindex>
 
 namespace drk::Scenes::Draws {
 	struct ShadowSceneDraw {
-		drk::Draws::DrawSystem* drawSystem;
+		drk::Draws::Systems::DrawSystem* drawSystem;
 		std::type_index pipelineTypeIndex;
 		Devices::BufferView indexBufferView;
 		Devices::BufferView vertexBufferView;

@@ -1,7 +1,7 @@
 #include "../Components/LightPerspective.hpp"
 #include "SpotlightSystem.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
-#include "../../Objects/Dirty.hpp"
+#include "../../Objects/Components/Dirty.hpp"
 #include <glm/gtx/quaternion.hpp>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>

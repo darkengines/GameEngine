@@ -2,7 +2,7 @@
 #include "../Components/LightPerspective.hpp"
 #include "PointLightSystem.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
-#include "../../Objects/Dirty.hpp"
+#include "../../Objects/Components/Dirty.hpp"
 #include "../Components/LightPerspectiveCollection.hpp"
 #include <glm/gtx/quaternion.hpp>
 #include <glm/glm.hpp>
@@ -48,7 +48,7 @@ namespace drk::Lights::Systems {
 			Components::PointLight,
 			Spatials::Components::Spatial,
 			Components::LightPerspectiveCollection,
-			Objects::Dirty<Spatials::Components::Spatial>
+			Objects::Components::Dirty<Spatials::Components::Spatial>
 		>();
 		dirtyPointLightView.each(
 			[&](
@@ -56,7 +56,7 @@ namespace drk::Lights::Systems {
 				Components::PointLight& pointLight,
 				Spatials::Components::Spatial& spatial,
 				Components::LightPerspectiveCollection& lightPerspectiveCollection,
-				Objects::Dirty<Spatials::Components::Spatial>& dirty
+				Objects::Components::Dirty<Spatials::Components::Spatial>& dirty
 				) {
 					for (auto lightPerspectiveEntity : lightPerspectiveCollection.lightPerspectives) {
 						auto& lightPerspective = registry.get<Components::LightPerspective>(lightPerspectiveEntity);

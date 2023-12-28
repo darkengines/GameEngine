@@ -1,5 +1,5 @@
 #include "Application.hpp"
-#include "../Objects/Dirty.hpp"
+#include "../Objects/Components/Dirty.hpp"
 #include <iostream>
 #include <entt/entt.hpp>
 #include <stack>
@@ -13,12 +13,12 @@ namespace drk::Applications {
 		const Windows::Window& window,
 		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
-		Textures::TextureSystem& textureSystem,
-		Materials::MaterialSystem& materialSystem,
-		Meshes::MeshSystem& meshSystem,
-		Spatials::SpatialSystem& spatialSystem,
-		Objects::ObjectSystem& objectSystem,
-		Cameras::CameraSystem& cameraSystem,
+		Textures::Systems::TextureSystem& textureSystem,
+		Materials::Systems::MaterialSystem& materialSystem,
+		Meshes::Systems::MeshSystem& meshSystem,
+		Spatials::Systems::SpatialSystem& spatialSystem,
+		Objects::Systems::ObjectSystem& objectSystem,
+		Cameras::Systems::CameraSystem& cameraSystem,
 		Graphics::GlobalSystem& globalSystem,
 		const Loaders::AssimpLoader& loader,
 		Graphics::Graphics& graphics,
@@ -27,9 +27,9 @@ namespace drk::Applications {
 		entt::registry& registry,
 		UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer,
 		Scenes::Renderers::SceneRenderer& sceneRenderer,
-		Scenes::SceneSystem& sceneSystem,
-		Points::PointSystem& pointSystem,
-		Lines::LineSystem& lineSystem,
+		Scenes::Systems::SceneSystem& sceneSystem,
+		Points::Systems::PointSystem& pointSystem,
+		Lines::Systems::LineSystem& lineSystem,
 		Lights::Systems::LightSystem& lightSystem,
 		Lights::Systems::PointLightSystem& pointLightSystem,
 		Lights::Systems::DirectionalLightSystem& directionalLightSystem,
@@ -404,7 +404,7 @@ namespace drk::Applications {
 				sceneSystem.UpdateDraws();
 
 				//Clear frame
-				registry.clear<Objects::Dirty<Spatials::Components::Spatial>>();
+				registry.clear<Objects::Components::Dirty<Spatials::Components::Spatial>>();
 
 				//Renders
 				sceneRenderer.render(0, frameState.commandBuffer);

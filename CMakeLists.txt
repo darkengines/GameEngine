@@ -23,7 +23,6 @@ file(
     src/Devices/Image.cpp
     src/Devices/Texture.cpp
     src/Devices/VulkanInstanceConfiguration.cpp
-    src/Draws/DrawVertexBufferInfo.cpp
     src/Engine/DescriptorSetAllocator.cpp
     src/Engine/DescriptorSetLayoutCache.cpp
     src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.cpp
@@ -46,27 +45,26 @@ file(
     src/Lights/Systems/PointLightSystem.cpp
     src/Lights/Systems/SpotlightSystem.cpp
     src/Lights/Systems/ShadowMappingSystem.cpp
-    src/Lines/LinePipeline.cpp
-    src/Lines/LineSystem.cpp
+    src/Lines/Pipelines/LinePipeline.cpp
+    src/Lines/Systems/LineSystem.cpp
     src/Lines/Models/LineVertex.cpp
     src/Loaders/AssimpLoader.cpp
-    src/Materials/MaterialSystem.cpp
-    src/Meshes/MeshSystem.cpp
+    src/Materials/Systems/MaterialSystem.cpp
+    src/Meshes/Systems/MeshSystem.cpp
     src/Meshes/Vertex.cpp
     src/Meshes/Pipelines/MeshPipeline.cpp
     src/Meshes/Pipelines/ShadowMeshPipeline.cpp
-    src/Objects/Dirty.cpp
-    src/Objects/ObjectSystem.cpp
+    src/Objects/Systems/ObjectSystem.cpp
     src/Planes/Systems/PlaneSystem.cpp
-    src/Points/PointPrimitivePipeline.cpp
-    src/Points/PointSystem.cpp
+    src/Points/Pipelines/PointPrimitivePipeline.cpp
+    src/Points/Systems/PointSystem.cpp
     src/Points/Models/PointVertex.cpp
-    src/Relationships/RelationshipSystem.cpp
+    src/Relationships/Systems/RelationshipSystem.cpp
     src/Renderers/Renderer.cpp
-    src/Scenes/SceneSystem.cpp
+    src/Scenes/Systems/SceneSystem.cpp
     src/Scenes/Renderers/SceneRenderer.cpp
     src/Scenes/Renderers/ShadowSceneRenderer.cpp
-    src/Spatials/SpatialSystem.cpp
+    src/Spatials/Systems/SpatialSystem.cpp
     src/Spatials/Components/SpatialEditor.cpp
     src/Stores/Store.cpp
     src/Stores/StoreBuffer.cpp
@@ -74,7 +72,7 @@ file(
     src/Stores/TextureStore.cpp
     src/Systems/System.cpp
     src/Textures/ImageInfo.cpp
-    src/Textures/TextureSystem.cpp
+    src/Textures/Systems/TextureSystem.cpp
     src/UserInterfaces/AssetExplorer.cpp
     src/UserInterfaces/UserInterface.cpp
     src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp
@@ -116,9 +114,8 @@ file(
     src/Devices/Texture.hpp
     src/Devices/VulkanInstanceConfiguration.hpp
     src/Devices/VulkanLogicalDeviceInfo.hpp
-    src/Draws/DrawCommand.hpp
-    src/Draws/DrawSystem.hpp
-    src/Draws/DrawVertexBufferInfo.hpp
+    src/Draws/Systems/DrawSystem.hpp
+    src/Draws/Components/DrawVertexBufferInfo.hpp
     src/Draws/Extentions.hpp
     src/Engine/DescriptorSetAllocator.hpp
     src/Engine/DescriptorSetLayoutCache.hpp
@@ -137,8 +134,6 @@ file(
     src/Geometries/Plane.hpp
     src/Geometries/Primitives.hpp
     src/Graphics/Draw.hpp
-    src/Graphics/DrawContext.hpp
-    src/Graphics/DrawSet.hpp
     src/Graphics/Extentions.hpp
     src/Graphics/GlobalSystem.hpp
     src/Graphics/Graphics.hpp
@@ -163,8 +158,8 @@ file(
     src/Lights/Systems/SpotlightSystem.hpp
     src/Lights/Systems/ShadowMappingSystem.hpp
     src/Lines/Extensions.hpp
-    src/Lines/LinePipeline.hpp
-    src/Lines/LineSystem.hpp
+    src/Lines/Pipelines/LinePipeline.hpp
+    src/Lines/Systems/LineSystem.hpp
     src/Lines/Components/Line.hpp
     src/Lines/Components/LineDraw.hpp
     src/Lines/Models/Line.hpp
@@ -174,13 +169,13 @@ file(
     src/Loaders/Extensions.hpp
     src/Loaders/LoadResult.hpp
     src/Materials/Extensions.hpp
-    src/Materials/MaterialSystem.hpp
+    src/Materials/Systems/MaterialSystem.hpp
     src/Materials/Components/Material.hpp
     src/Materials/Components/MaterialCollection.hpp
     src/Materials/Models/Material.hpp
     src/Meshes/Extensions.hpp
-    src/Meshes/MeshGroup.hpp
-    src/Meshes/MeshSystem.hpp
+    src/Meshes/Components/MeshGroup.hpp
+    src/Meshes/Systems/MeshSystem.hpp
     src/Meshes/Vertex.hpp
     src/Meshes/Components/Mesh.hpp
     src/Meshes/Components/MeshBufferView.hpp
@@ -194,35 +189,35 @@ file(
     src/Meshes/Models/ShadowMeshDraw.hpp
     src/Meshes/Pipelines/MeshPipeline.hpp
     src/Meshes/Pipelines/ShadowMeshPipeline.hpp
-    src/Objects/Dirty.hpp
+    src/Objects/Components/Dirty.hpp
     src/Objects/Extensions.hpp
-    src/Objects/Object.hpp
-    src/Objects/ObjectSystem.hpp
-    src/Objects/Relationship.hpp
+    src/Objects/Components/Object.hpp
+    src/Objects/Systems/ObjectSystem.hpp
+    src/Objects/Components/Relationship.hpp
     src/Objects/Models/Object.hpp
     src/Pipelines/Pipeline.hpp
     src/Planes/Components/Plane.hpp
     src/Planes/Systems/PlaneSystem.hpp
     src/Points/Extensions.hpp
-    src/Points/PointPrimitivePipeline.hpp
-    src/Points/PointSystem.hpp
+    src/Points/Pipelines/PointPrimitivePipeline.hpp
+    src/Points/Systems/PointSystem.hpp
     src/Points/Components/Point.hpp
     src/Points/Components/PointDraw.hpp
     src/Points/Models/Point.hpp
     src/Points/Models/PointDraw.hpp
     src/Points/Models/PointVertex.hpp
     src/Relationships/Extensions.hpp
-    src/Relationships/RelationshipSystem.hpp
+    src/Relationships/Systems/RelationshipSystem.hpp
     src/Renderers/Renderer.hpp
     src/Scenes/Extensions.hpp
-    src/Scenes/SceneSystem.hpp
+    src/Scenes/Systems/SceneSystem.hpp
     src/Scenes/Draws/SceneDraw.hpp
     src/Scenes/Draws/ShadowSceneDraw.hpp
     src/Scenes/Renderers/SceneRenderer.hpp
     src/Scenes/Renderers/SceneRenderOperation.hpp
     src/Scenes/Renderers/ShadowSceneRenderer.hpp
     src/Spatials/Extensions.hpp
-    src/Spatials/SpatialSystem.hpp
+    src/Spatials/Systems/SpatialSystem.hpp
     src/Spatials/Components/Spatial.hpp
     src/Spatials/Components/SpatialEditor.hpp
     src/Spatials/Models/Spatial.hpp
@@ -237,7 +232,7 @@ file(
     src/Systems/System.hpp
     src/Textures/Extensions.hpp
     src/Textures/ImageInfo.hpp
-    src/Textures/TextureSystem.hpp
+    src/Textures/Systems/TextureSystem.hpp
     src/Textures/TextureType.hpp
     src/UserInterfaces/AssetExplorer.hpp
     src/UserInterfaces/Extensions.hpp

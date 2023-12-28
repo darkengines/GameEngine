@@ -6,12 +6,12 @@
 #include "../../Renderers/Renderer.hpp"
 #include "../../Engine/EngineState.hpp"
 #include "../../Meshes/Pipelines/ShadowMeshPipeline.hpp"
-#include "../../Points/PointPrimitivePipeline.hpp"
+#include "../../Points/Pipelines/PointPrimitivePipeline.hpp"
 #include "../../Devices/ImageInfo.hpp"
-#include "../../Draws/DrawSystem.hpp"
+#include "../../Draws/Systems/DrawSystem.hpp"
 #include "../Draws/ShadowSceneDraw.hpp"
 #include "SceneRenderOperation.hpp"
-#include "../../Lines/LinePipeline.hpp"
+#include "../../Lines/Pipelines/LinePipeline.hpp"
 
 
 namespace drk::Scenes::Renderers {
@@ -23,16 +23,16 @@ namespace drk::Scenes::Renderers {
 		std::optional<Devices::ImageInfo> targetImageInfo;
 		std::vector<vk::ImageView> targetImageViews;
 		std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshPipeline;
-		std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline;
-		std::unique_ptr<Lines::LinePipeline> linePipeline;
+		std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline;
+		std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline;
 		vk::RenderPass renderPass;
 	public:
 		ShadowSceneRenderer(
 			const Devices::DeviceContext& deviceContext,
 			entt::registry& registry,
 			std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshPipeline,
-			std::unique_ptr<Points::PointPrimitivePipeline> pointPrimitivePipeline,
-			std::unique_ptr<Lines::LinePipeline> linePipeline
+			std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline,
+			std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline
 		);
 		~ShadowSceneRenderer();
 		void render(uint32_t targetImageIndex, const vk::CommandBuffer& sceneDraw);

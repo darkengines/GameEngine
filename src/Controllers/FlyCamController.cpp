@@ -8,7 +8,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include "../Graphics/SynchronizationState.hpp"
 #include "../Spatials/Models/Spatial.hpp"
-#include "../Objects/Dirty.hpp"
+#include "../Objects/Components/Dirty.hpp"
 #include <imgui.h>
 
 namespace drk::Controllers {
@@ -123,7 +123,7 @@ namespace drk::Controllers {
 		}
 		if (hasUpdate) {
 			Registry.emplace_or_replace<Graphics::SynchronizationState<Spatials::Models::Spatial >>(CameraEntity, 2u);
-			Registry.emplace_or_replace<Objects::Dirty<Spatials::Components::Spatial >>(CameraEntity);
+			Registry.emplace_or_replace<Objects::Components::Dirty<Spatials::Components::Spatial >>(CameraEntity);
 		}
 	}
 }

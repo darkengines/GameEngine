@@ -1,9 +1,9 @@
 
 #include "AssetExplorer.hpp"
-#include "../Objects/Relationship.hpp"
-#include "../Objects/Object.hpp"
-#include "../Objects/ObjectSystem.hpp"
-#include "../Spatials/SpatialSystem.hpp"
+#include "../Objects/Components/Relationship.hpp"
+#include "../Objects/Components/Object.hpp"
+#include "../Objects/Systems/ObjectSystem.hpp"
+#include "../Spatials/Systems/SpatialSystem.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
 
 namespace drk::UserInterfaces {
@@ -14,23 +14,27 @@ namespace drk::UserInterfaces {
 
 	}
 	void AssetExplorer::renderEntities(entt::registry& destinationRegistry) {
-		const auto& relationships = assetRegistry.view<Objects::Relationship>();
-		relationships.each([this, &destinationRegistry](entt::entity entity, Objects::Relationship& relationship) {
-			if (relationship.parent == entt::null) renderEntity(destinationRegistry, entity);
-		});
+		const auto& relationships = assetRegistry.view<Objects::Components::Relationship>();
+		relationships.each(
+			[this, &destinationRegistry](entt::entity entity, Objects::Components::Relationship& relationship) {
+				if (relationship.parent == entt::null) renderEntity(destinationRegistry, entity);
+			}
+		);
 	}
 
 	void AssetExplorer::renderEntity(entt::registry& destinationRegistry, entt::entity entity) {
-		const auto& [relationship, object] = assetRegistry.get<Objects::Relationship, Objects::Object>(entity);
+		const auto& [relationship, object] = assetRegistry.get<Objects::Components::Relationship, Objects::Components::Object>(
+			entity
+		);
 		if (relationship.children.size() > 0) {
 			auto isOpen = ImGui::TreeNode(
 				(void*) entity,
 				fmt::format("{0}", object.Name).c_str()
 			);
 			ImGui::SameLine();
-			ImGui::PushID((void*)entity);
+			ImGui::PushID((void*) entity);
 			if (ImGui::Button("Copy##node")) {
-				Objects::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
+				Objects::Systems::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
 			}
 			ImGui::PopID();
 			if (isOpen) {
@@ -42,9 +46,9 @@ namespace drk::UserInterfaces {
 		} else {
 			ImGui::Text(fmt::format("{0}", object.Name).c_str());
 			ImGui::SameLine();
-			ImGui::PushID((void*)entity);
+			ImGui::PushID((void*) entity);
 			if (ImGui::Button("Copy##leaf")) {
-				Objects::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
+				Objects::Systems::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
 			}
 			ImGui::PopID();
 		}
@@ -84,10 +88,10 @@ namespace drk::UserInterfaces {
 					}
 				}
 			}
-			assetRegistry.sort<Objects::Relationship>(
+			assetRegistry.sort<Objects::Components::Relationship>(
 				[this](const entt::entity left, const entt::entity right) {
-					return Spatials::SpatialSystem::GetDepth(assetRegistry, left) <
-						   Spatials::SpatialSystem::GetDepth(assetRegistry, right) || left < right;
+					return Spatials::Systems::SpatialSystem::GetDepth(assetRegistry, left) <
+						   Spatials::Systems::SpatialSystem::GetDepth(assetRegistry, right) || left < right;
 				}
 			);
 		}

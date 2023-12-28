@@ -6,8 +6,8 @@
 #include "../Models/Camera.hpp"
 #include "../../Systems/System.hpp"
 
-namespace drk::Cameras {
-	class CameraSystem : public Systems::System<Models::Camera, Components::Camera>{
+namespace drk::Cameras::Systems {
+class CameraSystem : public drk::Systems::System<Models::Camera, Components::Camera>{
 	protected:
 		const Devices::DeviceContext& deviceContext;
 	public:

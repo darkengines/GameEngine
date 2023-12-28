@@ -1,6 +1,6 @@
 #include "LightPerspectiveSystem.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
-#include "../../Objects/Dirty.hpp"
+#include "../../Objects/Components/Dirty.hpp"
 #include <glm/gtx/quaternion.hpp>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -39,14 +39,14 @@ namespace drk::Lights::Systems {
 		auto dirtyLightPerspectiveView = registry.view<
 			Components::LightPerspective,
 			Spatials::Components::Spatial,
-			Objects::Dirty<Spatials::Components::Spatial>
+			Objects::Components::Dirty<Spatials::Components::Spatial>
 		>();
 		dirtyLightPerspectiveView.each(
 			[&](
 				entt::entity lightPerspectiveEntity,
 				Components::LightPerspective& lightPerspective,
 				Spatials::Components::Spatial& spatial,
-				Objects::Dirty<Spatials::Components::Spatial>& dirty
+				Objects::Components::Dirty<Spatials::Components::Spatial>& dirty
 				) {
 					if (lightPerspective.shadowMapRect.extent.width == 0) {
 						auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({ 512, 512 });
