@@ -2,11 +2,10 @@
 #include "AssimpLoader.hpp"
 #include "../GlmExtensions.hpp"
 #include "../Lights/Components/PointLight.hpp"
-#include "../Geometries/AxisAlignedBoundingBox.hpp"
+#include "../BoundingVolumes/Components/AxisAlignedBoundingBox.hpp"
 #include "../Lights/Components/Light.hpp"
 #include "../Cameras/Components/Camera.hpp"
 #include "../Spatials/Components/Spatial.hpp"
-#include "../Meshes/Components/MeshGroup.hpp"
 #include "../Objects/Components/Relationship.hpp"
 #include "../Objects/Components/Object.hpp"
 #include <assimp/postprocess.h>
@@ -18,6 +17,8 @@
 #include "../Lights/Components/Spotlight.hpp"
 #include "../Lights/Components/DirectionalLight.hpp"
 #include "../Lights/Components/LightPerspectiveCollection.hpp"
+#include "../Objects/Components/ObjectMesh.hpp"
+#include "../BoundingVolumes/Components/AxisAlignedBoundingBox.hpp"
 
 namespace drk::Loaders {
 	AssimpLoader::AssimpLoader() {}
@@ -262,7 +263,7 @@ namespace drk::Loaders {
 				.indices = indices,
 			};
 			auto meshPtr = std::make_shared<Meshes::Components::MeshResource>(mesh);
-			Geometries::AxisAlignedBoundingBox axisAlignedBoundingBox = Geometries::AxisAlignedBoundingBox::fromMinMax(
+			auto axisAlignedBoundingBox = BoundingVolumes::Components::AxisAlignedBoundingBox::fromMinMax(
 				glm::vec4(AssimpLoader::toVector(aiMesh->mAABB.mMin), 1.0f),
 				glm::vec4(AssimpLoader::toVector(aiMesh->mAABB.mMax), 1.0f)
 			);
@@ -270,7 +271,7 @@ namespace drk::Loaders {
 			auto meshEntity = registry.create();
 			registry.emplace<std::shared_ptr<Meshes::Components::MeshResource>>(meshEntity, meshPtr);
 			registry.emplace<Meshes::Components::Mesh>(meshEntity, materialEntity);
-			registry.emplace<Geometries::AxisAlignedBoundingBox>(meshEntity, axisAlignedBoundingBox);
+			registry.emplace<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity, axisAlignedBoundingBox);
 
 			loadResult.meshIdEntityMap[aiMeshIndex] = meshEntity;
 			loadResult.meshes[aiMeshIndex] = meshPtr;
@@ -472,6 +473,9 @@ namespace drk::Loaders {
 				aiCamera->mClipPlaneFar
 			);
 			perspective[1][1] *= -1.0f;
+
+			auto verticalFov = aiCamera->mHorizontalFOV / aiCamera->mAspect;
+
 			Cameras::Components::Camera camera{
 				perspective,
 				glm::lookAt(
@@ -484,14 +488,25 @@ namespace drk::Loaders {
 				relativePosition,
 				relativeFront,
 				relativeUp,
-				aiCamera->mHorizontalFOV,
+				verticalFov,
 				aiCamera->mAspect,
 				aiCamera->mClipPlaneNear,
-				aiCamera->mClipPlaneFar,
+				aiCamera->mClipPlaneFar
 			};
+
+			auto cameraFrustum = Frustums::Components::Frustum::createFrustumFromView(
+				relativePosition,
+				relativeFront,
+				relativeUp,
+				verticalFov,
+				aiCamera->mAspect,
+				aiCamera->mClipPlaneNear,
+				aiCamera->mClipPlaneFar
+			);
 
 			auto entity = registry.create();
 			registry.emplace<Cameras::Components::Camera>(entity, camera);
+			registry.emplace<Frustums::Components::Frustum>(entity, cameraFrustum);
 			cameraNameMap[cameraName] = entity;
 		}
 	}
@@ -560,12 +575,15 @@ namespace drk::Loaders {
 		registry.emplace<Objects::Components::Object>(entity, aiNode->mName.C_Str());
 
 		if (aiNode->mNumMeshes) {
-			Meshes::Components::MeshGroup meshGroup;
 			for (auto meshIndex = 0u; meshIndex < aiNode->mNumMeshes; meshIndex++) {
+				auto& aiMesh = aiNode->mMeshes[meshIndex];
 				auto meshEntity = loadResult.meshIdEntityMap[aiNode->mMeshes[meshIndex]];
-				meshGroup.meshEntities.push_back(meshEntity);
+				auto objectMeshEntity = registry.create();
+				registry.emplace<Objects::Components::ObjectMesh>(objectMeshEntity, entity, meshEntity);
+				auto meshAABB = registry.get<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity);
+				auto instanceAABB = meshAABB.transform(spatial.absoluteModel);
+				registry.emplace<BoundingVolumes::Components::AxisAlignedBoundingBox>(objectMeshEntity, std::move(instanceAABB));
 			}
-			registry.emplace<Meshes::Components::MeshGroup>(entity, meshGroup);
 		}
 
 		if (shouldEmplaceSpatial) registry.emplace<Spatials::Components::Spatial>(entity, spatial);

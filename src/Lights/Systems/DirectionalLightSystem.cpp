@@ -12,7 +12,7 @@ namespace drk::Lights::Systems {
 		Engine::EngineState& engineState,
 		entt::registry& registry
 	) : System(engineState, registry) {}
-	void DirectionalLightSystem::Update(
+	void DirectionalLightSystem::update(
 		Models::DirectionalLight& model,
 		const Components::DirectionalLight& directionalLight,
 		const Stores::StoreItem<Models::Light>& lightStoreItem,

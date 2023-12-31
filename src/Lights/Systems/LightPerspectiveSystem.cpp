@@ -13,7 +13,7 @@ namespace drk::Lights::Systems {
 		ShadowMappingSystem& shadowMappingSystem
 	) : shadowMappingSystem(shadowMappingSystem),
 		System(engineState, registry) {}
-	void LightPerspectiveSystem::Update(
+	void LightPerspectiveSystem::update(
 		Models::LightPerspective& model,
 		const Components::LightPerspective& lightPerspective
 	) {
@@ -45,9 +45,8 @@ namespace drk::Lights::Systems {
 			[&](
 				entt::entity lightPerspectiveEntity,
 				Components::LightPerspective& lightPerspective,
-				Spatials::Components::Spatial& spatial,
-				Objects::Components::Dirty<Spatials::Components::Spatial>& dirty
-				) {
+				Spatials::Components::Spatial& spatial
+			) {
 					if (lightPerspective.shadowMapRect.extent.width == 0) {
 						auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({ 512, 512 });
 						lightPerspective.shadowMapRect = allocation.scissor;

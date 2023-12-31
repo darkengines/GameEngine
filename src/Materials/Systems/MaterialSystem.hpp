@@ -13,7 +13,7 @@ class MaterialSystem : public drk::Systems::System<Models::Material, std::shared
 	protected:
 		const Devices::DeviceContext& deviceContext;
 	public:
-		void Update(Models::Material& model, const std::shared_ptr<Components::Material>& components);
+		void update(Models::Material& model, const std::shared_ptr<Components::Material>& components);
 	public:
 		MaterialSystem(
 			const drk::Devices::DeviceContext& deviceContext,

@@ -4,7 +4,6 @@
 #include "../Devices/Device.hpp"
 #include "../Meshes/Vertex.hpp"
 #include "../Objects/Components/Object.hpp"
-#include "../Meshes/Components/MeshGroup.hpp"
 #include "Draw.hpp"
 #include "../Spatials/Components/Spatial.hpp"
 #include "Models/Draw.hpp"

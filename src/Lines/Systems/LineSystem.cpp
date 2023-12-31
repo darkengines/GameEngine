@@ -24,7 +24,7 @@ namespace drk::Lines::Systems {
 		deviceContext.DestroyBuffer(lineIndexBufferView.buffer);
 		deviceContext.DestroyBuffer(lineVertexBufferView.buffer);
 	}
-	void LineSystem::Update(Models::Line& model, const Components::Line& line) {
+	void LineSystem::update(Models::Line& model, const Components::Line& line) {
 		const auto& materialModel = registry.get<Stores::StoreItem<Materials::Models::Material>>(line.materialEntity);
 		model.materialItemLocation = materialModel.frameStoreItems[engineState.getFrameIndex()];
 	}
@@ -89,14 +89,14 @@ namespace drk::Lines::Systems {
 	void LineSystem::UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex) {
 
 	}
-	bool LineSystem::EmitDraws() {
+	bool LineSystem::emitDraws() {
 		auto lineEntities = registry.view<
 			Stores::StoreItem<Models::Line>,
 			Components::Line, Spatials::Components::Spatial,
 			Stores::StoreItem<Objects::Models::Object>>(entt::exclude<Models::LineDraw>);
 		auto hasEntities = lineEntities.begin() != lineEntities.end();
 		if (hasEntities) {
-			auto cameraEntity = engineState.CameraEntity;
+			auto cameraEntity = engineState.cameraEntity;
 			auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
 			lineEntities.each(
 				[&](

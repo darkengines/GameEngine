@@ -8,79 +8,6 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(dependencies)
 file(
     GLOB SOURCES
-    src/GlmExtensions.cpp
-    src/main.cpp
-    src/Applications/Application.cpp
-    src/Applications/Application.UserInterface.cpp
-    src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.cpp
-    src/Cameras/Systems/CameraSystem.cpp
-    src/Common/Common.cpp
-    src/Common/IndexGenerator.cpp
-    src/Common/KGuillotineAllocator.cpp
-    src/Controllers/FlyCamController.cpp
-    src/Devices/Device.cpp
-    src/Devices/DeviceContext.cpp
-    src/Devices/Image.cpp
-    src/Devices/Texture.cpp
-    src/Devices/VulkanInstanceConfiguration.cpp
-    src/Engine/DescriptorSetAllocator.cpp
-    src/Engine/DescriptorSetLayoutCache.cpp
-    src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.cpp
-    src/Engine/DescriptorSetLayouts.cpp
-    src/Engine/EngineState.cpp
-    src/Engine/FrameState.cpp
-    src/Frustums/Systems/FrustumSystem.cpp
-    src/Geometries/AxisAlignedBoundingBox.cpp
-    src/Geometries/Frustum.cpp
-    src/Geometries/Plane.cpp
-    src/Graphics/GlobalSystem.cpp
-    src/Graphics/Graphics.cpp
-    src/Graphics/SynchronizationState.cpp
-    src/ImGui/imgui_impl_glfw.cpp
-    src/ImGui/imgui_impl_vulkan.cpp
-    src/ImGui/imgui_stdlib.cpp
-    src/Lights/Systems/DirectionalLightSystem.cpp
-    src/Lights/Systems/LightPerspectiveSystem.cpp
-    src/Lights/Systems/LightSystem.cpp
-    src/Lights/Systems/PointLightSystem.cpp
-    src/Lights/Systems/SpotlightSystem.cpp
-    src/Lights/Systems/ShadowMappingSystem.cpp
-    src/Lines/Pipelines/LinePipeline.cpp
-    src/Lines/Systems/LineSystem.cpp
-    src/Lines/Models/LineVertex.cpp
-    src/Loaders/AssimpLoader.cpp
-    src/Materials/Systems/MaterialSystem.cpp
-    src/Meshes/Systems/MeshSystem.cpp
-    src/Meshes/Vertex.cpp
-    src/Meshes/Pipelines/MeshPipeline.cpp
-    src/Meshes/Pipelines/ShadowMeshPipeline.cpp
-    src/Objects/Systems/ObjectSystem.cpp
-    src/Planes/Systems/PlaneSystem.cpp
-    src/Points/Pipelines/PointPrimitivePipeline.cpp
-    src/Points/Systems/PointSystem.cpp
-    src/Points/Models/PointVertex.cpp
-    src/Relationships/Systems/RelationshipSystem.cpp
-    src/Renderers/Renderer.cpp
-    src/Scenes/Systems/SceneSystem.cpp
-    src/Scenes/Renderers/SceneRenderer.cpp
-    src/Scenes/Renderers/ShadowSceneRenderer.cpp
-    src/Spatials/Systems/SpatialSystem.cpp
-    src/Spatials/Components/SpatialEditor.cpp
-    src/Stores/Store.cpp
-    src/Stores/StoreBuffer.cpp
-    src/Stores/StoreBufferAllocator.cpp
-    src/Stores/TextureStore.cpp
-    src/Systems/System.cpp
-    src/Textures/ImageInfo.cpp
-    src/Textures/Systems/TextureSystem.cpp
-    src/UserInterfaces/AssetExplorer.cpp
-    src/UserInterfaces/UserInterface.cpp
-    src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp
-    src/Windows/Window.cpp
-)
-
-file(
-    GLOB HEADERS
     src/GlmExtensions.hpp
     src/implemantations.hpp
     src/system.hpp
@@ -127,12 +54,9 @@ file(
     src/Engine/MeshUploadResult.hpp
     src/Engine/Models/Global.hpp
     src/Frustums/Components/Frustum.hpp
+    src/Frustums/Models/Frustum.hpp
     src/Frustums/Systems/FrustumSystem.hpp
-    src/Geometries/AxisAlignedBoundingBox.hpp
     src/Geometries/Extensions.hpp
-    src/Geometries/Frustum.hpp
-    src/Geometries/Plane.hpp
-    src/Geometries/Primitives.hpp
     src/Graphics/Draw.hpp
     src/Graphics/Extentions.hpp
     src/Graphics/GlobalSystem.hpp
@@ -174,16 +98,13 @@ file(
     src/Materials/Components/MaterialCollection.hpp
     src/Materials/Models/Material.hpp
     src/Meshes/Extensions.hpp
-    src/Meshes/Components/MeshGroup.hpp
     src/Meshes/Systems/MeshSystem.hpp
     src/Meshes/Vertex.hpp
     src/Meshes/Components/Mesh.hpp
     src/Meshes/Components/MeshBufferView.hpp
     src/Meshes/Components/MeshDraw.hpp
-    src/Meshes/Components/MeshDrawCollection.hpp
     src/Meshes/Components/MeshResource.hpp
     src/Meshes/Components/ShadowMeshDraw.hpp
-    src/Meshes/Components/ShadowMeshDrawCollection.hpp
     src/Meshes/Models/Mesh.hpp
     src/Meshes/Models/MeshDraw.hpp
     src/Meshes/Models/ShadowMeshDraw.hpp
@@ -192,11 +113,14 @@ file(
     src/Objects/Components/Dirty.hpp
     src/Objects/Extensions.hpp
     src/Objects/Components/Object.hpp
+    src/Objects/Components/ObjectMesh.hpp
     src/Objects/Systems/ObjectSystem.hpp
+    src/Objects/Systems/ObjectMeshSystem.hpp
     src/Objects/Components/Relationship.hpp
     src/Objects/Models/Object.hpp
     src/Pipelines/Pipeline.hpp
     src/Planes/Components/Plane.hpp
+    src/Planes/Models/Plane.hpp
     src/Planes/Systems/PlaneSystem.hpp
     src/Points/Extensions.hpp
     src/Points/Pipelines/PointPrimitivePipeline.hpp
@@ -241,6 +165,76 @@ file(
     src/Windows/Extensions.hpp
     src/Windows/Window.hpp
     src/Windows/WindowConfiguration.hpp
+    src/GlmExtensions.cpp
+    src/main.cpp
+    src/Applications/Application.cpp
+    src/Applications/Application.UserInterface.cpp
+    src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.cpp
+    src/Cameras/Systems/CameraSystem.cpp
+    src/Common/Common.cpp
+    src/Common/IndexGenerator.cpp
+    src/Common/KGuillotineAllocator.cpp
+    src/Controllers/FlyCamController.cpp
+    src/Devices/Device.cpp
+    src/Devices/DeviceContext.cpp
+    src/Devices/Image.cpp
+    src/Devices/Texture.cpp
+    src/Devices/VulkanInstanceConfiguration.cpp
+    src/Engine/DescriptorSetAllocator.cpp
+    src/Engine/DescriptorSetLayoutCache.cpp
+    src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.cpp
+    src/Engine/DescriptorSetLayouts.cpp
+    src/Engine/EngineState.cpp
+    src/Engine/FrameState.cpp
+    src/Frustums/Systems/FrustumSystem.cpp
+    src/Graphics/GlobalSystem.cpp
+    src/Graphics/Graphics.cpp
+    src/Graphics/SynchronizationState.cpp
+    src/ImGui/imgui_impl_glfw.cpp
+    src/ImGui/imgui_impl_vulkan.cpp
+    src/ImGui/imgui_stdlib.cpp
+    src/Lights/Systems/DirectionalLightSystem.cpp
+    src/Lights/Systems/LightPerspectiveSystem.cpp
+    src/Lights/Systems/LightSystem.cpp
+    src/Lights/Systems/PointLightSystem.cpp
+    src/Lights/Systems/SpotlightSystem.cpp
+    src/Lights/Systems/ShadowMappingSystem.cpp
+    src/Lines/Pipelines/LinePipeline.cpp
+    src/Lines/Systems/LineSystem.cpp
+    src/Lines/Models/LineVertex.cpp
+    src/Loaders/AssimpLoader.cpp
+    src/Materials/Systems/MaterialSystem.cpp
+    src/Meshes/Systems/MeshSystem.cpp
+    src/Meshes/Vertex.cpp
+    src/Meshes/Pipelines/MeshPipeline.cpp
+    src/Meshes/Pipelines/ShadowMeshPipeline.cpp
+    src/Objects/Systems/ObjectSystem.cpp
+    src/Objects/Systems/ObjectMeshSystem.cpp
+    src/Planes/Systems/PlaneSystem.cpp
+    src/Points/Pipelines/PointPrimitivePipeline.cpp
+    src/Points/Systems/PointSystem.cpp
+    src/Points/Models/PointVertex.cpp
+    src/Relationships/Systems/RelationshipSystem.cpp
+    src/Renderers/Renderer.cpp
+    src/Scenes/Systems/SceneSystem.cpp
+    src/Scenes/Renderers/SceneRenderer.cpp
+    src/Scenes/Renderers/ShadowSceneRenderer.cpp
+    src/Spatials/Systems/SpatialSystem.cpp
+    src/Spatials/Components/SpatialEditor.cpp
+    src/Stores/Store.cpp
+    src/Stores/StoreBuffer.cpp
+    src/Stores/StoreBufferAllocator.cpp
+    src/Stores/TextureStore.cpp
+    src/Systems/System.cpp
+    src/Textures/ImageInfo.cpp
+    src/Textures/Systems/TextureSystem.cpp
+    src/UserInterfaces/AssetExplorer.cpp
+    src/UserInterfaces/UserInterface.cpp
+    src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp
+    src/Windows/Window.cpp
+    src/BoundingVolumes/Components/AxisAlignedBoundingBox.cpp 
+    src/Planes/Components/Plane.cpp
+    src/Frustums/Components/Frustum.cpp
 )
 
 file(
@@ -272,7 +266,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES})
+add_executable(drk ${SOURCES})
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 

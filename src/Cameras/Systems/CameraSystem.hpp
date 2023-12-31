@@ -19,7 +19,7 @@ class CameraSystem : public drk::Systems::System<Models::Camera, Components::Cam
 		static void AddCameraSystem(entt::registry &registry);
 		static void RemoveCameraSystem(entt::registry &registry);
 		static void OnCameraConstruct(entt::registry &registry, entt::entity cameraEntity);
-		void Update(Models::Camera &cameraModel, const Components::Camera &camera);
+		void update(Models::Camera &cameraModel, const Components::Camera &camera);
 		void StoreCameras();
 		void ProcessDirtyItems();
 

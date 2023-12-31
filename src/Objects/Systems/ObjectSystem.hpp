@@ -13,7 +13,7 @@ namespace drk::Objects::Systems {
 class ObjectSystem : public drk::Systems::System<Models::Object, Stores::StoreItem<Spatials::Models::Spatial>> {
 	protected:
 		const Devices::DeviceContext& DeviceContext;
-		void Update(
+		void update(
 			Models::Object& objectModel, const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem
 		);
 

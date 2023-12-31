@@ -2,7 +2,5 @@
 
 namespace drk::Objects::Components {
 	template<typename T>
-	struct Dirty {
-		bool isDirty;
-	};
+	struct Dirty {};
 }

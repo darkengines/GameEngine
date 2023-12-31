@@ -15,7 +15,7 @@ namespace drk::Lights::Systems {
 		entt::registry& registry,
 		ShadowMappingSystem& shadowMappingSystem
 	) : System(engineState, registry), deviceContext(deviceContext), shadowMappingSystem(shadowMappingSystem) {}
-	void PointLightSystem::Update(
+	void PointLightSystem::update(
 		Models::PointLight& model,
 		const Components::PointLight& component,
 		const Stores::StoreItem<Models::Light>& lightStoreItem,
@@ -55,9 +55,8 @@ namespace drk::Lights::Systems {
 				entt::entity pointLightEntity,
 				Components::PointLight& pointLight,
 				Spatials::Components::Spatial& spatial,
-				Components::LightPerspectiveCollection& lightPerspectiveCollection,
-				Objects::Components::Dirty<Spatials::Components::Spatial>& dirty
-				) {
+				Components::LightPerspectiveCollection& lightPerspectiveCollection
+			) {
 					for (auto lightPerspectiveEntity : lightPerspectiveCollection.lightPerspectives) {
 						auto& lightPerspective = registry.get<Components::LightPerspective>(lightPerspectiveEntity);
 						if (lightPerspective.shadowMapRect.extent.width == 0) {

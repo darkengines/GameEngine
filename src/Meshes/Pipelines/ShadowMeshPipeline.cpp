@@ -3,7 +3,6 @@
 #include <algorithm>
 #include "ShadowMeshPipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
-#include "../Components/MeshGroup.hpp"
 #include "../Components/ShadowMeshDraw.hpp"
 
 namespace drk::Meshes::Pipelines {

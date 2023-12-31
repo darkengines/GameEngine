@@ -19,11 +19,11 @@ namespace drk::Graphics {
 
 	void GlobalSystem::SetCamera(entt::entity cameraEntity) {
 		CameraEntity = cameraEntity;
-		EngineState.CameraEntity = CameraEntity;
+		EngineState.cameraEntity = CameraEntity;
 		GlobalSynchronizationState.Reset();
 	}
 
-	void GlobalSystem::Update() {
+	void GlobalSystem::update() {
 		if (GlobalSynchronizationState.ShouldUpdate(EngineState.getFrameIndex())) {
 			const auto& camera = Registry.get<Stores::StoreItem<Cameras::Models::Camera>>(CameraEntity);
 

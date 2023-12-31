@@ -349,18 +349,18 @@ namespace drk::Applications {
 				meshSystem.UploadMeshes();
 
 				//Resources to GPU
-				materialSystem.Store();
-				meshSystem.Store();
-				pointSystem.Store();
-				lineSystem.Store();
-				spatialSystem.Store();
-				objectSystem.Store();
-				cameraSystem.Store();
-				lightSystem.Store();
-				lightPerspectiveSystem.Store();
-				pointLightSystem.Store();
-				directionalLightSystem.Store();
-				spotlightSystem.Store();
+				materialSystem.store();
+				meshSystem.store();
+				pointSystem.store();
+				lineSystem.store();
+				spatialSystem.store();
+				objectSystem.store();
+				cameraSystem.store();
+				lightSystem.store();
+				lightPerspectiveSystem.store();
+				pointLightSystem.store();
+				directionalLightSystem.store();
+				spotlightSystem.store();
 
 				//Alterations
 				flyCamController.Step();
@@ -376,32 +376,32 @@ namespace drk::Applications {
 				meshSystem.ProcessDirtyDraws();
 
 				//Store updates to GPU
-				materialSystem.UpdateStore();
-				meshSystem.UpdateStore();
-				pointSystem.UpdateStore();
-				lineSystem.UpdateStore();
-				spatialSystem.UpdateStore();
-				objectSystem.UpdateStore();
-				cameraSystem.UpdateStore();
-				lightSystem.UpdateStore();
-				lightPerspectiveSystem.UpdateStore();
-				pointLightSystem.UpdateStore();
-				directionalLightSystem.UpdateStore();
-				spotlightSystem.UpdateStore();
-				globalSystem.Update();
+				materialSystem.updateStore();
+				meshSystem.updateStore();
+				pointSystem.updateStore();
+				lineSystem.updateStore();
+				spatialSystem.updateStore();
+				objectSystem.updateStore();
+				cameraSystem.updateStore();
+				lightSystem.updateStore();
+				lightPerspectiveSystem.updateStore();
+				pointLightSystem.updateStore();
+				directionalLightSystem.updateStore();
+				spotlightSystem.updateStore();
+				globalSystem.update();
 
 				//auto draws = registry.view<Scenes::Draws::SceneDraw>();
 				//registry.destroy(draws.begin(), draws.end());
 
 				//Emit draws
-				meshSystem.EmitShadowDraws();
-				meshSystem.EmitDraws();
-				pointSystem.EmitDraws();
-				lineSystem.EmitDraws();
+				meshSystem.emitShadowDraws();
+				meshSystem.emitDraws();
+				pointSystem.emitDraws();
+				lineSystem.emitDraws();
 
 				//Stores draws to GPU
-				sceneSystem.UpdateShadowDraws();
-				sceneSystem.UpdateDraws();
+				sceneSystem.updateShadowDraws();
+				sceneSystem.updateDraws();
 
 				//Clear frame
 				registry.clear<Objects::Components::Dirty<Spatials::Components::Spatial>>();

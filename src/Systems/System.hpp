@@ -16,9 +16,9 @@ namespace drk::Systems {
 	public:
 		System(Engine::EngineState& engineState, entt::registry& registry)
 			: engineState(engineState), registry(registry), itemCount(0) {}
-		virtual void Update(TModel& model, const TComponents& ... components) = 0;
+		virtual void update(TModel& model, const TComponents& ... components) = 0;
 		uint32_t getItemCount() { return itemCount; }
-		void Store() {
+		void store() {
 			auto entities = registry.view<TComponents...>(entt::exclude<Stores::StoreItem<TModel>>);
 			for (const auto entity : entities) {
 				auto storeItem = engineState.GetStoreItem<TModel>();
@@ -30,11 +30,11 @@ namespace drk::Systems {
 				itemCount++;
 			}
 		}
-		void UpdateStore() {
+		void updateStore() {
 			auto updater = [this](TModel& model, const TComponents&... components) {
-				this->Update(model, components...);
+				this->update(model, components...);
 				};
-			Graphics::SynchronizationState<TModel>::template Update<TComponents...>(
+			Graphics::SynchronizationState<TModel>::template update<TComponents...>(
 				registry,
 				engineState.getFrameIndex(),
 				updater

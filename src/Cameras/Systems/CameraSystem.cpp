@@ -16,7 +16,7 @@ namespace drk::Cameras::Systems {
 		entt::registry& registry
 	) : System(engineState, registry), deviceContext(deviceContext) {}
 
-	void CameraSystem::Update(Models::Camera& cameraModel, const Components::Camera& camera) {
+	void CameraSystem::update(Models::Camera& cameraModel, const Components::Camera& camera) {
 		cameraModel.perspective = camera.perspective;
 		cameraModel.view = camera.view;
 		cameraModel.relativePosition = camera.relativePosition;
@@ -32,14 +32,17 @@ namespace drk::Cameras::Systems {
 	}
 
 	void CameraSystem::ProcessDirtyItems() {
-		auto dirtyCameraView = registry.view<Components::Camera, Spatials::Components::Spatial, Objects::Components::Dirty<Spatials::Components::Spatial>>();
+		auto dirtyCameraView = registry.view<
+			Components::Camera, 
+			Spatials::Components::Spatial, 
+			Objects::Components::Dirty<Spatials::Components::Spatial>
+		>();
 		dirtyCameraView.each(
 			[&](
 				entt::entity cameraEntity,
 				Components::Camera& camera,
-				Spatials::Components::Spatial& spatial,
-				Objects::Components::Dirty<Spatials::Components::Spatial>& dirty
-				) {
+				Spatials::Components::Spatial& spatial
+			) {
 					camera.absolutePosition = spatial.absolutePosition;
 					auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
 					camera.absoluteFront = absoluteRotation * camera.relativeFront;

@@ -50,7 +50,7 @@ namespace drk::Engine {
 		const vk::DescriptorSet textureDescriptorSet;
 		std::unique_ptr<Stores::TextureStore> textureStore;
 		Common::IndexGenerator<uint32_t> IndexGenerator;
-		entt::entity CameraEntity = entt::null;
+		entt::entity cameraEntity = entt::null;
 
 		EngineState(
 			const Devices::DeviceContext& deviceContext,

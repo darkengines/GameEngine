@@ -22,7 +22,7 @@ namespace drk::Lights::Systems {
 			Engine::EngineState& engineState,
 			entt::registry& registry
 		);
-		void Update(
+		void update(
 			Models::Spotlight& model,
 			const Components::Spotlight& component,
 			const Stores::StoreItem<Models::Light>& lightStoreItem,

@@ -5,38 +5,39 @@
 #include "../Models/Mesh.hpp"
 #include "../../Draws/Systems/DrawSystem.hpp"
 #include "../../Systems/System.hpp"
-#include "../Components/MeshGroup.hpp"
 #include "../Components/Mesh.hpp"
 #include "../../Objects/Models/Object.hpp"
+#include "../../Objects/Components/ObjectMesh.hpp"
 #include "../../Cameras/Components/Camera.hpp"
 #include "../../Cameras/Models/Camera.hpp"
 #include "../../Lights/Components/LightPerspective.hpp"
 #include "../../Lights/Models/LightPerspective.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
-#include "../Components/ShadowMeshDrawCollection.hpp"
-#include "../Components/MeshGroup.hpp"
+#include "../../Stores/Models/StoreItemLocation.hpp"
 
 namespace drk::Meshes::Systems {
-class MeshSystem : public Draws::Systems::DrawSystem, public drk::Systems::System<Models::Mesh, Components::Mesh> {
+	class MeshSystem : public Draws::Systems::DrawSystem, public drk::Systems::System<Models::Mesh, Components::Mesh> {
 	protected:
 	public:
-		void Update(Models::Mesh& model, const Components::Mesh& mesh) override;
+		void update(Models::Mesh& model, const Components::Mesh& mesh) override;
 	protected:
 		const Devices::DeviceContext& deviceContext;
-		void ProcessObjectEntity(
-			entt::entity objectEntity,
-			Stores::StoreItem<Objects::Models::Object>& objectStoreItem,
-			const Components::MeshGroup& meshGroup,
-			const Spatials::Components::Spatial& spatial,
-			const Cameras::Components::Camera& camera,
-			const Stores::StoreItemLocation<Cameras::Models::Camera>& cameraStoreItemLocation,
+		entt::entity ProcessObjectEntity(
+			entt::entity objectMeshEntity,
 			entt::entity lightEntity,
 			entt::entity lightPerspectiveEntity,
 			const Lights::Components::LightPerspective& perspective,
-			const Stores::StoreItemLocation<Lights::Models::LightPerspective>& perspectiveStoreItemLocation,
-			const Stores::StoreItemLocation<Spatials::Models::Spatial>& perspectiveSpatialStoreItemLocation,
-			Components::ShadowMeshDrawCollection& shadowMeshDrawCollection
+			const Cameras::Components::Camera& camera,
+			const Spatials::Components::Spatial& spatial,
+			const Materials::Components::Material& material,
+			const Meshes::Components::MeshBufferView& meshBufferView,
+			std::shared_ptr<Meshes::Components::MeshResource> pMeshResource,
+			const Stores::Models::StoreItemLocation& objectStoreItemLocation,
+			const Stores::Models::StoreItemLocation& meshStoreItemLocation,
+			const Stores::Models::StoreItemLocation& cameraStoreItemLocation,
+			const Stores::Models::StoreItemLocation& lightPerspectiveStoreItemLocation,
+			const Stores::Models::StoreItemLocation& lightPerspectiveSpatialStoreItemLocation
 		);
 	public:
 		MeshSystem(
@@ -48,16 +49,14 @@ class MeshSystem : public Draws::Systems::DrawSystem, public drk::Systems::Syste
 		static void RemoveMeshSystem(entt::registry& registry);
 		static void OnMeshConstruct(entt::registry& registry, entt::entity meshEntity);
 		void UploadMeshes();
-		bool EmitDraws();
-		bool EmitShadowDraws();
+		bool emitDraws();
+		bool emitShadowDraws();
 		void UpdateDraw(entt::entity drawEntity, int drawIndex);
 		void UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex);
 		void UpdateDraws() { throw std::runtime_error("Not supported"); }
 		Draws::Components::DrawVertexBufferInfo GetVertexBufferInfo(entt::entity drawEntity);
 		static entt::entity
 			copyMeshEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
-		static Components::MeshGroup
-			copyMeshGroup(const entt::registry& source, entt::registry& destination, const Components::MeshGroup& sourceMeshGroup);
 		void ProcessDirtyDraws();
 		void ProcessShadowDirtyDraws();
 	};

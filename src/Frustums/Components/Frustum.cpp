@@ -1,11 +1,10 @@
 #include "Frustum.hpp"
-#include "../GlmExtensions.hpp"
-
-namespace drk::Geometries {
+#include "../../GlmExtensions.hpp"
+namespace drk::Frustums::Components {
 	Frustum Frustum::createFrustumFromView(
-		const glm::vec4 &position,
-		const glm::vec4 &front,
-		const glm::vec4 &up,
+		const glm::vec4& position,
+		const glm::vec4& front,
+		const glm::vec4& up,
 		float verticalFov,
 		float aspectRatio,
 		float near,
@@ -23,12 +22,12 @@ namespace drk::Geometries {
 		const auto relativeTop = up * farHalfHeight;
 		const auto relativeRight = right * farHalfWidth;
 
-		Plane farPlane{farCenter, glm::normalize(-front)};
-		Plane nearPlane{nearCenter, glm::normalize(front)};
-		Plane topPlane{position, glm::normalize(GlmExtensions::cross(right, relativeFarCenter + relativeTop))};
-		Plane bottomPlane{position, glm::normalize(GlmExtensions::cross(relativeFarCenter - relativeTop, right))};
-		Plane leftPlane{position, glm::normalize(GlmExtensions::cross(relativeFarCenter + relativeRight, up))};
-		Plane rightPlane{position, glm::normalize(GlmExtensions::cross(up, relativeFarCenter - relativeRight))};
+		Planes::Components::Plane farPlane{ farCenter, glm::normalize(-front) };
+		Planes::Components::Plane nearPlane{ nearCenter, glm::normalize(front) };
+		Planes::Components::Plane topPlane{ position, glm::normalize(GlmExtensions::cross(right, relativeFarCenter + relativeTop)) };
+		Planes::Components::Plane bottomPlane{ position, glm::normalize(GlmExtensions::cross(relativeFarCenter - relativeTop, right)) };
+		Planes::Components::Plane leftPlane{ position, glm::normalize(GlmExtensions::cross(relativeFarCenter + relativeRight, up)) };
+		Planes::Components::Plane rightPlane{ position, glm::normalize(GlmExtensions::cross(up, relativeFarCenter - relativeRight)) };
 
 		auto rightTopFar = farCenter + relativeTop + relativeRight;
 		auto leftTopFar = farCenter + relativeTop - relativeRight;

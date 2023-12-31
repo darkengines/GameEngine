@@ -29,7 +29,7 @@ namespace drk::Spatials::Systems {
 		registry.emplace<Objects::Components::Dirty<Components::Spatial>>(spatialEntity);
 	}
 
-	void SpatialSystem::Update(Models::Spatial& spatialModel, const Components::Spatial& spatial) {
+	void SpatialSystem::update(Models::Spatial& spatialModel, const Components::Spatial& spatial) {
 		spatialModel.relativeScale = spatial.relativeScale;
 		spatialModel.relativeRotation = spatial.relativeRotation;
 		spatialModel.relativePosition = spatial.relativePosition;
@@ -40,12 +40,11 @@ namespace drk::Spatials::Systems {
 		spatialModel.absoluteModel = spatial.absoluteModel;
 	}
 
-	void SpatialSystem::MakeDirty(const entt::entity spatialEntity) {
+	void SpatialSystem::makeDirty(const entt::entity spatialEntity) {
 		auto& relationship = registry.get<Objects::Components::Relationship>(spatialEntity);
-		auto& object = registry.get<Objects::Components::Object>(spatialEntity);
-		registry.emplace_or_replace<Objects::Components::Dirty<Spatials::Components::Spatial>>(spatialEntity, true);
-		for (const auto& child: relationship.children) {
-			MakeDirty(child);
+		registry.emplace_or_replace<Objects::Components::Dirty<Spatials::Components::Spatial>>(spatialEntity);
+		for (const auto& child : relationship.children) {
+			makeDirty(child);
 		}
 	}
 
@@ -68,24 +67,24 @@ namespace drk::Spatials::Systems {
 		return fmt::format("{0}-->{1}", GetPath(relationship.parent), object.Name);
 	}
 
-//	bool SpatialSystem::compareRelationship(
-//		const entt::registry& registry,
-//		const entt::entity leftEntity,
-//		const entt::entity rightEntity
-//	) {
-//		Objects::Relationship leftRelationship = registry.get<Objects::Relationship>(leftEntity);
-//		Objects::Relationship rightRelationship = registry.get<Objects::Relationship>(rightEntity);
-//
-//		return rightRelationship.parent == leftEntity
-//			   || leftRelationship.nextSibling == rightEntity
-//			   || (
-//				   !(leftRelationship.parent == rightEntity || rightRelationship.nextSibling == leftEntity)
-//				   && (
-//					   leftRelationship.parent < rightRelationship.parent
-//					   || (leftRelationship.parent == rightRelationship.parent && &leftRelationship < &rightRelationship)
-//				   )
-//			   );
-//	}
+	//	bool SpatialSystem::compareRelationship(
+	//		const entt::registry& registry,
+	//		const entt::entity leftEntity,
+	//		const entt::entity rightEntity
+	//	) {
+	//		Objects::Relationship leftRelationship = registry.get<Objects::Relationship>(leftEntity);
+	//		Objects::Relationship rightRelationship = registry.get<Objects::Relationship>(rightEntity);
+	//
+	//		return rightRelationship.parent == leftEntity
+	//			   || leftRelationship.nextSibling == rightEntity
+	//			   || (
+	//				   !(leftRelationship.parent == rightEntity || rightRelationship.nextSibling == leftEntity)
+	//				   && (
+	//					   leftRelationship.parent < rightRelationship.parent
+	//					   || (leftRelationship.parent == rightRelationship.parent && &leftRelationship < &rightRelationship)
+	//				   )
+	//			   );
+	//	}
 
 	void SpatialSystem::PropagateChanges() {
 		registry.sort<Objects::Components::Dirty<Components::Spatial>>(
@@ -94,7 +93,7 @@ namespace drk::Spatials::Systems {
 			}
 		);
 		registry.view<Objects::Components::Dirty<Components::Spatial>>().each(
-			[&](entt::entity entity, Objects::Components::Dirty<Components::Spatial>& dirtySpatial) {
+			[&](entt::entity entity) {
 				const auto& relationship = registry.get<Objects::Components::Relationship>(entity);
 				const auto& object = registry.get<Objects::Components::Object>(entity);
 				//std::cout << fmt::format("{0} {1}", GetDepth(entity), object.Name) << std::endl;
@@ -113,10 +112,11 @@ namespace drk::Spatials::Systems {
 					spatial.absoluteScale = parentSpatial.absoluteScale * spatial.relativeScale;
 					spatial.absoluteRotation = parentSpatial.absoluteRotation * spatial.relativeRotation;
 					spatial.absolutePosition = parentSpatial.absolutePosition + parentSpatial.absoluteRotation *
-																				(parentSpatial.absoluteScale *
-																				 spatial.relativePosition);
+						(parentSpatial.absoluteScale *
+							spatial.relativePosition);
 					spatial.absoluteModel = parentSpatial.absoluteModel * spatial.relativeModel;
-				} else {
+				}
+				else {
 					spatial.absoluteScale = spatial.relativeScale;
 					spatial.absoluteRotation = spatial.relativeRotation;
 					spatial.absolutePosition = spatial.relativePosition;
@@ -124,7 +124,7 @@ namespace drk::Spatials::Systems {
 				}
 				registry.emplace_or_replace<Graphics::SynchronizationState<Models::Spatial>>(
 					entity,
-					(uint32_t) engineState.getFrameCount());
+					(uint32_t)engineState.getFrameCount());
 			}
 		);
 	}

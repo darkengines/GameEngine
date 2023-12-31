@@ -3,7 +3,6 @@
 #include <algorithm>
 #include "MeshPipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
-#include "../Components/MeshGroup.hpp"
 #include "../Components/MeshDraw.hpp"
 
 namespace drk::Meshes::Pipelines {

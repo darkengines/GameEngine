@@ -24,7 +24,7 @@ namespace drk::Lights::Systems {
 			entt::registry& registry,
 			ShadowMappingSystem& shadowMappingSystem
 		);
-		virtual void Update(
+		virtual void update(
 			Models::PointLight& model,
 			const Components::PointLight& component,
 			const Stores::StoreItem<Models::Light>& lightStoreItem,

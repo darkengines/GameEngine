@@ -10,7 +10,7 @@ namespace drk::Scenes::Systems {
 		engineState(engineState) {
 
 	}
-	void SceneSystem::UpdateDraws() {
+	void SceneSystem::updateDraws() {
 		auto synchronizables = registry.view<Graphics::SynchronizationState<Draws::SceneDraw>>();
 		if (synchronizables.begin() == synchronizables.end()) return;
 		registry.sort<Scenes::Draws::SceneDraw>(
@@ -66,7 +66,7 @@ namespace drk::Scenes::Systems {
 		);
 		//std::cout << "----------------------" << std::endl;
 	}
-	void SceneSystem::UpdateShadowDraws() {
+	void SceneSystem::updateShadowDraws() {
 		auto synchronizables = registry.view<Graphics::SynchronizationState<Draws::ShadowSceneDraw>>();
 		if (synchronizables.begin() == synchronizables.end()) return;
 		registry.sort<Scenes::Draws::ShadowSceneDraw>(

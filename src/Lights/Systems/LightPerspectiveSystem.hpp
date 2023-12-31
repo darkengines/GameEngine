@@ -18,7 +18,7 @@ namespace drk::Lights::Systems {
 			entt::registry& registry,
 			ShadowMappingSystem& shadowMappingSystem
 		);
-		void Update(
+		void update(
 			Models::LightPerspective& model,
 			const Components::LightPerspective& lightPerspective
 		);

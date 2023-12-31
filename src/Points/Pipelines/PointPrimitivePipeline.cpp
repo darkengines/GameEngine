@@ -5,7 +5,6 @@
 #include "PointPrimitivePipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
 #include "../../Objects/Models/Object.hpp"
-#include "../../Meshes/Components/MeshGroup.hpp"
 #include "../../Cameras/Components/Camera.hpp"
 #include "../Models/PointVertex.hpp"
 #include "../Models/PointDraw.hpp"

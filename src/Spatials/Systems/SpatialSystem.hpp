@@ -21,9 +21,9 @@ class SpatialSystem : public drk::Systems::System<Models::Spatial, Components::S
 		static void AddSpatialSystem(entt::registry& registry);
 		static void RemoveSpatialSystem(entt::registry& registry);
 		static void OnSpatialConstruct(entt::registry& registry, entt::entity spatialEntity);
-		void Update(Models::Spatial& spatialModel, const Components::Spatial& spatial);
+		void update(Models::Spatial& spatialModel, const Components::Spatial& spatial);
 		void PropagateChanges();
-		void MakeDirty(entt::entity entity);
+		void makeDirty(entt::entity entity);
 		bool IsParent(entt::entity left, entt::entity right);
 		std::string GetPath(entt::entity entity);
 		static uint32_t GetDepth(const entt::registry& registry, entt::entity entity);

@@ -15,6 +15,6 @@ namespace drk::Lights::Systems {
 			Engine::EngineState& engineState,
 			entt::registry& registry
 		) : System(engineState, registry) {};
-		void Update(Models::Light& lightModel, const Components::Light& lightComponent) override;
+		void update(Models::Light& lightModel, const Components::Light& lightComponent) override;
 	};
 }

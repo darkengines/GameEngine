@@ -56,7 +56,7 @@ namespace drk::Applications {
 				if (typeInfo == spatialComponentTypeId) {
 					auto& spatial = registry.get<Spatials::Components::Spatial>(entity);
 					if (Spatials::Components::SpatialEditor::Spatial(spatial)) {
-						spatialSystem.MakeDirty(entity);
+						spatialSystem.makeDirty(entity);
 					}
 				}
 			}

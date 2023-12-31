@@ -23,7 +23,7 @@ namespace drk::Points::Systems {
 		deviceContext.DestroyBuffer(pointIndexBufferView.buffer);
 		deviceContext.DestroyBuffer(pointVertexBufferView.buffer);
 	}
-	void PointSystem::Update(Models::Point& model, const Components::Point& point) {
+	void PointSystem::update(Models::Point& model, const Components::Point& point) {
 		const auto& materialModel = registry.get<Stores::StoreItem<Materials::Models::Material>>(point.materialEntity);
 		model.materialItemLocation = materialModel.frameStoreItems[engineState.getFrameIndex()];
 	}
@@ -83,13 +83,13 @@ namespace drk::Points::Systems {
 	void PointSystem::UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex) {
 
 	}
-	bool PointSystem::EmitDraws() {
+	bool PointSystem::emitDraws() {
 		auto pointEntities = registry.view<
 			Stores::StoreItem<Models::Point>,
 			Components::Point, Spatials::Components::Spatial,
 			Stores::StoreItem<Objects::Models::Object>>(entt::exclude<Models::PointDraw>);
 
-		auto cameraEntity = engineState.CameraEntity;
+		auto cameraEntity = engineState.cameraEntity;
 		auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
 		pointEntities.each(
 			[&](

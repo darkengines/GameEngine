@@ -35,6 +35,6 @@ namespace drk::Graphics {
 
 		void SetCamera(entt::entity cameraEntity);
 
-		void Update();
+		void update();
 	};
 }

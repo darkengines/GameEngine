@@ -13,9 +13,9 @@ class LineSystem : public drk::Systems::System<Models::Line, Components::Line>, 
 		~LineSystem();
 		void UpdateDraw(entt::entity drawEntity, int drawIndex);
 		void UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex);
-		bool EmitDraws();
+		bool emitDraws();
 		void UpdateDraws() { throw std::runtime_error("Not supported"); }
-		void Update(Models::Line& model, const Components::Line& line) override;
+		void update(Models::Line& model, const Components::Line& line) override;
 		void CreateResources();
 	protected:
 		Devices::DeviceContext& deviceContext;

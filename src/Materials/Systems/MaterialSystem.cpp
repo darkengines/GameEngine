@@ -13,7 +13,7 @@ namespace drk::Materials::Systems {
 		Engine::EngineState& engineState
 	) : System(engineState, registry), deviceContext(deviceContext) {}
 
-	void MaterialSystem::Update(
+	void MaterialSystem::update(
 		Models::Material& storedMaterial,
 		const std::shared_ptr<Materials::Components::Material>& material
 	) {

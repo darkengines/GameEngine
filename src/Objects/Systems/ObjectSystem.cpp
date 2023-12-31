@@ -1,9 +1,9 @@
 #include "ObjectSystem.hpp"
 #include "../../Stores/StoreItem.hpp"
 #include "../../Graphics/SynchronizationState.hpp"
-#include "../../Meshes/Components/MeshGroup.hpp"
 #include "../../Meshes/Systems/MeshSystem.hpp"
 #include "../Components/Relationship.hpp"
+#include <ranges>
 
 namespace drk::Objects {
 
@@ -14,7 +14,7 @@ namespace drk::Objects {
 	)
 		: System(engineState, registry), DeviceContext(deviceContext) {}
 
-	void Systems::ObjectSystem::Update(
+	void Systems::ObjectSystem::update(
 		Models::Object& objectModel, const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem
 	) {
 		const auto& spatialItemLocation = spatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
@@ -34,15 +34,15 @@ namespace drk::Objects {
 
 	}
 	entt::entity
-	Systems::ObjectSystem::copyObjectEntity(
-		const entt::registry& source,
-		entt::registry& destination,
-		entt::entity sourceEntity,
-		entt::entity parent,
-		entt::entity previousSibling
-	) {
+		Systems::ObjectSystem::copyObjectEntity(
+			const entt::registry& source,
+			entt::registry& destination,
+			entt::entity sourceEntity,
+			entt::entity parent,
+			entt::entity previousSibling
+		) {
 		const auto& sourceObject = source.get<Components::Object>(sourceEntity);
-		auto sourceMeshGroup = source.try_get<Meshes::Components::MeshGroup>(sourceEntity);
+		auto objectMeshes = source.view<Components::ObjectMesh>();
 		auto sourceSpatial = source.try_get<Spatials::Components::Spatial>(sourceEntity);
 		auto sourceRelationship = source.try_get<Components::Relationship>(sourceEntity);
 
@@ -51,10 +51,19 @@ namespace drk::Objects {
 			.Name = sourceObject.Name
 		};
 		destination.emplace<Components::Object>(destinationEntity, destinationObject);
-		if (sourceMeshGroup != nullptr) {
-			auto destinationMeshGroup = Meshes::Systems::MeshSystem::copyMeshGroup(source, destination, *sourceMeshGroup);
-			destination.emplace<Meshes::Components::MeshGroup>(destinationEntity, destinationMeshGroup);
-		}
+
+
+		objectMeshes.each([&](entt::entity sourceObjectMeshEntity, const Objects::Components::ObjectMesh& sourceObjectMesh) {
+			if (sourceObjectMesh.objectEntity == sourceEntity) {
+				auto destinationObjectMeshEntity = destination.create();
+				auto destinationMeshEntity = Meshes::Systems::MeshSystem::copyMeshEntity(source, destination, sourceObjectMesh.meshEntity);
+				Components::ObjectMesh destinationObjectMesh{
+					.objectEntity = destinationObjectMeshEntity,
+					.meshEntity = destinationMeshEntity
+				};
+				destination.emplace<Components::ObjectMesh>(destinationObjectMeshEntity, std::move(destinationObjectMesh));
+			}
+			});
 		if (sourceSpatial != nullptr) {
 			destination.emplace<Spatials::Components::Spatial>(destinationEntity, *sourceSpatial);
 		}
@@ -66,7 +75,7 @@ namespace drk::Objects {
 				.depth = sourceRelationship->depth
 			};
 
-			for (const auto& sourceChild: sourceRelationship->children) {
+			for (const auto& sourceChild : sourceRelationship->children) {
 				const auto& destinationChild = copyObjectEntity(source, destination, sourceChild, destinationEntity);
 				destinationRelationship.children.emplace_back(std::move(destinationChild));
 			}

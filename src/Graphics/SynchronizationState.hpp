@@ -28,7 +28,7 @@ namespace drk::Graphics {
 		}
 
 		template<typename ...TComponents>
-		static void Update(
+		static void update(
 			entt::registry& registry,
 			uint32_t frameIndex,
 			std::function<void(TModel& model, const TComponents& ...)> updater
