@@ -4,6 +4,9 @@
 #include "../../Cameras/Components/Camera.hpp"
 #include "../../Cameras/Models/Camera.hpp"
 #include "../Components/Draw.hpp"
+#include "../../Objects/Models/Object.hpp"
+#include "../../Scenes/Draws/SceneDraw.hpp"
+#include "../Pipelines/BoundingVolumePipeline.hpp"
 
 namespace drk::BoundingVolumes::Systems {
 	AxisAlignedBoundingBoxSystem::AxisAlignedBoundingBoxSystem(
@@ -94,48 +97,42 @@ namespace drk::BoundingVolumes::Systems {
 	}
 
 	void AxisAlignedBoundingBoxSystem::emitDraws() {
-		/*const auto& [camera, cameraStoreItem] = registry.get<
+		const auto& [camera, cameraStoreItem] = registry.get<
 			Cameras::Components::Camera,
 			Stores::StoreItem<Cameras::Models::Camera>
 		>(engineState.cameraEntity);
-		auto objectMeshEntities = registry.view<Objects::Components::ObjectMesh>(entt::exclude<Components::Draw>);
+		auto objectMeshEntities = registry.view<
+			Objects::Components::ObjectMesh,
+			BoundingVolumes::Components::AxisAlignedBoundingBox
+		>(entt::exclude<Components::Draw>);
 		const auto& cameraStoreItemLocation = cameraStoreItem.frameStoreItems[engineState.getFrameIndex()];
 
-		objectMeshEntities.each([&](entt::entity objectMeshEntity, const Objects::Components::ObjectMesh& objectMesh) {
-			const auto& [mesh, meshResource, meshBufferView, meshStoreItem] = registry.get<
-				Meshes::Components::Mesh,
-				std::shared_ptr<Meshes::Components::MeshResource>,
-				Meshes::Components::MeshBufferView,
-				Stores::StoreItem<Meshes::Models::Mesh>
-			>(objectMesh.meshEntity);
+		objectMeshEntities.each([&](
+			entt::entity objectMeshEntity, 
+			const Objects::Components::ObjectMesh& objectMesh,
+			const BoundingVolumes::Components::AxisAlignedBoundingBox& axisAlignedBoundingBox
+		) {
 			const auto& [objectStoreItem, spatial] = registry.get<
 				Stores::StoreItem<Objects::Models::Object>,
 				Spatials::Components::Spatial
 			>(objectMesh.objectEntity);
-			auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(mesh.materialEntity);
 			const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
-			const auto& meshStoreItemLocation = meshStoreItem.frameStoreItems[engineState.getFrameIndex()];
 			Scenes::Draws::SceneDraw draw = {
 				.drawSystem = this,
-				.pipelineTypeIndex = std::type_index(typeid(Pipelines::MeshPipeline)),
-				.indexBufferView = meshBufferView.IndexBufferView,
-				.vertexBufferView = meshBufferView.VertexBufferView,
-				.hasTransparency = material->hasTransparency,
+				.pipelineTypeIndex = std::type_index(typeid(Pipelines::BoundingVolumePipeline)),
+				.indexBufferView = indexBufferView,
+				.vertexBufferView = vertexBufferView,
+				.hasTransparency = false,
 				.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition),
 			};
 			Components::Draw Draw = {
-				.meshResource = meshResource,
-				.meshBufferView = meshBufferView,
-				.meshItemLocation = meshStoreItemLocation,
-				.objectItemLocation = objectStoreItemLocation,
-				.cameraItemLocation = cameraStoreItemLocation
+				.boundingVolumeStoreItemLocation = objectStoreItemLocation,
+				.cameraStoreItemLocation = cameraStoreItemLocation
 			};
 			auto entity = registry.create();
 			registry.emplace_or_replace<Scenes::Draws::SceneDraw>(objectMeshEntity, std::move(draw));
 			registry.emplace_or_replace<Components::Draw>(objectMeshEntity, std::move(Draw));
 			registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(objectMeshEntity, engineState.getFrameCount());
 			});
-
-		return true;*/
 	}
 }

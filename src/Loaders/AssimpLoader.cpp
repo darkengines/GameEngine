@@ -584,7 +584,20 @@ namespace drk::Loaders {
 				registry.emplace<Objects::Components::ObjectMesh>(objectMeshEntity, entity, meshEntity);
 				auto meshAABB = registry.get<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity);
 				auto instanceAABB = meshAABB.transform(spatial.absoluteModel);
+				Spatials::Components::Spatial aabbSpatial{
+					.relativeScale = instanceAABB.extent,
+					.relativeRotation = glm::quat(0, 0, 0, 1),
+					.relativePosition = instanceAABB.center
+				};
+				Objects::Components::Relationship aabbRelationship{
+					.parent = entity,
+					.depth = depth + 1
+				};
+
 				registry.emplace<BoundingVolumes::Components::AxisAlignedBoundingBox>(objectMeshEntity, std::move(instanceAABB));
+				registry.emplace<Spatials::Components::Spatial>(objectMeshEntity, std::move(aabbSpatial));
+				registry.emplace<Objects::Components::Relationship>(objectMeshEntity, std::move(aabbRelationship));
+
 				objectMeshCollection.objectMeshes.push_back(objectMeshEntity);
 			}
 			registry.emplace<Objects::Components::ObjectMeshCollection>(entity, std::move(objectMeshCollection));

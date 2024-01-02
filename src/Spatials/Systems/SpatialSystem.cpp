@@ -93,13 +93,11 @@ namespace drk::Spatials::Systems {
 		);
 		registry.view<
 			Objects::Components::Dirty<Components::Spatial>,
-			Objects::Components::Relationship,
-			Objects::Components::Object
+			Objects::Components::Relationship
 		>().each(
 			[&](
 				entt::entity entity,
-				const Objects::Components::Relationship& relationship,
-				const Objects::Components::Object& object
+				const Objects::Components::Relationship& relationship
 				) {
 					const Objects::Components::ObjectMeshCollection* objectMeshCollection = registry.try_get<Objects::Components::ObjectMeshCollection>(entity);
 					if (objectMeshCollection != nullptr) {

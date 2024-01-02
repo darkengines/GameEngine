@@ -3,9 +3,15 @@
 #include "../Components/AxisAlignedBoundingBox.hpp"
 #include "../../Objects/Components/Dirty.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
+#include "../../Draws/Systems/DrawSystem.hpp"
 
 namespace drk::BoundingVolumes::Systems {
-	class AxisAlignedBoundingBoxSystem : public drk::Systems::System<Models::AxisAlignedBoundingBox, Components::AxisAlignedBoundingBox> {
+	class AxisAlignedBoundingBoxSystem :
+		public Draws::Systems::DrawSystem,
+		public drk::Systems::System<
+		Models::AxisAlignedBoundingBox,
+		Components::AxisAlignedBoundingBox
+		> {
 	public:
 		AxisAlignedBoundingBoxSystem(
 			Engine::EngineState& engineState,
