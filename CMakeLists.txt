@@ -15,6 +15,7 @@ file(
     src/Applications/Extentions.hpp
     src/BoundingVolumes/Components/AxisAlignedBoundingBox.hpp
     src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.hpp
+    src/BoundingVolumes/Models/Vertex.hpp
     src/Cameras/Systems/CameraSystem.hpp
     src/Cameras/Extensions.hpp
     src/Cameras/Components/Camera.hpp
@@ -170,6 +171,7 @@ file(
     src/Applications/Application.cpp
     src/Applications/Application.UserInterface.cpp
     src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.cpp
+    src/BoundingVolumes/Models/Vertex.cpp
     src/Cameras/Systems/CameraSystem.cpp
     src/Common/Common.cpp
     src/Common/IndexGenerator.cpp
@@ -266,7 +268,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${SOURCES})
+add_executable(drk ${SOURCES} "src/BoundingVolumes/Pipelines/BoundingVolumePipeline.cpp")
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 

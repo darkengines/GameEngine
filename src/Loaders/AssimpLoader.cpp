@@ -1,4 +1,5 @@
 #include "../Lights/Components/LightPerspective.hpp"
+#include "../Objects/Components/ObjectMeshCollection.hpp"
 #include "AssimpLoader.hpp"
 #include "../GlmExtensions.hpp"
 #include "../Lights/Components/PointLight.hpp"
@@ -575,6 +576,7 @@ namespace drk::Loaders {
 		registry.emplace<Objects::Components::Object>(entity, aiNode->mName.C_Str());
 
 		if (aiNode->mNumMeshes) {
+			Objects::Components::ObjectMeshCollection objectMeshCollection;
 			for (auto meshIndex = 0u; meshIndex < aiNode->mNumMeshes; meshIndex++) {
 				auto& aiMesh = aiNode->mMeshes[meshIndex];
 				auto meshEntity = loadResult.meshIdEntityMap[aiNode->mMeshes[meshIndex]];
@@ -583,7 +585,9 @@ namespace drk::Loaders {
 				auto meshAABB = registry.get<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity);
 				auto instanceAABB = meshAABB.transform(spatial.absoluteModel);
 				registry.emplace<BoundingVolumes::Components::AxisAlignedBoundingBox>(objectMeshEntity, std::move(instanceAABB));
+				objectMeshCollection.objectMeshes.push_back(objectMeshEntity);
 			}
+			registry.emplace<Objects::Components::ObjectMeshCollection>(entity, std::move(objectMeshCollection));
 		}
 
 		if (shouldEmplaceSpatial) registry.emplace<Spatials::Components::Spatial>(entity, spatial);

@@ -1,4 +1,5 @@
 #include "AxisAlignedBoundingBox.hpp"
+#include "../../GlmExtensions.hpp"
 
 namespace drk::BoundingVolumes::Components {
 
@@ -13,17 +14,14 @@ AxisAlignedBoundingBox AxisAlignedBoundingBox::fromMinMax(const glm::vec4 & min,
 }
 
 AxisAlignedBoundingBox AxisAlignedBoundingBox::transform(const glm::mat4 & model) const {
-	glm::vec4 xAxis{ 1.0, 0.0, 0.0, 0.0 };
-	glm::vec4 yAxis{ 0.0, 1.0, 0.0, 0.0 };
-	glm::vec4 zAxis{ 0.0, 0.0, 1.0, 0.0 };
 
-	glm::vec4 right = model * xAxis * extent.x;
-	glm::vec4 top = model * yAxis * extent.y;
-	glm::vec4 forward = model * zAxis * extent.z;
+	glm::vec4 right = model * GlmExtensions::right * extent.x;
+	glm::vec4 top = model * GlmExtensions::up * extent.y;
+	glm::vec4 forward = model * GlmExtensions::front * extent.z;
 
-	auto i = abs(dot(xAxis, right)) + abs(dot(xAxis, top)) + abs(dot(xAxis, forward));
-	auto j = abs(dot(yAxis, right)) + abs(dot(yAxis, top)) + abs(dot(yAxis, forward));
-	auto k = abs(dot(zAxis, right)) + abs(dot(zAxis, top)) + abs(dot(zAxis, forward));
+	auto i = abs(dot(GlmExtensions::right, right)) + abs(dot(GlmExtensions::right, top)) + abs(dot(GlmExtensions::right, forward));
+	auto j = abs(dot(GlmExtensions::up, right)) + abs(dot(GlmExtensions::up, top)) + abs(dot(GlmExtensions::up, forward));
+	auto k = abs(dot(GlmExtensions::front, right)) + abs(dot(GlmExtensions::front, top)) + abs(dot(GlmExtensions::front, forward));
 
 	glm::vec4 newExtent{ i, j, k, 0 };
 	glm::vec4 newCenter = model * center;

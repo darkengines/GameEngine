@@ -6,11 +6,10 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
-namespace drk::Lines::Models {
-	struct LineVertex {
+namespace drk::BoundingVolumes::Models {
+	struct Vertex {
 		glm::vec4 position;
 		glm::vec4 diffuseColor;
-		glm::vec2 textureCoordinates;
 
 		static std::vector<vk::VertexInputBindingDescription> getBindingDescriptions();
 		static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions();
