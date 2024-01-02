@@ -30,6 +30,6 @@ namespace drk::Lights::Systems {
 			const Stores::StoreItem<Models::Light>& lightStoreItem,
 			const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem
 		) override;
-		void ProcessDirtyItems();
+		void processDirtyItems();
 	};
 }

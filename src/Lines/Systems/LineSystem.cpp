@@ -18,7 +18,7 @@ namespace drk::Lines::Systems {
 		Devices::DeviceContext& deviceContext
 	)
 		: drk::Systems::System<Models::Line, Components::Line>(engineState, registry), deviceContext(deviceContext) {
-		CreateResources();
+		createResources();
 	}
 	LineSystem::~LineSystem() {
 		deviceContext.DestroyBuffer(lineIndexBufferView.buffer);
@@ -28,7 +28,7 @@ namespace drk::Lines::Systems {
 		const auto& materialModel = registry.get<Stores::StoreItem<Materials::Models::Material>>(line.materialEntity);
 		model.materialItemLocation = materialModel.frameStoreItems[engineState.getFrameIndex()];
 	}
-	void LineSystem::CreateResources() {
+	void LineSystem::createResources() {
 		std::string lineMeshName = "Line";
 		Models::LineVertex lineOriginVertex{
 			.position = glm::vec4(0.0, 0.0, 0.0, 1.0),
@@ -75,7 +75,7 @@ namespace drk::Lines::Systems {
 			.byteLength = sizeof(uint32_t) * lineIndices.size()
 		};
 	}
-	void LineSystem::UpdateDraw(entt::entity drawEntity, int drawIndex) {
+	void LineSystem::updateDraw(entt::entity drawEntity, int drawIndex) {
 		const auto& lineDraw = registry.get<Models::LineDraw>(drawEntity);
 		auto& frameState = engineState.getCurrentFrameState();
 		//todo: optimization - fetch uniform store in parent scope and give as argument
@@ -86,10 +86,10 @@ namespace drk::Lines::Systems {
 		lineItemLocation.pItem->objectItemLocation.storeIndex = lineDraw.objectItemLocation.storeIndex;
 		lineItemLocation.pItem->objectItemLocation.itemIndex = lineDraw.objectItemLocation.itemIndex;
 	}
-	void LineSystem::UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex) {
+	void LineSystem::updateShadowDraw(entt::entity shadowDrawEntity, int drawIndex) {
 
 	}
-	bool LineSystem::emitDraws() {
+	void LineSystem::emitDraws() {
 		auto lineEntities = registry.view<
 			Stores::StoreItem<Models::Line>,
 			Components::Line, Spatials::Components::Spatial,
@@ -133,6 +133,5 @@ namespace drk::Lines::Systems {
 				}
 			);
 		}
-		return hasEntities;
 	}
 }

@@ -24,7 +24,7 @@ namespace drk::Lights::Systems {
 		model.lightPerspectiveStoreItemLocation = lightPerspective.frameStoreItems[engineState.getFrameIndex()];
 	}
 
-	void DirectionalLightSystem::ProcessDirtyItems() {
+	void DirectionalLightSystem::processDirtyItems() {
 		/*auto dirtyDirectionalLightView = registry.view<
 			Components::DirectionalLight,
 			Components::LightPerspective,

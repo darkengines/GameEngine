@@ -21,18 +21,6 @@ namespace drk::Objects {
 		objectModel.spatialItemLocation.storeIndex = spatialItemLocation.pStore->descriptorArrayElement;
 		objectModel.spatialItemLocation.itemIndex = spatialItemLocation.index;
 	}
-
-	void Systems::ObjectSystem::AddObjectSystem(entt::registry& registry) {
-		registry.on_construct<Components::Object>().connect<ObjectSystem::OnObjectConstruct>();
-	}
-
-	void Systems::ObjectSystem::RemoveObjectSystem(entt::registry& registry) {
-		registry.on_construct<Components::Object>().disconnect<ObjectSystem::OnObjectConstruct>();
-	}
-
-	void Systems::ObjectSystem::OnObjectConstruct(entt::registry& registry, entt::entity objectEntity) {
-
-	}
 	entt::entity
 		Systems::ObjectSystem::copyObjectEntity(
 			const entt::registry& source,

@@ -43,7 +43,7 @@ namespace drk::Lights::Systems {
 		model.rightLightPerspectiveStoreItemLocation = rightLightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
 	}
 
-	void PointLightSystem::ProcessDirtyItems() {
+	void PointLightSystem::processDirtyItems() {
 		auto dirtyPointLightView = registry.view<
 			Components::PointLight,
 			Spatials::Components::Spatial,

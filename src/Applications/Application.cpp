@@ -16,6 +16,7 @@ namespace drk::Applications {
 		Textures::Systems::TextureSystem& textureSystem,
 		Materials::Systems::MaterialSystem& materialSystem,
 		Meshes::Systems::MeshSystem& meshSystem,
+		Meshes::Systems::MeshShadowSystem& meshShadowSystem,
 		Spatials::Systems::SpatialSystem& spatialSystem,
 		Objects::Systems::ObjectSystem& objectSystem,
 		Cameras::Systems::CameraSystem& cameraSystem,
@@ -43,6 +44,7 @@ namespace drk::Applications {
 		textureSystem(textureSystem),
 		materialSystem(materialSystem),
 		meshSystem(meshSystem),
+		meshShadowSystem(meshShadowSystem),
 		spatialSystem(spatialSystem),
 		objectSystem(objectSystem),
 		cameraSystem(cameraSystem),
@@ -79,16 +81,12 @@ namespace drk::Applications {
 		glfwMakeContextCurrent(glfwWindow);
 	}
 
-	void Application::Run() {
-		materialSystem.AddMaterialSystem(registry);
-		meshSystem.AddMeshSystem(registry);
+	void Application::run() {
 		spatialSystem.AddSpatialSystem(registry);
-		objectSystem.AddObjectSystem(registry);
-		cameraSystem.AddCameraSystem(registry);
 
 		std::vector<Loaders::LoadResult> loadResults;
 
-		auto defaultCamera = cameraSystem.CreateCamera(
+		auto defaultCamera = cameraSystem.createCamera(
 			glm::zero<glm::vec4>(),
 			glm::vec4{ 1.0f, 0.0f, 0.0f, 0.0f },
 			glm::vec4{ 0.0f, 1.0f, 0.0f, 0.0f },
@@ -346,7 +344,7 @@ namespace drk::Applications {
 				globalSystem.GlobalSynchronizationState.Reset();
 				//Resources to GPU
 				textureSystem.UploadTextures();
-				meshSystem.UploadMeshes();
+				meshSystem.uploadMeshes();
 
 				//Resources to GPU
 				materialSystem.store();
@@ -367,13 +365,13 @@ namespace drk::Applications {
 
 				//Change propagations
 				spatialSystem.PropagateChanges();
-				cameraSystem.ProcessDirtyItems();
-				lightPerspectiveSystem.ProcessDirtyItems();
-				directionalLightSystem.ProcessDirtyItems();
-				pointLightSystem.ProcessDirtyItems();
-				spotlightSystem.ProcessDirtyItems();
+				cameraSystem.processDirtyItems();
+				lightPerspectiveSystem.processDirtyItems();
+				directionalLightSystem.processDirtyItems();
+				pointLightSystem.processDirtyItems();
+				spotlightSystem.processDirtyItems();
 
-				meshSystem.ProcessDirtyDraws();
+				meshSystem.processDirtyDraws();
 
 				//Store updates to GPU
 				materialSystem.updateStore();
@@ -394,8 +392,8 @@ namespace drk::Applications {
 				//registry.destroy(draws.begin(), draws.end());
 
 				//Emit draws
-				meshSystem.emitShadowDraws();
 				meshSystem.emitDraws();
+				meshShadowSystem.emitDraws();
 				pointSystem.emitDraws();
 				lineSystem.emitDraws();
 

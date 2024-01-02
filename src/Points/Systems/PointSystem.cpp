@@ -17,7 +17,7 @@ namespace drk::Points::Systems {
 		Devices::DeviceContext& deviceContext
 	)
 		: drk::Systems::System<Models::Point, Components::Point>(engineState, registry), deviceContext(deviceContext) {
-		CreateResources();
+		createResources();
 	}
 	PointSystem::~PointSystem() {
 		deviceContext.DestroyBuffer(pointIndexBufferView.buffer);
@@ -27,7 +27,7 @@ namespace drk::Points::Systems {
 		const auto& materialModel = registry.get<Stores::StoreItem<Materials::Models::Material>>(point.materialEntity);
 		model.materialItemLocation = materialModel.frameStoreItems[engineState.getFrameIndex()];
 	}
-	void PointSystem::CreateResources() {
+	void PointSystem::createResources() {
 		std::string pointMeshName = "Point";
 		Models::PointVertex pointVertex{
 			.position = glm::vec4(0.0, 0.0, 0.0, 1.0),
@@ -69,7 +69,7 @@ namespace drk::Points::Systems {
 			.byteLength = sizeof(uint32_t)
 		};
 	}
-	void PointSystem::UpdateDraw(entt::entity drawEntity, int drawIndex) {
+	void PointSystem::updateDraw(entt::entity drawEntity, int drawIndex) {
 		const auto& pointDraw = registry.get<Models::PointDraw>(drawEntity);
 		auto& frameState = engineState.getCurrentFrameState();
 		//todo: optimization - fetch uniform store in parent scope and give as argument
@@ -80,10 +80,7 @@ namespace drk::Points::Systems {
 		pointItemLocation.pItem->objectItemLocation.storeIndex = pointDraw.objectItemLocation.storeIndex;
 		pointItemLocation.pItem->objectItemLocation.itemIndex = pointDraw.objectItemLocation.itemIndex;
 	}
-	void PointSystem::UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex) {
-
-	}
-	bool PointSystem::emitDraws() {
+	void PointSystem::emitDraws() {
 		auto pointEntities = registry.view<
 			Stores::StoreItem<Models::Point>,
 			Components::Point, Spatials::Components::Spatial,
@@ -124,7 +121,5 @@ namespace drk::Points::Systems {
 						engineState.getFrameCount());
 			}
 		);
-
-		return true;
 	}
 }

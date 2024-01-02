@@ -18,12 +18,17 @@ namespace drk::Scenes::Renderers {
 		pointPrimitivePipeline(std::move(pointPrimitivePipeline)),
 		linePipeline(std::move(linePipeline)),
 		shadowSceneRenderer(std::move(shadowSceneRenderer)),
-		shadowMappingSystem(shadowMappingSystem)
+		shadowMappingSystem(shadowMappingSystem),
+		pipelines{
+			{ std::type_index(typeid(Meshes::Pipelines::MeshPipeline)), this->meshPipeline.get() },
+			{ std::type_index(typeid(Points::Pipelines::PointPrimitivePipeline)), this->pointPrimitivePipeline.get() },
+			{ std::type_index(typeid(Lines::Pipelines::LinePipeline)), this->linePipeline.get() }
+		}
 	{
 		this->shadowSceneRenderer->setTargetImageViews({
 			.extent = shadowMappingSystem.shadowMappingTexture->imageCreateInfo.extent,
 			.format = shadowMappingSystem.shadowMappingTexture->imageCreateInfo.format },
-													   { shadowMappingSystem.shadowMappingTexture->imageView }
+			{ shadowMappingSystem.shadowMappingTexture->imageView }
 		);
 	}
 
@@ -33,10 +38,9 @@ namespace drk::Scenes::Renderers {
 		destroyFramebufferResources();
 	}
 	Pipelines::Pipeline* SceneRenderer::getPipeline(std::type_index pipelineTypeIndex) {
-		if (std::type_index(typeid(Meshes::Pipelines::MeshPipeline)) == pipelineTypeIndex) return meshPipeline.get();
-		if (std::type_index(typeid(Points::Pipelines::PointPrimitivePipeline)) == pipelineTypeIndex) return pointPrimitivePipeline.get();
-		if (std::type_index(typeid(Lines::Pipelines::LinePipeline)) == pipelineTypeIndex) return linePipeline.get();
-		throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
+		auto keyValuePair = pipelines.find(pipelineTypeIndex);
+		if (keyValuePair == pipelines.end()) throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
+		return keyValuePair->second;
 	}
 	void SceneRenderer::destroyFramebuffers() {
 		for (const auto& framebuffer : framebuffers) {
@@ -237,8 +241,7 @@ namespace drk::Scenes::Renderers {
 	) {
 		this->targetImageInfo = targetImageInfo;
 		this->targetImageViews = targetImageViews;
-		pointPrimitivePipeline->destroyPipeline();
-		meshPipeline->destroyPipeline();
+		for (const auto& pipeline : pipelines) pipeline.second->destroyPipeline();
 		destroyFramebuffers();
 		destroyFramebufferResources();
 		destroyRenderPass();
@@ -252,24 +255,14 @@ namespace drk::Scenes::Renderers {
 			viewport,
 			scissor
 		);
-		meshPipeline->configure(
-			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-				graphicsPipelineCreateInfo.renderPass = renderPass;
-				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-			}
-		);
-		pointPrimitivePipeline->configure(
-			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-				graphicsPipelineCreateInfo.renderPass = renderPass;
-				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-			}
-		);
-		linePipeline->configure(
-			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-				graphicsPipelineCreateInfo.renderPass = renderPass;
-				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-			}
-		);
+		for (const auto& pipeline : pipelines) {
+			pipeline.second->configure(
+				[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
+					graphicsPipelineCreateInfo.renderPass = renderPass;
+					graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
+				}
+			);
+		}
 
 		createFramebufferResources();
 		createFramebuffers();
@@ -306,9 +299,9 @@ namespace drk::Scenes::Renderers {
 		uint32_t instanceCount = 0u;
 
 		std::map<std::type_index, int> pipelineDrawIndices;
-		pipelineDrawIndices[std::type_index(typeid(pointPrimitivePipeline))] = 0;
-		pipelineDrawIndices[std::type_index(typeid(meshPipeline))] = 0;
-		pipelineDrawIndices[std::type_index(typeid(linePipeline))] = 0;
+		for (const auto& pipeline : pipelines) {
+			pipelineDrawIndices[pipeline.first] = 0;
+		}
 		bool isFirst = true;
 		Pipelines::Pipeline const* pCurrentPipeline;
 
@@ -462,9 +455,9 @@ namespace drk::Scenes::Renderers {
 		return target;
 	}
 	void SceneRenderer::setTargetExtent(vk::Extent3D extent) {
-		linePipeline->destroyPipeline();
-		pointPrimitivePipeline->destroyPipeline();
-		meshPipeline->destroyPipeline();
+		for (const auto& pipeline : pipelines) {
+			pipeline.second->destroyPipeline();
+		}
 
 		vk::Viewport viewport;
 		vk::Rect2D scissor;
@@ -474,23 +467,13 @@ namespace drk::Scenes::Renderers {
 			viewport,
 			scissor
 		);
-		meshPipeline->configure(
-			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-				graphicsPipelineCreateInfo.renderPass = renderPass;
-				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-			}
-		);
-		pointPrimitivePipeline->configure(
-			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-				graphicsPipelineCreateInfo.renderPass = renderPass;
-				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-			}
-		);
-		linePipeline->configure(
-			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-				graphicsPipelineCreateInfo.renderPass = renderPass;
-				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-			}
-		);
+		for (const auto& pipeline : pipelines) {
+			pipeline.second->configure(
+				[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
+					graphicsPipelineCreateInfo.renderPass = renderPass;
+					graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
+				}
+			);
+		}
 	}
 }

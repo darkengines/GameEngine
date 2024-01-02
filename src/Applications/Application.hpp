@@ -26,6 +26,7 @@
 #include "../Points/Systems/PointSystem.hpp"
 #include "../Lines/Systems/LineSystem.hpp"
 #include "../UserInterfaces/AssetExplorer.hpp"
+#include "../Meshes/Systems/MeshShadowSystem.hpp"
 #include <memory>
 
 namespace drk::Applications {
@@ -38,6 +39,7 @@ namespace drk::Applications {
 			Textures::Systems::TextureSystem&,
 			Materials::Systems::MaterialSystem&,
 			Meshes::Systems::MeshSystem&,
+			Meshes::Systems::MeshShadowSystem&,
 			Spatials::Systems::SpatialSystem&,
 			Objects::Systems::ObjectSystem&,
 			Cameras::Systems::CameraSystem&,
@@ -67,6 +69,7 @@ namespace drk::Applications {
 			Textures::Systems::TextureSystem& textureSystem,
 			Materials::Systems::MaterialSystem& materialSystem,
 			Meshes::Systems::MeshSystem& meshSystem,
+			Meshes::Systems::MeshShadowSystem& meshShadowSystem,
 			Spatials::Systems::SpatialSystem& spatialSystem,
 			Objects::Systems::ObjectSystem& objectSystem,
 			Cameras::Systems::CameraSystem& cameraSystem,
@@ -90,7 +93,7 @@ namespace drk::Applications {
 		);
 		~Application();
 
-		void Run();
+		void run();
 
 	protected:
 		const Windows::Window& window;
@@ -99,6 +102,7 @@ namespace drk::Applications {
 		Textures::Systems::TextureSystem& textureSystem;
 		Materials::Systems::MaterialSystem& materialSystem;
 		Meshes::Systems::MeshSystem& meshSystem;
+		Meshes::Systems::MeshShadowSystem& meshShadowSystem;
 		Spatials::Systems::SpatialSystem& spatialSystem;
 		Objects::Systems::ObjectSystem& objectSystem;
 		Cameras::Systems::CameraSystem& cameraSystem;

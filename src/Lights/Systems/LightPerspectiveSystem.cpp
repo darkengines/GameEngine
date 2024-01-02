@@ -35,7 +35,7 @@ namespace drk::Lights::Systems {
 		model.verticalFov = lightPerspective.verticalFov;
 	}
 
-	void LightPerspectiveSystem::ProcessDirtyItems() {
+	void LightPerspectiveSystem::processDirtyItems() {
 		auto dirtyLightPerspectiveView = registry.view<
 			Components::LightPerspective,
 			Spatials::Components::Spatial,

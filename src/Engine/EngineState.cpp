@@ -96,7 +96,7 @@ namespace drk::Engine {
 		deviceContext.device.destroySampler(shadowTextureSampler);
 	}
 
-	MeshUploadResult EngineState::UploadMeshes(const std::vector<std::shared_ptr<Meshes::Components::MeshResource>>& meshInfos) {
+	MeshUploadResult EngineState::uploadMeshes(const std::vector<std::shared_ptr<Meshes::Components::MeshResource>>& meshInfos) {
 		std::vector<std::span<Meshes::Vertex>> vertices(meshInfos.size());
 		std::vector<std::span<Meshes::VertexIndex>> indices(meshInfos.size());
 		std::transform(

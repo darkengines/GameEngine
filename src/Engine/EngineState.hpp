@@ -68,7 +68,7 @@ namespace drk::Engine {
 
 		Devices::Texture UploadTexture(const Textures::ImageInfo* const imageInfo);
 		std::vector<Devices::Texture> UploadTextures(std::vector<const Textures::ImageInfo*> imageInfos);
-		MeshUploadResult UploadMeshes(const std::vector<std::shared_ptr<Meshes::Components::MeshResource>>& meshInfos);
+		MeshUploadResult uploadMeshes(const std::vector<std::shared_ptr<Meshes::Components::MeshResource>>& meshInfos);
 
 		template<typename T>
 		Stores::StoreItem<T> GetStoreItem() {

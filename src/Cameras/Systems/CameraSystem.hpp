@@ -16,14 +16,10 @@ class CameraSystem : public drk::Systems::System<Models::Camera, Components::Cam
 			Engine::EngineState& engineState,
 			entt::registry& registry
 		);
-		static void AddCameraSystem(entt::registry &registry);
-		static void RemoveCameraSystem(entt::registry &registry);
-		static void OnCameraConstruct(entt::registry &registry, entt::entity cameraEntity);
 		void update(Models::Camera &cameraModel, const Components::Camera &camera);
-		void StoreCameras();
-		void ProcessDirtyItems();
+		void processDirtyItems();
 
-		entt::entity CreateCamera(
+		entt::entity createCamera(
 			glm::vec4 position,
 			glm::vec4 front,
 			glm::vec4 up,

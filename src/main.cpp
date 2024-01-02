@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
 		drk::Applications::AddApplications()
 	);
 	auto& app = injector.create<drk::Applications::Application&>();
-	app.Run();
+	app.run();
 
 //	drk::Applications::Application application{};
 //	application.Run();

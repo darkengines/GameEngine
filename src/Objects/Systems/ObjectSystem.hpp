@@ -23,9 +23,6 @@ class ObjectSystem : public drk::Systems::System<Models::Object, Stores::StoreIt
 			Engine::EngineState& engineState,
 			entt::registry& registry
 		);
-		static void AddObjectSystem(entt::registry& registry);
-		static void RemoveObjectSystem(entt::registry& registry);
-		static void OnObjectConstruct(entt::registry& registry, entt::entity objectEntity);
 		static entt::entity copyObjectEntity(
 			const entt::registry& source,
 			entt::registry& destination,

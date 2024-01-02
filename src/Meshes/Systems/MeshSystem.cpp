@@ -40,7 +40,7 @@ namespace drk::Meshes::Systems {
 		model.materialItemLocation.itemIndex = frameStoreItem.index;
 	}
 
-	void MeshSystem::UploadMeshes() {
+	void MeshSystem::uploadMeshes() {
 		auto meshEntities = registry.view<std::shared_ptr<Components::MeshResource>>(entt::exclude<Components::MeshBufferView>);
 		std::vector<entt::entity> processedMeshEntities;
 		std::vector<std::shared_ptr<Meshes::Components::MeshResource>> meshes;
@@ -51,7 +51,7 @@ namespace drk::Meshes::Systems {
 			}
 		);
 		if (!meshes.empty()) {
-			const auto result = engineState.UploadMeshes(meshes);
+			const auto result = engineState.uploadMeshes(meshes);
 			for (auto meshIndex = 0u; meshIndex < processedMeshEntities.size(); meshIndex++) {
 				registry.emplace<Components::MeshBufferView>(
 					processedMeshEntities[meshIndex],
@@ -60,19 +60,7 @@ namespace drk::Meshes::Systems {
 			}
 		}
 	}
-
-	void MeshSystem::AddMeshSystem(entt::registry& registry) {
-		registry.on_construct<Components::Mesh>().connect<MeshSystem::OnMeshConstruct>();
-	}
-
-	void MeshSystem::RemoveMeshSystem(entt::registry& registry) {
-		registry.on_construct<Components::Mesh>().disconnect<MeshSystem::OnMeshConstruct>();
-	}
-
-	void MeshSystem::OnMeshConstruct(entt::registry& registry, entt::entity meshEntity) {
-
-	}
-	void MeshSystem::UpdateDraw(entt::entity drawEntity, int drawIndex) {
+	void MeshSystem::updateDraw(entt::entity drawEntity, int drawIndex) {
 		const auto& meshDraw = registry.get<Components::MeshDraw>(drawEntity);
 		auto& frameState = engineState.getCurrentFrameState();
 		//todo: optimization - fetch uniform store in parent scope and give as argument
@@ -84,21 +72,7 @@ namespace drk::Meshes::Systems {
 		meshItemLocation.pItem->objectItemLocation.itemIndex = meshDraw.objectItemLocation.itemIndex;
 		meshItemLocation.pItem->cameraItemLocation = meshDraw.cameraItemLocation;
 	}
-	void MeshSystem::UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex) {
-		const auto& meshDraw = registry.get<Components::ShadowMeshDraw>(shadowDrawEntity);
-		auto& frameState = engineState.getCurrentFrameState();
-		//todo: optimization - fetch uniform store in parent scope and give as argument
-		auto& drawStore = frameState.getUniformStore<Models::ShadowMeshDraw>();
-		const auto& meshItemLocation = drawStore.get(drawIndex);
-		meshItemLocation.pItem->meshItemLocation.storeIndex = meshDraw.meshItemLocation.storeIndex;
-		meshItemLocation.pItem->meshItemLocation.itemIndex = meshDraw.meshItemLocation.itemIndex;
-		meshItemLocation.pItem->objectItemLocation.storeIndex = meshDraw.objectItemLocation.storeIndex;
-		meshItemLocation.pItem->objectItemLocation.itemIndex = meshDraw.objectItemLocation.itemIndex;
-		meshItemLocation.pItem->cameraItemLocation = meshDraw.cameraItemLocation;
-		meshItemLocation.pItem->LightPerspectiveItemLocation = meshDraw.lightPerspectiveItemLocation;
-		meshItemLocation.pItem->LightPerspectiveSpatialItemLocation = meshDraw.lightPerspectiveSpatialItemLocation;
-	}
-	bool MeshSystem::emitDraws() {
+	void MeshSystem::emitDraws() {
 		const auto& [camera, cameraStoreItem] = registry.get<
 			Cameras::Components::Camera,
 			Stores::StoreItem<Cameras::Models::Camera>
@@ -120,7 +94,7 @@ namespace drk::Meshes::Systems {
 			auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(mesh.materialEntity);
 			const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
 			const auto& meshStoreItemLocation = meshStoreItem.frameStoreItems[engineState.getFrameIndex()];
-			Scenes::Draws::SceneDraw draw = {
+			Scenes::Draws::SceneDraw draw = {       
 				.drawSystem = this,
 				.pipelineTypeIndex = std::type_index(typeid(Pipelines::MeshPipeline)),
 				.indexBufferView = meshBufferView.IndexBufferView,
@@ -140,149 +114,8 @@ namespace drk::Meshes::Systems {
 			registry.emplace_or_replace<Components::MeshDraw>(objectMeshEntity, std::move(meshDraw));
 			registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(objectMeshEntity, engineState.getFrameCount());
 			});
-
-		return true;
 	}
-	bool MeshSystem::emitShadowDraws() {
-
-		const auto& [camera, cameraStoreItem] = registry.get<
-			Cameras::Components::Camera,
-			Stores::StoreItem<Cameras::Models::Camera>
-		>(engineState.cameraEntity);
-		const auto& cameraStoreItemLocation = cameraStoreItem.frameStoreItems[engineState.getFrameIndex()];
-		auto objectMeshEntities = registry.view<Objects::Components::ObjectMesh>(entt::exclude<Components::HasShadowDraw>);
-		auto pointLightView = registry.view<
-			Lights::Components::PointLight,
-			Stores::StoreItem<Lights::Models::PointLight>,
-			Lights::Components::LightPerspectiveCollection,
-			Stores::StoreItem<Spatials::Models::Spatial>
-		>();
-		auto directionalLightView = registry.view<
-			Lights::Components::DirectionalLight,
-			Stores::StoreItem<Lights::Models::DirectionalLight>,
-			Lights::Components::LightPerspective,
-			Stores::StoreItem<Lights::Models::LightPerspective>,
-			Stores::StoreItem<Spatials::Models::Spatial>
-		>();
-		auto spotlightView = registry.view<
-			Lights::Components::Spotlight,
-			Stores::StoreItem<Lights::Models::Spotlight>,
-			Lights::Components::LightPerspective,
-			Stores::StoreItem<Lights::Models::LightPerspective>,
-			Stores::StoreItem<Spatials::Models::Spatial>
-		>();
-
-		objectMeshEntities.each([&](entt::entity objectMeshEntity, const Objects::Components::ObjectMesh& objectMesh) {
-			const auto& [mesh, pMeshResource, meshBufferView, meshStoreItem] = registry.get<
-				Meshes::Components::Mesh,
-				std::shared_ptr<Meshes::Components::MeshResource>,
-				Meshes::Components::MeshBufferView,
-				Stores::StoreItem<Meshes::Models::Mesh>
-			>(objectMesh.meshEntity);
-			const auto& [objectStoreItem, spatial] = registry.get<
-				Stores::StoreItem<Objects::Models::Object>,
-				Spatials::Components::Spatial
-			>(objectMesh.objectEntity);
-			const auto& pMaterial = registry.get<std::shared_ptr<Materials::Components::Material>>(mesh.materialEntity);
-			auto currentFrameIndex = engineState.getFrameIndex();
-			const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[currentFrameIndex];
-			const auto& meshStoreItemLocation = meshStoreItem.frameStoreItems[currentFrameIndex];
-			pointLightView.each([&](
-				entt::entity pointLightEntity,
-				const Lights::Components::PointLight& pointLight,
-				const Stores::StoreItem<Lights::Models::PointLight>& pointLightStoreItem,
-				const Lights::Components::LightPerspectiveCollection& lightPerspectiveCollection,
-				const Stores::StoreItem<Spatials::Models::Spatial>& lightPerspectiveSpatialStoreItem
-				) {
-					for (const auto& lightPerspectiveEntity : lightPerspectiveCollection.lightPerspectives) {
-						const auto& [lightPerspective, lightPerspectiveStoreItem] = registry.get<
-							Lights::Components::LightPerspective,
-							Stores::StoreItem<Lights::Models::LightPerspective>
-						>(lightPerspectiveEntity);
-						const auto& lightPerspectiveStoreItemLocation = lightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
-						const auto& lightPerspectiveSpatialStoreItemLocation = lightPerspectiveSpatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
-						ProcessObjectEntity(
-							objectMeshEntity,
-							pointLightEntity,
-							lightPerspectiveEntity,
-							lightPerspective,
-							camera,
-							spatial,
-							*pMaterial,
-							meshBufferView,
-							pMeshResource,
-							objectStoreItemLocation,
-							meshStoreItemLocation,
-							cameraStoreItemLocation,
-							lightPerspectiveStoreItemLocation,
-							lightPerspectiveSpatialStoreItemLocation
-						);
-					}
-				});
-
-			directionalLightView.each([&](
-				entt::entity directionalLightEntity,
-				const Lights::Components::DirectionalLight& directionalLight,
-				const Stores::StoreItem<Lights::Models::DirectionalLight>& directionalLightStoreItem,
-				const Lights::Components::LightPerspective& lightPerspective,
-				const Stores::StoreItem<Lights::Models::LightPerspective>& lightPerspectiveStoreItem,
-				const Stores::StoreItem<Spatials::Models::Spatial>& lightPerspectiveSpatialStoreItem
-				) {
-					const auto& lightPerspectiveStoreItemLocation = lightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
-					const auto& lightPerspectiveSpatialStoreItemLocation = lightPerspectiveSpatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
-					ProcessObjectEntity(
-						objectMeshEntity,
-						directionalLightEntity,
-						directionalLightEntity,
-						lightPerspective,
-						camera,
-						spatial,
-						*pMaterial,
-						meshBufferView,
-						pMeshResource,
-						objectStoreItemLocation,
-						meshStoreItemLocation,
-						cameraStoreItemLocation,
-						lightPerspectiveStoreItemLocation,
-						lightPerspectiveSpatialStoreItemLocation
-					);
-
-				});
-
-			spotlightView.each([&](
-				entt::entity spotlightEntity,
-				const Lights::Components::Spotlight& spotlight,
-				const Stores::StoreItem<Lights::Models::Spotlight>& spotlightStoreItem,
-				const Lights::Components::LightPerspective& lightPerspective,
-				const Stores::StoreItem<Lights::Models::LightPerspective>& lightPerspectiveStoreItem,
-				const Stores::StoreItem<Spatials::Models::Spatial>& lightPerspectiveSpatialStoreItem
-				) {
-					const auto& lightPerspectiveStoreItemLocation = lightPerspectiveStoreItem.frameStoreItems[engineState.getFrameIndex()];
-					const auto& lightPerspectiveSpatialStoreItemLocation = lightPerspectiveSpatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
-					ProcessObjectEntity(
-						objectMeshEntity,
-						spotlightEntity,
-						spotlightEntity,
-						lightPerspective,
-						camera,
-						spatial,
-						*pMaterial,
-						meshBufferView,
-						pMeshResource,
-						objectStoreItemLocation,
-						meshStoreItemLocation,
-						cameraStoreItemLocation,
-						lightPerspectiveStoreItemLocation,
-						lightPerspectiveSpatialStoreItemLocation
-					);
-
-				});
-			registry.emplace<Components::HasShadowDraw>(objectMeshEntity);
-			});
-
-		return true;
-	}
-	void MeshSystem::ProcessDirtyDraws() {
+	void MeshSystem::processDirtyDraws() {
 		if (registry.any_of<Objects::Components::Dirty<Spatials::Components::Spatial>>(engineState.cameraEntity)) {
 			auto camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
 			auto view = registry.view<
@@ -302,26 +135,7 @@ namespace drk::Meshes::Systems {
 				});
 		}
 	}
-	void MeshSystem::ProcessShadowDirtyDraws() {
-		auto dirtyPointLightView = registry.view<
-			Lights::Components::PointLight,
-			Objects::Components::Dirty<Spatials::Components::Spatial>,
-			Spatials::Components::Spatial
-		>();
-		/*dirtyPointLightView.each([&](
-			entt::entity pointlightEntity,
-			Lights::Components::PointLight& pointLight,
-			Objects::Dirty<Spatials::Components::Spatial>& dirtySpatial,
-			Spatials::Components::Spatial& lightSpatial,
-			const Components::ShadowMeshDrawCollection& shadowMeshDrawCollection
-			) {
-				for (const auto& shadowMeshDrawEntity : shadowMeshDrawCollection.meshDrawEntities) {
-					auto& shadowMeshDraw = registry.get<Components::ShadowMeshDraw>(shadowMeshDrawEntity);
-					registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::ShadowSceneDraw>>(shadowMeshDrawEntity, engineState.getFrameCount());
-				}
-			});*/
-	}
-	Draws::Components::DrawVertexBufferInfo MeshSystem::GetVertexBufferInfo(entt::entity drawEntity) {
+	Draws::Components::DrawVertexBufferInfo MeshSystem::getVertexBufferInfo(entt::entity drawEntity) {
 		auto meshDraw = registry.get<Components::MeshDraw>(drawEntity);
 		Draws::Components::DrawVertexBufferInfo bufferInfo{
 			static_cast<uint32_t>(meshDraw.meshResource->indices.size()),
@@ -349,50 +163,5 @@ namespace drk::Meshes::Systems {
 		}
 
 		return destinationEntity;
-	}
-
-	entt::entity MeshSystem::ProcessObjectEntity(
-		entt::entity objectMeshEntity,
-		entt::entity lightEntity,
-		entt::entity lightPerspectiveEntity,
-		const Lights::Components::LightPerspective& perspective,
-		const Cameras::Components::Camera& camera,
-		const Spatials::Components::Spatial& spatial,
-		const Materials::Components::Material& material,
-		const Meshes::Components::MeshBufferView& meshBufferView,
-		std::shared_ptr<Meshes::Components::MeshResource> pMeshResource,
-		const Stores::Models::StoreItemLocation& objectStoreItemLocation,
-		const Stores::Models::StoreItemLocation& meshStoreItemLocation,
-		const Stores::Models::StoreItemLocation& cameraStoreItemLocation,
-		const Stores::Models::StoreItemLocation& lightPerspectiveStoreItemLocation,
-		const Stores::Models::StoreItemLocation& lightPerspectiveSpatialStoreItemLocation
-	) {
-		Scenes::Draws::ShadowSceneDraw draw = {
-			.drawSystem = this,
-			.pipelineTypeIndex = std::type_index(typeid(Pipelines::ShadowMeshPipeline)),
-			.indexBufferView = meshBufferView.IndexBufferView,
-			.vertexBufferView = meshBufferView.VertexBufferView,
-			.lightEntity = lightEntity,
-			.scissor = perspective.shadowMapRect,
-			.lightPerspectiveEntity = lightPerspectiveEntity,
-			.hasTransparency = material.hasTransparency,
-			.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition),
-		};
-		Components::ShadowMeshDraw meshDraw = {
-			.meshResource = pMeshResource,
-			.meshBufferView = meshBufferView,
-			.meshItemLocation = meshStoreItemLocation,
-			.objectItemLocation = objectStoreItemLocation,
-			.cameraItemLocation = cameraStoreItemLocation,
-			.lightPerspectiveItemLocation = lightPerspectiveStoreItemLocation,
-			.lightPerspectiveSpatialItemLocation = lightPerspectiveSpatialStoreItemLocation
-		};
-
-		auto objectMeshPerspectiveEntity = registry.create();
-		registry.emplace_or_replace<Scenes::Draws::ShadowSceneDraw>(objectMeshPerspectiveEntity, std::move(draw));
-		registry.emplace_or_replace<Components::ShadowMeshDraw>(objectMeshPerspectiveEntity, std::move(meshDraw));
-		registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::ShadowSceneDraw>>(objectMeshPerspectiveEntity, engineState.getFrameCount());
-
-		return objectMeshPerspectiveEntity;
 	}
 }

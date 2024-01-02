@@ -11,12 +11,12 @@ class LineSystem : public drk::Systems::System<Models::Line, Components::Line>, 
 	public:
 		LineSystem(Engine::EngineState& engineState, entt::registry& registry, Devices::DeviceContext& deviceContext);
 		~LineSystem();
-		void UpdateDraw(entt::entity drawEntity, int drawIndex);
-		void UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex);
-		bool emitDraws();
-		void UpdateDraws() { throw std::runtime_error("Not supported"); }
+		void updateDraw(entt::entity drawEntity, int drawIndex);
+		void updateShadowDraw(entt::entity shadowDrawEntity, int drawIndex);
+		void emitDraws();
+		void updateDraws() { throw std::runtime_error("Not supported"); }
 		void update(Models::Line& model, const Components::Line& line) override;
-		void CreateResources();
+		void createResources();
 	protected:
 		Devices::DeviceContext& deviceContext;
 		Devices::BufferView lineVertexBufferView;

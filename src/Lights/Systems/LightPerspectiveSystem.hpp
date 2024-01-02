@@ -22,7 +22,7 @@ namespace drk::Lights::Systems {
 			Models::LightPerspective& model,
 			const Components::LightPerspective& lightPerspective
 		);
-		void ProcessDirtyItems();
+		void processDirtyItems();
 	protected:
 		ShadowMappingSystem& shadowMappingSystem;
 	};

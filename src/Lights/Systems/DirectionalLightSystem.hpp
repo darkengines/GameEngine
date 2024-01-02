@@ -28,6 +28,6 @@ namespace drk::Lights::Systems {
 			const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem,
 			const Stores::StoreItem<Models::LightPerspective>& lightPerspective
 		);
-		void ProcessDirtyItems();
+		void processDirtyItems();
 	};
 }

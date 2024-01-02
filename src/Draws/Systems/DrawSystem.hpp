@@ -6,9 +6,8 @@
 namespace drk::Draws::Systems {
 	class DrawSystem {
 	public:
-		virtual void UpdateDraw(entt::entity drawEntity, int drawIndex) = 0;
-		virtual void UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex) = 0;
-		virtual void UpdateDraws() = 0;
-		virtual bool emitDraws() = 0;
+		virtual void updateDraw(entt::entity drawEntity, int drawIndex) = 0;
+		virtual void updateDraws() = 0;
+		virtual void emitDraws() = 0;
 	};
 }

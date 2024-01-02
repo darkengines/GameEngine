@@ -32,6 +32,7 @@ namespace drk::Scenes::Renderers {
 		std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer;
 		Lights::Systems::ShadowMappingSystem& shadowMappingSystem;
 		vk::RenderPass renderPass;
+		std::unordered_map<std::type_index, Pipelines::Pipeline*> pipelines;
 	public:
 		SceneRenderer(
 			const Devices::DeviceContext& deviceContext,

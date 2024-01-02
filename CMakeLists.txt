@@ -268,7 +268,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${SOURCES} "src/BoundingVolumes/Pipelines/BoundingVolumePipeline.cpp")
+add_executable(drk ${SOURCES} "src/BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp" "src/BoundingVolumes/Pipelines/BoundingVolumePipeline.cpp" "src/Meshes/Systems/MeshShadowSystem.cpp" "src/Meshes/Systems/MeshShadowSystem.hpp")
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 

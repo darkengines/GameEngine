@@ -30,7 +30,7 @@ namespace drk::Lights::Systems {
 		model.lightPerspectiveStoreItemLocation = lightPerspective.frameStoreItems[engineState.getFrameIndex()];
 	}
 
-	void SpotlightSystem::ProcessDirtyItems() {
+	void SpotlightSystem::processDirtyItems() {
 		/*auto dirtySpotlightView = registry.view<
 			Components::Spotlight,
 			Components::LightPerspective,

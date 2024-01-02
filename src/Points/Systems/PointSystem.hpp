@@ -11,12 +11,11 @@ class PointSystem : public drk::Systems::System<Models::Point, Components::Point
 	public:
 		PointSystem(Engine::EngineState& engineState, entt::registry& registry, Devices::DeviceContext& deviceContext);
 		~PointSystem();
-		void UpdateDraw(entt::entity drawEntity, int drawIndex);
-		void UpdateShadowDraw(entt::entity shadowDrawEntity, int drawIndex);
-		bool emitDraws();
-		void UpdateDraws() { throw std::runtime_error("Not supported"); }
+		void updateDraw(entt::entity drawEntity, int drawIndex);
+		void emitDraws();
+		void updateDraws() { throw std::runtime_error("Not supported"); }
 		void update(Models::Point& model, const Components::Point& point) override;
-		void CreateResources();
+		void createResources();
 	protected:
 		Devices::DeviceContext& deviceContext;
 		Devices::BufferView pointVertexBufferView;

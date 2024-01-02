@@ -22,17 +22,13 @@ namespace drk::Scenes::Renderers {
 		std::vector<vk::Framebuffer> framebuffers;
 		std::optional<Devices::ImageInfo> targetImageInfo;
 		std::vector<vk::ImageView> targetImageViews;
-		std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshPipeline;
-		std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline;
-		std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline;
+		std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshShadowPipeline;
 		vk::RenderPass renderPass;
 	public:
 		ShadowSceneRenderer(
 			const Devices::DeviceContext& deviceContext,
 			entt::registry& registry,
-			std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshPipeline,
-			std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline,
-			std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline
+			std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshShadowPipeline
 		);
 		~ShadowSceneRenderer();
 		void render(uint32_t targetImageIndex, const vk::CommandBuffer& sceneDraw);

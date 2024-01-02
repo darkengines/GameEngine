@@ -20,6 +20,8 @@ namespace drk::BoundingVolumes::Systems {
 		void createResources();
 		void processDirty();
 
+		void emitDraws();
+
 	protected:
 		Devices::DeviceContext deviceContext;
 		Devices::BufferView vertexBufferView;

@@ -25,11 +25,9 @@ namespace drk::Spatials::Systems {
 	void SpatialSystem::RemoveSpatialSystem(entt::registry& registry) {
 		registry.on_construct<Components::Spatial>().disconnect<SpatialSystem::OnSpatialConstruct>();
 	}
-
 	void SpatialSystem::OnSpatialConstruct(entt::registry& registry, entt::entity spatialEntity) {
 		registry.emplace<Objects::Components::Dirty<Components::Spatial>>(spatialEntity);
 	}
-
 	void SpatialSystem::update(Models::Spatial& spatialModel, const Components::Spatial& spatial) {
 		spatialModel.relativeScale = spatial.relativeScale;
 		spatialModel.relativeRotation = spatial.relativeRotation;

@@ -7,23 +7,17 @@ namespace drk::Scenes::Renderers {
 	ShadowSceneRenderer::ShadowSceneRenderer(
 		const Devices::DeviceContext& deviceContext,
 		entt::registry& registry,
-		std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshPipeline,
-		std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline,
-		std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline
+		std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshShadowPipeline
 	)
 		: deviceContext(deviceContext), registry(registry),
-		meshPipeline(std::move(meshPipeline)),
-		pointPrimitivePipeline(std::move(pointPrimitivePipeline)),
-		linePipeline(std::move(linePipeline)) {}
+		meshShadowPipeline(std::move(meshShadowPipeline)) {}
 
 	ShadowSceneRenderer::~ShadowSceneRenderer() {
 		destroyFramebuffers();
 		destroyRenderPass();
 	}
 	Pipelines::Pipeline* ShadowSceneRenderer::getPipeline(std::type_index pipelineTypeIndex) {
-		if (std::type_index(typeid(Meshes::Pipelines::ShadowMeshPipeline)) == pipelineTypeIndex) return meshPipeline.get();
-		if (std::type_index(typeid(Points::Pipelines::PointPrimitivePipeline)) == pipelineTypeIndex) return pointPrimitivePipeline.get();
-		if (std::type_index(typeid(Lines::Pipelines::LinePipeline)) == pipelineTypeIndex) return linePipeline.get();
+		if (std::type_index(typeid(Meshes::Pipelines::ShadowMeshPipeline)) == pipelineTypeIndex) return meshShadowPipeline.get();
 		throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
 	}
 	void ShadowSceneRenderer::destroyFramebuffers() {
@@ -110,8 +104,7 @@ namespace drk::Scenes::Renderers {
 	) {
 		this->targetImageInfo = targetImageInfo;
 		this->targetImageViews = targetImageViews;
-		pointPrimitivePipeline->destroyPipeline();
-		meshPipeline->destroyPipeline();
+		meshShadowPipeline->destroyPipeline();
 		destroyFramebuffers();
 		destroyRenderPass();
 		createRenderPass();
@@ -124,25 +117,12 @@ namespace drk::Scenes::Renderers {
 			viewport,
 			scissor
 		);
-		meshPipeline->configure(
+		meshShadowPipeline->configure(
 			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
 				graphicsPipelineCreateInfo.renderPass = renderPass;
 				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
 			}
 		);
-		pointPrimitivePipeline->configure(
-			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-				graphicsPipelineCreateInfo.renderPass = renderPass;
-				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-			}
-		);
-		linePipeline->configure(
-			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-				graphicsPipelineCreateInfo.renderPass = renderPass;
-				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-			}
-		);
-
 		createFramebuffers();
 	}
 	void ShadowSceneRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) {
@@ -171,9 +151,7 @@ namespace drk::Scenes::Renderers {
 		uint32_t instanceCount = 0u;
 
 		std::map<std::type_index, int> pipelineDrawIndices;
-		pipelineDrawIndices[std::type_index(typeid(pointPrimitivePipeline))] = 0;
-		pipelineDrawIndices[std::type_index(typeid(meshPipeline))] = 0;
-		pipelineDrawIndices[std::type_index(typeid(linePipeline))] = 0;
+		pipelineDrawIndices[std::type_index(typeid(meshShadowPipeline))] = 0;
 		bool isFirst = true;
 		Pipelines::Pipeline const* pCurrentPipeline;
 
@@ -345,9 +323,7 @@ namespace drk::Scenes::Renderers {
 		return target;
 	}
 	void ShadowSceneRenderer::setTargetExtent(vk::Extent3D extent) {
-		linePipeline->destroyPipeline();
-		pointPrimitivePipeline->destroyPipeline();
-		meshPipeline->destroyPipeline();
+		meshShadowPipeline->destroyPipeline();
 
 		vk::Viewport viewport;
 		vk::Rect2D scissor;
@@ -357,19 +333,7 @@ namespace drk::Scenes::Renderers {
 			viewport,
 			scissor
 		);
-		meshPipeline->configure(
-			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-				graphicsPipelineCreateInfo.renderPass = renderPass;
-				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-			}
-		);
-		pointPrimitivePipeline->configure(
-			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-				graphicsPipelineCreateInfo.renderPass = renderPass;
-				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-			}
-		);
-		linePipeline->configure(
+		meshShadowPipeline->configure(
 			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
 				graphicsPipelineCreateInfo.renderPass = renderPass;
 				graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;

@@ -53,7 +53,7 @@ namespace drk::Scenes::Systems {
 				if (!pipelineDrawIndices.contains(draw.pipelineTypeIndex)) {
 					pipelineDrawIndices[draw.pipelineTypeIndex] = 0;
 				}
-				draw.drawSystem->UpdateDraw(sceneDrawEntity, pipelineDrawIndices[draw.pipelineTypeIndex]);
+				draw.drawSystem->updateDraw(sceneDrawEntity, pipelineDrawIndices[draw.pipelineTypeIndex]);
 				if (registry.any_of<Graphics::SynchronizationState<Draws::SceneDraw>>(sceneDrawEntity)) {
 					auto& synchronizationState = registry.get<Graphics::SynchronizationState<Draws::SceneDraw>>(sceneDrawEntity);
 					if (!synchronizationState.Update(engineState.getFrameIndex())) {
@@ -113,7 +113,7 @@ namespace drk::Scenes::Systems {
 				if (!pipelineDrawIndices.contains(shadowSceneDraw.pipelineTypeIndex)) {
 					pipelineDrawIndices[shadowSceneDraw.pipelineTypeIndex] = 0;
 				}
-				shadowSceneDraw.drawSystem->UpdateShadowDraw(shadowSceneDrawEntity, pipelineDrawIndices[shadowSceneDraw.pipelineTypeIndex]);
+				shadowSceneDraw.drawSystem->updateDraw(shadowSceneDrawEntity, pipelineDrawIndices[shadowSceneDraw.pipelineTypeIndex]);
 				if (registry.any_of<Graphics::SynchronizationState<Draws::ShadowSceneDraw>>(shadowSceneDrawEntity)) {
 					auto& synchronizationState = registry.get<Graphics::SynchronizationState<Draws::ShadowSceneDraw>>(shadowSceneDrawEntity);
 					if (!synchronizationState.Update(engineState.getFrameIndex())) {

@@ -20,9 +20,6 @@ class MaterialSystem : public drk::Systems::System<Models::Material, std::shared
 			entt::registry& registry,
 			Engine::EngineState& engineState
 		);
-		static void AddMaterialSystem(entt::registry& registry);
-		static void RemoveMaterialSystem(entt::registry& registry);
-		static void OnMaterialConstruct(entt::registry& registry, entt::entity materialEntity);
 		static entt::entity copyMaterialEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
 
 	};

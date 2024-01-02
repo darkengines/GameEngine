@@ -31,7 +31,7 @@ namespace drk::Cameras::Systems {
 		cameraModel.far = camera.far;
 	}
 
-	void CameraSystem::ProcessDirtyItems() {
+	void CameraSystem::processDirtyItems() {
 		auto dirtyCameraView = registry.view<
 			Components::Camera, 
 			Spatials::Components::Spatial, 
@@ -67,19 +67,7 @@ namespace drk::Cameras::Systems {
 		);
 	}
 
-	void CameraSystem::AddCameraSystem(entt::registry& registry) {
-		registry.on_construct<Components::Camera>().connect<CameraSystem::OnCameraConstruct>();
-	}
-
-	void CameraSystem::RemoveCameraSystem(entt::registry& registry) {
-		registry.on_construct<Components::Camera>().disconnect<CameraSystem::OnCameraConstruct>();
-	}
-
-	void CameraSystem::OnCameraConstruct(entt::registry& registry, entt::entity cameraEntity) {
-
-	}
-
-	entt::entity CameraSystem::CreateCamera(
+	entt::entity CameraSystem::createCamera(
 		glm::vec4 position,
 		glm::vec4 front,
 		glm::vec4 up,

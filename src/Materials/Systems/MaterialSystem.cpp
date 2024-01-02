@@ -68,17 +68,6 @@ namespace drk::Materials::Systems {
 		}
 	}
 
-	void MaterialSystem::AddMaterialSystem(entt::registry& registry) {
-		registry.on_construct<std::shared_ptr<Components::Material>>().connect<MaterialSystem::OnMaterialConstruct>();
-	}
-
-	void MaterialSystem::RemoveMaterialSystem(entt::registry& registry) {
-		registry.on_construct<std::shared_ptr<Components::Material>>().disconnect<MaterialSystem::OnMaterialConstruct>();
-	}
-
-	void MaterialSystem::OnMaterialConstruct(entt::registry& registry, entt::entity materialEntity) {
-
-	}
 	entt::entity
 	MaterialSystem::copyMaterialEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity) {
 		const auto& material = source.get<std::shared_ptr<Materials::Components::Material>>(sourceEntity);
