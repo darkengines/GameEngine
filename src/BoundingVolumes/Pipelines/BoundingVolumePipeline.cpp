@@ -127,8 +127,8 @@ namespace drk::BoundingVolumes::Pipelines {
 	}
 
 	void BoundingVolumePipeline::createShaderModules() {
-		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/Line.vert.spv");
-		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/Line.frag.spv");
+		mainVertexShaderModule = deviceContext.CreateShaderModule("shaders/spv/BoundingVolume.vert.spv");
+		mainFragmentShaderModule = deviceContext.CreateShaderModule("shaders/spv/BoundingVolume.frag.spv");
 	}
 	void BoundingVolumePipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();

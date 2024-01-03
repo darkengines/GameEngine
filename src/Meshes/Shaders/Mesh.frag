@@ -309,6 +309,6 @@ void main() {
     float exposure = 1;
 	const float gamma = 1;
 	color = vec3(1.0) - exp(-color * exposure);
-    outColor = vec4(pow(color.rgb, vec3(1/gamma)), albedo.a);
+    outColor = vec4(pow(color, vec3(1/gamma)), albedo.a);
     //outColor = vec4(color, albedo.a);
 }

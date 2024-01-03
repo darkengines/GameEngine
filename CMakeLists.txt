@@ -249,6 +249,8 @@ file(
     "src/Points/Shaders/Point.frag"
     "src/Lines/Shaders/Line.vert"
     "src/Lines/Shaders/Line.frag"
+    "src/Lines/Shaders/BoundingVolume.vert"
+    "src/Lines/Shaders/BoundingVolume.frag"
 )
 
 foreach (GLSL ${GLSL_SOURCES})
@@ -268,7 +270,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${SOURCES} "src/BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp" "src/BoundingVolumes/Pipelines/BoundingVolumePipeline.cpp" "src/Meshes/Systems/MeshShadowSystem.cpp" "src/Meshes/Systems/MeshShadowSystem.hpp")
+add_executable(drk ${SOURCES} "src/BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp" "src/BoundingVolumes/Pipelines/BoundingVolumePipeline.cpp" "src/Meshes/Systems/MeshShadowSystem.cpp" "src/Meshes/Systems/MeshShadowSystem.hpp" "src/Debugging/Renderers/DebugRenderer.hpp" "src/Debugging/Renderers/DebugRenderer.cpp")
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 

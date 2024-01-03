@@ -5,8 +5,8 @@
 #include "../../Cameras/Models/Camera.hpp"
 #include "../Components/Draw.hpp"
 #include "../../Objects/Models/Object.hpp"
-#include "../../Scenes/Draws/SceneDraw.hpp"
 #include "../Pipelines/BoundingVolumePipeline.hpp"
+#include "../../Debugging/Components/DebugDraw.hpp"
 
 namespace drk::BoundingVolumes::Systems {
 	AxisAlignedBoundingBoxSystem::AxisAlignedBoundingBoxSystem(
@@ -117,7 +117,7 @@ namespace drk::BoundingVolumes::Systems {
 				Spatials::Components::Spatial
 			>(objectMesh.objectEntity);
 			const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
-			Scenes::Draws::SceneDraw draw = {
+			Debugging::Components::DebugDraw draw = {
 				.drawSystem = this,
 				.pipelineTypeIndex = std::type_index(typeid(Pipelines::BoundingVolumePipeline)),
 				.indexBufferView = indexBufferView,
@@ -130,9 +130,9 @@ namespace drk::BoundingVolumes::Systems {
 				.cameraStoreItemLocation = cameraStoreItemLocation
 			};
 			auto entity = registry.create();
-			registry.emplace_or_replace<Scenes::Draws::SceneDraw>(objectMeshEntity, std::move(draw));
+			registry.emplace_or_replace<Debugging::Components::DebugDraw>(objectMeshEntity, std::move(draw));
 			registry.emplace_or_replace<Components::Draw>(objectMeshEntity, std::move(Draw));
-			registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(objectMeshEntity, engineState.getFrameCount());
+			registry.emplace_or_replace<Graphics::SynchronizationState<Debugging::Components::DebugDraw>>(objectMeshEntity, engineState.getFrameCount());
 			});
 	}
 }

@@ -10,7 +10,7 @@
 #include "../../Devices/ImageInfo.hpp"
 #include "../../Draws/Systems/DrawSystem.hpp"
 #include "../Draws/SceneDraw.hpp"
-#include "SceneRenderOperation.hpp"
+#include "../../Renderers/RenderOperation.hpp"
 #include "../../Lines/Pipelines/LinePipeline.hpp"
 #include "./ShadowSceneRenderer.hpp"
 #include "../../Lights/Systems/ShadowMappingSystem.hpp"
@@ -69,7 +69,7 @@ namespace drk::Scenes::Renderers {
 		);
 		void doOperations(
 			const vk::CommandBuffer& commandBuffer,
-			SceneRenderOperation sceneRenderOperation,
+			drk::Renderers::RenderOperation sceneRenderOperation,
 			const Draws::SceneDraw& sceneDraw,
 			Pipelines::Pipeline const** ppPipeline
 		);

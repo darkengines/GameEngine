@@ -157,29 +157,29 @@ namespace drk::Scenes::Renderers {
 
 		draws.each(
 			[&](entt::entity drawEntity, const Draws::ShadowSceneDraw& sceneDraw) {
-				SceneRenderOperation operations = SceneRenderOperation::None;
+				auto operations = drk::Renderers::RenderOperation::None;
 				if (isFirst ||
 					previousSceneDraw->pipelineTypeIndex != sceneDraw.pipelineTypeIndex) {
 					isFirst = false;
-					operations |= SceneRenderOperation::BindPipeline;
+					operations |= drk::Renderers::RenderOperation::BindPipeline;
 				}
 				if (previousDrawEntity == entt::null ||
 					(previousSceneDraw->indexBufferView.buffer.buffer != sceneDraw.indexBufferView.buffer.buffer)) {
-					operations |= SceneRenderOperation::BindIndexBuffer | SceneRenderOperation::BindVertexBuffer;
+					operations |= drk::Renderers::RenderOperation::BindIndexBuffer | drk::Renderers::RenderOperation::BindVertexBuffer;
 				}
 				if (previousDrawEntity == entt::null ||
 					(previousSceneDraw->lightPerspectiveEntity != sceneDraw.lightPerspectiveEntity)) {
-					operations |= SceneRenderOperation::SetScissor;
+					operations |= drk::Renderers::RenderOperation::SetScissor;
 				}
 				if (previousDrawEntity != entt::null &&
 					previousSceneDraw->indexBufferView.byteOffset != sceneDraw.indexBufferView.byteOffset) {
-					operations |= SceneRenderOperation::Draw;
+					operations |= drk::Renderers::RenderOperation::Draw;
 				}
 				if (previousDrawEntity == entt::null) {
 					doOperations(commandBuffer, operations, sceneDraw, &pCurrentPipeline);
 				}
 				else {
-					if (operations != SceneRenderOperation::None) {
+					if (operations != drk::Renderers::RenderOperation::None) {
 						draw(
 							previousDrawEntity,
 							*previousSceneDraw,
@@ -234,23 +234,23 @@ namespace drk::Scenes::Renderers {
 	}
 	void ShadowSceneRenderer::doOperations(
 		const vk::CommandBuffer& commandBuffer,
-		SceneRenderOperation sceneRenderOperation,
+		drk::Renderers::RenderOperation sceneRenderOperation,
 		const Draws::ShadowSceneDraw& sceneDraw,
 		Pipelines::Pipeline const** ppPipeline
 	) {
-		if ((sceneRenderOperation & SceneRenderOperation::BindPipeline) == SceneRenderOperation::BindPipeline) {
+		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindPipeline) == drk::Renderers::RenderOperation::BindPipeline) {
 			const auto& pipeline = getPipeline(sceneDraw.pipelineTypeIndex);
 			*ppPipeline = pipeline;
 			pipeline->bind(commandBuffer);
 		}
-		if ((sceneRenderOperation & SceneRenderOperation::BindIndexBuffer) == SceneRenderOperation::BindIndexBuffer) {
+		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindIndexBuffer) == drk::Renderers::RenderOperation::BindIndexBuffer) {
 			commandBuffer.bindIndexBuffer(
 				sceneDraw.indexBufferView.buffer.buffer,
 				0,
 				vk::IndexType::eUint32
 			);
 		}
-		if ((sceneRenderOperation & SceneRenderOperation::BindVertexBuffer) == SceneRenderOperation::BindVertexBuffer) {
+		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindVertexBuffer) == drk::Renderers::RenderOperation::BindVertexBuffer) {
 			vk::DeviceSize offset = 0u;
 			commandBuffer.bindVertexBuffers(
 				0,
@@ -259,7 +259,7 @@ namespace drk::Scenes::Renderers {
 				&offset
 			);
 		}
-		if ((sceneRenderOperation & SceneRenderOperation::SetScissor) == SceneRenderOperation::SetScissor) {
+		if ((sceneRenderOperation & drk::Renderers::RenderOperation::SetScissor) == drk::Renderers::RenderOperation::SetScissor) {
 			vk::DeviceSize offset = 0u;
 			vk::Viewport viewport{
 				.x = static_cast<float>(sceneDraw.scissor.offset.x),

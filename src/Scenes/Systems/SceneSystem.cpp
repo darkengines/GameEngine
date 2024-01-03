@@ -26,6 +26,12 @@ namespace drk::Scenes::Systems {
 					if (leftDraw.depth > rightDraw.depth)
 						return true;
 				}
+				else {
+					if (leftDraw.depth > rightDraw.depth)
+						return false;
+					if (leftDraw.depth < rightDraw.depth)
+						return true;
+				}
 
 				if (leftDraw.drawSystem < rightDraw.drawSystem)
 					return true;

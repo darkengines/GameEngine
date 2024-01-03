@@ -1,36 +1,32 @@
-
-#pragma once
-
-#include <entt/entt.hpp>
+#include "../../BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp"
 #include "../../Devices/DeviceContext.hpp"
-#include "../../Renderers/Renderer.hpp"
-#include "../../Engine/EngineState.hpp"
-#include "../../Meshes/Pipelines/ShadowMeshPipeline.hpp"
-#include "../../Points/Pipelines/PointPrimitivePipeline.hpp"
 #include "../../Devices/ImageInfo.hpp"
-#include "../../Draws/Systems/DrawSystem.hpp"
-#include "../Draws/ShadowSceneDraw.hpp"
+#include "../../Renderers/Renderer.hpp"
 #include "../../Renderers/RenderOperation.hpp"
-#include "../../Lines/Pipelines/LinePipeline.hpp"
+#include "../Components/DebugDraw.hpp"
+#include <entt/entity/fwd.hpp>
+#include <optional>
 
-
-namespace drk::Scenes::Renderers {
-	class ShadowSceneRenderer : public drk::Renderers::Renderer {
+namespace drk::Debugging::Renderers {
+	class DebugRenderer: public drk::Renderers::Renderer {
 	protected:
 		entt::registry& registry;
 		const Devices::DeviceContext& deviceContext;
+		std::optional<Devices::Texture> colorTexture;
+		std::optional<Devices::Texture> depthTexture;
 		std::vector<vk::Framebuffer> framebuffers;
 		std::optional<Devices::ImageInfo> targetImageInfo;
 		std::vector<vk::ImageView> targetImageViews;
-		std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshShadowPipeline;
+		std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline> boundingVolumePipeline;
 		vk::RenderPass renderPass;
+		std::unordered_map<std::type_index, Pipelines::Pipeline*> pipelines;
 	public:
-		ShadowSceneRenderer(
+		DebugRenderer(
 			const Devices::DeviceContext& deviceContext,
 			entt::registry& registry,
-			std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshShadowPipeline
+			std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline> boundingVolumePipeline
 		);
-		~ShadowSceneRenderer();
+		~DebugRenderer();
 		void render(uint32_t targetImageIndex, const vk::CommandBuffer& sceneDraw);
 		void setTargetImageViews(Devices::ImageInfo targetImageInfo, std::vector<vk::ImageView> targetImageViews);
 		static Devices::Texture BuildSceneRenderTargetTexture(
@@ -40,13 +36,15 @@ namespace drk::Scenes::Renderers {
 		void setTargetExtent(vk::Extent3D extent2D);
 	protected:
 		Pipelines::Pipeline* getPipeline(std::type_index pipelineTypeIndex);
+		void createFramebufferResources();
+		void destroyFramebufferResources();
 		void createFramebuffers();
 		void destroyFramebuffers();
 		void createRenderPass();
 		void destroyRenderPass();
 		void draw(
 			entt::entity previousDrawEntity,
-			const Draws::ShadowSceneDraw& previousSceneDraw,
+			const Components::DebugDraw& previousSceneDraw,
 			const vk::CommandBuffer& commandBuffer,
 			int instanceCount,
 			int firstInstance,
@@ -55,7 +53,7 @@ namespace drk::Scenes::Renderers {
 		void doOperations(
 			const vk::CommandBuffer& commandBuffer,
 			drk::Renderers::RenderOperation sceneRenderOperation,
-			const Draws::ShadowSceneDraw& sceneDraw,
+			const Components::DebugDraw& sceneDraw,
 			Pipelines::Pipeline const** ppPipeline
 		);
 	};

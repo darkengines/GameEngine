@@ -1,59 +1,40 @@
-
-#include "SceneRenderer.hpp"
-#include "../Draws/SceneDraw.hpp"
+#include "DebugRenderer.hpp"
 #include "../../Graphics/Graphics.hpp"
 
-namespace drk::Scenes::Renderers {
-	SceneRenderer::SceneRenderer(
+namespace drk::Debugging::Renderers {
+	DebugRenderer::DebugRenderer(
 		const Devices::DeviceContext& deviceContext,
 		entt::registry& registry,
-		std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
-		std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline,
-		std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline,
-		std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer,
-		Lights::Systems::ShadowMappingSystem& shadowMappingSystem
-	)
-		: deviceContext(deviceContext), registry(registry),
-		meshPipeline(std::move(meshPipeline)),
-		pointPrimitivePipeline(std::move(pointPrimitivePipeline)),
-		linePipeline(std::move(linePipeline)),
-		shadowSceneRenderer(std::move(shadowSceneRenderer)),
-		shadowMappingSystem(shadowMappingSystem),
+		std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline> boundingVolumePipeline
+	) : deviceContext(deviceContext), registry(registry),
+		boundingVolumePipeline(std::move(boundingVolumePipeline)),
 		pipelines{
-			{ std::type_index(typeid(Meshes::Pipelines::MeshPipeline)), this->meshPipeline.get() },
-			{ std::type_index(typeid(Points::Pipelines::PointPrimitivePipeline)), this->pointPrimitivePipeline.get() },
-			{ std::type_index(typeid(Lines::Pipelines::LinePipeline)), this->linePipeline.get() }
+			{ std::type_index(typeid(BoundingVolumes::Pipelines::BoundingVolumePipeline)), this->boundingVolumePipeline.get() }
 		}
-	{
-		this->shadowSceneRenderer->setTargetImageViews({
-			.extent = shadowMappingSystem.shadowMappingTexture->imageCreateInfo.extent,
-			.format = shadowMappingSystem.shadowMappingTexture->imageCreateInfo.format },
-			{ shadowMappingSystem.shadowMappingTexture->imageView }
-		);
-	}
+	{}
 
-	SceneRenderer::~SceneRenderer() {
+	DebugRenderer::~DebugRenderer() {
 		destroyFramebuffers();
 		destroyRenderPass();
 		destroyFramebufferResources();
 	}
-	Pipelines::Pipeline* SceneRenderer::getPipeline(std::type_index pipelineTypeIndex) {
+	Pipelines::Pipeline* DebugRenderer::getPipeline(std::type_index pipelineTypeIndex) {
 		auto keyValuePair = pipelines.find(pipelineTypeIndex);
 		if (keyValuePair == pipelines.end()) throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
 		return keyValuePair->second;
 	}
-	void SceneRenderer::destroyFramebuffers() {
+	void DebugRenderer::destroyFramebuffers() {
 		for (const auto& framebuffer : framebuffers) {
 			deviceContext.device.destroyFramebuffer(framebuffer);
 		}
 		framebuffers.clear();
 	}
 
-	void SceneRenderer::destroyFramebufferResources() {
+	void DebugRenderer::destroyFramebufferResources() {
 		if (depthTexture.has_value()) deviceContext.destroyTexture(depthTexture.value());
 		if (colorTexture.has_value()) deviceContext.destroyTexture(colorTexture.value());
 	}
-	void SceneRenderer::createFramebufferResources() {
+	void DebugRenderer::createFramebufferResources() {
 		vk::ImageCreateInfo imageCreateInfo{
 			.imageType = vk::ImageType::e2D,
 			.format = targetImageInfo->format,
@@ -128,7 +109,7 @@ namespace drk::Scenes::Renderers {
 
 	}
 
-	void SceneRenderer::createFramebuffers() {
+	void DebugRenderer::createFramebuffers() {
 		for (const auto& swapChainImageView : targetImageViews) {
 			std::array<vk::ImageView, 3> attachments{
 				colorTexture->imageView,
@@ -148,7 +129,7 @@ namespace drk::Scenes::Renderers {
 		}
 	}
 
-	void SceneRenderer::createRenderPass() {
+	void DebugRenderer::createRenderPass() {
 		vk::AttachmentDescription colorAttachment = {
 			.format = targetImageInfo->format,
 			//TODO: Use configurable sample count
@@ -235,7 +216,7 @@ namespace drk::Scenes::Renderers {
 
 		renderPass = deviceContext.device.createRenderPass(renderPassCreationInfo);
 	}
-	void SceneRenderer::setTargetImageViews(
+	void DebugRenderer::setTargetImageViews(
 		Devices::ImageInfo targetImageInfo,
 		std::vector<vk::ImageView> targetImageViews
 	) {
@@ -267,9 +248,7 @@ namespace drk::Scenes::Renderers {
 		createFramebufferResources();
 		createFramebuffers();
 	}
-	void SceneRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) {
-
-		shadowSceneRenderer->render(0, commandBuffer);
+	void DebugRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) {
 
 		vk::ClearValue colorClearValue = {
 			.color = {std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}
@@ -292,8 +271,8 @@ namespace drk::Scenes::Renderers {
 		};
 		commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
 
-		const auto& draws = registry.view<Draws::SceneDraw>();
-		const Draws::SceneDraw* previousSceneDraw = nullptr;
+		const auto& draws = registry.view<Components::DebugDraw>();
+		const Components::DebugDraw* previousDebugDraw = nullptr;
 		entt::entity previousDrawEntity = entt::null;
 
 		uint32_t instanceCount = 0u;
@@ -306,45 +285,45 @@ namespace drk::Scenes::Renderers {
 		Pipelines::Pipeline const* pCurrentPipeline;
 
 		draws.each(
-			[&](entt::entity drawEntity, const Draws::SceneDraw& sceneDraw) {
-				auto operations = drk::Renderers::RenderOperation::None;
+			[&](entt::entity drawEntity, const Components::DebugDraw& debugDraw) {
+				drk::Renderers::RenderOperation operations = drk::Renderers::RenderOperation::None;
 				if (isFirst ||
-					previousSceneDraw->pipelineTypeIndex != sceneDraw.pipelineTypeIndex) {
+					previousDebugDraw->pipelineTypeIndex != debugDraw.pipelineTypeIndex) {
 					isFirst = false;
 					operations |= drk::Renderers::RenderOperation::BindPipeline;
 				}
 				if (previousDrawEntity == entt::null ||
-					(previousSceneDraw->indexBufferView.buffer.buffer != sceneDraw.indexBufferView.buffer.buffer)) {
+					(previousDebugDraw->indexBufferView.buffer.buffer != debugDraw.indexBufferView.buffer.buffer)) {
 					operations |= drk::Renderers::RenderOperation::BindIndexBuffer | drk::Renderers::RenderOperation::BindVertexBuffer;
 				}
 				if (previousDrawEntity != entt::null &&
-					previousSceneDraw->indexBufferView.byteOffset != sceneDraw.indexBufferView.byteOffset) {
+					previousDebugDraw->indexBufferView.byteOffset != debugDraw.indexBufferView.byteOffset) {
 					operations |= drk::Renderers::RenderOperation::Draw;
 				}
 				if (previousDrawEntity == entt::null) {
-					doOperations(commandBuffer, operations, sceneDraw, &pCurrentPipeline);
+					doOperations(commandBuffer, operations, debugDraw, &pCurrentPipeline);
 				}
 				else {
 					if (operations != drk::Renderers::RenderOperation::None) {
 						draw(
 							previousDrawEntity,
-							*previousSceneDraw,
+							*previousDebugDraw,
 							commandBuffer,
 							instanceCount,
-							pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
+							pipelineDrawIndices[previousDebugDraw->pipelineTypeIndex],
 							pCurrentPipeline
 						);
-						pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex] += instanceCount;
+						pipelineDrawIndices[previousDebugDraw->pipelineTypeIndex] += instanceCount;
 						instanceCount = 0u;
 					}
 					doOperations(
 						commandBuffer,
 						operations,
-						sceneDraw,
+						debugDraw,
 						&pCurrentPipeline
 					);
 				}
-				previousSceneDraw = &sceneDraw;
+				previousDebugDraw = &debugDraw;
 				previousDrawEntity = drawEntity;
 				instanceCount++;
 			}
@@ -352,18 +331,18 @@ namespace drk::Scenes::Renderers {
 		if (previousDrawEntity != entt::null) {
 			this->draw(
 				previousDrawEntity,
-				*previousSceneDraw,
+				*previousDebugDraw,
 				commandBuffer,
 				instanceCount,
-				pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
+				pipelineDrawIndices[previousDebugDraw->pipelineTypeIndex],
 				pCurrentPipeline
 			);
 		}
 		commandBuffer.endRenderPass();
 	}
-	void SceneRenderer::draw(
+	void DebugRenderer::draw(
 		entt::entity previousDrawEntity,
-		const Draws::SceneDraw& previousSceneDraw,
+		const Components::DebugDraw& previousDebugDraw,
 		const vk::CommandBuffer& commandBuffer,
 		int instanceCount,
 		int firstInstance,
@@ -378,20 +357,20 @@ namespace drk::Scenes::Renderers {
 			firstInstance
 		);
 	}
-	void SceneRenderer::doOperations(
+	void DebugRenderer::doOperations(
 		const vk::CommandBuffer& commandBuffer,
 		drk::Renderers::RenderOperation sceneRenderOperation,
-		const Draws::SceneDraw& sceneDraw,
+		const Components::DebugDraw& debugDraw,
 		Pipelines::Pipeline const** ppPipeline
 	) {
 		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindPipeline) == drk::Renderers::RenderOperation::BindPipeline) {
-			const auto& pipeline = getPipeline(sceneDraw.pipelineTypeIndex);
+			const auto& pipeline = getPipeline(debugDraw.pipelineTypeIndex);
 			*ppPipeline = pipeline;
 			pipeline->bind(commandBuffer);
 		}
 		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindIndexBuffer) == drk::Renderers::RenderOperation::BindIndexBuffer) {
 			commandBuffer.bindIndexBuffer(
-				sceneDraw.indexBufferView.buffer.buffer,
+				debugDraw.indexBufferView.buffer.buffer,
 				0,
 				vk::IndexType::eUint32
 			);
@@ -401,16 +380,16 @@ namespace drk::Scenes::Renderers {
 			commandBuffer.bindVertexBuffers(
 				0,
 				1,
-				&sceneDraw.vertexBufferView.buffer.buffer,
+				&debugDraw.vertexBufferView.buffer.buffer,
 				&offset
 			);
 		}
 	}
-	void SceneRenderer::destroyRenderPass() {
+	void DebugRenderer::destroyRenderPass() {
 		deviceContext.device.destroyRenderPass(renderPass);
 	}
 	Devices::Texture
-		SceneRenderer::BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent) {
+		DebugRenderer::BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent) {
 		vk::ImageCreateInfo imageCreateInfo{
 			.imageType = vk::ImageType::e2D,
 			.format = vk::Format::eR8G8B8A8Srgb,
@@ -454,7 +433,7 @@ namespace drk::Scenes::Renderers {
 
 		return target;
 	}
-	void SceneRenderer::setTargetExtent(vk::Extent3D extent) {
+	void DebugRenderer::setTargetExtent(vk::Extent3D extent) {
 		for (const auto& pipeline : pipelines) {
 			pipeline.second->destroyPipeline();
 		}
