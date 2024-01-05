@@ -6,49 +6,68 @@
 #include "../Components/Draw.hpp"
 #include "../../Objects/Models/Object.hpp"
 #include "../Pipelines/BoundingVolumePipeline.hpp"
-#include "../../Debugging/Components/DebugDraw.hpp"
+#include "../../Scenes/Draws/SceneDraw.hpp"
+#include "../Components/HasDraw.hpp"
+#include "../Models/BoundingVolumeDraw.hpp"
 
 namespace drk::BoundingVolumes::Systems {
 	AxisAlignedBoundingBoxSystem::AxisAlignedBoundingBoxSystem(
 		Engine::EngineState& engineState,
 		entt::registry& registry,
 		Devices::DeviceContext& deviceContext
-	) : System(engineState, registry), deviceContext(deviceContext) {
+	) : System<
+			Models::AxisAlignedBoundingBox, 
+			Components::AxisAlignedBoundingBox,
+			Objects::Components::ObjectMesh
+	>(engineState, registry), deviceContext(deviceContext) {
 		createResources();
 	}
 	void AxisAlignedBoundingBoxSystem::update(
 		Models::AxisAlignedBoundingBox& axisAlignedBoundingBoxModel,
-		const Components::AxisAlignedBoundingBox& axisAlignedBoundingBox
+		const Components::AxisAlignedBoundingBox& axisAlignedBoundingBox,
+		const Objects::Components::ObjectMesh& objectMesh
 	) {
-		axisAlignedBoundingBoxModel.center = axisAlignedBoundingBox.center;
-		axisAlignedBoundingBoxModel.extent = axisAlignedBoundingBox.extent;
+		axisAlignedBoundingBoxModel.center = axisAlignedBoundingBox.absoluteCenter;
+		axisAlignedBoundingBoxModel.extent = axisAlignedBoundingBox.absoluteExtent;
 	}
+	void AxisAlignedBoundingBoxSystem::updateDraw(entt::entity drawEntity, int drawIndex) {
+		const auto& draw = registry.get<Components::Draw>(drawEntity);
+		auto& frameState = engineState.getCurrentFrameState();
+		//todo: optimization - fetch uniform store in parent scope and give as argument
+		auto& drawStore = frameState.getUniformStore<Models::BoundingVolumeDraw>();
+		const auto& boundingVolumeItemLocation = drawStore.get(drawIndex);
+		boundingVolumeItemLocation.pItem->boundingVolumeStoreItemLocation.storeIndex = draw.boundingVolumeStoreItemLocation.storeIndex;
+		boundingVolumeItemLocation.pItem->boundingVolumeStoreItemLocation.itemIndex = draw.boundingVolumeStoreItemLocation.itemIndex;
+		boundingVolumeItemLocation.pItem->cameraStoreItemLocation.storeIndex = draw.cameraStoreItemLocation.storeIndex;
+		boundingVolumeItemLocation.pItem->cameraStoreItemLocation.itemIndex = draw.cameraStoreItemLocation.itemIndex;
+	}
+
 	void AxisAlignedBoundingBoxSystem::createResources() {
 		glm::vec4 green = { 0.0, 1.0, 0.0, 1.0 };
 		std::vector<drk::BoundingVolumes::Models::Vertex> cubeVertices{
 			{
-				.position = { 0.5, 0.5, 0.5, 1.0 },
+				.position = { 1.0, 1.0, 1.0, 1.0 },
 				.diffuseColor = green
 			}, {
-				.position = { -0.5, 0.5, 0.5, 1.0 },
+				.position = { -1.0, 1.0, 1.0, 1.0 },
 				.diffuseColor = green
 			}, {
-				.position = { -0.5, 0.5, -0.5, 1.0 },
+				.position = { -1.0, 1.0, -1.0, 1.0 },
 				.diffuseColor = green
 			}, {
-				.position = { 0.5, 0.5, -0.5, 1.0 },
+				.position = { 1.0, 1.0, -1.0, 1.0 },
 				.diffuseColor = green
 			}, {
-				.position = { 0.5, -0.5, 0.5, 1.0 },
+				.position = { 1.0, -1.0, 1.0, 1.0 },
 				.diffuseColor = green
 			}, {
-				.position = { -0.5, -0.5, 0.5, 1.0 },
+				.position = { -1.0, -1.0, 1.0, 1.0 },
 				.diffuseColor = green
 			}, {
-				.position = { -0.5, -0.5, -0.5, 1.0 },
+				.position = { -1.0, -1.0, -1.0, 1.0 },
 				.diffuseColor = green
 			}, {
-				.position = { 0.5, -0.5, -0.5, 1.0 },
+				.position = { 1.0, -1.0, -1.0, 1.0 },
 				.diffuseColor = green
 			}
 		};
@@ -92,7 +111,8 @@ namespace drk::BoundingVolumes::Systems {
 			const Objects::Components::ObjectMesh& objectMesh
 			) {
 				auto spatial = registry.get<Spatials::Components::Spatial>(objectMesh.objectEntity);
-				axisAlignedBoundingBox.transform(spatial.absoluteModel);
+				axisAlignedBoundingBox.inplaceTransform(spatial.absoluteModel);
+				registry.emplace_or_replace<Graphics::SynchronizationState<Models::AxisAlignedBoundingBox>>(entity, engineState.getFrameCount());
 			});
 	}
 
@@ -103,36 +123,33 @@ namespace drk::BoundingVolumes::Systems {
 		>(engineState.cameraEntity);
 		auto objectMeshEntities = registry.view<
 			Objects::Components::ObjectMesh,
-			BoundingVolumes::Components::AxisAlignedBoundingBox
-		>(entt::exclude<Components::Draw>);
+			Stores::StoreItem<BoundingVolumes::Models::AxisAlignedBoundingBox>
+		>(entt::exclude<Components::HasDraw>);
 		const auto& cameraStoreItemLocation = cameraStoreItem.frameStoreItems[engineState.getFrameIndex()];
 
 		objectMeshEntities.each([&](
-			entt::entity objectMeshEntity, 
+			entt::entity objectMeshEntity,
 			const Objects::Components::ObjectMesh& objectMesh,
-			const BoundingVolumes::Components::AxisAlignedBoundingBox& axisAlignedBoundingBox
-		) {
-			const auto& [objectStoreItem, spatial] = registry.get<
-				Stores::StoreItem<Objects::Models::Object>,
-				Spatials::Components::Spatial
-			>(objectMesh.objectEntity);
-			const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
-			Debugging::Components::DebugDraw draw = {
-				.drawSystem = this,
-				.pipelineTypeIndex = std::type_index(typeid(Pipelines::BoundingVolumePipeline)),
-				.indexBufferView = indexBufferView,
-				.vertexBufferView = vertexBufferView,
-				.hasTransparency = false,
-				.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition),
-			};
-			Components::Draw Draw = {
-				.boundingVolumeStoreItemLocation = objectStoreItemLocation,
-				.cameraStoreItemLocation = cameraStoreItemLocation
-			};
-			auto entity = registry.create();
-			registry.emplace_or_replace<Debugging::Components::DebugDraw>(objectMeshEntity, std::move(draw));
-			registry.emplace_or_replace<Components::Draw>(objectMeshEntity, std::move(Draw));
-			registry.emplace_or_replace<Graphics::SynchronizationState<Debugging::Components::DebugDraw>>(objectMeshEntity, engineState.getFrameCount());
+			const Stores::StoreItem<BoundingVolumes::Models::AxisAlignedBoundingBox>& axisAlignedBoundingBoxStoreItem
+			) {
+				Scenes::Draws::SceneDraw draw = {
+					.drawSystem = this,
+					.pipelineTypeIndex = std::type_index(typeid(Pipelines::BoundingVolumePipeline)),
+					.indexBufferView = indexBufferView,
+					.vertexBufferView = vertexBufferView,
+					.hasTransparency = false,
+					.depth = 0.0f,
+				};
+				Components::Draw Draw = {
+					.boundingVolumeStoreItemLocation = axisAlignedBoundingBoxStoreItem.frameStoreItems[engineState.getFrameIndex()],
+					.cameraStoreItemLocation = cameraStoreItemLocation
+				};
+				auto entity = registry.create();
+				registry.emplace_or_replace<Scenes::Draws::SceneDraw>(entity, std::move(draw));
+				registry.emplace_or_replace<Components::Draw>(entity, std::move(Draw));
+				registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(entity, engineState.getFrameCount());
+
+				registry.emplace<Components::HasDraw>(objectMeshEntity);
 			});
 	}
 }

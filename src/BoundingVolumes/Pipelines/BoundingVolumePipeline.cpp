@@ -7,6 +7,7 @@
 #include "../../Objects/Models/Object.hpp"
 #include "../../Cameras/Components/Camera.hpp"
 #include "../Models/Vertex.hpp"
+#include "../Models/BoundingVolumeDraw.hpp"
 #include "../../Draws/Models/Draw.hpp"
 
 namespace drk::BoundingVolumes::Pipelines {
@@ -112,7 +113,7 @@ namespace drk::BoundingVolumes::Pipelines {
 		deviceContext.device.destroyPipeline(pipeline);
 	}
 	Draws::Components::DrawVertexBufferInfo BoundingVolumePipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
-		return Draws::Components::DrawVertexBufferInfo{ 2, 0, 0 };
+		return Draws::Components::DrawVertexBufferInfo{ 24, 0, 0 };
 	}
 	vk::PipelineLayout
 		BoundingVolumePipeline::createPipelineLayout(
@@ -132,7 +133,7 @@ namespace drk::BoundingVolumes::Pipelines {
 	}
 	void BoundingVolumePipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();
-		const auto& drawDescriptorSet = frameState.getUniformStore<Draws::Models::Draw>().descriptorSet;
+		const auto& drawDescriptorSet = frameState.getUniformStore<BoundingVolumes::Models::BoundingVolumeDraw>().descriptorSet;
 		std::array<vk::DescriptorSet, 4> descriptorSets{
 			engineState.textureDescriptorSet,
 			drawDescriptorSet,

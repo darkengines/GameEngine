@@ -29,6 +29,18 @@ AxisAlignedBoundingBox AxisAlignedBoundingBox::transform(const glm::mat4 & model
 	return { newCenter, newExtent };
 }
 
+void AxisAlignedBoundingBox::inplaceTransform(const glm::mat4& model) {
+
+	glm::vec4 right = model * GlmExtensions::right * extent.x;
+	glm::vec4 top = model * GlmExtensions::up * extent.y;
+	glm::vec4 forward = model * GlmExtensions::front * extent.z;
+
+	absoluteExtent.x = abs(dot(GlmExtensions::right, right)) + abs(dot(GlmExtensions::right, top)) + abs(dot(GlmExtensions::right, forward));
+	absoluteExtent.y = abs(dot(GlmExtensions::up, right)) + abs(dot(GlmExtensions::up, top)) + abs(dot(GlmExtensions::up, forward));
+	absoluteExtent.z = abs(dot(GlmExtensions::front, right)) + abs(dot(GlmExtensions::front, top)) + abs(dot(GlmExtensions::front, forward));
+	absoluteCenter = model * center;
+}
+
 bool AxisAlignedBoundingBox::isOnOrForwardPlane(const Planes::Components::Plane & plane, const glm::mat4 & model) const {
 	auto globalAABB = transform(model);
 	auto radius =

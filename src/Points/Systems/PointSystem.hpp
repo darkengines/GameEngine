@@ -13,7 +13,6 @@ class PointSystem : public drk::Systems::System<Models::Point, Components::Point
 		~PointSystem();
 		void updateDraw(entt::entity drawEntity, int drawIndex);
 		void emitDraws();
-		void updateDraws() { throw std::runtime_error("Not supported"); }
 		void update(Models::Point& model, const Components::Point& point) override;
 		void createResources();
 	protected:

@@ -58,7 +58,6 @@ namespace drk::Loaders {
 
 		auto rootEntity = loadNode(aiScene->mRootNode, lightMap, cameraMap, loadResult, registry);
 
-
 		return loadResult;
 	}
 
@@ -261,7 +260,7 @@ namespace drk::Loaders {
 			Meshes::Components::MeshResource mesh = {
 				.name = meshName,
 				.vertices = vertices,
-				.indices = indices,
+				.indices = indices
 			};
 			auto meshPtr = std::make_shared<Meshes::Components::MeshResource>(mesh);
 			auto axisAlignedBoundingBox = BoundingVolumes::Components::AxisAlignedBoundingBox::fromMinMax(
@@ -584,19 +583,14 @@ namespace drk::Loaders {
 				registry.emplace<Objects::Components::ObjectMesh>(objectMeshEntity, entity, meshEntity);
 				auto meshAABB = registry.get<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity);
 				auto instanceAABB = meshAABB.transform(spatial.absoluteModel);
-				Spatials::Components::Spatial aabbSpatial{
-					.relativeScale = instanceAABB.extent,
-					.relativeRotation = glm::quat(0, 0, 0, 1),
-					.relativePosition = instanceAABB.center
-				};
-				Objects::Components::Relationship aabbRelationship{
+
+				Objects::Components::Relationship objectMeshRelationship{
 					.parent = entity,
 					.depth = depth + 1
 				};
 
-				registry.emplace<BoundingVolumes::Components::AxisAlignedBoundingBox>(objectMeshEntity, std::move(instanceAABB));
-				registry.emplace<Spatials::Components::Spatial>(objectMeshEntity, std::move(aabbSpatial));
-				registry.emplace<Objects::Components::Relationship>(objectMeshEntity, std::move(aabbRelationship));
+				registry.emplace<BoundingVolumes::Components::AxisAlignedBoundingBox>(objectMeshEntity, meshAABB);
+				registry.emplace<Objects::Components::Relationship>(objectMeshEntity, std::move(objectMeshRelationship));
 
 				objectMeshCollection.objectMeshes.push_back(objectMeshEntity);
 			}

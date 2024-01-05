@@ -136,7 +136,7 @@ namespace drk::Meshes::Systems {
 		}
 	}
 	Draws::Components::DrawVertexBufferInfo MeshSystem::getVertexBufferInfo(entt::entity drawEntity) {
-		auto meshDraw = registry.get<Components::MeshDraw>(drawEntity);
+		const auto& meshDraw = registry.get<Components::MeshDraw>(drawEntity);
 		Draws::Components::DrawVertexBufferInfo bufferInfo{
 			static_cast<uint32_t>(meshDraw.meshResource->indices.size()),
 				static_cast<uint32_t>(meshDraw.meshBufferView.IndexBufferView.byteOffset / sizeof(VertexIndex)),

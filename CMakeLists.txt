@@ -16,6 +16,7 @@ file(
     src/BoundingVolumes/Components/AxisAlignedBoundingBox.hpp
     src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.hpp
     src/BoundingVolumes/Models/Vertex.hpp
+    src/BoundingVolumes/Extentions.hpp
     src/Cameras/Systems/CameraSystem.hpp
     src/Cameras/Extensions.hpp
     src/Cameras/Components/Camera.hpp
@@ -249,8 +250,8 @@ file(
     "src/Points/Shaders/Point.frag"
     "src/Lines/Shaders/Line.vert"
     "src/Lines/Shaders/Line.frag"
-    "src/Lines/Shaders/BoundingVolume.vert"
-    "src/Lines/Shaders/BoundingVolume.frag"
+    "src/BoundingVolumes/Shaders/BoundingVolume.vert"
+    "src/BoundingVolumes/Shaders/BoundingVolume.frag"
 )
 
 foreach (GLSL ${GLSL_SOURCES})

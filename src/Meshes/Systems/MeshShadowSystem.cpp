@@ -47,8 +47,6 @@ namespace drk::Meshes::Systems {
 		meshItemLocation.pItem->LightPerspectiveSpatialItemLocation = meshDraw.lightPerspectiveSpatialItemLocation;
 	}
 
-	void MeshShadowSystem::updateDraws() {
-	}
 	void MeshShadowSystem::emitDraws() {
 		const auto& [camera, cameraStoreItem] = registry.get<
 			Cameras::Components::Camera,

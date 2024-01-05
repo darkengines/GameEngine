@@ -18,7 +18,6 @@ namespace drk::Meshes::Systems {
 			Engine::EngineState& engineState
 		);
 		void updateDraw(entt::entity drawEntity, int drawIndex) override;
-		void updateDraws() override;
 		void emitDraws() override;
 	protected:
 		entt::entity ProcessObjectEntity(

@@ -10,6 +10,6 @@ namespace drk::Meshes::Components {
 	struct MeshResource {
 		std::string name;
 		std::vector<Vertex> vertices;
-		std::vector<VertexIndex> indices;
+		std::vector<VertexIndex> indices;	
 	};
 }

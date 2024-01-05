@@ -30,6 +30,7 @@
 #include "Scenes/Extensions.hpp"
 #include "Points/Extensions.hpp"
 #include "Lines/Extensions.hpp"
+#include "BoundingVolumes/Extensions.hpp"
 
 int main(int argc, char** argv) {
 
@@ -39,8 +40,6 @@ int main(int argc, char** argv) {
 		drk::Configuration::AddConfiguration(),
 		drk::Windows::AddWindows(),
 		drk::Devices::AddDevices(),
-		//drk::Draws::AddDraws(),
-		//drk::Stores::AddStores(),
 		drk::Graphics::AddGraphics(),
 		drk::Cameras::AddCameras(),
 		drk::Lights::AddLights(),
@@ -56,13 +55,12 @@ int main(int argc, char** argv) {
 		drk::Scenes::AddScenes(),
 		drk::Points::AddPoints(),
 		drk::Lines::AddLines(),
+		drk::BoundingVolumes::AddBoundingVolumes(),
 		boost::di::bind<entt::registry>.to<entt::registry>(),
 		drk::Applications::AddApplications()
 	);
 	auto& app = injector.create<drk::Applications::Application&>();
 	app.run();
 
-//	drk::Applications::Application application{};
-//	application.Run();
 	return 0;
 }

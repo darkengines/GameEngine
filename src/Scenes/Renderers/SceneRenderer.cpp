@@ -10,6 +10,7 @@ namespace drk::Scenes::Renderers {
 		std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
 		std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline,
 		std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline,
+		std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline> boundingVolumePipeline,
 		std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer,
 		Lights::Systems::ShadowMappingSystem& shadowMappingSystem
 	)
@@ -17,12 +18,14 @@ namespace drk::Scenes::Renderers {
 		meshPipeline(std::move(meshPipeline)),
 		pointPrimitivePipeline(std::move(pointPrimitivePipeline)),
 		linePipeline(std::move(linePipeline)),
+		boundingVolumePipeline(std::move(boundingVolumePipeline)),
 		shadowSceneRenderer(std::move(shadowSceneRenderer)),
 		shadowMappingSystem(shadowMappingSystem),
 		pipelines{
 			{ std::type_index(typeid(Meshes::Pipelines::MeshPipeline)), this->meshPipeline.get() },
 			{ std::type_index(typeid(Points::Pipelines::PointPrimitivePipeline)), this->pointPrimitivePipeline.get() },
-			{ std::type_index(typeid(Lines::Pipelines::LinePipeline)), this->linePipeline.get() }
+			{ std::type_index(typeid(Lines::Pipelines::LinePipeline)), this->linePipeline.get() },
+			{ std::type_index(typeid(BoundingVolumes::Pipelines::BoundingVolumePipeline)), this->boundingVolumePipeline.get() }
 		}
 	{
 		this->shadowSceneRenderer->setTargetImageViews({

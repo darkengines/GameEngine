@@ -32,7 +32,6 @@ namespace drk::Meshes::Systems {
 		void uploadMeshes();
 		void emitDraws();
 		void updateDraw(entt::entity drawEntity, int drawIndex);
-		void updateDraws() { throw std::runtime_error("Not supported"); }
 		Draws::Components::DrawVertexBufferInfo getVertexBufferInfo(entt::entity drawEntity);
 		static entt::entity
 			copyMeshEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
