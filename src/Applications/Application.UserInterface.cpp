@@ -1,6 +1,7 @@
 #include "Application.hpp"
 #include <iostream>
 #include "../Spatials/Components/SpatialEditor.hpp"
+#include "../Cameras/Editors/CameraEditor.hpp"
 #include <entt/entt.hpp>
 #include <stack>
 #include <imgui_impl_glfw.h>
@@ -53,10 +54,19 @@ namespace drk::Applications {
 				auto component = storage.find(entity);
 				ImGui::Text(typeInfo.name().data());
 				auto spatialComponentTypeId = entt::type_id<Spatials::Components::Spatial>();
+				auto cameraComponentTypeId = entt::type_id<Cameras::Components::Camera>();
 				if (typeInfo == spatialComponentTypeId) {
 					auto& spatial = registry.get<Spatials::Components::Spatial>(entity);
 					if (Spatials::Components::SpatialEditor::Spatial(spatial)) {
 						spatialSystem.makeDirty(entity);
+					}
+				}
+				if (typeInfo == cameraComponentTypeId) {
+					auto previousCamera = engineState.cameraEntity;
+					if (Cameras::Editors::CameraEditor::setActiveCamera(entity, globalSystem)) {
+						if (previousCamera != entity) {
+							flyCamController.Attach(entity);
+						}
 					}
 				}
 			}

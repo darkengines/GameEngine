@@ -2,7 +2,7 @@
 
 namespace drk::BoundingVolumes::Components {
 	struct Draw {
-		Stores::Models::StoreItemLocation boundingVolumeStoreItemLocation;
-		Stores::Models::StoreItemLocation cameraStoreItemLocation;
+		entt::entity boundingVolumeEntity;
+		entt::entity cameraEntity;
 	};
 }

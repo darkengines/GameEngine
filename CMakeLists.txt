@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 project(drk CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -21,6 +22,7 @@ file(
     src/Cameras/Extensions.hpp
     src/Cameras/Components/Camera.hpp
     src/Cameras/Models/Camera.hpp
+    src/Cameras/Editors/CameraEditor.hpp
     src/Common/Common.hpp
     src/Common/ComponentIndex.hpp
     src/Common/IndexGenerator.hpp

@@ -99,7 +99,7 @@ namespace drk::Applications {
 		);
 
 		flyCamController.Attach(defaultCamera);
-		globalSystem.SetCamera(defaultCamera);
+		globalSystem.setCamera(defaultCamera);
 
 		ImGui::FileBrowser fileBrowser;
 

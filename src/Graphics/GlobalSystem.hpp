@@ -7,6 +7,7 @@
 #include "../Lights/Systems/DirectionalLightSystem.hpp"
 #include "../Lights/Systems/PointLightSystem.hpp"
 #include "../Lights/Systems/SpotlightSystem.hpp"
+#include <boost/signals2/signal.hpp>
 
 namespace drk::Graphics {
 	class GlobalSystem {
@@ -24,6 +25,7 @@ namespace drk::Graphics {
 		uint32_t spotlightCount;
 		uint32_t spotlightBufferIndex;
 	public:
+		boost::signals2::signal<void(entt::entity)> cameraChanged;
 		SynchronizationState<Engine::Models::Global> GlobalSynchronizationState;
 		GlobalSystem(
 			Engine::EngineState& engineState,
@@ -33,7 +35,7 @@ namespace drk::Graphics {
 			Lights::Systems::PointLightSystem& pointLightSystem
 		);
 
-		void SetCamera(entt::entity cameraEntity);
+		void setCamera(entt::entity cameraEntity);
 
 		void update();
 	};

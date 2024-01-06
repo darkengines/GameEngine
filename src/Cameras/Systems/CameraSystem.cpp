@@ -6,6 +6,7 @@
 #include "../../Objects/Components/Relationship.hpp"
 #include "../../Objects/Components/Object.hpp"
 #include "../../Graphics/SynchronizationState.hpp"
+#include "../../Frustums/Components/Frustum.hpp"
 #include "../Models/Camera.hpp"
 
 namespace drk::Cameras::Systems {
@@ -33,8 +34,8 @@ namespace drk::Cameras::Systems {
 
 	void CameraSystem::processDirtyItems() {
 		auto dirtyCameraView = registry.view<
-			Components::Camera, 
-			Spatials::Components::Spatial, 
+			Components::Camera,
+			Spatials::Components::Spatial,
 			Objects::Components::Dirty<Spatials::Components::Spatial>
 		>();
 		dirtyCameraView.each(
@@ -42,7 +43,7 @@ namespace drk::Cameras::Systems {
 				entt::entity cameraEntity,
 				Components::Camera& camera,
 				Spatials::Components::Spatial& spatial
-			) {
+				) {
 					camera.absolutePosition = spatial.absolutePosition;
 					auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
 					camera.absoluteFront = absoluteRotation * camera.relativeFront;
@@ -98,6 +99,8 @@ namespace drk::Cameras::Systems {
 			.Name = "Default camera"
 		};
 
+		auto frustum = Frustums::Components::Frustum::createFrustumFromView(position, front, up, verticalFov, aspectRatio, near, far);
+		registry.emplace<Frustums::Components::Frustum>(cameraEntity, std::move(frustum));
 		registry.emplace<Components::Camera>(cameraEntity, std::move(camera));
 		registry.emplace<Spatials::Components::Spatial>(cameraEntity, std::move(cameraSpatial));
 		registry.emplace<Objects::Components::Relationship>(cameraEntity, std::move(cameraRelationship));

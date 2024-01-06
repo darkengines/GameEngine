@@ -15,10 +15,15 @@
 #include "../../Spatials/Components/Spatial.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
 #include "../../Stores/Models/StoreItemLocation.hpp"
+#include "../../Graphics/GlobalSystem.hpp"
+#include "MeshSystemOperation.hpp"
 
 namespace drk::Meshes::Systems {
 	class MeshSystem : public Draws::Systems::DrawSystem, public drk::Systems::System<Models::Mesh, Components::Mesh> {
 	protected:
+		Graphics::GlobalSystem& globalSystem;
+		MeshSystemOperation operations;
+		boost::signals2::connection cameraChangedConnection;
 	public:
 		void update(Models::Mesh& model, const Components::Mesh& mesh) override;
 	protected:
@@ -27,10 +32,14 @@ namespace drk::Meshes::Systems {
 		MeshSystem(
 			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
-			entt::registry& registry
+			entt::registry& registry,
+			Graphics::GlobalSystem& globalSystem
 		);
+		~MeshSystem();
+		void onCameraChanged(entt::entity cameraEntity);
 		void uploadMeshes();
 		void emitDraws();
+		void doOperations(MeshSystemOperation operations);
 		void updateDraw(entt::entity drawEntity, int drawIndex);
 		Draws::Components::DrawVertexBufferInfo getVertexBufferInfo(entt::entity drawEntity);
 		static entt::entity

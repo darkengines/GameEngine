@@ -11,6 +11,7 @@
 		"fmt",
 		"bext-di",
 		"nlohmann-json",
-		"nameof"
+		"nameof",
+		"boost-signals2"
 	]
 }

@@ -29,10 +29,23 @@ namespace drk::Meshes::Systems {
 	MeshSystem::MeshSystem(
 		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
-		entt::registry& registry
-	)
-		: System(engineState, registry), deviceContext(deviceContext) {}
-
+		entt::registry& registry,
+		Graphics::GlobalSystem& globalSystem
+	) : System(engineState, registry),
+		deviceContext(deviceContext),
+		globalSystem(globalSystem),
+		cameraChangedConnection(globalSystem.cameraChanged.connect([&](entt::entity entity) { onCameraChanged(entity); })) {
+	}
+	MeshSystem::~MeshSystem()
+	{
+		cameraChangedConnection.disconnect();
+	}
+	void MeshSystem::onCameraChanged(entt::entity cameraEntity) {
+		operations |= MeshSystemOperation::SetCamera;
+		registry.view<Components::MeshDraw>().each([this](entt::entity entity, auto& meshDraw) {
+			registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(entity, engineState.getFrameCount());
+			});
+	}
 	void MeshSystem::update(Models::Mesh& model, const Components::Mesh& mesh) {
 		auto materialStoreItem = registry.get<Stores::StoreItem<Materials::Models::Material>>(mesh.materialEntity);
 		const auto& frameStoreItem = materialStoreItem.frameStoreItems[engineState.getFrameIndex()];
@@ -60,17 +73,29 @@ namespace drk::Meshes::Systems {
 			}
 		}
 	}
+	void MeshSystem::doOperations(MeshSystemOperation operations) {
+		if (operations != MeshSystemOperation::None) {
+			auto view = registry.view<Components::MeshDraw>();
+			view.each([&](entt::entity entity, auto& meshDraw) {
+				if ((operations & MeshSystemOperation::SetCamera) == MeshSystemOperation::SetCamera) {
+					meshDraw.cameraEntity = engineState.cameraEntity;
+				}
+				});
+		}
+	}
 	void MeshSystem::updateDraw(entt::entity drawEntity, int drawIndex) {
 		const auto& meshDraw = registry.get<Components::MeshDraw>(drawEntity);
 		auto& frameState = engineState.getCurrentFrameState();
 		//todo: optimization - fetch uniform store in parent scope and give as argument
 		auto& drawStore = frameState.getUniformStore<Models::MeshDraw>();
+		auto& meshStoreItem = registry.get<Stores::StoreItem<Models::Mesh>>(meshDraw.meshEntity);
+		auto& objectStoreItem = registry.get<Stores::StoreItem<Objects::Models::Object>>(meshDraw.objectEntity);
+		auto& cameraStoreItem = registry.get<Stores::StoreItem<Cameras::Models::Camera>>(engineState.cameraEntity);
 		const auto& meshItemLocation = drawStore.get(drawIndex);
-		meshItemLocation.pItem->meshItemLocation.storeIndex = meshDraw.meshItemLocation.storeIndex;
-		meshItemLocation.pItem->meshItemLocation.itemIndex = meshDraw.meshItemLocation.itemIndex;
-		meshItemLocation.pItem->objectItemLocation.storeIndex = meshDraw.objectItemLocation.storeIndex;
-		meshItemLocation.pItem->objectItemLocation.itemIndex = meshDraw.objectItemLocation.itemIndex;
-		meshItemLocation.pItem->cameraItemLocation = meshDraw.cameraItemLocation;
+		auto frameIndex = engineState.getFrameIndex();
+		meshItemLocation.pItem->meshItemLocation = meshStoreItem.frameStoreItems[frameIndex];
+		meshItemLocation.pItem->objectItemLocation = objectStoreItem.frameStoreItems[frameIndex];
+		meshItemLocation.pItem->cameraItemLocation = cameraStoreItem.frameStoreItems[frameIndex];
 	}
 	void MeshSystem::emitDraws() {
 		const auto& [camera, cameraStoreItem] = registry.get<
@@ -81,20 +106,14 @@ namespace drk::Meshes::Systems {
 		const auto& cameraStoreItemLocation = cameraStoreItem.frameStoreItems[engineState.getFrameIndex()];
 
 		objectMeshEntities.each([&](entt::entity objectMeshEntity, const Objects::Components::ObjectMesh& objectMesh) {
-			const auto& [mesh, meshResource, meshBufferView, meshStoreItem] = registry.get<
+			const auto& [mesh, meshResource, meshBufferView] = registry.get<
 				Meshes::Components::Mesh,
 				std::shared_ptr<Meshes::Components::MeshResource>,
-				Meshes::Components::MeshBufferView,
-				Stores::StoreItem<Meshes::Models::Mesh>
+				Meshes::Components::MeshBufferView
 			>(objectMesh.meshEntity);
-			const auto& [objectStoreItem, spatial] = registry.get<
-				Stores::StoreItem<Objects::Models::Object>,
-				Spatials::Components::Spatial
-			>(objectMesh.objectEntity);
+			const auto& spatial = registry.get<Spatials::Components::Spatial>(objectMesh.objectEntity);
 			auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(mesh.materialEntity);
-			const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
-			const auto& meshStoreItemLocation = meshStoreItem.frameStoreItems[engineState.getFrameIndex()];
-			Scenes::Draws::SceneDraw draw = {       
+			Scenes::Draws::SceneDraw draw = {
 				.drawSystem = this,
 				.pipelineTypeIndex = std::type_index(typeid(Pipelines::MeshPipeline)),
 				.indexBufferView = meshBufferView.IndexBufferView,
@@ -105,9 +124,9 @@ namespace drk::Meshes::Systems {
 			Components::MeshDraw meshDraw = {
 				.meshResource = meshResource,
 				.meshBufferView = meshBufferView,
-				.meshItemLocation = meshStoreItemLocation,
-				.objectItemLocation = objectStoreItemLocation,
-				.cameraItemLocation = cameraStoreItemLocation
+				.meshEntity = objectMesh.meshEntity,
+				.objectEntity = objectMesh.objectEntity,
+				.cameraEntity = engineState.cameraEntity
 			};
 			auto entity = registry.create();
 			registry.emplace_or_replace<Scenes::Draws::SceneDraw>(objectMeshEntity, std::move(draw));

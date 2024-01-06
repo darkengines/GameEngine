@@ -9,8 +9,8 @@ namespace drk::Meshes::Components {
 	struct MeshDraw {
 		std::shared_ptr<MeshResource> meshResource;
 		MeshBufferView meshBufferView;
-		alignas(8) Stores::Models::StoreItemLocation meshItemLocation;
-		alignas(8) Stores::Models::StoreItemLocation objectItemLocation;
-		alignas(8) Stores::Models::StoreItemLocation cameraItemLocation;
+		entt::entity meshEntity;
+		entt::entity objectEntity;
+		entt::entity cameraEntity;
 	};
 }

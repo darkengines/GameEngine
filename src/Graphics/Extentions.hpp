@@ -3,7 +3,6 @@
 #include "../Engine/EngineState.hpp"
 
 namespace drk::Graphics {
-
 	auto AddGraphics() {
 		return boost::di::make_injector(
 			boost::di::bind<GlobalSystem>.to<GlobalSystem>(),

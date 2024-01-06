@@ -36,10 +36,13 @@ namespace drk::BoundingVolumes::Systems {
 		//todo: optimization - fetch uniform store in parent scope and give as argument
 		auto& drawStore = frameState.getUniformStore<Models::BoundingVolumeDraw>();
 		const auto& boundingVolumeItemLocation = drawStore.get(drawIndex);
-		boundingVolumeItemLocation.pItem->boundingVolumeStoreItemLocation.storeIndex = draw.boundingVolumeStoreItemLocation.storeIndex;
-		boundingVolumeItemLocation.pItem->boundingVolumeStoreItemLocation.itemIndex = draw.boundingVolumeStoreItemLocation.itemIndex;
-		boundingVolumeItemLocation.pItem->cameraStoreItemLocation.storeIndex = draw.cameraStoreItemLocation.storeIndex;
-		boundingVolumeItemLocation.pItem->cameraStoreItemLocation.itemIndex = draw.cameraStoreItemLocation.itemIndex;
+
+		auto& meshStoreItem = registry.get<Stores::StoreItem<Models::AxisAlignedBoundingBox>>(draw.boundingVolumeEntity);
+		auto& cameraStoreItem = registry.get<Stores::StoreItem<Cameras::Models::Camera>>(engineState.cameraEntity);
+
+		auto frameIndex = engineState.getFrameIndex();
+		boundingVolumeItemLocation.pItem->boundingVolumeStoreItemLocation = meshStoreItem.frameStoreItems[frameIndex];
+		boundingVolumeItemLocation.pItem->cameraStoreItemLocation = cameraStoreItem.frameStoreItems[frameIndex];
 	}
 
 	void AxisAlignedBoundingBoxSystem::createResources() {
@@ -117,20 +120,12 @@ namespace drk::BoundingVolumes::Systems {
 	}
 
 	void AxisAlignedBoundingBoxSystem::emitDraws() {
-		const auto& [camera, cameraStoreItem] = registry.get<
-			Cameras::Components::Camera,
-			Stores::StoreItem<Cameras::Models::Camera>
-		>(engineState.cameraEntity);
-		auto objectMeshEntities = registry.view<
-			Objects::Components::ObjectMesh,
-			Stores::StoreItem<BoundingVolumes::Models::AxisAlignedBoundingBox>
-		>(entt::exclude<Components::HasDraw>);
-		const auto& cameraStoreItemLocation = cameraStoreItem.frameStoreItems[engineState.getFrameIndex()];
+		const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
+		auto objectMeshEntities = registry.view<Objects::Components::ObjectMesh>(entt::exclude<Components::HasDraw>);
 
 		objectMeshEntities.each([&](
 			entt::entity objectMeshEntity,
-			const Objects::Components::ObjectMesh& objectMesh,
-			const Stores::StoreItem<BoundingVolumes::Models::AxisAlignedBoundingBox>& axisAlignedBoundingBoxStoreItem
+			const Objects::Components::ObjectMesh& objectMesh
 			) {
 				Scenes::Draws::SceneDraw draw = {
 					.drawSystem = this,
@@ -141,8 +136,8 @@ namespace drk::BoundingVolumes::Systems {
 					.depth = 0.0f,
 				};
 				Components::Draw Draw = {
-					.boundingVolumeStoreItemLocation = axisAlignedBoundingBoxStoreItem.frameStoreItems[engineState.getFrameIndex()],
-					.cameraStoreItemLocation = cameraStoreItemLocation
+					.boundingVolumeEntity = objectMeshEntity,
+					.cameraEntity = engineState.cameraEntity
 				};
 				auto entity = registry.create();
 				registry.emplace_or_replace<Scenes::Draws::SceneDraw>(entity, std::move(draw));

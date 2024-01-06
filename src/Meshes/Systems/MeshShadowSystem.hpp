@@ -30,11 +30,10 @@ namespace drk::Meshes::Systems {
 			const Materials::Components::Material& material,
 			const Meshes::Components::MeshBufferView& meshBufferView,
 			std::shared_ptr<Meshes::Components::MeshResource> pMeshResource,
-			const Stores::Models::StoreItemLocation& objectStoreItemLocation,
-			const Stores::Models::StoreItemLocation& meshStoreItemLocation,
-			const Stores::Models::StoreItemLocation& cameraStoreItemLocation,
-			const Stores::Models::StoreItemLocation& lightPerspectiveStoreItemLocation,
-			const Stores::Models::StoreItemLocation& lightPerspectiveSpatialStoreItemLocation
+			entt::entity objectEntity,
+			entt::entity meshEntity,
+			entt::entity cameraEntity,
+			entt::entity lightPerspectiveSpatialEntity
 		);
 	};
 }

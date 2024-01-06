@@ -60,7 +60,7 @@ namespace drk::Controllers {
 	}
 
 	void FlyCamController::OnCursorPositionEvent(double xpos, double ypos) {
-		glm::vec2 mousePosition{xpos, ypos};
+		glm::vec2 mousePosition{ xpos, ypos };
 		if (LastMousePosition.has_value()) {
 			MousePositionDelta = (mousePosition - *LastMousePosition) * 0.0005f;
 		}
@@ -122,8 +122,8 @@ namespace drk::Controllers {
 			hasUpdate = true;
 		}
 		if (hasUpdate) {
-			Registry.emplace_or_replace<Graphics::SynchronizationState<Spatials::Models::Spatial >>(CameraEntity, 2u);
-			Registry.emplace_or_replace<Objects::Components::Dirty<Spatials::Components::Spatial >>(CameraEntity);
+			Registry.emplace_or_replace<Graphics::SynchronizationState<Spatials::Models::Spatial>>(CameraEntity, 2u);
+			Registry.emplace_or_replace<Objects::Components::Dirty<Spatials::Components::Spatial>>(CameraEntity);
 		}
 	}
 }
