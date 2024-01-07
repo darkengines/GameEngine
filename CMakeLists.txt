@@ -281,6 +281,8 @@ file(
     "src/Lines/Shaders/Line.frag"
     "src/BoundingVolumes/Shaders/BoundingVolume.vert"
     "src/BoundingVolumes/Shaders/BoundingVolume.frag"
+    "src/Frustums/Shaders/Frustum.vert"
+    "src/Frustums/Shaders/Frustum.frag"
 )
 
 foreach (GLSL ${GLSL_SOURCES})

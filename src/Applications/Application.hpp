@@ -28,6 +28,7 @@
 #include "../UserInterfaces/AssetExplorer.hpp"
 #include "../Meshes/Systems/MeshShadowSystem.hpp"
 #include "../BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.hpp"
+#include "../Frustums/Systems/FrustumSystem.hpp"
 #include <memory>
 
 namespace drk::Applications {
@@ -55,6 +56,7 @@ namespace drk::Applications {
 			Scenes::Systems::SceneSystem&,
 			Points::Systems::PointSystem&,
 			BoundingVolumes::Systems::AxisAlignedBoundingBoxSystem&,
+			Frustums::Systems::FrustumSystem&,
 			Lines::Systems::LineSystem&,
 			Lights::Systems::LightSystem&,
 			Lights::Systems::PointLightSystem&,
@@ -86,6 +88,7 @@ namespace drk::Applications {
 			Scenes::Systems::SceneSystem& sceneSystem,
 			Points::Systems::PointSystem& pointSystem,
 			BoundingVolumes::Systems::AxisAlignedBoundingBoxSystem& axisAlignedBoundingBoxSystem,
+			Frustums::Systems::FrustumSystem& frustumSystem,
 			Lines::Systems::LineSystem&,
 			Lights::Systems::LightSystem& lightSystem,
 			Lights::Systems::PointLightSystem& pointLightSystem,
@@ -120,6 +123,7 @@ namespace drk::Applications {
 		Scenes::Systems::SceneSystem& sceneSystem;
 		Points::Systems::PointSystem& pointSystem;
 		BoundingVolumes::Systems::AxisAlignedBoundingBoxSystem& axisAlignedBoundingBoxSystem;
+		Frustums::Systems::FrustumSystem& frustumSystem;
 		Lines::Systems::LineSystem& lineSystem;
 		Lights::Systems::LightSystem& lightSystem;
 		Lights::Systems::PointLightSystem& pointLightSystem;

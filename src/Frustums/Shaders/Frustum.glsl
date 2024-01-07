@@ -1,4 +1,4 @@
-#include "Plane.glsl"
+#include "../../Planes/Shaders/Plane.glsl"
 
 struct Frustum {
 	Plane nearPlan;
@@ -16,6 +16,4 @@ struct Frustum {
 	vec4 leftTopNear;
 	vec4 rightBottomNear;
 	vec4 leftBottomNear;
-
-	uint objectStateId;
 };

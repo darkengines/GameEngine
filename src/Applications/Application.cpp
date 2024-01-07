@@ -31,6 +31,7 @@ namespace drk::Applications {
 		Scenes::Systems::SceneSystem& sceneSystem,
 		Points::Systems::PointSystem& pointSystem,
 		BoundingVolumes::Systems::AxisAlignedBoundingBoxSystem& axisAlignedBoundingBoxSystem,
+		Frustums::Systems::FrustumSystem& frustumSystem,
 		Lines::Systems::LineSystem& lineSystem,
 		Lights::Systems::LightSystem& lightSystem,
 		Lights::Systems::PointLightSystem& pointLightSystem,
@@ -60,6 +61,7 @@ namespace drk::Applications {
 		sceneSystem(sceneSystem),
 		pointSystem(pointSystem),
 		axisAlignedBoundingBoxSystem(axisAlignedBoundingBoxSystem),
+		frustumSystem(frustumSystem),
 		lineSystem(lineSystem),
 		lightSystem(lightSystem),
 		pointLightSystem(pointLightSystem),
@@ -362,6 +364,7 @@ namespace drk::Applications {
 				directionalLightSystem.store();
 				spotlightSystem.store();
 				axisAlignedBoundingBoxSystem.store();
+				frustumSystem.store();
 
 				//Alterations
 				flyCamController.Step();
@@ -374,6 +377,7 @@ namespace drk::Applications {
 				pointLightSystem.processDirtyItems();
 				spotlightSystem.processDirtyItems();
 				axisAlignedBoundingBoxSystem.processDirty();
+				//frustumSystem.processDirty();
 
 				meshSystem.processDirtyDraws();
 
@@ -391,6 +395,7 @@ namespace drk::Applications {
 				directionalLightSystem.updateStore();
 				spotlightSystem.updateStore();
 				axisAlignedBoundingBoxSystem.updateStore();
+				frustumSystem.updateStore();
 				globalSystem.update();
 
 				//auto draws = registry.view<Scenes::Draws::SceneDraw>();
@@ -402,6 +407,7 @@ namespace drk::Applications {
 				pointSystem.emitDraws();
 				lineSystem.emitDraws();
 				axisAlignedBoundingBoxSystem.emitDraws();
+				frustumSystem.emitDraws();
 
 				//Stores draws to GPU
 				sceneSystem.updateShadowDraws();

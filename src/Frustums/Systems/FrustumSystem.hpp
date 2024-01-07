@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../../Systems/System.hpp"
 #include "../Components/Frustum.hpp"
 #include "../Models/Frustum.hpp"

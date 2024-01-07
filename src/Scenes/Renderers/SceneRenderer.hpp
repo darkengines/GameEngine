@@ -15,6 +15,7 @@
 #include "./ShadowSceneRenderer.hpp"
 #include "../../Lights/Systems/ShadowMappingSystem.hpp"
 #include "../../BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp"
+#include "../../Frustums/Pipelines/FrustumPipeline.hpp"
 
 
 namespace drk::Scenes::Renderers {
@@ -31,6 +32,7 @@ namespace drk::Scenes::Renderers {
 		std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline;
 		std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline;
 		std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline> boundingVolumePipeline;
+		std::unique_ptr<Frustums::Pipelines::FrustumPipeline> frustumPipeline;
 		std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer;
 		Lights::Systems::ShadowMappingSystem& shadowMappingSystem;
 		vk::RenderPass renderPass;
@@ -43,6 +45,7 @@ namespace drk::Scenes::Renderers {
 			std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline,
 			std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline,
 			std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline> boundingVolumePipeline,
+			std::unique_ptr<Frustums::Pipelines::FrustumPipeline> frustumPipeline,
 			std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer,
 			Lights::Systems::ShadowMappingSystem& shadowMappingSystem
 		);

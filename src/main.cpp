@@ -31,6 +31,7 @@
 #include "Points/Extensions.hpp"
 #include "Lines/Extensions.hpp"
 #include "BoundingVolumes/Extensions.hpp"
+#include "Frustums/Extensions.hpp"
 
 int main(int argc, char** argv) {
 
@@ -56,6 +57,7 @@ int main(int argc, char** argv) {
 		drk::Points::AddPoints(),
 		drk::Lines::AddLines(),
 		drk::BoundingVolumes::AddBoundingVolumes(),
+		drk::Frustums::AddFrustums(),
 		boost::di::bind<entt::registry>.to<entt::registry>(),
 		drk::Applications::AddApplications()
 	);
