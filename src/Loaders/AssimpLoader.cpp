@@ -1,4 +1,5 @@
 #include "../Lights/Components/LightPerspective.hpp"
+#include <algorithm>
 #include "../Objects/Components/ObjectMeshCollection.hpp"
 #include "AssimpLoader.hpp"
 #include "../GlmExtensions.hpp"
@@ -61,6 +62,15 @@ namespace drk::Loaders {
 		return loadResult;
 	}
 
+	std::string replaceAll(std::string str, const std::string& from, const std::string& to) {
+		size_t start_pos = 0;
+		while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+			str.replace(start_pos, from.length(), to);
+			start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+		}
+		return str;
+	}
+
 	void AssimpLoader::loadMaterials(
 		std::span<aiMaterial*> aiMaterials,
 		std::span<aiTexture*> aiTextures,
@@ -78,13 +88,14 @@ namespace drk::Loaders {
 					aiString aiTexturePath;
 					auto result = aiMaterial->GetTexture(textureTypePair.first, 0, &aiTexturePath);
 					if (result == aiReturn::aiReturn_SUCCESS) {
-						auto texturePath = aiTexturePath.C_Str();
+						std::string texturePath(aiTexturePath.C_Str());
+						texturePath = replaceAll(texturePath, "%20", " ");
 						auto texturePathPair = textureNameMap.find(texturePath);
 						std::unique_ptr<Textures::ImageInfo> image;
 						if (texturePathPair == textureNameMap.end()) {
 							if (texturePath[0] == '*') {
 								int textureIndex = 0;
-								sscanf_s(texturePath, "*%d", &textureIndex);
+								sscanf_s(texturePath.c_str(), "*%d", &textureIndex);
 								auto aiTexture = aiTextures[textureIndex];
 								std::span<unsigned char> data((unsigned char*)aiTexture->pcData, aiTexture->mWidth);
 								image = Textures::ImageInfo::fromMemory(

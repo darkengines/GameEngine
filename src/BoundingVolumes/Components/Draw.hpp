@@ -1,3 +1,4 @@
+#include <entt/entt.hpp>
 #include "../../Stores/Models/StoreItemLocation.hpp"
 
 namespace drk::BoundingVolumes::Components {

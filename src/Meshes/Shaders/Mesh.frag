@@ -264,8 +264,6 @@ void main() {
 		//if (lightPointPosition.z > shadowMap.r) {
 		//	shadowFactor *= 0.1;
 		//}
-
-		//color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, lightState.diffuseColor.rgb, -lightOrientation.xyz, 1, viewDirection.xyz) * shadowFactor;
     }
 
     for(uint spotlightIndex = 0;spotlightIndex < globalBuffer.global.spotlightCount; spotlightIndex++) {

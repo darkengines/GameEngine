@@ -4,15 +4,15 @@
 #include "../../Engine/EngineState.hpp"
 #include "../../Pipelines/Pipeline.hpp"
 
-namespace drk::BoundingVolumes::Pipelines {
-	class BoundingVolumePipeline : public drk::Pipelines::Pipeline {
+namespace drk::Frustums::Pipelines {
+	class FrustumPipeline : public drk::Pipelines::Pipeline {
 	public:
-		BoundingVolumePipeline(
+		FrustumPipeline(
 			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
 			const Engine::DescriptorSetLayouts& descriptorSetLayouts
 		);
-		~BoundingVolumePipeline();
+		~FrustumPipeline();
 
 		void bind(const vk::CommandBuffer& commandBuffer);
 		void configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configure);

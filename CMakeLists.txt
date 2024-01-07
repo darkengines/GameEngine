@@ -8,21 +8,27 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(dependencies)
 file(
-    GLOB SOURCES
+    GLOB HEADERS
+    src/Extensions.hpp
     src/GlmExtensions.hpp
     src/implemantations.hpp
     src/system.hpp
     src/Applications/Application.hpp
     src/Applications/Extentions.hpp
+    src/BoundingVolumes/Extensions.hpp
     src/BoundingVolumes/Components/AxisAlignedBoundingBox.hpp
-    src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.hpp
+    src/BoundingVolumes/Components/Draw.hpp
+    src/BoundingVolumes/Components/HasDraw.hpp
+    src/BoundingVolumes/Models/AxisAlignedBoundingBox.hpp
+    src/BoundingVolumes/Models/BoundingVolumeDraw.hpp
     src/BoundingVolumes/Models/Vertex.hpp
-    src/BoundingVolumes/Extentions.hpp
-    src/Cameras/Systems/CameraSystem.hpp
+    src/BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp
+    src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.hpp
     src/Cameras/Extensions.hpp
     src/Cameras/Components/Camera.hpp
-    src/Cameras/Models/Camera.hpp
     src/Cameras/Editors/CameraEditor.hpp
+    src/Cameras/Models/Camera.hpp
+    src/Cameras/Systems/CameraSystem.hpp
     src/Common/Common.hpp
     src/Common/ComponentIndex.hpp
     src/Common/IndexGenerator.hpp
@@ -30,6 +36,8 @@ file(
     src/Configuration/Extensions.hpp
     src/Controllers/Extensions.hpp
     src/Controllers/FlyCamController.hpp
+    src/Debugging/Components/DebugDraw.hpp
+    src/Debugging/Renderers/DebugRenderer.hpp
     src/Devices/Buffer.hpp
     src/Devices/BufferUploadResult.hpp
     src/Devices/BufferView.hpp
@@ -45,9 +53,10 @@ file(
     src/Devices/Texture.hpp
     src/Devices/VulkanInstanceConfiguration.hpp
     src/Devices/VulkanLogicalDeviceInfo.hpp
-    src/Draws/Systems/DrawSystem.hpp
-    src/Draws/Components/DrawVertexBufferInfo.hpp
     src/Draws/Extentions.hpp
+    src/Draws/Components/DrawVertexBufferInfo.hpp
+    src/Draws/Models/Draw.hpp
+    src/Draws/Systems/DrawSystem.hpp
     src/Engine/DescriptorSetAllocator.hpp
     src/Engine/DescriptorSetLayoutCache.hpp
     src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.hpp
@@ -59,8 +68,12 @@ file(
     src/Engine/Models/Global.hpp
     src/Frustums/Components/Frustum.hpp
     src/Frustums/Models/Frustum.hpp
+    src/Frustums/Models/FrustumVertex.hpp
+    src/Frustums/Models/Vertex.hpp
+    src/Frustums/Pipelines/FrustumPipeline.hpp
     src/Frustums/Systems/FrustumSystem.hpp
     src/Geometries/Extensions.hpp
+    src/Geometries/Primitives.hpp
     src/Graphics/Draw.hpp
     src/Graphics/Extentions.hpp
     src/Graphics/GlobalSystem.hpp
@@ -83,27 +96,27 @@ file(
     src/Lights/Systems/LightPerspectiveSystem.hpp
     src/Lights/Systems/LightSystem.hpp
     src/Lights/Systems/PointLightSystem.hpp
-    src/Lights/Systems/SpotlightSystem.hpp
     src/Lights/Systems/ShadowMappingSystem.hpp
+    src/Lights/Systems/SpotlightSystem.hpp
     src/Lines/Extensions.hpp
-    src/Lines/Pipelines/LinePipeline.hpp
-    src/Lines/Systems/LineSystem.hpp
     src/Lines/Components/Line.hpp
     src/Lines/Components/LineDraw.hpp
     src/Lines/Models/Line.hpp
     src/Lines/Models/LineDraw.hpp
     src/Lines/Models/LineVertex.hpp
+    src/Lines/Pipelines/LinePipeline.hpp
+    src/Lines/Systems/LineSystem.hpp
     src/Loaders/AssimpLoader.hpp
     src/Loaders/Extensions.hpp
     src/Loaders/LoadResult.hpp
     src/Materials/Extensions.hpp
-    src/Materials/Systems/MaterialSystem.hpp
     src/Materials/Components/Material.hpp
     src/Materials/Components/MaterialCollection.hpp
     src/Materials/Models/Material.hpp
+    src/Materials/Systems/MaterialSystem.hpp
     src/Meshes/Extensions.hpp
-    src/Meshes/Systems/MeshSystem.hpp
     src/Meshes/Vertex.hpp
+    src/Meshes/Components/HasShadowDraw.hpp
     src/Meshes/Components/Mesh.hpp
     src/Meshes/Components/MeshBufferView.hpp
     src/Meshes/Components/MeshDraw.hpp
@@ -114,41 +127,46 @@ file(
     src/Meshes/Models/ShadowMeshDraw.hpp
     src/Meshes/Pipelines/MeshPipeline.hpp
     src/Meshes/Pipelines/ShadowMeshPipeline.hpp
-    src/Objects/Components/Dirty.hpp
+    src/Meshes/Systems/MeshShadowSystem.hpp
+    src/Meshes/Systems/MeshSystem.hpp
+    src/Meshes/Systems/MeshSystemOperation.hpp
     src/Objects/Extensions.hpp
+    src/Objects/Components/Dirty.hpp
     src/Objects/Components/Object.hpp
     src/Objects/Components/ObjectMesh.hpp
-    src/Objects/Systems/ObjectSystem.hpp
-    src/Objects/Systems/ObjectMeshSystem.hpp
+    src/Objects/Components/ObjectMeshCollection.hpp
     src/Objects/Components/Relationship.hpp
     src/Objects/Models/Object.hpp
+    src/Objects/Models/ObjectMesh.hpp
+    src/Objects/Systems/ObjectMeshSystem.hpp
+    src/Objects/Systems/ObjectSystem.hpp
     src/Pipelines/Pipeline.hpp
     src/Planes/Components/Plane.hpp
     src/Planes/Models/Plane.hpp
     src/Planes/Systems/PlaneSystem.hpp
     src/Points/Extensions.hpp
-    src/Points/Pipelines/PointPrimitivePipeline.hpp
-    src/Points/Systems/PointSystem.hpp
     src/Points/Components/Point.hpp
     src/Points/Components/PointDraw.hpp
     src/Points/Models/Point.hpp
     src/Points/Models/PointDraw.hpp
     src/Points/Models/PointVertex.hpp
+    src/Points/Pipelines/PointPrimitivePipeline.hpp
+    src/Points/Systems/PointSystem.hpp
     src/Relationships/Extensions.hpp
     src/Relationships/Systems/RelationshipSystem.hpp
     src/Renderers/Renderer.hpp
+    src/Renderers/RenderOperation.hpp
     src/Scenes/Extensions.hpp
-    src/Scenes/Systems/SceneSystem.hpp
     src/Scenes/Draws/SceneDraw.hpp
     src/Scenes/Draws/ShadowSceneDraw.hpp
     src/Scenes/Renderers/SceneRenderer.hpp
-    src/Scenes/Renderers/SceneRenderOperation.hpp
     src/Scenes/Renderers/ShadowSceneRenderer.hpp
+    src/Scenes/Systems/SceneSystem.hpp
     src/Spatials/Extensions.hpp
-    src/Spatials/Systems/SpatialSystem.hpp
     src/Spatials/Components/Spatial.hpp
     src/Spatials/Components/SpatialEditor.hpp
     src/Spatials/Models/Spatial.hpp
+    src/Spatials/Systems/SpatialSystem.hpp
     src/Stores/Extensions.hpp
     src/Stores/Store.hpp
     src/Stores/StoreBuffer.hpp
@@ -160,8 +178,8 @@ file(
     src/Systems/System.hpp
     src/Textures/Extensions.hpp
     src/Textures/ImageInfo.hpp
-    src/Textures/Systems/TextureSystem.hpp
     src/Textures/TextureType.hpp
+    src/Textures/Systems/TextureSystem.hpp
     src/UserInterfaces/AssetExplorer.hpp
     src/UserInterfaces/Extensions.hpp
     src/UserInterfaces/UserInterface.hpp
@@ -169,17 +187,24 @@ file(
     src/Windows/Extensions.hpp
     src/Windows/Window.hpp
     src/Windows/WindowConfiguration.hpp
+)
+
+file(
+    GLOB SOURCES
     src/GlmExtensions.cpp
     src/main.cpp
     src/Applications/Application.cpp
     src/Applications/Application.UserInterface.cpp
-    src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.cpp
+    src/BoundingVolumes/Components/AxisAlignedBoundingBox.cpp
     src/BoundingVolumes/Models/Vertex.cpp
+    src/BoundingVolumes/Pipelines/BoundingVolumePipeline.cpp
+    src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.cpp
     src/Cameras/Systems/CameraSystem.cpp
     src/Common/Common.cpp
     src/Common/IndexGenerator.cpp
     src/Common/KGuillotineAllocator.cpp
     src/Controllers/FlyCamController.cpp
+    src/Debugging/Renderers/DebugRenderer.cpp
     src/Devices/Device.cpp
     src/Devices/DeviceContext.cpp
     src/Devices/Image.cpp
@@ -191,6 +216,9 @@ file(
     src/Engine/DescriptorSetLayouts.cpp
     src/Engine/EngineState.cpp
     src/Engine/FrameState.cpp
+    src/Frustums/Components/Frustum.cpp
+    src/Frustums/Models/Vertex.cpp
+    src/Frustums/Pipelines/FrustumPipeline.cpp
     src/Frustums/Systems/FrustumSystem.cpp
     src/Graphics/GlobalSystem.cpp
     src/Graphics/Graphics.cpp
@@ -202,30 +230,32 @@ file(
     src/Lights/Systems/LightPerspectiveSystem.cpp
     src/Lights/Systems/LightSystem.cpp
     src/Lights/Systems/PointLightSystem.cpp
-    src/Lights/Systems/SpotlightSystem.cpp
     src/Lights/Systems/ShadowMappingSystem.cpp
+    src/Lights/Systems/SpotlightSystem.cpp
+    src/Lines/Models/LineVertex.cpp
     src/Lines/Pipelines/LinePipeline.cpp
     src/Lines/Systems/LineSystem.cpp
-    src/Lines/Models/LineVertex.cpp
     src/Loaders/AssimpLoader.cpp
     src/Materials/Systems/MaterialSystem.cpp
-    src/Meshes/Systems/MeshSystem.cpp
     src/Meshes/Vertex.cpp
     src/Meshes/Pipelines/MeshPipeline.cpp
     src/Meshes/Pipelines/ShadowMeshPipeline.cpp
-    src/Objects/Systems/ObjectSystem.cpp
+    src/Meshes/Systems/MeshShadowSystem.cpp
+    src/Meshes/Systems/MeshSystem.cpp
     src/Objects/Systems/ObjectMeshSystem.cpp
+    src/Objects/Systems/ObjectSystem.cpp
+    src/Planes/Components/Plane.cpp
     src/Planes/Systems/PlaneSystem.cpp
+    src/Points/Models/PointVertex.cpp
     src/Points/Pipelines/PointPrimitivePipeline.cpp
     src/Points/Systems/PointSystem.cpp
-    src/Points/Models/PointVertex.cpp
     src/Relationships/Systems/RelationshipSystem.cpp
     src/Renderers/Renderer.cpp
-    src/Scenes/Systems/SceneSystem.cpp
     src/Scenes/Renderers/SceneRenderer.cpp
     src/Scenes/Renderers/ShadowSceneRenderer.cpp
-    src/Spatials/Systems/SpatialSystem.cpp
+    src/Scenes/Systems/SceneSystem.cpp
     src/Spatials/Components/SpatialEditor.cpp
+    src/Spatials/Systems/SpatialSystem.cpp
     src/Stores/Store.cpp
     src/Stores/StoreBuffer.cpp
     src/Stores/StoreBufferAllocator.cpp
@@ -237,9 +267,6 @@ file(
     src/UserInterfaces/UserInterface.cpp
     src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp
     src/Windows/Window.cpp
-    src/BoundingVolumes/Components/AxisAlignedBoundingBox.cpp 
-    src/Planes/Components/Plane.cpp
-    src/Frustums/Components/Frustum.cpp
 )
 
 file(
@@ -273,7 +300,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${SOURCES} "src/BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp" "src/BoundingVolumes/Pipelines/BoundingVolumePipeline.cpp" "src/Meshes/Systems/MeshShadowSystem.cpp" "src/Meshes/Systems/MeshShadowSystem.hpp" "src/Debugging/Renderers/DebugRenderer.hpp" "src/Debugging/Renderers/DebugRenderer.cpp")
+add_executable(drk ${HEADERS} ${SOURCES})
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 
