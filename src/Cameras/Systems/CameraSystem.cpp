@@ -88,7 +88,7 @@ namespace drk::Cameras::Systems {
 			.far = far
 		};
 		Spatials::Components::Spatial cameraSpatial = {
-			.relativeScale = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f),
+			.relativeScale = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
 			.relativeRotation = glm::quat(1, 0, 0, 0),
 			.relativePosition = position
 		};

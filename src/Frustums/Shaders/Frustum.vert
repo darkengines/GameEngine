@@ -40,6 +40,7 @@ void main() {
     FrustumDraw draw = frustumDrawBuffer[frustumDrawBufferIndex].frustumDraws[drawItemIndex];
     Frustum frustum = frustumBuffer[draw.frustumItemLocation.storeIndex].frustum[draw.frustumItemLocation.itemIndex];
     Camera camera = cameraBuffer[draw.cameraItemLocation.storeIndex].cameras[draw.cameraItemLocation.itemIndex];
+    Spatial spatial = spatialBuffer[draw.spatialItemLocation.storeIndex].spatials[draw.spatialItemLocation.itemIndex];
 
     vec4 position;
 
@@ -77,7 +78,7 @@ void main() {
             break;
         }
     }
-    gl_Position = camera.perspective * camera.view * position;
+    gl_Position = camera.perspective * camera.view * spatial.absoluteModel * position;
 
     drawItemLocation = StoreItemLocation(frustumDrawBufferIndex, drawItemIndex);
 

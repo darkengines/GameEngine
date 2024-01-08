@@ -42,6 +42,8 @@ namespace drk::Loaders {
 		std::span<aiMesh*> aiMeshes(aiScene->mMeshes, aiScene->mNumMeshes);
 		std::span<aiLight*> aiLights(aiScene->mLights, aiScene->mNumLights);
 		std::span<aiCamera*> aiCameras(aiScene->mCameras, aiScene->mNumCameras);
+		std::span<aiAnimation*> aiAnimations(aiScene->mAnimations, aiScene->mNumAnimations);
+		std::span<aiSkeleton*> aiSkeletons(aiScene->mSkeletons, aiScene->mNumSkeletons);
 
 		LoadResult loadResult;
 		loadResult.meshes.resize(aiMeshes.size());
@@ -56,6 +58,8 @@ namespace drk::Loaders {
 
 		loadLights(aiLights, lightMap, registry, loadResult);
 		loadCameras(aiCameras, cameraMap, registry);
+		loadSkeletons(aiSkeletons, loadResult, registry);
+		loadAnimations(aiAnimations, loadResult, registry);
 
 		auto rootEntity = loadNode(aiScene->mRootNode, lightMap, cameraMap, loadResult, registry);
 
@@ -204,6 +208,13 @@ namespace drk::Loaders {
 	void AssimpLoader::loadMeshes(std::span<aiMesh*> aiMeshes, LoadResult& loadResult, entt::registry& registry) const {
 		for (auto aiMeshIndex = 0u; aiMeshIndex < aiMeshes.size(); aiMeshIndex++) {
 			const auto& aiMesh = aiMeshes[aiMeshIndex];
+
+			const std::span<aiBone*> aiBones(aiMesh->mBones, aiMesh->mNumBones);
+			for (const auto& aiBone : aiBones) {
+				entt::entity boneEntity = registry.create();
+				aiBone.
+			}
+
 			std::vector<uint32_t> indices(aiMesh->mNumFaces * 3);
 			for (uint32_t faceIndex = 0u; faceIndex < aiMesh->mNumFaces; faceIndex++) {
 				memcpy(
@@ -286,6 +297,38 @@ namespace drk::Loaders {
 
 			loadResult.meshIdEntityMap[aiMeshIndex] = meshEntity;
 			loadResult.meshes[aiMeshIndex] = meshPtr;
+		}
+	}
+
+	void AssimpLoader::loadSkeletons(
+		std::span<aiSkeleton*> aiSkeletons,
+		LoadResult& loadResult,
+		entt::registry& registry
+	) const {
+		for (const auto& aiSkeleton : aiSkeletons) {
+			entt::entity skeletonEntity = registry.create();
+			std::span<aiSkeletonBone*> aiSkeletonBones(aiSkeleton->mBones, aiSkeleton->mNumBones);
+			for (const auto& aiSkeletonBone : aiSkeletonBones) {
+				//aiSkeletonBone.
+			}
+		}
+	}
+
+	void AssimpLoader::loadAnimations(
+		std::span<aiAnimation*> aiAnimations,
+		LoadResult& loadResult,
+		entt::registry& registry
+	) const {
+		for (const auto& aiAnimation : aiAnimations) {
+			entt::entity animationEntity = registry.create();
+			std::span<aiNodeAnim*> aiChannels(aiAnimation->mChannels, aiAnimation->mNumChannels);
+			for (const auto& aiChannel : aiChannels) {
+
+			}
+			std::span<aiMeshAnim*> aiMeshChannels(aiAnimation->mMeshChannels, aiAnimation->mNumMeshChannels);
+			for (const auto& aiMeshChannel : aiChannels) {
+
+			}
 		}
 	}
 
@@ -475,6 +518,7 @@ namespace drk::Loaders {
 				aiCamera->mPosition.z,
 				1.0f
 			};
+
 			auto relativeFront = glm::vec4{ aiCamera->mLookAt.x, aiCamera->mLookAt.y, aiCamera->mLookAt.z, 0.0f };
 			auto relativeUp = glm::vec4{ aiCamera->mUp.x, aiCamera->mUp.y, aiCamera->mUp.z, 0.0f };
 			auto perspective = glm::perspectiveZO(
@@ -486,6 +530,12 @@ namespace drk::Loaders {
 			perspective[1][1] *= -1.0f;
 
 			auto verticalFov = aiCamera->mHorizontalFOV / aiCamera->mAspect;
+
+
+			Spatials::Components::Spatial cameraSpatial{
+				.relativeScale = {1.0f, 1.0f, 1.0f, 1.0f},
+				.relativePosition = { aiCamera->mPosition.x, aiCamera->mPosition.y, aiCamera->mPosition.z, 1 },
+			};
 
 			Cameras::Components::Camera camera{
 				perspective,
@@ -518,6 +568,7 @@ namespace drk::Loaders {
 			auto entity = registry.create();
 			registry.emplace<Cameras::Components::Camera>(entity, camera);
 			registry.emplace<Frustums::Components::Frustum>(entity, cameraFrustum);
+			registry.emplace<Spatials::Components::Spatial>(entity, cameraSpatial);
 			cameraNameMap[cameraName] = entity;
 		}
 	}
@@ -577,9 +628,13 @@ namespace drk::Loaders {
 				spotlightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 0.0f);
 			}
 		}
-		auto cameraEntity = cameraMap.find(nodeName);
-		if (cameraEntity != cameraMap.end()) {
-			entity = cameraEntity->second;
+		auto cameraEntry = cameraMap.find(nodeName);
+		if (cameraEntry != cameraMap.end()) {
+			shouldEmplaceSpatial = false;
+			entity = cameraEntry->second;
+			auto& cameraSpatial = registry.get<Spatials::Components::Spatial>(entity);
+			cameraSpatial.relativeRotation = spatial.relativeRotation;
+			cameraSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 0.0f);
 		}
 
 		if (entity == entt::null) entity = registry.create();

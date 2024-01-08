@@ -8,7 +8,10 @@
 #include "../Pipelines/FrustumPipeline.hpp"
 #include "../Components/Draw.hpp"
 #include "../Components/HasDraw.hpp"
+#include "../../Spatials/Models/Spatial.hpp"
+#include "../../Spatials/Components/Spatial.hpp"
 #include "../Models/FrustumDraw.hpp"
+#include "../../Objects/Components/Dirty.hpp"
 
 namespace drk::Frustums::Systems {
 	FrustumSystem::FrustumSystem(
@@ -40,7 +43,7 @@ namespace drk::Frustums::Systems {
 	}
 	void FrustumSystem::createResources() {
 		glm::vec4 green = { 0.0, 1.0, 0.0, 1.0 };
-		std::vector<drk::Frustums::Models::Vertex> frustumVertices {
+		std::vector<drk::Frustums::Models::Vertex> frustumVertices{
 			{
 				.position = Models::FrustumVertex::Near | Models::FrustumVertex::Top | Models::FrustumVertex::Left,
 				.diffuseColor = green
@@ -98,39 +101,61 @@ namespace drk::Frustums::Systems {
 		auto& drawStore = frameState.getUniformStore<Models::FrustumDraw>();
 		const auto& frustumItemLocation = drawStore.get(drawIndex);
 
-		auto& frustumStoreItem = registry.get<Stores::StoreItem<Models::Frustum>>(draw.frustumEntity);
-		auto& cameraStoreItem = registry.get<Stores::StoreItem<Cameras::Models::Camera>>(engineState.cameraEntity);
+		const auto& [frustumStoreItem, spatial] = registry.get<
+			Stores::StoreItem<Models::Frustum>,
+			Stores::StoreItem<Spatials::Models::Spatial>
+		>(draw.frustumEntity);
+		const auto& cameraStoreItem = registry.get<Stores::StoreItem<Cameras::Models::Camera>>(engineState.cameraEntity);
 
 		auto frameIndex = engineState.getFrameIndex();
 		frustumItemLocation.pItem->frustumStoreItemLocation = frustumStoreItem.frameStoreItems[frameIndex];
+		frustumItemLocation.pItem->spatialStoreItemLocation = spatial.frameStoreItems[frameIndex];
 		frustumItemLocation.pItem->cameraStoreItemLocation = cameraStoreItem.frameStoreItems[frameIndex];
+	}
+	void FrustumSystem::processDirty()
+	{
+		auto dirtyItems = registry.view<
+			Frustums::Components::Frustum,
+			Spatials::Components::Spatial,
+			Objects::Components::Dirty<Spatials::Components::Spatial>
+		>();
+		dirtyItems.each([&](
+			entt::entity entity,
+			Frustums::Components::Frustum& frustum,
+			const Spatials::Components::Spatial& spatial
+			) {
+
+			});
 	}
 	void FrustumSystem::emitDraws() {
 		const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
-		const auto frustumEntities = registry.view<Components::Frustum>(entt::exclude<Components::HasDraw>);
+		const auto frustumEntities = registry.view<
+			Components::Frustum
+		>(entt::exclude<Components::HasDraw>);
 
 		frustumEntities.each([&](
 			entt::entity frustumEntity,
 			const Components::Frustum& frustum
-		) {
-			Scenes::Draws::SceneDraw draw = {
-				.drawSystem = this,
-				.pipelineTypeIndex = std::type_index(typeid(Pipelines::FrustumPipeline)),
-				.indexBufferView = indexBufferView,
-				.vertexBufferView = vertexBufferView,
-				.hasTransparency = false,
-				.depth = 0.0f,
-			};
-			Components::Draw Draw = {
-				.frustumEntity = frustumEntity,
-				.cameraEntity = engineState.cameraEntity
-			};
-			auto entity = registry.create();
-			registry.emplace_or_replace<Scenes::Draws::SceneDraw>(entity, std::move(draw));
-			registry.emplace_or_replace<Components::Draw>(entity, std::move(Draw));
-			registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(entity, engineState.getFrameCount());
+			) {
+				Scenes::Draws::SceneDraw draw = {
+					.drawSystem = this,
+					.pipelineTypeIndex = std::type_index(typeid(Pipelines::FrustumPipeline)),
+					.indexBufferView = indexBufferView,
+					.vertexBufferView = vertexBufferView,
+					.hasTransparency = false,
+					.depth = 0.0f,
+				};
+				Components::Draw Draw = {
+					.frustumEntity = frustumEntity,
+					.spatialEntity = frustumEntity,
+					.cameraEntity = engineState.cameraEntity,
+				};
+				auto entity = registry.create();
+				registry.emplace_or_replace<Scenes::Draws::SceneDraw>(entity, std::move(draw));
+				registry.emplace_or_replace<Components::Draw>(entity, std::move(Draw));
+				registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(entity, engineState.getFrameCount());
 
-			registry.emplace<Components::HasDraw>(frustumEntity);
-		});
+				registry.emplace<Components::HasDraw>(frustumEntity);
+			});
 	}
 }

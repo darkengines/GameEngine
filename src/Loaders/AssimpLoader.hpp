@@ -27,6 +27,16 @@ namespace drk::Loaders {
 			LoadResult& loadResult,
 			entt::registry& registry
 		) const;
+		void loadSkeletons(
+			std::span<aiSkeleton*> aiSkeletons,
+			LoadResult& loadResult,
+			entt::registry& registry
+		) const;
+		void loadAnimations(
+			std::span<aiAnimation*> aiAnimations,
+			LoadResult& loadResult,
+			entt::registry& registry
+		) const;
 		void loadLights(
 			std::span<aiLight*> aiLights,
 			std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightNameMap,

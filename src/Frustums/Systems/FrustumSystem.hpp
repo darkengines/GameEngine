@@ -23,6 +23,7 @@ namespace drk::Frustums::Systems {
 		~FrustumSystem();
 		void update(Models::Frustum& frustumModel, const Components::Frustum& frustumComponent) override;
 		void updateDraw(entt::entity drawEntity, int drawIndex) override;
+		void processDirty();
 		void emitDraws() override;
 		void createResources();
 	};
