@@ -1,4 +1,5 @@
 #include "FrustumSystem.hpp"
+#include <entt/entt.hpp>
 #include "../Models/FrustumVertex.hpp"
 #include "../Models/Vertex.hpp"
 #include "../../Scenes/Draws/SceneDraw.hpp"
@@ -28,6 +29,14 @@ namespace drk::Frustums::Systems {
 		frustumModel.nearPlane = frustumComponent.nearPlane;
 		frustumModel.bottomPlane = frustumComponent.bottomPlane;
 		frustumModel.topPlane = frustumComponent.topPlane;
+		frustumModel.leftTopNear = frustumComponent.leftTopNear;
+		frustumModel.rightTopNear = frustumComponent.rightTopNear;
+		frustumModel.leftBottomNear = frustumComponent.leftBottomNear;
+		frustumModel.rightBottomNear = frustumComponent.rightBottomNear;
+		frustumModel.leftTopFar = frustumComponent.leftTopFar;
+		frustumModel.rightTopFar = frustumComponent.rightTopFar;
+		frustumModel.leftBottomFar = frustumComponent.leftBottomFar;
+		frustumModel.rightBottomFar = frustumComponent.rightBottomFar;
 	}
 	void FrustumSystem::createResources() {
 		glm::vec4 green = { 0.0, 1.0, 0.0, 1.0 };
@@ -58,7 +67,7 @@ namespace drk::Frustums::Systems {
 				.diffuseColor = green
 			}
 		};
-		std::vector<uint32_t> frustumIndices{ 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
+		std::vector<uint32_t> frustumIndices{ 0, 1, 1, 3, 3, 2, 2, 0, 4, 5, 5, 7, 7, 6, 6, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
 		auto vertexUploadResult = Devices::Device::uploadBuffers<Models::Vertex>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
@@ -98,7 +107,7 @@ namespace drk::Frustums::Systems {
 	}
 	void FrustumSystem::emitDraws() {
 		const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
-		const auto frustumEntities = registry.view<Components::Frustum>();
+		const auto frustumEntities = registry.view<Components::Frustum>(entt::exclude<Components::HasDraw>);
 
 		frustumEntities.each([&](
 			entt::entity frustumEntity,

@@ -19,24 +19,26 @@ namespace drk::Frustums::Components {
 		const auto relativeFarCenter = front * far;
 		const auto nearCenter = position + relativeNearCenter;
 		const auto farCenter = position + relativeFarCenter;
-		const auto relativeTop = up * farHalfHeight;
-		const auto relativeRight = right * farHalfWidth;
+		const auto relativeFarTop = up * farHalfHeight;
+		const auto relativeFarRight = right * farHalfWidth;
+		const auto relativeNearTop = up * nearHalfHeight;
+		const auto relativeNearRight = right * nearHalfWidth;
 
 		Planes::Components::Plane farPlane{ farCenter, glm::normalize(-front) };
 		Planes::Components::Plane nearPlane{ nearCenter, glm::normalize(front) };
-		Planes::Components::Plane topPlane{ position, glm::normalize(GlmExtensions::cross(right, relativeFarCenter + relativeTop)) };
-		Planes::Components::Plane bottomPlane{ position, glm::normalize(GlmExtensions::cross(relativeFarCenter - relativeTop, right)) };
-		Planes::Components::Plane leftPlane{ position, glm::normalize(GlmExtensions::cross(relativeFarCenter + relativeRight, up)) };
-		Planes::Components::Plane rightPlane{ position, glm::normalize(GlmExtensions::cross(up, relativeFarCenter - relativeRight)) };
+		Planes::Components::Plane topPlane{ position, glm::normalize(GlmExtensions::cross(right, relativeFarCenter + relativeFarTop)) };
+		Planes::Components::Plane bottomPlane{ position, glm::normalize(GlmExtensions::cross(relativeFarCenter - relativeFarTop, right)) };
+		Planes::Components::Plane leftPlane{ position, glm::normalize(GlmExtensions::cross(relativeFarCenter + relativeFarRight, up)) };
+		Planes::Components::Plane rightPlane{ position, glm::normalize(GlmExtensions::cross(up, relativeFarCenter - relativeFarRight)) };
 
-		auto rightTopFar = farCenter + relativeTop + relativeRight;
-		auto leftTopFar = farCenter + relativeTop - relativeRight;
-		auto rightBottomFar = farCenter - relativeTop + relativeRight;
-		auto leftBottomFar = farCenter - relativeTop - relativeRight;
-		auto rightTopNear = nearCenter + relativeTop + relativeRight;
-		auto leftTopNear = nearCenter + relativeTop - relativeRight;
-		auto rightBottomNear = nearCenter - relativeTop + relativeRight;
-		auto leftBottomNear = nearCenter - relativeTop - relativeRight;
+		auto rightTopFar = farCenter + relativeFarTop + relativeFarRight;
+		auto leftTopFar = farCenter + relativeFarTop - relativeFarRight;
+		auto rightBottomFar = farCenter - relativeFarTop + relativeFarRight;
+		auto leftBottomFar = farCenter - relativeFarTop - relativeFarRight;
+		auto rightTopNear = nearCenter + relativeNearTop + relativeNearRight;
+		auto leftTopNear = nearCenter + relativeNearTop - relativeNearRight;
+		auto rightBottomNear = nearCenter - relativeNearTop + relativeNearRight;
+		auto leftBottomNear = nearCenter - relativeNearTop - relativeNearRight;
 
 		return {
 			.nearPlane = nearPlane,

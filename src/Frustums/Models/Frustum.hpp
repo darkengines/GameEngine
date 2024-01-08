@@ -11,5 +11,13 @@ namespace drk::Frustums::Models {
 		Planes::Models::Plane rightPlane;
 		Planes::Models::Plane topPlane;
 		Planes::Models::Plane bottomPlane;
+		glm::vec4 rightTopFar;
+		glm::vec4 leftTopFar;
+		glm::vec4 rightBottomFar;
+		glm::vec4 leftBottomFar;
+		glm::vec4 rightTopNear;
+		glm::vec4 leftTopNear;
+		glm::vec4 rightBottomNear;
+		glm::vec4 leftBottomNear;
 	};
 }

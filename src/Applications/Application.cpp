@@ -91,13 +91,13 @@ namespace drk::Applications {
 		std::vector<Loaders::LoadResult> loadResults;
 
 		auto defaultCamera = cameraSystem.createCamera(
-			glm::zero<glm::vec4>(),
+			{ 0.0f, 0.0f, 0.0f, 1.0f },
 			glm::vec4{ 1.0f, 0.0f, 0.0f, 0.0f },
 			glm::vec4{ 0.0f, 1.0f, 0.0f, 0.0f },
 			glm::radians(65.0f),
 			16.0f / 9.0f,
 			0.1f,
-			1000.0f
+			10.0f
 		);
 
 		flyCamController.Attach(defaultCamera);

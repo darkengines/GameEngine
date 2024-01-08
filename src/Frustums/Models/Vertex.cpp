@@ -5,7 +5,7 @@ namespace drk::Frustums::Models {
 	std::vector<vk::VertexInputBindingDescription> Vertex::getBindingDescriptions() {
 		vk::VertexInputBindingDescription bindingDescription = {
 			.binding = 0,
-			.stride = sizeof(FrustumVertex),
+			.stride = sizeof(Vertex),
 			.inputRate = vk::VertexInputRate::eVertex
 		};
 

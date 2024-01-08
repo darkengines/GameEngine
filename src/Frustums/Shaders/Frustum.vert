@@ -73,7 +73,7 @@ void main() {
             break;
         }
         case (Far | Bottom | Right): {
-            gl_Position = frustum.rightBottomFar;
+            position = frustum.rightBottomFar;
             break;
         }
     }
@@ -81,6 +81,6 @@ void main() {
 
     drawItemLocation = StoreItemLocation(frustumDrawBufferIndex, drawItemIndex);
 
-    fragment.position = position;
+    fragment.position = gl_Position;
     fragment.color = inColor;
 }
