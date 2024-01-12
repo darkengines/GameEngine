@@ -7,18 +7,30 @@
 #include "../../Devices/BufferViewState.hpp"
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Devices/Device.hpp"
+#include "../../Engine/EngineState.hpp"
+#include "../../Engine/DescriptorSetAllocator.hpp"
+#include "../../Engine/DescriptorSetLayoutCache.hpp"
 
 namespace drk::Animations::Systems {
 	class AnimationSystem {
 	protected:
 		entt::registry& registry;
 		Devices::DeviceContext& deviceContext;
+		Engine::EngineState& engineState;
 		std::vector<Devices::Buffer> buffers;
+		Engine::DescriptorSetAllocator& descriptorSetAllocator;
+		Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache;
 	public:
 		AnimationSystem(
 			entt::registry& registry,
-			Devices::DeviceContext& deviceContext
-		) : registry(registry), deviceContext(deviceContext) {}
+			Devices::DeviceContext& deviceContext,
+			Engine::EngineState& engineState
+		) :
+			registry(registry),
+			deviceContext(deviceContext),
+			engineState(engineState),
+			descriptorSetAllocator(descriptorSetAllocator),
+			descriptorSetLayoutCache(descriptorSetLayoutCache) {}
 		~AnimationSystem() {
 			for (const auto buffer : buffers) {
 				Devices::Device::destroyBuffer(deviceContext.Allocator, buffer);
@@ -54,6 +66,11 @@ namespace drk::Animations::Systems {
 			for (const auto& bufferViewState : bufferUploadResult.bufferViewStates) {
 				registry.emplace<Components::AnimationVertexBufferView>(bufferViewState.state, bufferViewState.bufferView);
 			}
+			vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
+				.
+			}
+			descriptorSetLayoutCache.get()
+			descriptorSetAllocator.allocateDescriptorSets()
 		}
 	};
 }
