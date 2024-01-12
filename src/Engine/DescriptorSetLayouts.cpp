@@ -49,6 +49,32 @@ namespace drk::Engine {
 		return descriptorSetLayoutCache.get(descriptorSetLayoutCreateInfo);
 	}
 	vk::DescriptorSetLayout
+		DescriptorSetLayouts::CreateSkinningBufferDescriptorSetLayout(DescriptorSetLayoutCache& descriptorSetLayoutCache) {
+
+		auto bindFlags =
+			vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateAfterBind;
+
+		vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo = {
+			.bindingCount = 1u,
+			.pBindingFlags = &bindFlags
+		};
+
+		vk::DescriptorSetLayoutBinding binding = {
+			.binding = 0,
+			.descriptorType = vk::DescriptorType::eStorageBuffer,
+			.descriptorCount = 64,
+			.stageFlags = vk::ShaderStageFlagBits::eCompute
+		};
+		vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+			.pNext = &extendedInfo,
+			.flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool,
+			.bindingCount = 1,
+			.pBindings = &binding,
+		};
+
+		return descriptorSetLayoutCache.get(descriptorSetLayoutCreateInfo);
+	}
+	vk::DescriptorSetLayout
 	DescriptorSetLayouts::CreateTextureDescriptorSetLayout(DescriptorSetLayoutCache& descriptorSetLayoutCache) {
 
 		auto bindFlags =

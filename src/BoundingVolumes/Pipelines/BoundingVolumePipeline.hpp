@@ -2,10 +2,10 @@
 #include "../../Devices/Device.hpp"
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
-#include "../../Pipelines/Pipeline.hpp"
+#include "../../Pipelines/GraphicsPipeline.hpp"
 
 namespace drk::BoundingVolumes::Pipelines {
-	class BoundingVolumePipeline : public drk::Pipelines::Pipeline {
+	class BoundingVolumePipeline : public drk::Pipelines::GraphicsPipeline {
 	public:
 		BoundingVolumePipeline(
 			const Devices::DeviceContext& deviceContext,

@@ -2,10 +2,10 @@
 #include "../../Devices/Device.hpp"
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
-#include "../../Pipelines/Pipeline.hpp"
+#include "../../Pipelines/GraphicsPipeline.hpp"
 
 namespace drk::Frustums::Pipelines {
-	class FrustumPipeline : public drk::Pipelines::Pipeline {
+	class FrustumPipeline : public drk::Pipelines::GraphicsPipeline {
 	public:
 		FrustumPipeline(
 			const Devices::DeviceContext& deviceContext,

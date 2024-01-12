@@ -2,10 +2,10 @@
 #include "../../Devices/Device.hpp"
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
-#include "../../Pipelines/Pipeline.hpp"
+#include "../../Pipelines/GraphicsPipeline.hpp"
 
 namespace drk::Points::Pipelines {
-	class PointPrimitivePipeline : public drk::Pipelines::Pipeline {
+	class PointPrimitivePipeline : public drk::Pipelines::GraphicsPipeline {
 	public:
 		PointPrimitivePipeline(
 			const Devices::DeviceContext& deviceContext,

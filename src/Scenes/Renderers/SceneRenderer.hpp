@@ -36,7 +36,7 @@ namespace drk::Scenes::Renderers {
 		std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer;
 		Lights::Systems::ShadowMappingSystem& shadowMappingSystem;
 		vk::RenderPass renderPass;
-		std::unordered_map<std::type_index, Pipelines::Pipeline*> pipelines;
+		std::unordered_map<std::type_index, Pipelines::GraphicsPipeline*> pipelines;
 	public:
 		SceneRenderer(
 			const Devices::DeviceContext& deviceContext,
@@ -58,7 +58,7 @@ namespace drk::Scenes::Renderers {
 		);
 		void setTargetExtent(vk::Extent3D extent2D);
 	protected:
-		Pipelines::Pipeline* getPipeline(std::type_index pipelineTypeIndex);
+		Pipelines::GraphicsPipeline* getPipeline(std::type_index pipelineTypeIndex);
 		void createFramebufferResources();
 		void destroyFramebufferResources();
 		void createFramebuffers();
@@ -71,13 +71,13 @@ namespace drk::Scenes::Renderers {
 			const vk::CommandBuffer& commandBuffer,
 			int instanceCount,
 			int firstInstance,
-			Pipelines::Pipeline const* pPipeline
+			Pipelines::GraphicsPipeline const* pPipeline
 		);
 		void doOperations(
 			const vk::CommandBuffer& commandBuffer,
 			drk::Renderers::RenderOperation sceneRenderOperation,
 			const Draws::SceneDraw& sceneDraw,
-			Pipelines::Pipeline const** ppPipeline
+			Pipelines::GraphicsPipeline const** ppPipeline
 		);
 	};
 }

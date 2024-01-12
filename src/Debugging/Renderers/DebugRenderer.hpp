@@ -19,7 +19,7 @@ namespace drk::Debugging::Renderers {
 		std::vector<vk::ImageView> targetImageViews;
 		std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline> boundingVolumePipeline;
 		vk::RenderPass renderPass;
-		std::unordered_map<std::type_index, Pipelines::Pipeline*> pipelines;
+		std::unordered_map<std::type_index, Pipelines::GraphicsPipeline*> pipelines;
 	public:
 		DebugRenderer(
 			const Devices::DeviceContext& deviceContext,
@@ -35,7 +35,7 @@ namespace drk::Debugging::Renderers {
 		);
 		void setTargetExtent(vk::Extent3D extent2D);
 	protected:
-		Pipelines::Pipeline* getPipeline(std::type_index pipelineTypeIndex);
+		Pipelines::GraphicsPipeline* getPipeline(std::type_index pipelineTypeIndex);
 		void createFramebufferResources();
 		void destroyFramebufferResources();
 		void createFramebuffers();
@@ -48,13 +48,13 @@ namespace drk::Debugging::Renderers {
 			const vk::CommandBuffer& commandBuffer,
 			int instanceCount,
 			int firstInstance,
-			Pipelines::Pipeline const* pPipeline
+			Pipelines::GraphicsPipeline const* pPipeline
 		);
 		void doOperations(
 			const vk::CommandBuffer& commandBuffer,
 			drk::Renderers::RenderOperation sceneRenderOperation,
 			const Components::DebugDraw& sceneDraw,
-			Pipelines::Pipeline const** ppPipeline
+			Pipelines::GraphicsPipeline const** ppPipeline
 		);
 	};
 }

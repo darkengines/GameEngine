@@ -16,7 +16,7 @@ namespace drk::Scenes::Renderers {
 		destroyFramebuffers();
 		destroyRenderPass();
 	}
-	Pipelines::Pipeline* ShadowSceneRenderer::getPipeline(std::type_index pipelineTypeIndex) {
+	Pipelines::GraphicsPipeline* ShadowSceneRenderer::getPipeline(std::type_index pipelineTypeIndex) {
 		if (std::type_index(typeid(Meshes::Pipelines::ShadowMeshPipeline)) == pipelineTypeIndex) return meshShadowPipeline.get();
 		throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
 	}
@@ -153,7 +153,7 @@ namespace drk::Scenes::Renderers {
 		std::map<std::type_index, int> pipelineDrawIndices;
 		pipelineDrawIndices[std::type_index(typeid(meshShadowPipeline))] = 0;
 		bool isFirst = true;
-		Pipelines::Pipeline const* pCurrentPipeline;
+		Pipelines::GraphicsPipeline const* pCurrentPipeline;
 
 		draws.each(
 			[&](entt::entity drawEntity, const Draws::ShadowSceneDraw& sceneDraw) {
@@ -221,7 +221,7 @@ namespace drk::Scenes::Renderers {
 		const vk::CommandBuffer& commandBuffer,
 		int instanceCount,
 		int firstInstance,
-		Pipelines::Pipeline const* pPipeline
+		Pipelines::GraphicsPipeline const* pPipeline
 	) {
 		auto bufferInfo = pPipeline->getBufferInfo(registry, previousDrawEntity);
 		commandBuffer.drawIndexed(
@@ -236,7 +236,7 @@ namespace drk::Scenes::Renderers {
 		const vk::CommandBuffer& commandBuffer,
 		drk::Renderers::RenderOperation sceneRenderOperation,
 		const Draws::ShadowSceneDraw& sceneDraw,
-		Pipelines::Pipeline const** ppPipeline
+		Pipelines::GraphicsPipeline const** ppPipeline
 	) {
 		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindPipeline) == drk::Renderers::RenderOperation::BindPipeline) {
 			const auto& pipeline = getPipeline(sceneDraw.pipelineTypeIndex);

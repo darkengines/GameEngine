@@ -15,16 +15,10 @@ namespace drk::Engine {
 
 		DescriptorSetLayouts(DescriptorSetLayoutCache& descriptorSetLayoutCache);
 
-		static vk::DescriptorSetLayout
-		CreateEmptyDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
-
-		static vk::DescriptorSetLayout
-		CreateGlobalDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
-
-		static vk::DescriptorSetLayout
-		CreateStoreDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
-
-		static vk::DescriptorSetLayout
-		CreateTextureDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
+		static vk::DescriptorSetLayout CreateEmptyDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
+		static vk::DescriptorSetLayout CreateGlobalDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
+		static vk::DescriptorSetLayout CreateStoreDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
+		static vk::DescriptorSetLayout CreateTextureDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
+		static vk::DescriptorSetLayout CreateSkinningBufferDescriptorSetLayout(DescriptorSetLayoutCache& descriptorSetLayoutCache);
 	};
 }

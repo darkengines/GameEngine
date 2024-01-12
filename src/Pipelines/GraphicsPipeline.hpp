@@ -8,7 +8,7 @@
 #include <entt/entity/fwd.hpp>
 
 namespace drk::Pipelines {
-	class Pipeline {
+	class GraphicsPipeline {
 	public:
 		virtual void bind(const vk::CommandBuffer& commandBuffer) = 0;
 		virtual void destroyPipeline() = 0;

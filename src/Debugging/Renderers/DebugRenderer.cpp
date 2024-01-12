@@ -18,7 +18,7 @@ namespace drk::Debugging::Renderers {
 		destroyRenderPass();
 		destroyFramebufferResources();
 	}
-	Pipelines::Pipeline* DebugRenderer::getPipeline(std::type_index pipelineTypeIndex) {
+	Pipelines::GraphicsPipeline* DebugRenderer::getPipeline(std::type_index pipelineTypeIndex) {
 		auto keyValuePair = pipelines.find(pipelineTypeIndex);
 		if (keyValuePair == pipelines.end()) throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
 		return keyValuePair->second;
@@ -282,7 +282,7 @@ namespace drk::Debugging::Renderers {
 			pipelineDrawIndices[pipeline.first] = 0;
 		}
 		bool isFirst = true;
-		Pipelines::Pipeline const* pCurrentPipeline;
+		Pipelines::GraphicsPipeline const* pCurrentPipeline;
 
 		draws.each(
 			[&](entt::entity drawEntity, const Components::DebugDraw& debugDraw) {
@@ -346,7 +346,7 @@ namespace drk::Debugging::Renderers {
 		const vk::CommandBuffer& commandBuffer,
 		int instanceCount,
 		int firstInstance,
-		Pipelines::Pipeline const* pPipeline
+		Pipelines::GraphicsPipeline const* pPipeline
 	) {
 		auto bufferInfo = pPipeline->getBufferInfo(registry, previousDrawEntity);
 		commandBuffer.drawIndexed(
@@ -361,7 +361,7 @@ namespace drk::Debugging::Renderers {
 		const vk::CommandBuffer& commandBuffer,
 		drk::Renderers::RenderOperation sceneRenderOperation,
 		const Components::DebugDraw& debugDraw,
-		Pipelines::Pipeline const** ppPipeline
+		Pipelines::GraphicsPipeline const** ppPipeline
 	) {
 		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindPipeline) == drk::Renderers::RenderOperation::BindPipeline) {
 			const auto& pipeline = getPipeline(debugDraw.pipelineTypeIndex);

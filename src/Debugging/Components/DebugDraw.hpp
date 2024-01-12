@@ -1,4 +1,4 @@
-#include "../../Pipelines/Pipeline.hpp"
+#include "../../Pipelines/GraphicsPipeline.hpp"
 #include "../../Devices/BufferView.hpp"
 #include "../../Draws/Systems/DrawSystem.hpp"
 #include <typeindex>

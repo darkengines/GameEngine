@@ -13,6 +13,26 @@ file(
     src/GlmExtensions.hpp
     src/implemantations.hpp
     src/system.hpp
+    src/Animations/Systems/VertexWeightSystem.hpp
+    src/Animations/Systems/AnimationSystem.hpp
+    src/Animations/Components/AnimationState.hpp
+    src/Animations/Components/AnimationVertexBufferView.hpp
+    src/Animations/Components/Animation.hpp
+    src/Animations/Components/AnimationBehavior.hpp
+    src/Animations/Components/NodeAnimation.hpp
+    src/Animations/Components/Bone.hpp
+    src/Animations/Components/VertexWeight.hpp
+    src/Animations/Components/QuatKey.hpp
+    src/Animations/Components/VectorKey.hpp
+    src/Animations/Models/Animation.hpp
+    src/Animations/Models/AnimationBehavior.hpp
+    src/Animations/Models/NodeAnimation.hpp
+    src/Animations/Models/Bone.hpp
+    src/Animations/Models/VertexWeight.hpp
+    src/Animations/Models/QuatKey.hpp
+    src/Animations/Models/VectorKey.hpp
+    src/Animations/Systems/BoneSystem.hpp
+    src/Animations/Pipelines/SkinningPipeline.hpp
     src/Applications/Application.hpp
     src/Applications/Extentions.hpp
     src/BoundingVolumes/Extensions.hpp
@@ -40,7 +60,9 @@ file(
     src/Debugging/Renderers/DebugRenderer.hpp
     src/Devices/Buffer.hpp
     src/Devices/BufferUploadResult.hpp
+    src/Devices/BufferStateUploadResult.hpp
     src/Devices/BufferView.hpp
+    src/Devices/BufferViewState.hpp
     src/Devices/Device.hpp
     src/Devices/DeviceContext.hpp
     src/Devices/DeviceImageInfo.hpp
@@ -140,7 +162,8 @@ file(
     src/Objects/Models/ObjectMesh.hpp
     src/Objects/Systems/ObjectMeshSystem.hpp
     src/Objects/Systems/ObjectSystem.hpp
-    src/Pipelines/Pipeline.hpp
+    src/Pipelines/ComputePipeline.hpp
+    src/Pipelines/GraphicsPipeline.hpp
     src/Planes/Components/Plane.hpp
     src/Planes/Models/Plane.hpp
     src/Planes/Systems/PlaneSystem.hpp
@@ -193,6 +216,8 @@ file(
     GLOB SOURCES
     src/GlmExtensions.cpp
     src/main.cpp
+    src/Animations/Systems/BoneSystem.cpp
+    src/Animations/Pipelines/SkinningPipeline.cpp
     src/Applications/Application.cpp
     src/Applications/Application.UserInterface.cpp
     src/BoundingVolumes/Components/AxisAlignedBoundingBox.cpp
@@ -267,6 +292,8 @@ file(
     src/UserInterfaces/UserInterface.cpp
     src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp
     src/Windows/Window.cpp
+    src/Animations/Systems/VertexWeightSystem.cpp
+    src/Animations/Systems/AnimationSystem.cpp
 )
 
 file(
@@ -283,6 +310,7 @@ file(
     "src/BoundingVolumes/Shaders/BoundingVolume.frag"
     "src/Frustums/Shaders/Frustum.vert"
     "src/Frustums/Shaders/Frustum.frag"
+    "src/Animations/Shaders/Skinning.comp"
 )
 
 foreach (GLSL ${GLSL_SOURCES})

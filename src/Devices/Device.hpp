@@ -9,9 +9,11 @@
 #include "SwapChainSupportDetails.hpp"
 #include "VulkanLogicalDeviceInfo.hpp"
 #include "BufferView.hpp"
+#include "BufferViewState.hpp"
 #include "Texture.hpp"
 #include "Swapchain.hpp"
 #include "BufferUploadResult.hpp"
+#include "BufferStateUploadResult.hpp"
 #include <algorithm>
 #include <numeric>
 #include <iostream>
@@ -233,6 +235,68 @@ namespace drk::Devices {
 			return BufferUploadResult{
 				.buffer = buffer,
 				.bufferViews = bufferViews
+			};
+		}
+
+		template<typename TState>
+		static BufferStateUploadResult<TState> cloneBufferViews(
+			const vk::PhysicalDevice& physicalDevice,
+			const vk::Device& device,
+			const vk::Queue& queue,
+			const vk::CommandPool& commandPool,
+			const VmaAllocator& allocator,
+			const std::vector<BufferViewState<TState>>& sourceBufferViews,
+			vk::BufferUsageFlags memoryUsage
+		) {
+			const auto sourceBufferViewCount = sourceBufferViews.size();
+			const auto& properties = physicalDevice.getMemoryProperties();
+			
+			vk::DeviceSize bufferByteLength = std::accumulate(
+				sourceBufferViews.begin(), sourceBufferViews.end(), 0, [](size_t totalBytes, const auto& bufferView) {
+					return totalBytes + bufferView.bufferView.byteLength;
+				}
+			);
+			vk::DeviceSize bufferByteLength = bufferByteLength;
+
+			VmaAllocationCreateInfo allocationCreationInfo = {
+				.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
+			};
+			auto destinationBuffer = Device::createBuffer(
+				allocator,
+				vk::MemoryPropertyFlagBits::eDeviceLocal,
+				memoryUsage | vk::BufferUsageFlagBits::eTransferDst,
+				allocationCreationInfo,
+				bufferByteLength
+			);
+
+			std::vector<BufferViewState<TState>> destinationBufferViewStates(sourceBufferViewCount);
+
+			VkDeviceSize writtenByteLength = 0;
+			uint32_t bufferViewIndex = 0;
+			for (const auto& sourceBufferView : sourceBufferViews) {
+				Device::copyBuffer(
+					device,
+					queue,
+					commandPool,
+					sourceBufferView.buffer,
+					destinationBuffer,
+					writtenByteLength,
+					sourceBufferView.byteOffset,
+					sourceBufferView.byteLength
+				);
+				auto& destinationBufferViewState = destinationBufferViewStates[bufferViewIndex];
+				destinationBufferViewState.bufferView.buffer = destinationBuffer;
+				destinationBufferViewState.bufferView.byteLength = sourceBufferView.byteLength;
+				destinationBufferViewState.bufferView.byteOffset = writtenByteLength;
+				destinationBufferViewState.state = sourceBufferView.state;
+
+				writtenByteLength += sourceBufferView.byteLength;
+				bufferViewIndex++;
+			}
+
+			return BufferStateUploadResult<TState>{
+				.buffer = destinationBuffer,
+				.bufferViewStates = std::move(destinationBufferViewStates)
 			};
 		}
 

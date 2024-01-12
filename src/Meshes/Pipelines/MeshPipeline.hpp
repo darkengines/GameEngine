@@ -3,10 +3,10 @@
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
 #include "../Models/MeshDraw.hpp"
-#include "../../Pipelines/Pipeline.hpp"
+#include "../../Pipelines/GraphicsPipeline.hpp"
 
 namespace drk::Meshes::Pipelines {
-	class MeshPipeline : public drk::Pipelines::Pipeline {
+	class MeshPipeline : public drk::Pipelines::GraphicsPipeline {
 	public:
 		MeshPipeline(
 			const Devices::DeviceContext& deviceContext,

@@ -8,6 +8,7 @@
 #include <glm/vec3.hpp>
 #include "LoadResult.hpp"
 #include "../Engine/EngineState.hpp"
+#include "../Animations/Components/AnimationBehavior.hpp"
 
 namespace drk::Loaders {
 	class AssimpLoader {
@@ -25,7 +26,8 @@ namespace drk::Loaders {
 		void loadMeshes(
 			std::span<aiMesh*> aiMeshes,
 			LoadResult& loadResult,
-			entt::registry& registry
+			entt::registry& registry,
+			std::unordered_map<std::string, entt::entity>& aiBonePtrBoneEntityMap
 		) const;
 		void loadSkeletons(
 			std::span<aiSkeleton*> aiSkeletons,
@@ -49,15 +51,18 @@ namespace drk::Loaders {
 			entt::registry& registry
 		) const;
 		entt::entity loadNode(
-			const aiNode* aiNode,
+			const aiNode* assimpNode,
 			const std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightMap,
 			const std::unordered_map<std::string, entt::entity>& cameraMap,
+			const std::unordered_map<std::string, entt::entity>& aiBonePtrBoneEntityMap,
 			LoadResult& loadResult,
 			entt::registry& registry,
 			int depth = 0
 		) const;
 
 		static glm::vec3& toVector(const aiVector3D& aiVector);
+		static glm::vec4 toVector4(const aiVector3D& aiVector, float w);
 		static std::unordered_map<aiTextureType, Textures::TextureType> TextureTypeMap;
+		static std::unordered_map<aiAnimBehaviour, Animations::Components::AnimationBehavior> animationBehaviorMap;
 	};
 }

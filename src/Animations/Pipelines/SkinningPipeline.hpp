@@ -2,28 +2,27 @@
 #include "../../Devices/Device.hpp"
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
-#include "../Models/ShadowMeshDraw.hpp"
-#include "../../Pipelines/GraphicsPipeline.hpp"
+#include "../../Pipelines/ComputePipeline.hpp"
 
-namespace drk::Meshes::Pipelines {
-	class ShadowMeshPipeline : public drk::Pipelines::GraphicsPipeline {
+namespace drk::Skinnings::Pipelines {
+	class SkinningPipeline : public drk::Pipelines::ComputePipeline {
 	public:
-		ShadowMeshPipeline(
+		SkinningPipeline(
 			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
 			const Engine::DescriptorSetLayouts& descriptorSetLayouts
 		);
-		~ShadowMeshPipeline();
+		~SkinningPipeline();
 
 		void bind(const vk::CommandBuffer& commandBuffer);
-		void configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configure);
-		Draws::Components::DrawVertexBufferInfo getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const;
+		void configure(std::function<void(vk::ComputePipelineCreateInfo&)> configure);
+		//Draws::Components::DrawVertexBufferInfo getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const;
 		void destroyPipeline();
 
 	protected:
 		const Devices::DeviceContext& deviceContext;
 		const Engine::EngineState& engineState;
-		vk::ShaderModule mainVertexShaderModule;
+		vk::ShaderModule skinningShaderModule;
 		vk::ShaderModule mainFragmentShaderModule;
 		vk::Pipeline pipeline;
 		std::array<vk::DescriptorSetLayout, 4> descriptorSetLayouts;
@@ -32,7 +31,7 @@ namespace drk::Meshes::Pipelines {
 		void createShaderModules();
 		void destroyShaderModules();
 
-		void createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo);
+		void createPipeline(const vk::ComputePipelineCreateInfo& graphicPipelineCreateInfo);
 
 		static vk::PipelineLayout createPipelineLayout(
 			const Devices::DeviceContext& deviceContext,

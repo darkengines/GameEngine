@@ -43,7 +43,7 @@ namespace drk::Scenes::Renderers {
 		destroyRenderPass();
 		destroyFramebufferResources();
 	}
-	Pipelines::Pipeline* SceneRenderer::getPipeline(std::type_index pipelineTypeIndex) {
+	Pipelines::GraphicsPipeline* SceneRenderer::getPipeline(std::type_index pipelineTypeIndex) {
 		auto keyValuePair = pipelines.find(pipelineTypeIndex);
 		if (keyValuePair == pipelines.end()) throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
 		return keyValuePair->second;
@@ -309,7 +309,7 @@ namespace drk::Scenes::Renderers {
 			pipelineDrawIndices[pipeline.first] = 0;
 		}
 		bool isFirst = true;
-		Pipelines::Pipeline const* pCurrentPipeline;
+		Pipelines::GraphicsPipeline const* pCurrentPipeline;
 
 		draws.each(
 			[&](entt::entity drawEntity, const Draws::SceneDraw& sceneDraw) {
@@ -373,7 +373,7 @@ namespace drk::Scenes::Renderers {
 		const vk::CommandBuffer& commandBuffer,
 		int instanceCount,
 		int firstInstance,
-		Pipelines::Pipeline const* pPipeline
+		Pipelines::GraphicsPipeline const* pPipeline
 	) {
 		auto bufferInfo = pPipeline->getBufferInfo(registry, previousDrawEntity);
 		commandBuffer.drawIndexed(
@@ -388,7 +388,7 @@ namespace drk::Scenes::Renderers {
 		const vk::CommandBuffer& commandBuffer,
 		drk::Renderers::RenderOperation sceneRenderOperation,
 		const Draws::SceneDraw& sceneDraw,
-		Pipelines::Pipeline const** ppPipeline
+		Pipelines::GraphicsPipeline const** ppPipeline
 	) {
 		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindPipeline) == drk::Renderers::RenderOperation::BindPipeline) {
 			const auto& pipeline = getPipeline(sceneDraw.pipelineTypeIndex);

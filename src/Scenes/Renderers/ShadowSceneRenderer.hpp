@@ -39,7 +39,7 @@ namespace drk::Scenes::Renderers {
 		);
 		void setTargetExtent(vk::Extent3D extent2D);
 	protected:
-		Pipelines::Pipeline* getPipeline(std::type_index pipelineTypeIndex);
+		Pipelines::GraphicsPipeline* getPipeline(std::type_index pipelineTypeIndex);
 		void createFramebuffers();
 		void destroyFramebuffers();
 		void createRenderPass();
@@ -50,13 +50,13 @@ namespace drk::Scenes::Renderers {
 			const vk::CommandBuffer& commandBuffer,
 			int instanceCount,
 			int firstInstance,
-			Pipelines::Pipeline const* pPipeline
+			Pipelines::GraphicsPipeline const* pPipeline
 		);
 		void doOperations(
 			const vk::CommandBuffer& commandBuffer,
 			drk::Renderers::RenderOperation sceneRenderOperation,
 			const Draws::ShadowSceneDraw& sceneDraw,
-			Pipelines::Pipeline const** ppPipeline
+			Pipelines::GraphicsPipeline const** ppPipeline
 		);
 	};
 }
