@@ -45,7 +45,7 @@ namespace drk::Meshes::Pipelines {
 	Draws::Components::DrawVertexBufferInfo ShadowMeshPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
 		const auto& meshDraw = registry.get<Components::ShadowMeshDraw>(drawEntity);
 		Draws::Components::DrawVertexBufferInfo bufferInfo{
-			meshDraw.meshResource->indices.size(),
+			static_cast<uint32_t>(meshDraw.meshResource->indices.size()),
 			static_cast<uint32_t>(meshDraw.meshBufferView.IndexBufferView.byteOffset / sizeof(VertexIndex)),
 			static_cast<int32_t>(meshDraw.meshBufferView.VertexBufferView.byteOffset / sizeof(Vertex))
 		};

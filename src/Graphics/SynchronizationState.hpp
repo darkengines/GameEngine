@@ -27,31 +27,6 @@ namespace drk::Graphics {
 			return !Stores[frameIndex];
 		}
 
-		template<typename ...TComponents>
-		static void update(
-			entt::registry& registry,
-			uint32_t frameIndex,
-			std::function<void(TModel& model, const TComponents& ...)> updater
-		) {
-			auto entities =
-				registry.view<Stores::StoreItem<TModel>, SynchronizationState<TModel>, TComponents...>();
-			entities.each(
-				[&registry, &frameIndex, &updater](
-					const auto entity,
-					const auto& storeItem,
-					auto& synchronizationState,
-					const TComponents& ...
-					components
-				) {
-					if (!synchronizationState.Update(frameIndex)) {
-						registry.remove<SynchronizationState<TModel>>(entity);
-					}
-					auto model = storeItem.frameStoreItems[frameIndex].pItem;
-					updater(*model, components...);
-				}
-			);
-		}
-
 		bool Update(uint32_t index) {
 			if (!Stores[index]) {
 				Stores[index] = true;
@@ -63,4 +38,29 @@ namespace drk::Graphics {
 		uint32_t RemainingCount;
 		std::vector<bool> Stores;
 	};
+
+	template<typename TModel, typename ...TComponents>
+	static void update(
+		entt::registry& registry,
+		uint32_t frameIndex,
+		std::function<void(TModel& model, const TComponents& ...)> updater
+	) {
+		auto entities =
+			registry.view<Stores::StoreItem<TModel>, SynchronizationState<TModel>, TComponents...>();
+		entities.each(
+			[&registry, &frameIndex, &updater](
+				const auto entity,
+				const auto& storeItem,
+				auto& synchronizationState,
+				const TComponents& ...
+				components
+				) {
+					if (!synchronizationState.Update(frameIndex)) {
+						registry.remove<SynchronizationState<TModel>>(entity);
+					}
+					auto model = storeItem.frameStoreItems[frameIndex].pItem;
+					updater(*model, components...);
+			}
+		);
+	}
 }

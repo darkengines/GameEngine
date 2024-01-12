@@ -212,7 +212,7 @@ namespace drk::Loaders {
 			const std::span<aiBone*> aiBones(aiMesh->mBones, aiMesh->mNumBones);
 			for (const auto& aiBone : aiBones) {
 				entt::entity boneEntity = registry.create();
-				aiBone.
+				//aiBone.
 			}
 
 			std::vector<uint32_t> indices(aiMesh->mNumFaces * 3);

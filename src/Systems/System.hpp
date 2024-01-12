@@ -31,10 +31,10 @@ namespace drk::Systems {
 			}
 		}
 		void updateStore() {
-			auto updater = [this](TModel& model, const TComponents&... components) {
+			std::function<void(TModel& model, const TComponents& ...)> updater = [this](TModel& model, const TComponents&... components) {
 				this->update(model, components...);
 				};
-			Graphics::SynchronizationState<TModel>::template update<TComponents...>(
+			Graphics::update<TModel, TComponents...>(
 				registry,
 				engineState.getFrameIndex(),
 				updater
