@@ -2,6 +2,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include "../Loaders/AssimpLoader.hpp"
+#include "../Animations/Systems/AnimationSystem.hpp"
 #include "../Devices/DeviceContext.hpp"
 #include "../Lights/Systems/LightSystem.hpp"
 #include "../Lights/Systems/PointLightSystem.hpp"
@@ -63,6 +64,7 @@ namespace drk::Applications {
 			Lights::Systems::DirectionalLightSystem&,
 			Lights::Systems::SpotlightSystem&,
 			Lights::Systems::LightPerspectiveSystem&,
+			Animations::Systems::AnimationSystem&,
 			UserInterfaces::AssetExplorer&
 		> ;
 
@@ -95,6 +97,7 @@ namespace drk::Applications {
 			Lights::Systems::DirectionalLightSystem& directionalLightSystem,
 			Lights::Systems::SpotlightSystem& spotlightSystem,
 			Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
+			Animations::Systems::AnimationSystem& animationSystem,
 			UserInterfaces::AssetExplorer& assetExplorer
 		);
 		~Application();
@@ -130,6 +133,7 @@ namespace drk::Applications {
 		Lights::Systems::DirectionalLightSystem& directionalLightSystem;
 		Lights::Systems::SpotlightSystem& spotlightSystem;
 		Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem;
+		Animations::Systems::AnimationSystem& animationSystem;
 		entt::entity selectedEntity = entt::null;
 		UserInterfaces::AssetExplorer& assetExplorer;
 

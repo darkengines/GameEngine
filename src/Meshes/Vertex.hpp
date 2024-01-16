@@ -3,7 +3,6 @@
 #include "../system.hpp"
 #include <glm/glm.hpp>
 #include <vector>
-#define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.hpp>
 
 namespace drk::Meshes {

@@ -1,7 +1,5 @@
 #pragma once
 
-#define VULKAN_HPP_NO_CONSTRUCTORS
-
 #include "../Textures/ImageInfo.hpp"
 #include "Image.hpp"
 #include "../Common/ComponentIndex.hpp"

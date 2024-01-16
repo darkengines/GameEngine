@@ -1,5 +1,3 @@
-#define VULKAN_HPP_NO_CONSTRUCTORS
-
 #include <vulkan/vulkan.hpp>
 #include "EngineState.hpp"
 #include <utility>
@@ -89,63 +87,8 @@ namespace drk::Engine {
 	}
 
 	EngineState::~EngineState() {
-		for (const auto buffer: buffers) {
-			deviceContext.DestroyBuffer(buffer);
-		}
 		deviceContext.device.destroySampler(textureSampler);
 		deviceContext.device.destroySampler(shadowTextureSampler);
-	}
-
-	MeshUploadResult EngineState::uploadMeshes(const std::vector<std::shared_ptr<Meshes::Components::MeshResource>>& meshInfos) {
-		std::vector<std::span<Meshes::Vertex>> vertices(meshInfos.size());
-		std::vector<std::span<Meshes::VertexIndex>> indices(meshInfos.size());
-		std::transform(
-			meshInfos.begin(), meshInfos.end(), vertices.data(), [](std::shared_ptr<Meshes::Components::MeshResource> mesh) {
-				return std::span{mesh->vertices.data(), mesh->vertices.size()};
-			}
-		);
-		std::transform(
-			meshInfos.begin(), meshInfos.end(), indices.data(), [](std::shared_ptr<Meshes::Components::MeshResource> mesh) {
-				return std::span{mesh->indices.data(), mesh->indices.size()};
-			}
-		);
-		auto vertexBufferUploadResult = Devices::Device::uploadBuffers(
-			deviceContext.PhysicalDevice,
-			deviceContext.device,
-			deviceContext.GraphicQueue,
-			deviceContext.CommandPool,
-			deviceContext.Allocator,
-			vertices,
-			vk::BufferUsageFlagBits::eVertexBuffer
-		);
-		auto indexBufferUploadResult = Devices::Device::uploadBuffers(
-			deviceContext.PhysicalDevice,
-			deviceContext.device,
-			deviceContext.GraphicQueue,
-			deviceContext.CommandPool,
-			deviceContext.Allocator,
-			indices,
-			vk::BufferUsageFlagBits::eIndexBuffer
-		);
-
-		MeshUploadResult result = {
-			.indexBuffer = indexBufferUploadResult.buffer,
-			.vertexBuffer = vertexBufferUploadResult.buffer
-		};
-
-		buffers.push_back(indexBufferUploadResult.buffer);
-		buffers.push_back(vertexBufferUploadResult.buffer);
-
-		for (auto meshInfoIndex = 0u; meshInfoIndex < meshInfos.size(); meshInfoIndex++) {
-			result.meshes.push_back(
-				Meshes::Components::MeshBufferView{
-					.IndexBufferView = indexBufferUploadResult.bufferViews[meshInfoIndex],
-					.VertexBufferView = vertexBufferUploadResult.bufferViews[meshInfoIndex],
-				}
-			);
-		}
-
-		return result;
 	}
 
 	vk::Sampler EngineState::GetDefaultTextureSampler() const { return textureSampler; }

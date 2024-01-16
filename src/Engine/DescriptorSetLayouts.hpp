@@ -1,7 +1,6 @@
 
 #pragma once
 
-#define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.hpp>
 #include "DescriptorSetLayoutCache.hpp"
 
@@ -19,6 +18,5 @@ namespace drk::Engine {
 		static vk::DescriptorSetLayout CreateGlobalDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
 		static vk::DescriptorSetLayout CreateStoreDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
 		static vk::DescriptorSetLayout CreateTextureDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
-		static vk::DescriptorSetLayout CreateSkinningBufferDescriptorSetLayout(DescriptorSetLayoutCache& descriptorSetLayoutCache);
 	};
 }

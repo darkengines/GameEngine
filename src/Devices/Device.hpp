@@ -1,5 +1,5 @@
 #pragma once
-#define VULKAN_HPP_NO_CONSTRUCTORS
+
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 
@@ -22,33 +22,33 @@ namespace drk::Devices {
 	class Device {
 	public:
 		static bool checkDeviceExtensionSupport(
-			const vk::PhysicalDevice &device,
-			const std::vector<const char *> &requiredExtensions
+			const vk::PhysicalDevice& device,
+			const std::vector<const char*>& requiredExtensions
 		);
 
-		static QueueFamilyIndices findQueueFamilies(const vk::PhysicalDevice &device, const vk::SurfaceKHR &surface);
+		static QueueFamilyIndices findQueueFamilies(const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface);
 
 		static SwapChainSupportDetails
-		querySwapChainSupport(const vk::PhysicalDevice &device, const vk::SurfaceKHR &surface);
+			querySwapChainSupport(const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface);
 
-		static vk::SampleCountFlagBits getMaxSampleCount(const vk::PhysicalDevice &device);
+		static vk::SampleCountFlagBits getMaxSampleCount(const vk::PhysicalDevice& device);
 
 		static bool isDeviceSuitable(
-			const vk::PhysicalDevice &device, const vk::SurfaceKHR &surface,
-			const std::vector<const char *> &requiredExtensions
+			const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface,
+			const std::vector<const char*>& requiredExtensions
 		);
 
 		static vk::PhysicalDevice pickPhysicalDevice(
-			const vk::Instance &instance, const vk::SurfaceKHR &surface,
-			const std::vector<const char *> &requiredExtensions
+			const vk::Instance& instance, const vk::SurfaceKHR& surface,
+			const std::vector<const char*>& requiredExtensions
 		);
 
 		static VulkanLogicalDeviceInfo createLogicalDevice(
-			const vk::PhysicalDevice &physicalDevice,
-			const vk::SurfaceKHR &surface,
-			const std::vector<const char *> &requiredExtensions,
+			const vk::PhysicalDevice& physicalDevice,
+			const vk::SurfaceKHR& surface,
+			const std::vector<const char*>& requiredExtensions,
 			bool enableValidationLayers,
-			const std::vector<const char *> &requiredLayers
+			const std::vector<const char*>& requiredLayers
 		);
 
 		static vk::Format findDepthFormat(vk::PhysicalDevice physicalDevice);
@@ -61,84 +61,84 @@ namespace drk::Devices {
 		);
 
 		static VmaAllocator createAllocator(
-			const vk::Instance &instance,
-			const vk::PhysicalDevice &physicalDevice,
-			const vk::Device &device
+			const vk::Instance& instance,
+			const vk::PhysicalDevice& physicalDevice,
+			const vk::Device& device
 		);
 
 		static Buffer createVmaBuffer(
 			const VmaAllocator allocator,
 			const vk::BufferUsageFlags usage,
-			const VmaAllocationCreateInfo *pAllocationCreationInfo,
+			const VmaAllocationCreateInfo* pAllocationCreationInfo,
 			vk::DeviceSize size
 		);
 
 		static Buffer createBuffer(
-			const VmaAllocator &allocator,
+			const VmaAllocator& allocator,
 			vk::MemoryPropertyFlags properties,
 			vk::BufferUsageFlags usage,
-			const VmaAllocationCreateInfo &pAllocationCreationInfo,
+			const VmaAllocationCreateInfo& pAllocationCreationInfo,
 			vk::DeviceSize size
 		);
 
-		static void destroyVmaBuffer(const VmaAllocator &allocator, Buffer buffer);
+		static void destroyVmaBuffer(const VmaAllocator& allocator, Buffer buffer);
 
-		static void destroyBuffer(const VmaAllocator &allocator, const Buffer &buffer);
+		static void destroyBuffer(const VmaAllocator& allocator, const Buffer& buffer);
 
-		static void mapBuffer(const VmaAllocator &allocator, const Buffer &buffer, void **memory);
+		static void mapBuffer(const VmaAllocator& allocator, const Buffer& buffer, void** memory);
 
-		static void unmapBuffer(const VmaAllocator &allocator, const Buffer &buffer);
+		static void unmapBuffer(const VmaAllocator& allocator, const Buffer& buffer);
 
 		static void copyBuffer(
-			const vk::Device &device,
-			const vk::Queue &queue,
-			const vk::CommandPool &commandPool,
-			const Buffer &source,
-			const Buffer &destination,
+			const vk::Device& device,
+			const vk::Queue& queue,
+			const vk::CommandPool& commandPool,
+			const Buffer& source,
+			const Buffer& destination,
 			size_t sourceOffset,
 			size_t destinationOffset,
 			size_t length
 		);
 
 		static void copyBufferToImage(
-			const vk::CommandBuffer &commandBuffer,
-			const Devices::Buffer &source,
-			const vk::Image &destination,
-			const vk::BufferImageCopy &region
+			const vk::CommandBuffer& commandBuffer,
+			const Devices::Buffer& source,
+			const vk::Image& destination,
+			const vk::BufferImageCopy& region
 		);
 
-		static vk::CommandBuffer beginSingleTimeCommands(const vk::Device &device, const vk::CommandPool &commandPool);
+		static vk::CommandBuffer beginSingleTimeCommands(const vk::Device& device, const vk::CommandPool& commandPool);
 
 		static void endSingleTimeCommands(
-			const vk::Device &device,
-			const vk::Queue &queue,
-			const vk::CommandPool &commandPool,
-			const vk::CommandBuffer &commandBuffer
+			const vk::Device& device,
+			const vk::Queue& queue,
+			const vk::CommandPool& commandPool,
+			const vk::CommandBuffer& commandBuffer
 		);
 
 		template<typename TBuffer>
 		static BufferUploadResult uploadBuffers(
-			const vk::PhysicalDevice &physicalDevice,
-			const vk::Device &device,
-			const vk::Queue &queue,
-			const vk::CommandPool &commandPool,
-			const VmaAllocator &allocator,
+			const vk::PhysicalDevice& physicalDevice,
+			const vk::Device& device,
+			const vk::Queue& queue,
+			const vk::CommandPool& commandPool,
+			const VmaAllocator& allocator,
 			std::vector<std::span<TBuffer>> buffers,
-			vk::BufferUsageFlagBits memoryUsage
+			vk::BufferUsageFlags memoryUsage
 		) {
 			const auto bufferCount = buffers.size();
-			const auto &properties = physicalDevice.getMemoryProperties();
+			const auto& properties = physicalDevice.getMemoryProperties();
 			const auto stagingMemoryTypeIterator = std::find_if(
 				properties.memoryTypes.begin(),
 				properties.memoryTypes.end(),
-				[](const auto &memoryType) {
+				[](const auto& memoryType) {
 					return memoryType.propertyFlags & vk::MemoryPropertyFlagBits::eHostVisible;
 				}
-			); 
+			);
 			const auto stagingMemoryHeap = properties.memoryHeaps[stagingMemoryTypeIterator->heapIndex];
 			const auto itemSize = sizeof(TBuffer);
 			vk::DeviceSize bufferLength = std::accumulate(
-				buffers.begin(), buffers.end(), 0, [](size_t totalBytes, const auto &buffer) {
+				buffers.begin(), buffers.end(), 0, [](size_t totalBytes, const auto& buffer) {
 					return totalBytes + buffer.size();
 				}
 			);
@@ -159,7 +159,7 @@ namespace drk::Devices {
 			VmaAllocationCreateInfo stagingAllocationCreationInfo = {
 				.flags = VmaAllocationCreateFlagBits::VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
 				.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
-				.requiredFlags = (VkMemoryPropertyFlags) (vk::MemoryPropertyFlagBits::eHostVisible |
+				.requiredFlags = (VkMemoryPropertyFlags)(vk::MemoryPropertyFlagBits::eHostVisible |
 														  vk::MemoryPropertyFlagBits::eHostCoherent),
 			};
 			auto stagingBuffer = Device::createBuffer(
@@ -170,7 +170,7 @@ namespace drk::Devices {
 				stagingBufferByteLength
 			);
 
-			char *mappedStagingBufferMemory;
+			char* mappedStagingBufferMemory;
 			vmaMapMemory(allocator, stagingBuffer.allocation, (void**)&mappedStagingBufferMemory);
 
 			vk::DeviceSize remainingBufferByteLength = bufferByteLength;
@@ -210,7 +210,8 @@ namespace drk::Devices {
 							currentBufferByteOffset = 0;
 							currentBufferRemainingByteLength = currentBufferByteLength;
 						}
-					} else {
+					}
+					else {
 						currentBufferByteOffset += writableByteLength;
 					}
 				}
@@ -238,25 +239,25 @@ namespace drk::Devices {
 			};
 		}
 
-		template<typename TState>
-		static BufferStateUploadResult<TState> cloneBufferViews(
+		static void duplicateBufferViews(
 			const vk::PhysicalDevice& physicalDevice,
 			const vk::Device& device,
 			const vk::Queue& queue,
 			const vk::CommandPool& commandPool,
 			const VmaAllocator& allocator,
-			const std::vector<BufferViewState<TState>>& sourceBufferViews,
+			const std::vector<BufferView>& sourceBufferViews,
+			std::vector<Devices::BufferView>& destinationBufferViews,
+			std::vector<Devices::Buffer>& destinationBuffers,
 			vk::BufferUsageFlags memoryUsage
 		) {
 			const auto sourceBufferViewCount = sourceBufferViews.size();
 			const auto& properties = physicalDevice.getMemoryProperties();
-			
+
 			vk::DeviceSize bufferByteLength = std::accumulate(
 				sourceBufferViews.begin(), sourceBufferViews.end(), 0, [](size_t totalBytes, const auto& bufferView) {
-					return totalBytes + bufferView.bufferView.byteLength;
+					return totalBytes + bufferView.byteLength;
 				}
 			);
-			vk::DeviceSize bufferByteLength = bufferByteLength;
 
 			VmaAllocationCreateInfo allocationCreationInfo = {
 				.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
@@ -269,10 +270,9 @@ namespace drk::Devices {
 				bufferByteLength
 			);
 
-			std::vector<BufferViewState<TState>> destinationBufferViewStates(sourceBufferViewCount);
-
 			VkDeviceSize writtenByteLength = 0;
 			uint32_t bufferViewIndex = 0;
+
 			for (const auto& sourceBufferView : sourceBufferViews) {
 				Device::copyBuffer(
 					device,
@@ -284,47 +284,43 @@ namespace drk::Devices {
 					sourceBufferView.byteOffset,
 					sourceBufferView.byteLength
 				);
-				auto& destinationBufferViewState = destinationBufferViewStates[bufferViewIndex];
-				destinationBufferViewState.bufferView.buffer = destinationBuffer;
-				destinationBufferViewState.bufferView.byteLength = sourceBufferView.byteLength;
-				destinationBufferViewState.bufferView.byteOffset = writtenByteLength;
-				destinationBufferViewState.state = sourceBufferView.state;
+
+				auto& destinationBufferView = destinationBufferViews[bufferViewIndex];
+				destinationBufferView.buffer = destinationBuffer;
+				destinationBufferView.byteLength = sourceBufferView.byteLength;
+				destinationBufferView.byteOffset = writtenByteLength;
 
 				writtenByteLength += sourceBufferView.byteLength;
 				bufferViewIndex++;
 			}
-
-			return BufferStateUploadResult<TState>{
-				.buffer = destinationBuffer,
-				.bufferViewStates = std::move(destinationBufferViewStates)
-			};
+			destinationBuffers.push_back(destinationBuffer);
 		}
 
 		static Image createImage(
-			const VmaAllocator &allocator,
+			const VmaAllocator& allocator,
 			const vk::ImageCreateInfo imageCreationInfo,
 			vk::MemoryPropertyFlags properties
 		);
 
 		static Image createVmaImage(
-			const VmaAllocator &allocator,
-			const vk::ImageCreateInfo &imageCreationInfo,
-			const VmaAllocationCreateInfo &allocationCreationInfo
+			const VmaAllocator& allocator,
+			const vk::ImageCreateInfo& imageCreationInfo,
+			const VmaAllocationCreateInfo& allocationCreationInfo
 		);
 
 		static void destroyVmaImage(
-			const VmaAllocator &allocator,
-			const Image &image
+			const VmaAllocator& allocator,
+			const Image& image
 		);
 
 		static void destroyImage(
-			const vk::Device &device,
-			const VmaAllocator &allocator,
-			const Image &image
+			const vk::Device& device,
+			const VmaAllocator& allocator,
+			const Image& image
 		);
 
 		static vk::Sampler createSampler(
-			const vk::Device &device,
+			const vk::Device& device,
 			vk::SamplerCreateFlags flags,
 			vk::Filter magFilter,
 			vk::Filter minFilter,
@@ -342,33 +338,33 @@ namespace drk::Devices {
 			vk::Bool32 unnormalizedCoordinates
 		);
 
-		static void destroySampler(const vk::Device &device, const vk::Sampler &sampler);
+		static void destroySampler(const vk::Device& device, const vk::Sampler& sampler);
 
 		static vk::SurfaceFormatKHR
-		chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats);
+			chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
 
 		static vk::PresentModeKHR
-		chooseSwapPresentMode(const std::vector<vk::PresentModeKHR> &availablePresentModes);
+			chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes);
 
 		static vk::Extent2D
-		chooseSwapExtent(vk::Extent2D extent, const vk::SurfaceCapabilitiesKHR &capabilities);
+			chooseSwapExtent(vk::Extent2D extent, const vk::SurfaceCapabilitiesKHR& capabilities);
 
 		static Swapchain createSwapchain(
-			const vk::Device &swapchainImage,
-			const vk::PhysicalDevice &physicalDevice,
-			const vk::SurfaceKHR &surface,
-			const vk::Extent2D &extent
+			const vk::Device& swapchainImage,
+			const vk::PhysicalDevice& physicalDevice,
+			const vk::SurfaceKHR& surface,
+			const vk::Extent2D& extent
 		);
 
-		static void destroySwapchain(const vk::Device &device, const Swapchain &swapchain);
+		static void destroySwapchain(const vk::Device& device, const Swapchain& swapchain);
 
-		static vk::ShaderModule createShaderModules(const vk::Device &device, uint32_t codeSize, const uint32_t *pCode);
+		static vk::ShaderModule createShaderModules(const vk::Device& device, uint32_t codeSize, const uint32_t* pCode);
 
-		static void destroyShaderModule(const vk::Device &device, const vk::ShaderModule &shaderModule);
+		static void destroyShaderModule(const vk::Device& device, const vk::ShaderModule& shaderModule);
 
 		static vk::Instance createInstance(
-			const std::vector<const char *> &requiredInstanceExtensions,
-			const std::vector<const char *> &requiredLayers
+			const std::vector<const char*>& requiredInstanceExtensions,
+			const std::vector<const char*>& requiredLayers
 		);
 
 		static bool hasStencilComponent(vk::Format format) {
@@ -376,8 +372,8 @@ namespace drk::Devices {
 		}
 
 		static void transitionLayout(
-			const vk::CommandBuffer &commandBuffer,
-			const vk::Image &image,
+			const vk::CommandBuffer& commandBuffer,
+			const vk::Image& image,
 			vk::Format format,
 			vk::ImageLayout oldLayout,
 			vk::ImageLayout newLayout,
@@ -385,8 +381,8 @@ namespace drk::Devices {
 		);
 
 		static void generatedMipmaps(
-			const vk::CommandBuffer &commandBuffer,
-			const vk::Image &image,
+			const vk::CommandBuffer& commandBuffer,
+			const vk::Image& image,
 			int32_t width,
 			int32_t height,
 			uint32_t mipLevels

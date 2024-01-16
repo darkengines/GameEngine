@@ -38,6 +38,7 @@ namespace drk::Applications {
 		Lights::Systems::DirectionalLightSystem& directionalLightSystem,
 		Lights::Systems::SpotlightSystem& spotlightSystem,
 		Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
+		Animations::Systems::AnimationSystem& animationSystem,
 		UserInterfaces::AssetExplorer& assetExplorer
 	)
 		: window(window),
@@ -68,6 +69,7 @@ namespace drk::Applications {
 		directionalLightSystem(directionalLightSystem),
 		spotlightSystem(spotlightSystem),
 		lightPerspectiveSystem(lightPerspectiveSystem),
+		animationSystem(animationSystem),
 		windowExtent(window.GetExtent()),
 		assetExplorer(assetExplorer) {
 		//ImGui::GetIO().IniFilename = NULL;
@@ -349,6 +351,8 @@ namespace drk::Applications {
 				//Resources to GPU
 				textureSystem.UploadTextures();
 				meshSystem.uploadMeshes();
+				animationSystem.storeMeshes();
+				animationSystem.uploadVertexWeights();
 
 				//Resources to GPU
 				materialSystem.store();

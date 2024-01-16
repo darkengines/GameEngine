@@ -10,7 +10,6 @@
 #include "DescriptorSetLayoutCache.hpp"
 #include "DescriptorSetAllocator.hpp"
 #include "../Meshes/Components/MeshResource.hpp"
-#include "MeshUploadResult.hpp"
 #include "../Graphics/SynchronizationState.hpp"
 #include "../Devices/Device.hpp"
 #include <entt/entt.hpp>
@@ -36,7 +35,6 @@ namespace drk::Engine {
 		const vk::Sampler shadowTextureSampler;
 		uint32_t frameCount = FRAME_COUNT;
 		uint32_t frameIndex = 0;
-		std::vector<Devices::Buffer> buffers;
 
 		static vk::Sampler CreateTextureSampler(const Devices::DeviceContext& deviceContext);
 		static vk::Sampler CreateShadowTextureSampler(const Devices::DeviceContext& deviceContext);
@@ -68,7 +66,6 @@ namespace drk::Engine {
 
 		Devices::Texture UploadTexture(const Textures::ImageInfo* const imageInfo);
 		std::vector<Devices::Texture> UploadTextures(std::vector<const Textures::ImageInfo*> imageInfos);
-		MeshUploadResult uploadMeshes(const std::vector<std::shared_ptr<Meshes::Components::MeshResource>>& meshInfos);
 
 		template<typename T>
 		Stores::StoreItem<T> GetStoreItem() {

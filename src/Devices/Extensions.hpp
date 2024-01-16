@@ -1,7 +1,5 @@
 #pragma once
 
-#define VULKAN_HPP_NO_CONSTRUCTORS
-
 #include <boost/di.hpp>
 #include "DeviceContext.hpp"
 #include "../Configuration/Extensions.hpp"

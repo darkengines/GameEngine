@@ -1,4 +1,6 @@
 #include "../Animations/Components/Animation.hpp"
+#include "../Animations/Components/MeshAnimation.hpp"
+#include "../Animations/Components/AnimationState.hpp"
 #include "../Animations/Components/Bone.hpp"
 #include "../Animations/Components/VectorKey.hpp"
 #include "../Animations/Components/QuatKey.hpp"
@@ -226,6 +228,7 @@ namespace drk::Loaders {
 			for (const aiAnimMesh* aiAnimMesh : aiMeshAnims) {
 			}
 			if (aiMesh->HasBones()) {
+				registry.emplace<Animations::Components::MeshAnimation>(meshEntity);
 				const std::span<aiBone*> aiBones(aiMesh->mBones, aiMesh->mNumBones);
 				for (const auto& aiBone : aiBones) {
 					entt::entity boneEntity = registry.create();
@@ -257,18 +260,8 @@ namespace drk::Loaders {
 					Animations::Components::Bone bone{
 						.spatialOffset = std::move(boneSpatial)
 					};
-					bone.weightEntities.resize(aiBone->mNumWeights);
-					for (const auto& aiVertexWeight : aiVertexWeights) {
-						auto weightEntity = registry.create();
-						registry.emplace<Animations::Components::VertexWeight>(
-							weightEntity, 
-							boneEntity, 
-							meshEntity, 
-							aiVertexWeight.mVertexId, 
-							aiVertexWeight.mWeight
-						);
-						bone.weightEntities.push_back(weightEntity);
-					}
+					bone.weights.resize(aiBone->mNumWeights);
+					memcpy(bone.weights.data(), (Animations::Components::VertexWeight*)aiBone->mWeights, aiBone->mNumWeights * sizeof(Animations::Components::VertexWeight));
 					registry.emplace<Animations::Components::Bone>(boneEntity, std::move(bone));
 				}
 			}
@@ -753,6 +746,9 @@ namespace drk::Loaders {
 				auto& aiMesh = assimpNode->mMeshes[meshIndex];
 				auto meshEntity = loadResult.meshIdEntityMap[assimpNode->mMeshes[meshIndex]];
 				auto objectMeshEntity = registry.create();
+				if (registry.any_of<Animations::Components::MeshAnimation>(meshEntity)) {
+					registry.emplace<Animations::Components::AnimationState>(objectMeshEntity, entt::null, 0.0f);
+				}
 				registry.emplace<Objects::Components::ObjectMesh>(objectMeshEntity, entity, meshEntity);
 				auto meshAABB = registry.get<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity);
 				auto instanceAABB = meshAABB.transform(spatial.absoluteModel);
@@ -761,7 +757,6 @@ namespace drk::Loaders {
 					.parent = entity,
 					.depth = depth + 1
 				};
-
 				registry.emplace<BoundingVolumes::Components::AxisAlignedBoundingBox>(objectMeshEntity, meshAABB);
 				registry.emplace<Objects::Components::Relationship>(objectMeshEntity, std::move(objectMeshRelationship));
 

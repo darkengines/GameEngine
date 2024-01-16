@@ -1,9 +1,10 @@
 #pragma once
 
-#include "../Devices/Buffer.hpp"
-#include "../Meshes/Components/MeshBufferView.hpp"
+#include <vector>
+#include "../../Devices/Buffer.hpp"
+#include "../../Meshes/Components/MeshBufferView.hpp"
 
-namespace drk::Engine {
+namespace drk::Meshes::Resources {
 	struct MeshUploadResult {
 		Devices::Buffer indexBuffer;
 		Devices::Buffer vertexBuffer;

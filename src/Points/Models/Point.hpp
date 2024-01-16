@@ -1,6 +1,5 @@
 #pragma once
 
-#define VULKAN_HPP_NO_CONSTRUCTORS
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <vector>

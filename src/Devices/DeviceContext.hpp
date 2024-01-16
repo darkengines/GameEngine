@@ -1,6 +1,5 @@
 #pragma once
 
-#define VULKAN_HPP_NO_CONSTRUCTORS
 #include "Buffer.hpp"
 #include "Texture.hpp"
 #include "../Configuration/Extensions.hpp"

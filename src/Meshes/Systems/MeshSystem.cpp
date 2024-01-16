@@ -30,12 +30,13 @@ namespace drk::Meshes::Systems {
 		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
 		entt::registry& registry,
-		Graphics::GlobalSystem& globalSystem
+		Graphics::GlobalSystem& globalSystem,
+		Resources::MeshResourceManager& meshResourceManager
 	) : System(engineState, registry),
 		deviceContext(deviceContext),
 		globalSystem(globalSystem),
-		cameraChangedConnection(globalSystem.cameraChanged.connect([&](entt::entity entity) { onCameraChanged(entity); })) {
-	}
+		cameraChangedConnection(globalSystem.cameraChanged.connect([&](entt::entity entity) { onCameraChanged(entity); })),
+		meshResourceManager(meshResourceManager) {}
 	MeshSystem::~MeshSystem()
 	{
 		cameraChangedConnection.disconnect();
@@ -64,7 +65,7 @@ namespace drk::Meshes::Systems {
 			}
 		);
 		if (!meshes.empty()) {
-			const auto result = engineState.uploadMeshes(meshes);
+			const auto result = meshResourceManager.uploadMeshes(meshes);
 			for (auto meshIndex = 0u; meshIndex < processedMeshEntities.size(); meshIndex++) {
 				registry.emplace<Components::MeshBufferView>(
 					processedMeshEntities[meshIndex],

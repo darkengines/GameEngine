@@ -4,6 +4,6 @@
 
 namespace drk::Animations::Components {
 	struct AnimationVertexBufferView {
-		Devices::BufferView VertexBufferView;
+		Devices::BufferView vertexBufferView;
 	};
 }

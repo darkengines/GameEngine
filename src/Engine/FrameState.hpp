@@ -1,7 +1,5 @@
 #pragma once
 
-#define VULKAN_HPP_NO_CONSTRUCTORS
-
 #include <typeindex>
 #include <unordered_map>
 #include <vulkan/vulkan.hpp>

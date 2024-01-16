@@ -1,4 +1,7 @@
+#pragma once
+#include "../Resources/AnimationResourceManager.hpp"
 #include <entt/entt.hpp>
+#include <utility>
 #include "../../Objects/Components/ObjectMesh.hpp"
 #include "../Components/AnimationState.hpp"
 #include "../Components/AnimationVertexBufferView.hpp"
@@ -10,6 +13,8 @@
 #include "../../Engine/EngineState.hpp"
 #include "../../Engine/DescriptorSetAllocator.hpp"
 #include "../../Engine/DescriptorSetLayoutCache.hpp"
+#include "../Components/Bone.hpp"
+#include "../Components/VertexWeightBufferView.hpp"
 
 namespace drk::Animations::Systems {
 	class AnimationSystem {
@@ -20,17 +25,20 @@ namespace drk::Animations::Systems {
 		std::vector<Devices::Buffer> buffers;
 		Engine::DescriptorSetAllocator& descriptorSetAllocator;
 		Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache;
+		Animations::Resources::AnimationResourceManager& animationResourceManager;
 	public:
 		AnimationSystem(
 			entt::registry& registry,
 			Devices::DeviceContext& deviceContext,
-			Engine::EngineState& engineState
+			Engine::EngineState& engineState,
+			Animations::Resources::AnimationResourceManager& animationResourceManager
 		) :
 			registry(registry),
 			deviceContext(deviceContext),
 			engineState(engineState),
 			descriptorSetAllocator(descriptorSetAllocator),
-			descriptorSetLayoutCache(descriptorSetLayoutCache) {}
+			descriptorSetLayoutCache(descriptorSetLayoutCache),
+			animationResourceManager(animationResourceManager) {}
 		~AnimationSystem() {
 			for (const auto buffer : buffers) {
 				Devices::Device::destroyBuffer(deviceContext.Allocator, buffer);
@@ -40,8 +48,9 @@ namespace drk::Animations::Systems {
 			auto view = registry.view<
 				Objects::Components::ObjectMesh,
 				Components::AnimationState
-			>(entt::exclude<Components::AnimationVertexBufferView>);
-			std::vector<Devices::BufferViewState<entt::entity>> meshBufferViews;
+			>(entt::exclude<Components::SkinnedBufferView>);
+			std::vector<Devices::BufferView> vertexBufferViews;
+			std::vector<entt::entity> entities;
 			view.each([&](
 				entt::entity objectMeshEntity,
 				const Objects::Components::ObjectMesh& objectMesh,
@@ -51,26 +60,37 @@ namespace drk::Animations::Systems {
 						Meshes::Components::Mesh,
 						Meshes::Components::MeshBufferView
 					>(objectMesh.meshEntity);
-					meshBufferViews.emplace_back(meshBufferView.VertexBufferView, objectMeshEntity);
+					vertexBufferViews.emplace_back(meshBufferView.VertexBufferView);
+					entities.emplace_back(objectMeshEntity);
 				});
-			auto bufferUploadResult = Devices::Device::cloneBufferViews(
-				deviceContext.PhysicalDevice,
-				deviceContext.device,
-				deviceContext.GraphicQueue,
-				deviceContext.CommandPool,
-				deviceContext.Allocator,
-				meshBufferViews,
-				vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst
+			if (entities.size() > 0) {
+				const auto& skinnedBufferViews = animationResourceManager.createSkinnedMesh(entities, vertexBufferViews);
+
+				for (const auto& skinnedBufferView : skinnedBufferViews) {
+					registry.emplace<Components::SkinnedBufferView>(skinnedBufferView.second, skinnedBufferView.first);
+				}
+			}
+		}
+
+		void uploadVertexWeights() {
+			auto boneEntities = registry.view<Components::Bone>(entt::exclude<Components::VertexWeightBufferView>);
+			std::vector<entt::entity> processedBoneEntities;
+			std::vector<std::vector<Components::VertexWeight>> vertexWeights;
+			boneEntities.each(
+				[&vertexWeights, &processedBoneEntities](const auto boneEntities, const auto& bone) {
+					processedBoneEntities.push_back(boneEntities);
+					vertexWeights.push_back(bone.weights);
+				}
 			);
-			buffers.push_back(bufferUploadResult.buffer);
-			for (const auto& bufferViewState : bufferUploadResult.bufferViewStates) {
-				registry.emplace<Components::AnimationVertexBufferView>(bufferViewState.state, bufferViewState.bufferView);
+			if (!vertexWeights.empty()) {
+				const auto& result = animationResourceManager.createVertexWeightBuffers(vertexWeights);
+				for (auto boneIndex = 0u; boneIndex < processedBoneEntities.size(); boneIndex++) {
+					registry.emplace<Components::VertexWeightBufferView>(
+						processedBoneEntities[boneIndex],
+						result[boneIndex]
+					);
+				}
 			}
-			vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
-				.
-			}
-			descriptorSetLayoutCache.get()
-			descriptorSetAllocator.allocateDescriptorSets()
 		}
 	};
 }

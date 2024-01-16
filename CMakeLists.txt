@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
-
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E environment
+)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+
+add_compile_definitions(VULKAN_HPP_NO_CONSTRUCTORS)
 project(drk CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -9,12 +13,17 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(dependencies)
 file(
     GLOB HEADERS
+    src/Buffers/Resources/BufferResourceManager.hpp
     src/Extensions.hpp
     src/GlmExtensions.hpp
     src/implemantations.hpp
     src/system.hpp
+    src/Animations/Extensions.hpp
+    src/Animations/Resources/AnimationResourceManager.hpp
+    src/Animations/Resources/AnimationFrameResource.hpp
     src/Animations/Systems/VertexWeightSystem.hpp
     src/Animations/Systems/AnimationSystem.hpp
+    src/Animations/Components/SkinnedBufferView.hpp
     src/Animations/Components/AnimationState.hpp
     src/Animations/Components/AnimationVertexBufferView.hpp
     src/Animations/Components/Animation.hpp
@@ -22,6 +31,7 @@ file(
     src/Animations/Components/NodeAnimation.hpp
     src/Animations/Components/Bone.hpp
     src/Animations/Components/VertexWeight.hpp
+    src/Animations/Components/VertexWeightBufferView.hpp
     src/Animations/Components/QuatKey.hpp
     src/Animations/Components/VectorKey.hpp
     src/Animations/Models/Animation.hpp
@@ -86,7 +96,6 @@ file(
     src/Engine/EngineState.hpp
     src/Engine/Extensions.hpp
     src/Engine/FrameState.hpp
-    src/Engine/MeshUploadResult.hpp
     src/Engine/Models/Global.hpp
     src/Frustums/Components/Frustum.hpp
     src/Frustums/Models/Frustum.hpp
@@ -149,9 +158,11 @@ file(
     src/Meshes/Models/ShadowMeshDraw.hpp
     src/Meshes/Pipelines/MeshPipeline.hpp
     src/Meshes/Pipelines/ShadowMeshPipeline.hpp
+    src/Meshes/Resources/MeshResourceManager.hpp
     src/Meshes/Systems/MeshShadowSystem.hpp
     src/Meshes/Systems/MeshSystem.hpp
     src/Meshes/Systems/MeshSystemOperation.hpp
+    src/Meshes/Resources/MeshUploadResult.hpp
     src/Objects/Extensions.hpp
     src/Objects/Components/Dirty.hpp
     src/Objects/Components/Object.hpp
@@ -210,14 +221,19 @@ file(
     src/Windows/Extensions.hpp
     src/Windows/Window.hpp
     src/Windows/WindowConfiguration.hpp
+    src/Resources/ResourceManager.hpp
+    src/Resources/Configuration/ResourcesConfiguration.hpp
 )
 
 file(
     GLOB SOURCES
+    src/Resources/ResourceManager.cpp
     src/GlmExtensions.cpp
     src/main.cpp
     src/Animations/Systems/BoneSystem.cpp
     src/Animations/Pipelines/SkinningPipeline.cpp
+    src/Animations/Resources/AnimationResourceManager.cpp
+    src/Animations/Resources/AnimationFrameResource.cpp
     src/Applications/Application.cpp
     src/Applications/Application.UserInterface.cpp
     src/BoundingVolumes/Components/AxisAlignedBoundingBox.cpp
@@ -294,6 +310,7 @@ file(
     src/Windows/Window.cpp
     src/Animations/Systems/VertexWeightSystem.cpp
     src/Animations/Systems/AnimationSystem.cpp
+    src/Resources/Configuration/ResourcesConfiguration.cpp
 )
 
 file(
@@ -319,7 +336,7 @@ foreach (GLSL ${GLSL_SOURCES})
     add_custom_command(
         OUTPUT ${SPIRV}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/shaders/spv/"
-        COMMAND glslc -g --target-env=vulkan1.3 ${GLSL} -o ${SPIRV}
+        COMMAND $ENV{VULKAN_SDK}/Bin/glslc.exe -g --target-env=vulkan1.3 ${GLSL} -o ${SPIRV}
         COMMAND
         DEPENDS ${GLSL})
     list(APPEND SPIRV_BINARIES ${SPIRV})

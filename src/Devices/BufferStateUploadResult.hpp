@@ -7,7 +7,7 @@
 namespace drk::Devices {
 	template<typename TState>
 	struct BufferStateUploadResult {
-		const Buffer buffer;
-		const std::vector<BufferViewState<TState>> bufferViewStates;
+		Buffer buffer;
+		std::vector<BufferViewState<TState>> bufferViewStates;
 	};
 }

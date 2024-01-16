@@ -16,6 +16,7 @@
 #include "../../Spatials/Models/Spatial.hpp"
 #include "../../Stores/Models/StoreItemLocation.hpp"
 #include "../../Graphics/GlobalSystem.hpp"
+#include "../Resources/MeshResourceManager.hpp"
 #include "MeshSystemOperation.hpp"
 
 namespace drk::Meshes::Systems {
@@ -24,6 +25,7 @@ namespace drk::Meshes::Systems {
 		Graphics::GlobalSystem& globalSystem;
 		MeshSystemOperation operations;
 		boost::signals2::connection cameraChangedConnection;
+		Resources::MeshResourceManager& meshResourceManager;
 	public:
 		void update(Models::Mesh& model, const Components::Mesh& mesh) override;
 	protected:
@@ -33,7 +35,8 @@ namespace drk::Meshes::Systems {
 			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
 			entt::registry& registry,
-			Graphics::GlobalSystem& globalSystem
+			Graphics::GlobalSystem& globalSystem,
+			Resources::MeshResourceManager& meshResourceManager
 		);
 		~MeshSystem();
 		void onCameraChanged(entt::entity cameraEntity);

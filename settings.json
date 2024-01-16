@@ -4,18 +4,21 @@
     "Width": 1920,
     "Height": 1080
   },
-  "DeviceContext": {
-    "RequiredInstanceExtensions": [
-      "VK_EXT_debug_utils",
-      "VK_EXT_debug_report"
-    ],
-    "RequiredValidationLayers": [
-      "VK_LAYER_KHRONOS_validation"
-    ],
-    "RequiredDeviceExtensions": [
-      "VK_KHR_swapchain",
-      "VK_EXT_descriptor_indexing"
-    ],
-    "EnableValidationLayers": true
-  }
+    "DeviceContext": {
+        "RequiredInstanceExtensions": [
+            "VK_EXT_debug_utils",
+            "VK_EXT_debug_report"
+        ],
+        "RequiredValidationLayers": [
+            "VK_LAYER_KHRONOS_validation"
+        ],
+        "RequiredDeviceExtensions": [
+            "VK_KHR_swapchain",
+            "VK_EXT_descriptor_indexing"
+        ],
+        "EnableValidationLayers": true
+    },
+    "ResourceManager": {
+        "frameCount":  2
+    }
 }
