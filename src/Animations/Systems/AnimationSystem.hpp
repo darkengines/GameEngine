@@ -2,7 +2,8 @@
 #include "../Resources/AnimationResourceManager.hpp"
 #include <entt/entt.hpp>
 #include <utility>
-#include "../../Objects/Components/ObjectMesh.hpp"
+#include "../../Objects/Components/ObjectReference.hpp"
+#include "../../Meshes/Components/MeshReference.hpp"
 #include "../Components/AnimationState.hpp"
 #include "../Components/AnimationVertexBufferView.hpp"
 #include "../../Meshes/Components/Mesh.hpp"
@@ -46,20 +47,21 @@ namespace drk::Animations::Systems {
 		}
 		void storeMeshes() {
 			auto view = registry.view<
-				Objects::Components::ObjectMesh,
+				Objects::Components::ObjectReference,
+				Meshes::Components::MeshReference,
 				Components::AnimationState
 			>(entt::exclude<Components::SkinnedBufferView>);
 			std::vector<Devices::BufferView> vertexBufferViews;
 			std::vector<entt::entity> entities;
 			view.each([&](
 				entt::entity objectMeshEntity,
-				const Objects::Components::ObjectMesh& objectMesh,
+				const Objects::Components::ObjectReference& objectReference,
+				const Meshes::Components::MeshReference& meshReference,
 				const Components::AnimationState& animationState
-				) {
-					const auto& [mesh, meshBufferView] = registry.get<
-						Meshes::Components::Mesh,
+			) {
+					const auto& meshBufferView = registry.get<
 						Meshes::Components::MeshBufferView
-					>(objectMesh.meshEntity);
+					>(meshReference.meshEntity);
 					vertexBufferViews.emplace_back(meshBufferView.VertexBufferView);
 					entities.emplace_back(objectMeshEntity);
 				});
@@ -91,6 +93,24 @@ namespace drk::Animations::Systems {
 					);
 				}
 			}
+		}
+
+		void mamadou() {
+			auto skinnedObjectMeshView = registry.view<
+				Objects::Components::ObjectReference,
+				Meshes::Components::MeshReference,
+				Animations::Components::SkinnedBufferView,
+				Animations::Components::AnimationState
+			>();
+			skinnedObjectMeshView.each([](
+				entt::entity objectMeshEntity,
+				const Objects::Components::ObjectReference& objectReference,
+				const Meshes::Components::MeshReference& meshReference,
+				const Animations::Components::SkinnedBufferView& skinnedBufferView,
+				const Animations::Components::AnimationState& animationState
+			) {
+				//const auto& [] = registry.get<>
+			});
 		}
 	};
 }

@@ -2,8 +2,7 @@
 #include <entt/entt.hpp>
 
 namespace drk::Objects::Components {
-	struct ObjectMesh {
+	struct ObjectReference {
 		entt::entity objectEntity;
-		entt::entity meshEntity;
 	};
 }

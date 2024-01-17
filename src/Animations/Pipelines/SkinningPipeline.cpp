@@ -11,14 +11,14 @@ namespace drk::Skinnings::Pipelines {
 	SkinningPipeline::SkinningPipeline(
 		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
-		const Engine::DescriptorSetLayouts& descriptorSetLayouts
+		const Engine::DescriptorSetLayouts& descriptorSetLayouts,
+		Animations::Resources::AnimationResourceManager& animationResourceManager
 	) : deviceContext(deviceContext),
+		animationResourceManager(animationResourceManager),
 		descriptorSetLayouts{
-			descriptorSetLayouts.textureDescriptorSetLayout,
-			descriptorSetLayouts.storeDescriptorSetLayout,
-			descriptorSetLayouts.globalDescriptorSetLayout,
-			descriptorSetLayouts.storeDescriptorSetLayout
-	},
+			animationResourceManager.skinnedMeshDescriptorSetLayout,
+			animationResourceManager.vertexWeightDescriptorSetLayout
+		},
 		pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
 		engineState(engineState) {
 		createShaderModules();
@@ -81,10 +81,9 @@ namespace drk::Skinnings::Pipelines {
 	}
 	void SkinningPipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();
-		std::array<vk::DescriptorSet, 3> descriptorSets{
-			engineState.textureDescriptorSet,
-			frameState.globalDescriptorSet,
-			frameState.storeDescriptorSet
+		std::array<vk::DescriptorSet, 2> descriptorSets{
+			animationResourceManager.skinnedMeshDescriptorSet,
+			animationResourceManager.vertexWeightDescriptorSet
 		};
 		frameState.commandBuffer.bindDescriptorSets(
 			vk::PipelineBindPoint::eCompute,
@@ -95,6 +94,11 @@ namespace drk::Skinnings::Pipelines {
 			0,
 			nullptr
 		);
+		commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline);
+	}
+
+	void SkinningPipeline::bind(vk::CommandBuffer commandBuffer) {
+
 		commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline);
 	}
 }

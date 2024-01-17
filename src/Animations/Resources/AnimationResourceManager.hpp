@@ -21,10 +21,6 @@ namespace drk::Animations::Resources {
 		uint32_t vertexWeightDescriptorSetArrayElementOffset;
 		Engine::DescriptorSetAllocator& descriptorSetAllocator;
 		Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache;
-		vk::DescriptorSetLayout skinnedMeshDescriptorSetLayout;
-		vk::DescriptorSet skinnedMeshDescriptorSet;
-		vk::DescriptorSetLayout vertexWeightDescriptorSetLayout;
-		vk::DescriptorSet vertexWeightDescriptorSet;
 		static vk::DescriptorSetLayout createSkinnedMeshDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
 		static vk::DescriptorSet createSkinnedMeshDescriptorSet(
 			Engine::DescriptorSetAllocator& descriptorSetAllocator,
@@ -36,6 +32,10 @@ namespace drk::Animations::Resources {
 			vk::DescriptorSetLayout& vertexWeightDescriptorSetLayoutCache
 		);
 	public:
+		vk::DescriptorSetLayout skinnedMeshDescriptorSetLayout;
+		vk::DescriptorSet skinnedMeshDescriptorSet;
+		vk::DescriptorSetLayout vertexWeightDescriptorSetLayout;
+		vk::DescriptorSet vertexWeightDescriptorSet;
 		AnimationResourceManager(
 			const Configuration::Configuration& configuration,
 			Devices::DeviceContext& deviceContext,

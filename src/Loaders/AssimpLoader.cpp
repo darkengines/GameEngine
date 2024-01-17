@@ -17,9 +17,11 @@
 #include "../Lights/Components/PointLight.hpp"
 #include "../Lights/Components/Spotlight.hpp"
 #include "../Materials/Components/MaterialCollection.hpp"
+#include "../Materials/Components/MaterialReference.hpp"
 #include "../Meshes/Components/Mesh.hpp"
 #include "../Objects/Components/Object.hpp"
-#include "../Objects/Components/ObjectMesh.hpp"
+#include "../Objects/Components/ObjectReference.hpp"
+#include "../Meshes/Components/MeshReference.hpp"
 #include "../Objects/Components/ObjectMeshCollection.hpp"
 #include "../Objects/Components/Relationship.hpp"
 #include "../Spatials/Components/Spatial.hpp"
@@ -335,7 +337,7 @@ namespace drk::Loaders {
 			);
 
 			registry.emplace<std::shared_ptr<Meshes::Components::MeshResource>>(meshEntity, meshPtr);
-			registry.emplace<Meshes::Components::Mesh>(meshEntity, materialEntity);
+			registry.emplace<Materials::Components::MaterialReference>(meshEntity, materialEntity);
 			registry.emplace<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity, axisAlignedBoundingBox);
 
 			loadResult.meshIdEntityMap[aiMeshIndex] = meshEntity;
@@ -749,7 +751,9 @@ namespace drk::Loaders {
 				if (registry.any_of<Animations::Components::MeshAnimation>(meshEntity)) {
 					registry.emplace<Animations::Components::AnimationState>(objectMeshEntity, entt::null, 0.0f);
 				}
-				registry.emplace<Objects::Components::ObjectMesh>(objectMeshEntity, entity, meshEntity);
+				registry.emplace<Objects::Components::ObjectReference>(objectMeshEntity, entity);
+				registry.emplace<Meshes::Components::MeshReference>(objectMeshEntity, meshEntity);
+				registry.emplace<Meshes::Components::Mesh>(objectMeshEntity);
 				auto meshAABB = registry.get<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity);
 				auto instanceAABB = meshAABB.transform(spatial.absoluteModel);
 

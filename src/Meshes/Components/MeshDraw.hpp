@@ -9,8 +9,5 @@ namespace drk::Meshes::Components {
 	struct MeshDraw {
 		std::shared_ptr<MeshResource> meshResource;
 		MeshBufferView meshBufferView;
-		entt::entity meshEntity;
-		entt::entity objectEntity;
-		entt::entity cameraEntity;
 	};
 }

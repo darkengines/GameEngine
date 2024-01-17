@@ -7,7 +7,8 @@
 #include "../../Systems/System.hpp"
 #include "../Components/Mesh.hpp"
 #include "../../Objects/Models/Object.hpp"
-#include "../../Objects/Components/ObjectMesh.hpp"
+#include "../../Objects/Components/ObjectReference.hpp"
+#include "../../Meshes/Components/MeshReference.hpp"
 #include "../../Cameras/Components/Camera.hpp"
 #include "../../Cameras/Models/Camera.hpp"
 #include "../../Lights/Components/LightPerspective.hpp"
@@ -18,16 +19,25 @@
 #include "../../Graphics/GlobalSystem.hpp"
 #include "../Resources/MeshResourceManager.hpp"
 #include "MeshSystemOperation.hpp"
+#include "../../Materials/Components/MaterialReference.hpp"
 
 namespace drk::Meshes::Systems {
-	class MeshSystem : public Draws::Systems::DrawSystem, public drk::Systems::System<Models::Mesh, Components::Mesh> {
+	class MeshSystem : 
+		public Draws::Systems::DrawSystem, 
+		public drk::Systems::System<
+			Models::Mesh, 
+			Materials::Components::MaterialReference
+		> {
 	protected:
 		Graphics::GlobalSystem& globalSystem;
 		MeshSystemOperation operations;
 		boost::signals2::connection cameraChangedConnection;
 		Resources::MeshResourceManager& meshResourceManager;
 	public:
-		void update(Models::Mesh& model, const Components::Mesh& mesh) override;
+		void update(
+			Models::Mesh& model, 
+			const Materials::Components::MaterialReference&
+		) override;
 	protected:
 		const Devices::DeviceContext& deviceContext;
 	public:

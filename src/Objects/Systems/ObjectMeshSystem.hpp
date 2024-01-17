@@ -1,6 +1,8 @@
 #include "../../Systems/System.hpp"
-#include "../Components/ObjectMesh.hpp"
+#include "../Components/ObjectReference.hpp"
+#include "../../Meshes/Components/MeshReference.hpp"
 #include "../Models/ObjectMesh.hpp"
+#include "../../Meshes/Models/Mesh.hpp"
 #include "../../Stores/StoreItem.hpp"
 #include "../Models/Object.hpp"
 #include "../../Meshes/Models/Mesh.hpp"
@@ -17,7 +19,7 @@ namespace drk::Objects::Systems {
 		void update(
 			Models::ObjectMesh& objectMeshModel,
 			const Stores::StoreItem<Objects::Models::Object>& objectStoreItem,
-			const Stores::StoreItem<Objects::Models::Object>& meshStoreItem,
+			const Stores::StoreItem<Meshes::Models::Mesh>& meshStoreItem,
 			const Stores::StoreItem<BoundingVolumes::Models::AxisAlignedBoundingBox>& axisAlignedBoundingBoxStoreItem
 		);
 		void ProcessDirty();

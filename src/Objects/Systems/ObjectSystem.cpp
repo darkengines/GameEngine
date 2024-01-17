@@ -3,6 +3,8 @@
 #include "../../Graphics/SynchronizationState.hpp"
 #include "../../Meshes/Systems/MeshSystem.hpp"
 #include "../Components/Relationship.hpp"
+#include "../Components/ObjectReference.hpp"
+#include "../../Meshes/Components/MeshReference.hpp"
 #include <ranges>
 
 namespace drk::Objects {
@@ -30,7 +32,7 @@ namespace drk::Objects {
 			entt::entity previousSibling
 		) {
 		const auto& sourceObject = source.get<Components::Object>(sourceEntity);
-		auto objectMeshes = source.view<Components::ObjectMesh>();
+		auto objectMeshes = source.view<Components::ObjectReference, Meshes::Components::MeshReference>();
 		auto sourceSpatial = source.try_get<Spatials::Components::Spatial>(sourceEntity);
 		auto sourceRelationship = source.try_get<Components::Relationship>(sourceEntity);
 
@@ -41,15 +43,17 @@ namespace drk::Objects {
 		destination.emplace<Components::Object>(destinationEntity, destinationObject);
 
 
-		objectMeshes.each([&](entt::entity sourceObjectMeshEntity, const Objects::Components::ObjectMesh& sourceObjectMesh) {
-			if (sourceObjectMesh.objectEntity == sourceEntity) {
+		objectMeshes.each([&](
+			entt::entity sourceObjectMeshEntity, 
+			const Objects::Components::ObjectReference& objectReference,
+			const Meshes::Components::MeshReference& meshReference
+		) {
+			if (objectReference.objectEntity == sourceEntity) {
 				auto destinationObjectMeshEntity = destination.create();
-				auto destinationMeshEntity = Meshes::Systems::MeshSystem::copyMeshEntity(source, destination, sourceObjectMesh.meshEntity);
-				Components::ObjectMesh destinationObjectMesh{
-					.objectEntity = destinationObjectMeshEntity,
-					.meshEntity = destinationMeshEntity
-				};
-				destination.emplace<Components::ObjectMesh>(destinationObjectMeshEntity, std::move(destinationObjectMesh));
+				auto destinationMeshEntity = Meshes::Systems::MeshSystem::copyMeshEntity(source, destination, meshReference.meshEntity);
+				
+				destination.emplace<Objects::Components::ObjectReference>(destinationObjectMeshEntity, destinationObjectMeshEntity);
+				destination.emplace<Meshes::Components::MeshReference>(destinationObjectMeshEntity, destinationMeshEntity);
 			}
 			});
 		if (sourceSpatial != nullptr) {

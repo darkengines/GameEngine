@@ -9,8 +9,9 @@
 #include "../../Lights/Models/PointLight.hpp"
 #include "../../Lights/Models/Spotlight.hpp"
 #include "../../Objects/Components/Dirty.hpp"
-#include "../../Objects/Components/ObjectMesh.hpp"
-#include "../../Objects/Components/ObjectMesh.hpp"
+#include "../../Objects/Components/ObjectReference.hpp"
+#include "../../Meshes/Components/MeshReference.hpp"
+#include "../../Materials/Components/MaterialReference.hpp"
 #include "../../Objects/Models/Object.hpp"
 #include "../../Scenes/Draws/ShadowSceneDraw.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
@@ -59,7 +60,10 @@ namespace drk::Meshes::Systems {
 			Stores::StoreItem<Cameras::Models::Camera>
 		>(engineState.cameraEntity);
 		const auto& cameraStoreItemLocation = cameraStoreItem.frameStoreItems[engineState.getFrameIndex()];
-		auto objectMeshEntities = registry.view<Objects::Components::ObjectMesh>(entt::exclude<Components::HasShadowDraw>);
+		auto objectMeshEntities = registry.view<
+			Objects::Components::ObjectReference,
+			Meshes::Components::MeshReference
+		>(entt::exclude<Components::HasShadowDraw>);
 		auto pointLightView = registry.view<
 			Lights::Components::PointLight,
 			Lights::Components::LightPerspectiveCollection
@@ -73,14 +77,20 @@ namespace drk::Meshes::Systems {
 			Lights::Components::LightPerspective
 		>();
 
-		objectMeshEntities.each([&](entt::entity objectMeshEntity, const Objects::Components::ObjectMesh& objectMesh) {
-			const auto& [mesh, pMeshResource, meshBufferView] = registry.get<
-				Meshes::Components::Mesh,
+		objectMeshEntities.each([&](
+			entt::entity objectMeshEntity, 
+			const Objects::Components::ObjectReference& objectReference,
+			const Meshes::Components::MeshReference& meshReference
+		) {
+			const auto& [materialReference, pMeshResource, meshBufferView] = registry.get<
+				Materials::Components::MaterialReference,
 				std::shared_ptr<Meshes::Components::MeshResource>,
 				Meshes::Components::MeshBufferView
-			>(objectMesh.meshEntity);
-			const auto& spatial = registry.get<Spatials::Components::Spatial>(objectMesh.objectEntity);
-			const auto& pMaterial = registry.get<std::shared_ptr<Materials::Components::Material>>(mesh.materialEntity);
+			>(meshReference.meshEntity);
+			const auto& spatial = registry.get<
+				Spatials::Components::Spatial
+			>(objectReference.objectEntity);
+			const auto& pMaterial = registry.get<std::shared_ptr<Materials::Components::Material>>(materialReference.materialEntity);
 			auto currentFrameIndex = engineState.getFrameIndex();
 			pointLightView.each([&](
 				entt::entity pointLightEntity,
@@ -101,8 +111,8 @@ namespace drk::Meshes::Systems {
 							*pMaterial,
 							meshBufferView,
 							pMeshResource,
-							objectMesh.objectEntity,
-							objectMesh.meshEntity,
+							objectReference.objectEntity,
+							meshReference.meshEntity,
 							engineState.cameraEntity,
 							pointLightEntity
 						);
@@ -124,8 +134,8 @@ namespace drk::Meshes::Systems {
 						*pMaterial,
 						meshBufferView,
 						pMeshResource,
-						objectMesh.objectEntity,
-						objectMesh.meshEntity,
+						objectReference.objectEntity,
+						meshReference.meshEntity,
 						engineState.cameraEntity,
 						directionalLightEntity
 					);
@@ -147,8 +157,8 @@ namespace drk::Meshes::Systems {
 						*pMaterial,
 						meshBufferView,
 						pMeshResource,
-						objectMesh.objectEntity,
-						objectMesh.meshEntity,
+						objectReference.objectEntity,
+						meshReference.meshEntity,
 						engineState.cameraEntity,
 						spotlightEntity
 					);

@@ -3,6 +3,7 @@
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
 #include "../../Pipelines/ComputePipeline.hpp"
+#include "../Resources/AnimationResourceManager.hpp"
 
 namespace drk::Skinnings::Pipelines {
 	class SkinningPipeline : public drk::Pipelines::ComputePipeline {
@@ -10,7 +11,8 @@ namespace drk::Skinnings::Pipelines {
 		SkinningPipeline(
 			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
-			const Engine::DescriptorSetLayouts& descriptorSetLayouts
+			const Engine::DescriptorSetLayouts& descriptorSetLayouts,
+			Animations::Resources::AnimationResourceManager& animationResourceManager
 		);
 		~SkinningPipeline();
 
@@ -18,6 +20,7 @@ namespace drk::Skinnings::Pipelines {
 		void configure(std::function<void(vk::ComputePipelineCreateInfo&)> configure);
 		//Draws::Components::DrawVertexBufferInfo getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const;
 		void destroyPipeline();
+		void bind(vk::CommandBuffer commandBuffer);
 
 	protected:
 		const Devices::DeviceContext& deviceContext;
@@ -27,6 +30,7 @@ namespace drk::Skinnings::Pipelines {
 		vk::Pipeline pipeline;
 		std::array<vk::DescriptorSetLayout, 4> descriptorSetLayouts;
 		vk::PipelineLayout pipelineLayout;
+		Animations::Resources::AnimationResourceManager& animationResourceManager;
 
 		void createShaderModules();
 		void destroyShaderModules();

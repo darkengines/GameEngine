@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../Meshes/Components/MeshBufferView.hpp"
 #include "../../Draws/Systems/DrawSystem.hpp"
 #include "../../Lights/Components/LightPerspective.hpp"
 #include "../../Engine/EngineState.hpp"
