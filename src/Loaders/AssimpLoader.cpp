@@ -73,7 +73,9 @@ namespace drk::Loaders {
 		loadSkeletons(aiSkeletons, loadResult, registry);
 		loadAnimations(aiAnimations, loadResult, registry);
 
-		auto rootEntity = loadNode(aiScene->mRootNode, lightMap, cameraMap, aiBonePtrBoneEntityMap, loadResult, registry);
+		std::unordered_map<const aiNode*, entt::entity> cache;
+
+		auto rootEntity = loadNode(aiScene->mRootNode, lightMap, cameraMap, aiBonePtrBoneEntityMap, loadResult, registry, cache);
 
 		return loadResult;
 	}
@@ -675,8 +677,13 @@ namespace drk::Loaders {
 		const std::unordered_map<std::string, entt::entity>& aiBonePtrBoneEntityMap,
 		LoadResult& loadResult,
 		entt::registry& registry,
+		std::unordered_map<const aiNode*, entt::entity>& cache,
 		int depth
 	) const {
+		auto cacheEntry = cache.find(assimpNode);
+		if (cacheEntry != cache.end()) {
+			return cacheEntry->second;
+		}
 		auto nodeName = std::string(assimpNode->mName.C_Str());
 		aiVector3D aiScale, aiPosition;
 		aiQuaternion aiRotation;
@@ -705,6 +712,7 @@ namespace drk::Loaders {
 		auto boneEntityEntry = aiBonePtrBoneEntityMap.find(nodeName);
 		if (boneEntityEntry != aiBonePtrBoneEntityMap.end()) {
 			entity = boneEntityEntry->second;
+			if (registry.try_get<Objects::Components::Object>(entity) != nullptr) return entity;
 		}
 
 		auto light = lightMap.find(nodeName);
@@ -780,6 +788,7 @@ namespace drk::Loaders {
 		}
 
 		relationship.depth = depth;
+		cache[assimpNode] = entity;
 		if (assimpNode->mNumChildren) {
 			for (auto childIndex = 0u; childIndex < assimpNode->mNumChildren; childIndex++) {
 				auto aiChildNode = assimpNode->mChildren[childIndex];
@@ -790,6 +799,7 @@ namespace drk::Loaders {
 					aiBonePtrBoneEntityMap,
 					loadResult,
 					registry,
+					cache,
 					depth + 1
 				);
 				relationship.children.push_back(childEntity);

@@ -57,6 +57,7 @@ namespace drk::Loaders {
 			const std::unordered_map<std::string, entt::entity>& aiBonePtrBoneEntityMap,
 			LoadResult& loadResult,
 			entt::registry& registry,
+			std::unordered_map<const aiNode*, entt::entity>& cache,
 			int depth = 0
 		) const;
 
