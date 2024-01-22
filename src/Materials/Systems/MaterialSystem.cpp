@@ -1,4 +1,5 @@
 #include "MaterialSystem.hpp"
+#include "../../Common/Components/Name.hpp"
 #include "../Components/Material.hpp"
 #include "../Models/Material.hpp"
 #include "../../Graphics/SynchronizationState.hpp"
@@ -69,12 +70,11 @@ namespace drk::Materials::Systems {
 	}
 
 	entt::entity
-	MaterialSystem::copyMaterialEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity) {
+		MaterialSystem::copyMaterialEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity) {
 		const auto& material = source.get<std::shared_ptr<Materials::Components::Material>>(sourceEntity);
 
 		auto newEntity = destination.create();
 		Components::Material newMaterial{
-			.name = material->name,
 			.source = material->source,
 			.baseColor = material->baseColor,
 			.ambientColor = material->ambientColor,
@@ -110,7 +110,8 @@ namespace drk::Materials::Systems {
 
 			.hasTransparency = material->hasTransparency
 		};
-
+		auto name = source.get<Common::Components::Name>(sourceEntity);
+		destination.emplace<Common::Components::Name>(newEntity, name);
 		destination.emplace<std::shared_ptr<Materials::Components::Material>>(
 			newEntity,
 			std::make_shared<Materials::Components::Material>(

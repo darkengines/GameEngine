@@ -149,5 +149,8 @@ namespace drk::Applications {
 		vk::Extent2D windowExtent;
 		void renderEntity(entt::entity entity);
 		void renderEntities();
+		void renderAnimations();
+		void renderSystemInfos();
+		void renderInspector();
 	};
 }

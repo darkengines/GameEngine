@@ -227,7 +227,7 @@ void main() {
         Light light = lightBuffer[pointLight.lightStoreItemLocation.storeIndex].lights[pointLight.lightStoreItemLocation.itemIndex];
         Spatial pointLightSpatial = spatialBuffer[pointLight.spatialStoreItemLocation.storeIndex].spatials[pointLight.spatialStoreItemLocation.itemIndex];
 
-        vec3 lightPosition = pointLightSpatial.absolutePosition.xyz;
+        vec3 lightPosition = pointLightSpatial.position.xyz;
 		float fragmentLightDistance = distance(lightPosition, point.position.xyz);
 		vec3 lightDirection = normalize(lightPosition - point.position.xyz);
 		float attenuation = 1.0 / (pointLight.constantAttenuation + pointLight.linearAttenuation * fragmentLightDistance + pointLight.quadraticAttenuation * fragmentLightDistance * fragmentLightDistance);
@@ -272,7 +272,7 @@ void main() {
         Spatial spotlightSpatial = spatialBuffer[spotlight.spatialStoreItemLocation.storeIndex].spatials[spotlight.spatialStoreItemLocation.itemIndex];
         LightPerspective lightPerspective = lightPerspectiveBuffer[spotlight.lightPerspectiveStoreItemLocation.storeIndex].lightPerspectives[spotlight.lightPerspectiveStoreItemLocation.itemIndex];
 
-        vec3 lightPosition = spotlightSpatial.absolutePosition.xyz;
+        vec3 lightPosition = spotlightSpatial.position.xyz;
 		vec3 lightOrientation = normalize(lightPerspective.absoluteFront).xyz;
 		vec3 lightToObject = lightPosition - point.position.xyz;
 		vec3 lightDirection = normalize(lightToObject);

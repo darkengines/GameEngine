@@ -73,7 +73,7 @@ namespace drk::Controllers {
 
 	void FlyCamController::Step() {
 		auto& camera = Registry.get<Cameras::Components::Camera>(CameraEntity);
-		auto& cameraSpatial = Registry.get<Spatials::Components::Spatial>(CameraEntity);
+		auto& cameraSpatial = Registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(CameraEntity);
 		auto up = camera.absoluteUp;
 		auto front = camera.absoluteFront;
 		auto side = GlmExtensions::cross(front, up);
@@ -81,39 +81,39 @@ namespace drk::Controllers {
 		auto hasUpdate = false;
 
 		if (MoveForward) {
-			cameraSpatial.relativePosition += front * 0.01f;
+			cameraSpatial.position += front * 0.01f;
 			hasUpdate = true;
 		}
 		if (MoveBackward) {
-			cameraSpatial.relativePosition -= front * 0.01f;
+			cameraSpatial.position -= front * 0.01f;
 			hasUpdate = true;
 		}
 		if (MoveRight) {
-			cameraSpatial.relativePosition += side * 0.005f;
+			cameraSpatial.position += side * 0.005f;
 			hasUpdate = true;
 		}
 		if (MoveLeft) {
-			cameraSpatial.relativePosition -= side * 0.005f;
+			cameraSpatial.position -= side * 0.005f;
 			hasUpdate = true;
 		}
 		if (MoveUp) {
-			cameraSpatial.relativePosition += camera.relativeUp * 0.005f;
+			cameraSpatial.position += camera.relativeUp * 0.005f;
 			hasUpdate = true;
 		}
 		if (MoveDown) {
-			cameraSpatial.relativePosition -= camera.relativeUp * 0.005f;
+			cameraSpatial.position -= camera.relativeUp * 0.005f;
 			hasUpdate = true;
 		}
 
 		if (MousePositionDelta.x != 0 || MousePositionDelta.y != 0) {
 			if (MousePositionDelta.x) {
 				auto q = glm::angleAxis(-MousePositionDelta.x, glm::vec3(camera.relativeUp));
-				cameraSpatial.relativeRotation = q * cameraSpatial.relativeRotation;
+				cameraSpatial.rotation = q * cameraSpatial.rotation;
 				MousePositionDelta.x = 0;
 			}
 			if (MousePositionDelta.y) {
-				cameraSpatial.relativeRotation = glm::rotate(
-					cameraSpatial.relativeRotation,
+				cameraSpatial.rotation = glm::rotate(
+					cameraSpatial.rotation,
 					-MousePositionDelta.y,
 					glm::vec3(GlmExtensions::cross(camera.relativeFront, camera.relativeUp))
 				);
@@ -123,7 +123,7 @@ namespace drk::Controllers {
 		}
 		if (hasUpdate) {
 			Registry.emplace_or_replace<Graphics::SynchronizationState<Spatials::Models::Spatial>>(CameraEntity, 2u);
-			Registry.emplace_or_replace<Objects::Components::Dirty<Spatials::Components::Spatial>>(CameraEntity);
+			Registry.emplace_or_replace<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>(CameraEntity);
 		}
 	}
 }

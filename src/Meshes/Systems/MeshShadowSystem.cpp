@@ -88,7 +88,7 @@ namespace drk::Meshes::Systems {
 				Meshes::Components::MeshBufferView
 			>(meshReference.meshEntity);
 			const auto& spatial = registry.get<
-				Spatials::Components::Spatial
+				Spatials::Components::Spatial<Spatials::Components::Absolute>
 			>(objectReference.objectEntity);
 			const auto& pMaterial = registry.get<std::shared_ptr<Materials::Components::Material>>(materialReference.materialEntity);
 			auto currentFrameIndex = engineState.getFrameIndex();
@@ -174,7 +174,7 @@ namespace drk::Meshes::Systems {
 		entt::entity lightPerspectiveEntity,
 		const Lights::Components::LightPerspective& perspective,
 		const Cameras::Components::Camera& camera,
-		const Spatials::Components::Spatial& spatial,
+		const Spatials::Components::Spatial<Spatials::Components::Absolute>& spatial,
 		const Materials::Components::Material& material,
 		const Meshes::Components::MeshBufferView& meshBufferView,
 		std::shared_ptr<Meshes::Components::MeshResource> pMeshResource,
@@ -192,7 +192,7 @@ namespace drk::Meshes::Systems {
 			.scissor = perspective.shadowMapRect,
 			.lightPerspectiveEntity = lightPerspectiveEntity,
 			.hasTransparency = material.hasTransparency,
-			.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition),
+			.depth = glm::distance(camera.absolutePosition, spatial.position),
 		};
 		Components::ShadowMeshDraw meshDraw = {
 			.meshResource = pMeshResource,

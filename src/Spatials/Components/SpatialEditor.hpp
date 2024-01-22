@@ -8,13 +8,14 @@
 namespace drk::Spatials::Components {
 	class SpatialEditor {
 	public:
-		static bool Spatial(Spatial& spatial) {
+		template<typename TSpatialType>
+		static bool Spatial(Spatial<TSpatialType>& spatial) {
 			bool hasChanged = false;
 			bool orientationChanged = false;
 			glm::vec4 speed{0, 0, 0, 0};
 
 			ImGui::SeparatorText("Spatial");
-			hasChanged |= ImGui::InputFloat3("Position", reinterpret_cast<float*>(&spatial.relativePosition));
+			hasChanged |= ImGui::InputFloat3("Position", reinterpret_cast<float*>(&spatial.position));
 //			if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_KeypadAdd)) {
 //				speed = 1.0f;
 //				if (ImGui::IsKeyPressed((ImGuiKey::ImGuiKey_LeftCtrl))) factor = 0.1f;
@@ -25,12 +26,12 @@ namespace drk::Spatials::Components {
 				auto hasSpeed = speed.x != 0 || speed.y != 0 || speed.z != 0;
 				hasChanged |= hasSpeed;
 				if (hasChanged) {
-					spatial.relativePosition += speed;
+					spatial.position += speed;
 				}
 			}
-			hasChanged |= ImGui::InputFloat3("Scale", reinterpret_cast<float*>(&spatial.relativeScale));
+			hasChanged |= ImGui::InputFloat3("Scale", reinterpret_cast<float*>(&spatial.scale));
 
-			glm::vec3 orientation = glm::eulerAngles(spatial.relativeRotation);
+			glm::vec3 orientation = glm::eulerAngles(spatial.rotation);
 			orientationChanged = ImGui::InputFloat3("Orientation", reinterpret_cast<float*>(&orientation));
 
 			auto pi = glm::pi<float>();
@@ -38,12 +39,12 @@ namespace drk::Spatials::Components {
 				auto hasSpeed = speed.x != 0 || speed.y != 0 || speed.z != 0;
 				orientationChanged |= hasSpeed;
 				if (orientationChanged) {
-					spatial.relativeRotation = glm::angleAxis(
+					spatial.rotation = glm::angleAxis(
 						glm::length(speed),
-						glm::normalize(glm::make_vec3(speed))) * spatial.relativeRotation;
+						glm::normalize(glm::make_vec3(speed))) * spatial.rotation;
 				}
 			} else if (orientationChanged) {
-				spatial.relativeRotation = glm::quat(orientation);
+				spatial.rotation = glm::quat(orientation);
 			}
 			hasChanged |= orientationChanged;
 			return hasChanged;

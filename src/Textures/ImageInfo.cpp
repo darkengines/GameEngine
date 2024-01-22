@@ -9,7 +9,6 @@ namespace drk::Textures {
 	ImageInfo::fromFile(const std::string& name, const std::string& filePath, TextureType type) {
 		auto texture = std::make_unique<ImageInfo>(
 			ImageInfo{
-				name,
 				type,
 				0u,
 				0u,
@@ -37,8 +36,6 @@ namespace drk::Textures {
 	) {
 		auto texture = std::make_unique<ImageInfo>(
 			ImageInfo{
-				name,
-
 				type,
 				0u,
 				0u,

@@ -11,7 +11,6 @@
 
 namespace drk::Textures {
 	struct ImageInfo {
-		std::string name;
 		TextureType type;
 		uint32_t width;
 		uint32_t height;

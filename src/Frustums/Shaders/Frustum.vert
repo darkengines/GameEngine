@@ -78,7 +78,7 @@ void main() {
             break;
         }
     }
-    gl_Position = camera.perspective * camera.view * spatial.absoluteModel * position;
+    gl_Position = camera.perspective * camera.view * spatial.model * position;
 
     drawItemLocation = StoreItemLocation(frustumDrawBufferIndex, drawItemIndex);
 

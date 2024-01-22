@@ -3,6 +3,7 @@
 #include <utility>
 #include <algorithm>
 #include <span>
+#include <chrono>
 
 namespace drk::Engine {
 	EngineState::EngineState(
@@ -110,5 +111,15 @@ namespace drk::Engine {
 	}
 	uint32_t EngineState::getFrameCount() const {
 		return frameCount;
+	}
+	double EngineState::getTime() const
+	{
+		auto duration = std::chrono::high_resolution_clock::now() - startedOn;
+		return std::chrono::duration<double>(duration).count();
+	}
+	std::chrono::high_resolution_clock::duration EngineState::getDuration() const
+	{
+		auto duration = std::chrono::high_resolution_clock::now() - startedOn;
+		return duration;
 	}
 }

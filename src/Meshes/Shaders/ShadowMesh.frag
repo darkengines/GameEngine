@@ -80,7 +80,7 @@ void main() {
     LightPerspective lightPerspective = lightPerspectiveBuffer[draw.lightPerspectiveItemLocation.storeIndex].lightPerspectives[draw.lightPerspectiveItemLocation.itemIndex];
     Spatial lightPerspectiveSpatial = spatialBuffer[draw.lightPerspectiveSpatialItemLocation.storeIndex].spatials[draw.lightPerspectiveSpatialItemLocation.itemIndex];
 
-    float d = length((lightPerspectiveSpatial.absolutePosition).xyz - point.position.xyz);
+    float d = length((lightPerspectiveSpatial.position).xyz - point.position.xyz);
     d = linearize_depth(d, lightPerspective.near, lightPerspective.far);
 
 	gl_FragDepth = d;

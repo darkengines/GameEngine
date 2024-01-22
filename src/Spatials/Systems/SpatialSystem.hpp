@@ -8,7 +8,7 @@
 #include "../../Objects/Components/Relationship.hpp"
 
 namespace drk::Spatials::Systems {
-class SpatialSystem : public drk::Systems::System<Models::Spatial, Components::Spatial> {
+class SpatialSystem : public drk::Systems::System<Models::Spatial, Components::Spatial<Components::Absolute>> {
 	protected:
 		const Devices::DeviceContext& deviceContext;
 
@@ -21,9 +21,9 @@ class SpatialSystem : public drk::Systems::System<Models::Spatial, Components::S
 		static void AddSpatialSystem(entt::registry& registry);
 		static void RemoveSpatialSystem(entt::registry& registry);
 		static void OnSpatialConstruct(entt::registry& registry, entt::entity spatialEntity);
-		void update(Models::Spatial& spatialModel, const Components::Spatial& spatial);
+		void update(Models::Spatial& spatialModel, const Components::Spatial<Components::Absolute>& spatial);
 		void PropagateChanges();
-		void makeDirty(entt::entity entity);
+		static void makeDirty(entt::registry& rtegistry, const entt::entity spatialEntity);
 		bool IsParent(entt::entity left, entt::entity right);
 		std::string GetPath(entt::entity entity);
 		static uint32_t GetDepth(const entt::registry& registry, entt::entity entity);

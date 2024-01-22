@@ -108,7 +108,7 @@ namespace drk::BoundingVolumes::Systems {
 			Components::AxisAlignedBoundingBox,
 			Objects::Components::ObjectReference,
 			Meshes::Components::MeshReference,
-			Objects::Components::Dirty<Spatials::Components::Spatial>
+			Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>
 		>();
 		view.each([this](
 			entt::entity entity,
@@ -116,8 +116,8 @@ namespace drk::BoundingVolumes::Systems {
 			const Objects::Components::ObjectReference& objectReference,
 			const Meshes::Components::MeshReference& meshReference
 			) {
-				auto spatial = registry.get<Spatials::Components::Spatial>(objectReference.objectEntity);
-				axisAlignedBoundingBox.inplaceTransform(spatial.absoluteModel);
+				auto spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(objectReference.objectEntity);
+				axisAlignedBoundingBox.inplaceTransform(spatial.model);
 				registry.emplace_or_replace<Graphics::SynchronizationState<Models::AxisAlignedBoundingBox>>(entity, engineState.getFrameCount());
 			});
 	}

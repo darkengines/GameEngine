@@ -19,31 +19,30 @@ namespace drk::Spatials::Systems {
 		: System(engineState, registry), deviceContext(deviceContext) {}
 
 	void SpatialSystem::AddSpatialSystem(entt::registry& registry) {
-		registry.on_construct<Components::Spatial>().connect<SpatialSystem::OnSpatialConstruct>();
+		registry.on_construct<Components::Spatial<Components::Relative>>().connect<SpatialSystem::OnSpatialConstruct>();
 	}
 
 	void SpatialSystem::RemoveSpatialSystem(entt::registry& registry) {
-		registry.on_construct<Components::Spatial>().disconnect<SpatialSystem::OnSpatialConstruct>();
+		registry.on_construct<Components::Spatial<Components::Relative>>().disconnect<SpatialSystem::OnSpatialConstruct>();
 	}
 	void SpatialSystem::OnSpatialConstruct(entt::registry& registry, entt::entity spatialEntity) {
-		registry.emplace<Objects::Components::Dirty<Components::Spatial>>(spatialEntity);
+		registry.emplace<Objects::Components::Dirty<Components::Spatial<Components::Relative>>>(spatialEntity);
 	}
-	void SpatialSystem::update(Models::Spatial& spatialModel, const Components::Spatial& spatial) {
-		spatialModel.relativeScale = spatial.relativeScale;
-		spatialModel.relativeRotation = spatial.relativeRotation;
-		spatialModel.relativePosition = spatial.relativePosition;
-		spatialModel.absoluteScale = spatial.absoluteScale;
-		spatialModel.absoluteRotation = spatial.absoluteRotation;
-		spatialModel.absolutePosition = spatial.absolutePosition;
-		spatialModel.relativeModel = spatial.relativeModel;
-		spatialModel.absoluteModel = spatial.absoluteModel;
+	void SpatialSystem::update(
+		Models::Spatial& spatialModel, 
+		const Components::Spatial<Components::Absolute>& spatial
+	) {
+		spatialModel.position = spatial.position;
+		spatialModel.rotation = spatial.rotation;
+		spatialModel.scale = spatial.scale;
+		spatialModel.model = spatial.model;
 	}
 
-	void SpatialSystem::makeDirty(const entt::entity spatialEntity) {
+	void SpatialSystem::makeDirty(entt::registry& registry, const entt::entity spatialEntity) {
 		auto& relationship = registry.get<Objects::Components::Relationship>(spatialEntity);
-		registry.emplace_or_replace<Objects::Components::Dirty<Spatials::Components::Spatial>>(spatialEntity);
+		registry.emplace_or_replace<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>(spatialEntity);
 		for (const auto& child : relationship.children) {
-			makeDirty(child);
+			makeDirty(registry, child);
 		}
 	}
 
@@ -86,13 +85,13 @@ namespace drk::Spatials::Systems {
 	//	}
 
 	void SpatialSystem::PropagateChanges() {
-		registry.sort<Objects::Components::Dirty<Components::Spatial>>(
+		registry.sort<Objects::Components::Dirty<Components::Spatial<Components::Relative>>>(
 			[&](entt::entity left, entt::entity& right) {
 				return GetDepth(registry, left) < GetDepth(registry, right);
 			}
 		);
 		registry.view<
-			Objects::Components::Dirty<Components::Spatial>,
+			Objects::Components::Dirty<Components::Spatial<Components::Relative>>,
 			Objects::Components::Relationship
 		>().each(
 			[&](
@@ -102,35 +101,35 @@ namespace drk::Spatials::Systems {
 					const Objects::Components::ObjectMeshCollection* objectMeshCollection = registry.try_get<Objects::Components::ObjectMeshCollection>(entity);
 					if (objectMeshCollection != nullptr) {
 						for (entt::entity objectMeshEntity : objectMeshCollection->objectMeshes) {
-							registry.emplace_or_replace<Objects::Components::Dirty<Spatials::Components::Spatial>>(objectMeshEntity);
+							registry.emplace_or_replace<Objects::Components::Dirty<Components::Spatial<Components::Relative>>>(objectMeshEntity);
 						}
 					}
 					//std::cout << fmt::format("{0} {1}", GetDepth(entity), object.Name) << std::endl;
 
-					auto& spatial = registry.get<Components::Spatial>(entity);
+					auto& spatial = registry.get<Components::Spatial<Components::Relative>>(entity);
+					auto& absoluteSpatial = registry.get_or_emplace<Components::Spatial<Components::Absolute>>(entity);
 
 					auto translationMatrix = glm::translate(
 						glm::identity<glm::mat4>(),
-						glm::vec3(spatial.relativePosition));
-					auto rotationMatrix = glm::toMat4(spatial.relativeRotation);
-					auto scalingMatrix = glm::scale(glm::identity<glm::mat4>(), glm::vec3(spatial.relativeScale));
-					spatial.relativeModel = translationMatrix * rotationMatrix * scalingMatrix;
+						glm::vec3(spatial.position));
+					auto rotationMatrix = glm::toMat4(spatial.rotation);
+					auto scalingMatrix = glm::scale(glm::identity<glm::mat4>(), glm::vec3(spatial.scale));
+					spatial.model = translationMatrix * rotationMatrix * scalingMatrix;
 
 					if (relationship.parent != entt::null) {
-						auto& parentSpatial = registry.get<Components::Spatial>(relationship.parent);
-						spatial.absoluteScale = parentSpatial.absoluteScale * spatial.relativeScale;
-						spatial.absoluteRotation = parentSpatial.absoluteRotation * spatial.relativeRotation;
-						spatial.absolutePosition = parentSpatial.absolutePosition + parentSpatial.absoluteRotation *
-							(parentSpatial.absoluteScale *
-								spatial.relativePosition);
-						spatial.absoluteModel = parentSpatial.absoluteModel * spatial.relativeModel;
+						auto& parentSpatial = registry.get<Components::Spatial<Components::Absolute>>(relationship.parent);
+						absoluteSpatial.scale = parentSpatial.scale * spatial.scale;
+						absoluteSpatial.rotation = parentSpatial.rotation * spatial.rotation;
+						absoluteSpatial.position = parentSpatial.position + parentSpatial.rotation * (parentSpatial.scale * spatial.position);
+						absoluteSpatial.model = parentSpatial.model * spatial.model;
 					}
 					else {
-						spatial.absoluteScale = spatial.relativeScale;
-						spatial.absoluteRotation = spatial.relativeRotation;
-						spatial.absolutePosition = spatial.relativePosition;
-						spatial.absoluteModel = spatial.relativeModel;
+						absoluteSpatial.scale = spatial.scale;
+						absoluteSpatial.rotation = spatial.rotation;
+						absoluteSpatial.position = spatial.position;
+						absoluteSpatial.model = spatial.model;
 					}
+					registry.emplace_or_replace<Objects::Components::Dirty<Components::Spatial<Components::Absolute>>>(entity);
 					registry.emplace_or_replace<Graphics::SynchronizationState<Models::Spatial>>(
 						entity,
 						(uint32_t)engineState.getFrameCount());

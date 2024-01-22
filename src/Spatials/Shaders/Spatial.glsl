@@ -1,10 +1,6 @@
 struct Spatial {
-	vec4 relativeScale;
-	vec4 relativeRotation;
-	vec4 relativePosition;
-	vec4 absoluteScale;
-	vec4 absoluteRotation;
-	vec4 absolutePosition;
-	mat4 relativeModel;
-	mat4 absoluteModel;
+	vec4 position;
+	vec4 rotation;
+	vec4 scale;
+	mat4 model;
 };

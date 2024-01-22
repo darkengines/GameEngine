@@ -122,7 +122,7 @@ namespace drk::Meshes::Systems {
 				Meshes::Components::MeshBufferView,
 				Materials::Components::MaterialReference
 			>(meshReference.meshEntity);
-			const auto& spatial = registry.get<Spatials::Components::Spatial>(objectReference.objectEntity);
+			const auto& spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(objectReference.objectEntity);
 			auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(materialReference.materialEntity);
 			Scenes::Draws::SceneDraw draw = {
 				.drawSystem = this,
@@ -130,7 +130,7 @@ namespace drk::Meshes::Systems {
 				.indexBufferView = meshBufferView.IndexBufferView,
 				.vertexBufferView = meshBufferView.VertexBufferView,
 				.hasTransparency = material->hasTransparency,
-				.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition),
+				.depth = glm::distance(camera.absolutePosition, spatial.position),
 			};
 			Components::MeshDraw meshDraw = {
 				.meshResource = meshResource,
@@ -143,7 +143,7 @@ namespace drk::Meshes::Systems {
 			});
 	}
 	void MeshSystem::processDirtyDraws() {
-		if (registry.any_of<Objects::Components::Dirty<Spatials::Components::Spatial>>(engineState.cameraEntity)) {
+		if (registry.any_of<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>(engineState.cameraEntity)) {
 			auto camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
 			auto view = registry.view<
 				Objects::Components::ObjectReference,
@@ -156,8 +156,8 @@ namespace drk::Meshes::Systems {
 				const Components::MeshDraw& meshDraw,
 				Scenes::Draws::SceneDraw& sceneDraw
 				) {
-					const auto& spatial = registry.get<Spatials::Components::Spatial>(objectReference.objectEntity);
-					sceneDraw.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition);
+					const auto& spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(objectReference.objectEntity);
+					sceneDraw.depth = glm::distance(camera.absolutePosition, spatial.position);
 					registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(objectMeshEntity, engineState.getFrameCount());
 				});
 		}

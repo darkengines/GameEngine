@@ -5,7 +5,6 @@
 
 namespace drk::Animations::Components {
 	struct Bone {
-		std::vector<VertexWeight> weights;
-		Spatials::Components::Spatial spatialOffset;
+		Spatials::Components::Spatial<Spatials::Components::Relative> spatialOffset;
 	};
 }

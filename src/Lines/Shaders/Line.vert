@@ -52,11 +52,11 @@ void main() {
     Spatial spatial = spatialBuffer[object.spatialItemLocation.storeIndex].spatials[object.spatialItemLocation.itemIndex];
     Camera camera = cameraBuffer[globalBuffer.global.cameraStoreIndex].cameras[globalBuffer.global.cameraItemIndex];
 
-    gl_Position = camera.perspective * camera.view * spatial.absoluteModel * inPosition;
+    gl_Position = camera.perspective * camera.view * spatial.model * inPosition;
 
     drawItemLocation = StoreItemLocation(lineDrawBufferIndex, drawItemIndex);
 
-    fragment.position = spatial.absoluteModel * inPosition;
+    fragment.position = spatial.model * inPosition;
     fragment.color = inColor;
     fragment.texCoord = inTexCoord;
 }

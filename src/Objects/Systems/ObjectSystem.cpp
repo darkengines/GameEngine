@@ -33,7 +33,7 @@ namespace drk::Objects {
 		) {
 		const auto& sourceObject = source.get<Components::Object>(sourceEntity);
 		auto objectMeshes = source.view<Components::ObjectReference, Meshes::Components::MeshReference>();
-		auto sourceSpatial = source.try_get<Spatials::Components::Spatial>(sourceEntity);
+		auto sourceSpatial = source.try_get<Spatials::Components::Spatial<Spatials::Components::Relative>>(sourceEntity);
 		auto sourceRelationship = source.try_get<Components::Relationship>(sourceEntity);
 
 		auto destinationEntity = destination.create();
@@ -57,7 +57,7 @@ namespace drk::Objects {
 			}
 			});
 		if (sourceSpatial != nullptr) {
-			destination.emplace<Spatials::Components::Spatial>(destinationEntity, *sourceSpatial);
+			destination.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(destinationEntity, *sourceSpatial);
 		}
 
 		if (sourceRelationship != nullptr) {

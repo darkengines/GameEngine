@@ -38,25 +38,25 @@ namespace drk::Lights::Systems {
 	void LightPerspectiveSystem::processDirtyItems() {
 		auto dirtyLightPerspectiveView = registry.view<
 			Components::LightPerspective,
-			Spatials::Components::Spatial,
-			Objects::Components::Dirty<Spatials::Components::Spatial>
+			Spatials::Components::Spatial<Spatials::Components::Absolute>,
+			Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>
 		>();
 		dirtyLightPerspectiveView.each(
 			[&](
 				entt::entity lightPerspectiveEntity,
 				Components::LightPerspective& lightPerspective,
-				Spatials::Components::Spatial& spatial
+				Spatials::Components::Spatial<Spatials::Components::Absolute>& spatial
 			) {
 					if (lightPerspective.shadowMapRect.extent.width == 0) {
 						auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({ 512, 512 });
 						lightPerspective.shadowMapRect = allocation.scissor;
 					}
-					lightPerspective.absoluteFront = spatial.absoluteRotation * lightPerspective.relativeFront;
-					lightPerspective.absoluteUp = spatial.absoluteRotation * lightPerspective.relativeUp;
+					lightPerspective.absoluteFront = spatial.rotation * lightPerspective.relativeFront;
+					lightPerspective.absoluteUp = spatial.rotation * lightPerspective.relativeUp;
 					//lightPerspective.absoluteUp = lightPerspective.relativeUp;
 					lightPerspective.view = glm::lookAt(
-						glm::make_vec3(spatial.absolutePosition),
-						glm::make_vec3(spatial.absolutePosition + lightPerspective.absoluteFront),
+						glm::make_vec3(spatial.position),
+						glm::make_vec3(spatial.position + lightPerspective.absoluteFront),
 						glm::make_vec3(lightPerspective.absoluteUp));
 					lightPerspective.perspective = glm::perspectiveZO<float>(
 						lightPerspective.verticalFov,

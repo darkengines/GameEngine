@@ -336,6 +336,9 @@ namespace drk::Applications {
 
 					renderProperties(selectedEntity);
 					renderStorageBuffers();
+					renderAnimations();
+					renderSystemInfos();
+					renderInspector();
 					assetExplorer.render(registry);
 
 					fileBrowser.Display();
@@ -354,6 +357,22 @@ namespace drk::Applications {
 				animationSystem.storeMeshes();
 				animationSystem.uploadVertexWeights();
 
+				//Alterations
+				flyCamController.Step();
+
+				//Change propagations
+				animationSystem.updateAnimations();
+				spatialSystem.PropagateChanges();
+				cameraSystem.processDirtyItems();
+				lightPerspectiveSystem.processDirtyItems();
+				directionalLightSystem.processDirtyItems();
+				pointLightSystem.processDirtyItems();
+				spotlightSystem.processDirtyItems();
+				axisAlignedBoundingBoxSystem.processDirty();
+				//frustumSystem.processDirty();
+
+				meshSystem.processDirtyDraws();
+
 				//Resources to GPU
 				materialSystem.store();
 				meshSystem.store();
@@ -369,21 +388,6 @@ namespace drk::Applications {
 				spotlightSystem.store();
 				axisAlignedBoundingBoxSystem.store();
 				frustumSystem.store();
-
-				//Alterations
-				flyCamController.Step();
-
-				//Change propagations
-				spatialSystem.PropagateChanges();
-				cameraSystem.processDirtyItems();
-				lightPerspectiveSystem.processDirtyItems();
-				directionalLightSystem.processDirtyItems();
-				pointLightSystem.processDirtyItems();
-				spotlightSystem.processDirtyItems();
-				axisAlignedBoundingBoxSystem.processDirty();
-				//frustumSystem.processDirty();
-
-				meshSystem.processDirtyDraws();
 
 				//Store updates to GPU
 				materialSystem.updateStore();
@@ -418,7 +422,8 @@ namespace drk::Applications {
 				sceneSystem.updateDraws();
 
 				//Clear frame
-				registry.clear<Objects::Components::Dirty<Spatials::Components::Spatial>>();
+				registry.clear<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>();
+				registry.clear<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>>();
 
 				//Renders
 				sceneRenderer.render(0, frameState.commandBuffer);

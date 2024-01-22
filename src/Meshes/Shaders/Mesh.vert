@@ -70,17 +70,17 @@ void main() {
     Spatial spatial = spatialBuffer[object.spatialItemLocation.storeIndex].spatials[object.spatialItemLocation.itemIndex];
     Camera camera = cameraBuffer[draw.cameraItemLocation.storeIndex].cameras[draw.cameraItemLocation.itemIndex];
 
-    gl_Position = camera.perspective * camera.view * spatial.absoluteModel * inPosition;
+    gl_Position = camera.perspective * camera.view * spatial.model * inPosition;
 
     drawItemLocation = StoreItemLocation(meshDrawBufferIndex, drawItemIndex);
 
-    fragment.position = spatial.absoluteModel * inPosition;
+    fragment.position = spatial.model * inPosition;
     fragment.color = inColor;
     fragment.texCoord = inTexCoord;
 
-    vec4 T = vec4(normalize(mat3(spatial.absoluteModel) * inTangent.xyz), 0);
-    vec4 N = vec4(normalize(mat3(spatial.absoluteModel) * inNormal.xyz), 0);
-    vec4 B = vec4(normalize(mat3(spatial.absoluteModel) * inBitangent.xyz), 0);
+    vec4 T = vec4(normalize(mat3(spatial.model) * inTangent.xyz), 0);
+    vec4 N = vec4(normalize(mat3(spatial.model) * inNormal.xyz), 0);
+    vec4 B = vec4(normalize(mat3(spatial.model) * inBitangent.xyz), 0);
 
     fragment.tangent = T;
     fragment.bitangent = B;

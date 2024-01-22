@@ -1,4 +1,6 @@
 #include "../Animations/Components/Animation.hpp"
+#include "../Animations/Components/AnimationReference.hpp"
+#include "../Animations/Components/BoneReference.hpp"
 #include "../Animations/Components/MeshAnimation.hpp"
 #include "../Animations/Components/AnimationState.hpp"
 #include "../Animations/Components/Bone.hpp"
@@ -45,6 +47,7 @@ namespace drk::Loaders {
 			| aiProcess_GenNormals
 			| aiProcess_JoinIdenticalVertices
 			| aiProcess_OptimizeMeshes
+			| aiProcess_PopulateArmatureData
 		);
 
 		std::span<aiMaterial*> aiMaterials(aiScene->mMaterials, aiScene->mNumMaterials);
@@ -62,20 +65,38 @@ namespace drk::Loaders {
 		const auto workingDirectoryPath = scenePath.parent_path();
 		loadMaterials(aiMaterials, aiTextures, workingDirectoryPath, loadResult, registry);
 
-		std::unordered_map<std::string, entt::entity> aiBonePtrBoneEntityMap;
-		loadMeshes(aiMeshes, loadResult, registry, aiBonePtrBoneEntityMap);
+		std::unordered_map<std::string, entt::entity> aiBoneNodeNameBoneEntityMap;
+		std::unordered_map<aiBone*, entt::entity> aiBonePtrBoneEntityMap;
+
+		loadMeshes(
+			aiMeshes,
+			loadResult,
+			registry,
+			aiBoneNodeNameBoneEntityMap,
+			aiBonePtrBoneEntityMap
+		);
 
 		std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>> lightMap;
 		std::unordered_map<std::string, entt::entity> cameraMap;
+		std::unordered_map<std::string, entt::entity> aiNodeNameNodeAnimationMap;
 
 		loadLights(aiLights, lightMap, registry, loadResult);
 		loadCameras(aiCameras, cameraMap, registry);
 		loadSkeletons(aiSkeletons, loadResult, registry);
-		loadAnimations(aiAnimations, loadResult, registry);
+		loadAnimations(aiAnimations, aiNodeNameNodeAnimationMap, loadResult, registry);
 
 		std::unordered_map<const aiNode*, entt::entity> cache;
 
-		auto rootEntity = loadNode(aiScene->mRootNode, lightMap, cameraMap, aiBonePtrBoneEntityMap, loadResult, registry, cache);
+		auto rootEntity = loadNode(
+			aiScene->mRootNode, 
+			lightMap, 
+			cameraMap, 
+			aiBoneNodeNameBoneEntityMap,
+			aiNodeNameNodeAnimationMap,
+			loadResult, 
+			registry, 
+			cache
+		);
 
 		return loadResult;
 	}
@@ -133,6 +154,7 @@ namespace drk::Loaders {
 							}
 							if (image->pixels.size() > 0) {
 								auto textureEntity = registry.create();
+								registry.emplace<Common::Components::Name>(textureEntity, std::filesystem::path(texturePath).filename().string());
 								registry.emplace<std::shared_ptr<Textures::ImageInfo>>(textureEntity, std::move(image));
 								textureNameMap[texturePath] = textureEntity;
 								textureTypeMap[textureTypePair.second] = textureEntity;
@@ -198,7 +220,6 @@ namespace drk::Loaders {
 				|| hasDiffuseColor && diffuseColor.a < 1;
 
 			Materials::Components::Material material = {
-				.name = materialName,
 				.baseColor = glm::vec4(ambientColor.r, ambientColor.g, ambientColor.b, ambientColor.a),
 				.ambientColor = glm::vec4(ambientColor.r, ambientColor.g, ambientColor.b, ambientColor.a),
 				.diffuseColor = glm::vec4(diffuseColor.r, diffuseColor.g, diffuseColor.b, diffuseColor.a),
@@ -214,6 +235,7 @@ namespace drk::Loaders {
 
 			auto materialPtr = std::make_shared<Materials::Components::Material>(material);
 			registry.emplace<std::shared_ptr<Materials::Components::Material>>(materialEntity, materialPtr);
+			registry.emplace<Common::Components::Name>(materialEntity, materialName);
 			loadResult.materials[aiMaterialIndex] = materialPtr;
 			loadResult.materialIdEntityMap[aiMaterialIndex] = materialEntity;
 		}
@@ -223,7 +245,8 @@ namespace drk::Loaders {
 		std::span<aiMesh*> aiMeshes,
 		LoadResult& loadResult,
 		entt::registry& registry,
-		std::unordered_map<std::string, entt::entity>& aiBonePtrBoneEntityMap
+		std::unordered_map<std::string, entt::entity>& aiBoneNodeNameBoneEntityMap,
+		std::unordered_map<aiBone*, entt::entity>& aiBonePtrBoneEntityMap
 	) const {
 		for (auto aiMeshIndex = 0u; aiMeshIndex < aiMeshes.size(); aiMeshIndex++) {
 			const auto& aiMesh = aiMeshes[aiMeshIndex];
@@ -235,9 +258,18 @@ namespace drk::Loaders {
 				registry.emplace<Animations::Components::MeshAnimation>(meshEntity);
 				const std::span<aiBone*> aiBones(aiMesh->mBones, aiMesh->mNumBones);
 				for (const auto& aiBone : aiBones) {
+					auto boneEntityEntry = aiBoneNodeNameBoneEntityMap.find(aiBone->mName.C_Str());
 					entt::entity boneEntity = registry.create();
-					aiBonePtrBoneEntityMap[aiBone->mName.C_Str()] = boneEntity;
-					registry.emplace<Common::Components::Name>(boneEntity, aiBone->mName.C_Str());
+					if (boneEntityEntry != aiBoneNodeNameBoneEntityMap.end()) {
+						boneEntity = boneEntityEntry->second;
+					}
+					else {
+						boneEntity = registry.create();
+						aiBonePtrBoneEntityMap[aiBone] = boneEntity;
+						aiBoneNodeNameBoneEntityMap[aiBone->mName.C_Str()] = boneEntity;
+						registry.emplace<Common::Components::Name>(boneEntity, aiBone->mName.C_Str());
+					}
+
 					const std::span<aiVertexWeight> aiVertexWeights(aiBone->mWeights, aiBone->mNumWeights);
 
 					aiVector3D aiScale, aiPosition;
@@ -250,23 +282,23 @@ namespace drk::Loaders {
 					auto scalingMatrix = glm::scale(glm::identity<glm::mat4>(), glm::vec3(scale));
 					auto localModel = translationMatrix * rotationMatrix * scalingMatrix;
 
-					Spatials::Components::Spatial boneSpatial{
-						scale,
-						rotation,
+					Spatials::Components::Spatial<Spatials::Components::Relative> boneSpatial{
 						position,
-						scale,
 						rotation,
-						position,
-						localModel,
+						scale,
 						localModel,
 					};
 
 					Animations::Components::Bone bone{
 						.spatialOffset = std::move(boneSpatial)
 					};
-					bone.weights.resize(aiBone->mNumWeights);
-					memcpy(bone.weights.data(), (Animations::Components::VertexWeight*)aiBone->mWeights, aiBone->mNumWeights * sizeof(Animations::Components::VertexWeight));
-					registry.emplace<Animations::Components::Bone>(boneEntity, std::move(bone));
+					std::vector<Animations::Components::VertexWeight> weights(aiBone->mNumWeights);
+					memcpy(weights.data(), (Animations::Components::VertexWeight*)aiBone->mWeights, aiBone->mNumWeights * sizeof(Animations::Components::VertexWeight));
+
+					entt::entity meshBone = registry.create();
+					registry.emplace<std::vector<Animations::Components::VertexWeight>>(meshBone, std::move(weights));
+					registry.emplace<Meshes::Components::MeshReference>(meshBone, meshEntity);
+					registry.emplace<Animations::Components::BoneReference>(meshBone, boneEntity);
 				}
 			}
 
@@ -328,7 +360,6 @@ namespace drk::Loaders {
 			auto meshMaterial = loadResult.materials[aiMesh->mMaterialIndex];
 			auto materialEntity = loadResult.materialIdEntityMap[aiMesh->mMaterialIndex];
 			Meshes::Components::MeshResource mesh = {
-				.name = meshName,
 				.vertices = vertices,
 				.indices = indices
 			};
@@ -338,6 +369,7 @@ namespace drk::Loaders {
 				glm::vec4(AssimpLoader::toVector(aiMesh->mAABB.mMax), 1.0f)
 			);
 
+			registry.emplace<Common::Components::Name>(meshEntity, meshName);
 			registry.emplace<std::shared_ptr<Meshes::Components::MeshResource>>(meshEntity, meshPtr);
 			registry.emplace<Materials::Components::MaterialReference>(meshEntity, materialEntity);
 			registry.emplace<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity, axisAlignedBoundingBox);
@@ -363,6 +395,7 @@ namespace drk::Loaders {
 
 	void AssimpLoader::loadAnimations(
 		std::span<aiAnimation*> aiAnimations,
+		std::unordered_map<std::string, entt::entity>& nodeNameAnimationMap,
 		LoadResult& loadResult,
 		entt::registry& registry
 	) const {
@@ -376,7 +409,7 @@ namespace drk::Loaders {
 			};
 			animation.nodeAnimations.resize(aiAnimation->mNumChannels);
 
-			std::transform(aiChannels.begin(), aiChannels.end(), animation.nodeAnimations.data(), [](const aiNodeAnim* aiChannel) {
+			std::transform(aiChannels.begin(), aiChannels.end(), animation.nodeAnimations.data(), [&nodeNameAnimationMap ,&registry, animationEntity](const aiNodeAnim* aiChannel) {
 				std::span<aiVectorKey> aiPositionKeys(aiChannel->mPositionKeys, aiChannel->mNumPositionKeys);
 				std::span<aiVectorKey> aiScalingKeys(aiChannel->mScalingKeys, aiChannel->mNumScalingKeys);
 				std::span<aiQuatKey> aiRotationKeys(aiChannel->mRotationKeys, aiChannel->mNumRotationKeys);
@@ -396,20 +429,26 @@ namespace drk::Loaders {
 						.vector = glm::vec3{aiVectorKey.mValue.x, aiVectorKey.mValue.y, aiVectorKey.mValue.z}
 					};
 					});
+				std::sort(nodeAnimation.positionKeys.begin(), nodeAnimation.positionKeys.end(), [](const auto& left, const auto right) { return left.time < right.time; });
 				std::transform(aiScalingKeys.begin(), aiScalingKeys.end(), nodeAnimation.scalingKeys.data(), [](const aiVectorKey& aiVectorKey) {
 					return Animations::Components::VectorKey{
 						.time = aiVectorKey.mTime,
 						.vector = glm::vec3{aiVectorKey.mValue.x, aiVectorKey.mValue.y, aiVectorKey.mValue.z}
 					};
 					});
-
+				std::sort(nodeAnimation.rotationKeys.begin(), nodeAnimation.rotationKeys.end(), [](const auto& left, const auto right) { return left.time < right.time; });
 				std::transform(aiRotationKeys.begin(), aiRotationKeys.end(), nodeAnimation.rotationKeys.data(), [](const aiQuatKey& aiQuatKey) {
 					return Animations::Components::QuatKey{
 						.time = aiQuatKey.mTime,
 						.quat = glm::quat{aiQuatKey.mValue.w, aiQuatKey.mValue.x, aiQuatKey.mValue.y, aiQuatKey.mValue.z}
 					};
 					});
-
+				std::sort(nodeAnimation.scalingKeys.begin(), nodeAnimation.scalingKeys.end(), [](const auto& left, const auto right) { return left.time < right.time; });
+				entt::entity nodeAnimationEntity = registry.create();
+				registry.emplace<Animations::Components::NodeAnimation>(nodeAnimationEntity, nodeAnimation);
+				registry.emplace<Animations::Components::AnimationReference>(nodeAnimationEntity, animationEntity);
+				registry.emplace<Animations::Components::AnimationState>(nodeAnimationEntity, 0.0);
+				nodeNameAnimationMap[aiChannel->mNodeName.C_Str()] = nodeAnimationEntity;
 				return nodeAnimation;
 				});
 			std::span<aiMeshAnim*> aiMeshChannels(aiAnimation->mMeshChannels, aiAnimation->mNumMeshChannels);
@@ -426,6 +465,7 @@ namespace drk::Loaders {
 
 				}
 			}
+			registry.emplace<Animations::Components::Animation>(animationEntity, animation);
 		}
 	}
 
@@ -444,8 +484,8 @@ namespace drk::Loaders {
 				pointLight.linearAttenuation = aiLight->mAttenuationLinear;
 				pointLight.quadraticAttenuation = aiLight->mAttenuationQuadratic;
 
-				Spatials::Components::Spatial lightSpatial{
-					.relativePosition = {aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1}
+				Spatials::Components::Spatial<Spatials::Components::Relative> lightSpatial{
+					.position = {aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1}
 				};
 
 				Lights::Components::LightPerspective frontLightPerspective = {
@@ -534,7 +574,7 @@ namespace drk::Loaders {
 				};
 
 				registry.emplace<Lights::Components::PointLight>(entity, pointLight);
-				registry.emplace<Spatials::Components::Spatial>(entity, lightSpatial);
+				registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity, lightSpatial);
 				registry.emplace<Lights::Components::LightPerspectiveCollection>(entity, lightPerspectiveCollection);
 
 				loadResult.pointLights.emplace_back(pointLight);
@@ -556,11 +596,11 @@ namespace drk::Loaders {
 				};
 				Lights::Components::DirectionalLight directionalLight;
 
-				Spatials::Components::Spatial lightSpatial{
-					.relativePosition = { aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1 },
+				Spatials::Components::Spatial<Spatials::Components::Relative> lightSpatial{
+					.position = { aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1 },
 				};
 
-				registry.emplace<Spatials::Components::Spatial>(entity, lightSpatial);
+				registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity, lightSpatial);
 				registry.emplace<Lights::Components::DirectionalLight>(entity, directionalLight);
 				registry.emplace<Lights::Components::LightPerspective>(entity, lightPerspective);
 
@@ -574,8 +614,8 @@ namespace drk::Loaders {
 				spotlight.innerConeAngle = aiLight->mAngleInnerCone;
 				spotlight.outerConeAngle = aiLight->mAngleOuterCone;
 
-				Spatials::Components::Spatial lightSpatial{
-					.relativePosition = { aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1 },
+				Spatials::Components::Spatial<Spatials::Components::Relative> lightSpatial{
+					.position = { aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1 },
 				};
 
 				Lights::Components::LightPerspective lightPerspective{
@@ -588,7 +628,7 @@ namespace drk::Loaders {
 				};
 
 				registry.emplace<Lights::Components::Spotlight>(entity, spotlight);
-				registry.emplace<Spatials::Components::Spatial>(entity, lightSpatial);
+				registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity, lightSpatial);
 				registry.emplace<Lights::Components::LightPerspective>(entity, lightPerspective);
 				loadResult.spotlights.emplace_back(spotlight);
 			}
@@ -629,9 +669,9 @@ namespace drk::Loaders {
 			auto verticalFov = aiCamera->mHorizontalFOV / aiCamera->mAspect;
 
 
-			Spatials::Components::Spatial cameraSpatial{
-				.relativeScale = {1.0f, 1.0f, 1.0f, 1.0f},
-				.relativePosition = { aiCamera->mPosition.x, aiCamera->mPosition.y, aiCamera->mPosition.z, 1 },
+			Spatials::Components::Spatial<Spatials::Components::Relative> cameraSpatial{
+				.position = { aiCamera->mPosition.x, aiCamera->mPosition.y, aiCamera->mPosition.z, 1 },
+				.scale = {1.0f, 1.0f, 1.0f, 1.0f},
 			};
 
 			Cameras::Components::Camera camera{
@@ -665,7 +705,7 @@ namespace drk::Loaders {
 			auto entity = registry.create();
 			registry.emplace<Cameras::Components::Camera>(entity, camera);
 			registry.emplace<Frustums::Components::Frustum>(entity, cameraFrustum);
-			registry.emplace<Spatials::Components::Spatial>(entity, cameraSpatial);
+			registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity, cameraSpatial);
 			cameraNameMap[cameraName] = entity;
 		}
 	}
@@ -675,6 +715,7 @@ namespace drk::Loaders {
 		const std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightMap,
 		const std::unordered_map<std::string, entt::entity>& cameraMap,
 		const std::unordered_map<std::string, entt::entity>& aiBonePtrBoneEntityMap,
+		const std::unordered_map<std::string, entt::entity>& aiNodeNameNodeAnimationMap,
 		LoadResult& loadResult,
 		entt::registry& registry,
 		std::unordered_map<const aiNode*, entt::entity>& cache,
@@ -695,25 +736,15 @@ namespace drk::Loaders {
 		auto scalingMatrix = glm::scale(glm::identity<glm::mat4>(), glm::vec3(scale));
 		auto localModel = translationMatrix * rotationMatrix * scalingMatrix;
 
-		Spatials::Components::Spatial spatial{
-			scale,
-			rotation,
+		Spatials::Components::Spatial<Spatials::Components::Relative> spatial{
 			position,
-			scale,
 			rotation,
-			position,
-			localModel,
-			localModel,
+			scale,
+			localModel
 		};
 
 		entt::entity entity = entt::null;
 		bool shouldEmplaceSpatial = true;
-
-		auto boneEntityEntry = aiBonePtrBoneEntityMap.find(nodeName);
-		if (boneEntityEntry != aiBonePtrBoneEntityMap.end()) {
-			entity = boneEntityEntry->second;
-			if (registry.try_get<Objects::Components::Object>(entity) != nullptr) return entity;
-		}
 
 		auto light = lightMap.find(nodeName);
 		if (light != lightMap.end()) {
@@ -721,34 +752,45 @@ namespace drk::Loaders {
 			entity = std::get<0>(light->second);
 			auto lightType = std::get<1>(light->second);
 			if (lightType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
-				auto& directionalLightSpatial = registry.get<Spatials::Components::Spatial>(entity);
-				directionalLightSpatial.relativeRotation = spatial.relativeRotation;
-				directionalLightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 0.0f);
+				auto& directionalLightSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity);
+				directionalLightSpatial.rotation = spatial.rotation;
+				directionalLightSpatial.position += glm::vec4(glm::vec3(spatial.position), 0.0f);
 			}
 			else if (lightType == aiLightSourceType::aiLightSource_POINT) {
 				auto& pointLight = registry.get<Lights::Components::PointLight>(entity);
-				auto& pointLightSpatial = registry.get<Spatials::Components::Spatial>(entity);
-				pointLightSpatial.relativeRotation = spatial.relativeRotation;
-				pointLightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 0.0f);
+				auto& pointLightSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity);
+				pointLightSpatial.rotation = spatial.rotation;
+				pointLightSpatial.position += glm::vec4(glm::vec3(spatial.position), 0.0f);
 			}
 			else if (lightType == aiLightSourceType::aiLightSource_SPOT) {
 				auto& spotlight = registry.get<Lights::Components::Spotlight>(entity);
-				auto& spotlightSpatial = registry.get<Spatials::Components::Spatial>(entity);
-				spotlightSpatial.relativeRotation = spatial.relativeRotation;
-				spotlightSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 0.0f);
+				auto& spotlightSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity);
+				spotlightSpatial.rotation = spatial.rotation;
+				spotlightSpatial.position += glm::vec4(glm::vec3(spatial.position), 0.0f);
 			}
 		}
 		auto cameraEntry = cameraMap.find(nodeName);
 		if (cameraEntry != cameraMap.end()) {
 			shouldEmplaceSpatial = false;
 			entity = cameraEntry->second;
-			auto& cameraSpatial = registry.get<Spatials::Components::Spatial>(entity);
-			cameraSpatial.relativeRotation = spatial.relativeRotation;
-			cameraSpatial.relativePosition += glm::vec4(glm::vec3(spatial.relativePosition), 0.0f);
+			auto& cameraSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity);
+			cameraSpatial.rotation = spatial.rotation;
+			cameraSpatial.position += glm::vec4(glm::vec3(spatial.position), 0.0f);
 		}
 
 		if (entity == entt::null) entity = registry.create();
 		registry.emplace<Objects::Components::Object>(entity, assimpNode->mName.C_Str());
+		auto boneEntityEntry = aiBonePtrBoneEntityMap.find(nodeName);
+		if (boneEntityEntry != aiBonePtrBoneEntityMap.end()) {
+			entt::entity boneEntity = boneEntityEntry->second;
+			registry.emplace<Animations::Components::BoneReference>(entity, boneEntity);
+		}
+
+		auto nodeAnimationEntityEntry = aiNodeNameNodeAnimationMap.find(assimpNode->mName.C_Str());
+		if (nodeAnimationEntityEntry != aiNodeNameNodeAnimationMap.end()) {
+			auto nodeAnimationEntity = nodeAnimationEntityEntry->second;
+			registry.emplace<Objects::Components::ObjectReference>(nodeAnimationEntity, entity);
+		}
 
 		if (assimpNode->mNumMeshes) {
 			Objects::Components::ObjectMeshCollection objectMeshCollection;
@@ -756,14 +798,11 @@ namespace drk::Loaders {
 				auto& aiMesh = assimpNode->mMeshes[meshIndex];
 				auto meshEntity = loadResult.meshIdEntityMap[assimpNode->mMeshes[meshIndex]];
 				auto objectMeshEntity = registry.create();
-				if (registry.any_of<Animations::Components::MeshAnimation>(meshEntity)) {
-					registry.emplace<Animations::Components::AnimationState>(objectMeshEntity, entt::null, 0.0f);
-				}
 				registry.emplace<Objects::Components::ObjectReference>(objectMeshEntity, entity);
 				registry.emplace<Meshes::Components::MeshReference>(objectMeshEntity, meshEntity);
 				registry.emplace<Meshes::Components::Mesh>(objectMeshEntity);
 				auto meshAABB = registry.get<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity);
-				auto instanceAABB = meshAABB.transform(spatial.absoluteModel);
+				auto instanceAABB = meshAABB.transform(spatial.model);
 
 				Objects::Components::Relationship objectMeshRelationship{
 					.parent = entity,
@@ -777,7 +816,7 @@ namespace drk::Loaders {
 			registry.emplace<Objects::Components::ObjectMeshCollection>(entity, std::move(objectMeshCollection));
 		}
 
-		if (shouldEmplaceSpatial) registry.emplace<Spatials::Components::Spatial>(entity, spatial);
+		if (shouldEmplaceSpatial) registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity, spatial);
 
 		Objects::Components::Relationship relationship;
 		Objects::Components::Relationship* previousRelationship = nullptr;
@@ -797,6 +836,7 @@ namespace drk::Loaders {
 					lightMap,
 					cameraMap,
 					aiBonePtrBoneEntityMap,
+					aiNodeNameNodeAnimationMap,
 					loadResult,
 					registry,
 					cache,

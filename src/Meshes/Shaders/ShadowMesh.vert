@@ -72,7 +72,7 @@ void main() {
     LightPerspective lightPerspective = lightPerspectiveBuffer[draw.lightPerspectiveItemLocation.storeIndex].lightPerspectives[draw.lightPerspectiveItemLocation.itemIndex];
     Spatial lightPerspectiveSpatial = spatialBuffer[draw.lightPerspectiveSpatialItemLocation.storeIndex].spatials[draw.lightPerspectiveSpatialItemLocation.itemIndex];
 
-    gl_Position = lightPerspective.perspective * lightPerspective.view * spatial.absoluteModel * inPosition;
-    fragment = ShadowMeshVertex(spatial.absoluteModel * inPosition);
+    gl_Position = lightPerspective.perspective * lightPerspective.view * spatial.model * inPosition;
+    fragment = ShadowMeshVertex(spatial.model * inPosition);
     drawItemLocation = StoreItemLocation(meshDrawBufferIndex, drawItemIndex);
 }

@@ -4,14 +4,18 @@
 #include "glm/glm.hpp"
 
 namespace drk::Spatials::Components {
-	struct Spatial {
-		glm::vec4 relativeScale;
-		glm::quat relativeRotation;
-		glm::vec4 relativePosition;
-		glm::vec4 absoluteScale;
-		glm::quat absoluteRotation;
-		glm::vec4 absolutePosition;
-		glm::mat4 relativeModel;
-		glm::mat4 absoluteModel;
+	enum class SpatialType {
+		Relative,
+		Absolute
 	};
+
+	template <typename T>
+	struct Spatial {
+		glm::vec4 position;
+		glm::quat rotation;
+		glm::vec4 scale;
+		glm::mat4 model;
+	};
+	struct Absolute {};
+	struct Relative {};
 }

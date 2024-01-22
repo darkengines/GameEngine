@@ -92,7 +92,8 @@ namespace drk::Lines::Systems {
 	void LineSystem::emitDraws() {
 		auto lineEntities = registry.view<
 			Stores::StoreItem<Models::Line>,
-			Components::Line, Spatials::Components::Spatial,
+			Components::Line, 
+			Spatials::Components::Spatial<Spatials::Components::Absolute>,
 			Stores::StoreItem<Objects::Models::Object>>(entt::exclude<Models::LineDraw>);
 		auto hasEntities = lineEntities.begin() != lineEntities.end();
 		if (hasEntities) {
@@ -116,7 +117,7 @@ namespace drk::Lines::Systems {
 							.indexBufferView = lineIndexBufferView,
 							.vertexBufferView = lineVertexBufferView,
 							.hasTransparency = material->hasTransparency,
-							.depth = glm::distance(camera.absolutePosition, spatial.absolutePosition)
+							.depth = glm::distance(camera.absolutePosition, spatial.position)
 						};
 						Models::LineDraw lineDraw = {
 							.lineItemLocation = lineStoreItemLocation,

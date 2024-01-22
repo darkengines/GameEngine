@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <memory>
+#include "../Animations/Components/Animation.hpp"
 #include "../Meshes/Components/MeshResource.hpp"
 #include "../Materials/Components/Material.hpp"
 #include "../Textures/ImageInfo.hpp"
@@ -25,6 +26,7 @@ namespace drk::Loaders {
 		std::vector<Lights::Components::PointLight> pointLights;
 		std::vector<Lights::Components::DirectionalLight> directionalLights;
 		std::vector<Lights::Components::Spotlight> spotlights;
+		std::vector<Animations::Components::Animation> animations;
 		std::unordered_map<uint32_t, entt::entity> materialIdEntityMap;
 		std::unordered_map<uint32_t, entt::entity> meshIdEntityMap;
 		entt::entity rootEntity = entt::null;

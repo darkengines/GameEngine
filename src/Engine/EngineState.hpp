@@ -20,6 +20,7 @@
 #include "../Devices/DeviceContext.hpp"
 #include "DescriptorSetLayoutCache.hpp"
 #include "DescriptorSetLayouts.hpp"
+#include <fmt/chrono.h>
 
 #define FRAME_COUNT 2u
 
@@ -30,6 +31,7 @@ namespace drk::Engine {
 		entt::registry& registry;
 		DescriptorSetLayoutCache& descriptorSetLayoutCache;
 		DescriptorSetAllocator& descriptorSetAllocator;
+		std::chrono::high_resolution_clock::time_point startedOn = std::chrono::high_resolution_clock::now();
 		const DescriptorSetLayouts& descriptorSetLayouts;
 		const vk::Sampler textureSampler;
 		const vk::Sampler shadowTextureSampler;
@@ -61,6 +63,8 @@ namespace drk::Engine {
 
 		uint32_t getFrameIndex() const;
 		uint32_t getFrameCount() const;
+		double getTime() const;
+		std::chrono::high_resolution_clock::duration getDuration() const;
 		FrameState& getCurrentFrameState() const;
 		void incrementFrameIndex();
 

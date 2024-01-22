@@ -114,18 +114,7 @@ namespace drk::Frustums::Systems {
 	}
 	void FrustumSystem::processDirty()
 	{
-		auto dirtyItems = registry.view<
-			Frustums::Components::Frustum,
-			Spatials::Components::Spatial,
-			Objects::Components::Dirty<Spatials::Components::Spatial>
-		>();
-		dirtyItems.each([&](
-			entt::entity entity,
-			Frustums::Components::Frustum& frustum,
-			const Spatials::Components::Spatial& spatial
-			) {
 
-			});
 	}
 	void FrustumSystem::emitDraws() {
 		const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);

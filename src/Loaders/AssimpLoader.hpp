@@ -27,7 +27,8 @@ namespace drk::Loaders {
 			std::span<aiMesh*> aiMeshes,
 			LoadResult& loadResult,
 			entt::registry& registry,
-			std::unordered_map<std::string, entt::entity>& aiBonePtrBoneEntityMap
+			std::unordered_map<std::string, entt::entity>& aiBoneNodeNameBoneEntityMap,
+			std::unordered_map<aiBone*, entt::entity>& aiBonePtrBoneEntityMap
 		) const;
 		void loadSkeletons(
 			std::span<aiSkeleton*> aiSkeletons,
@@ -36,6 +37,7 @@ namespace drk::Loaders {
 		) const;
 		void loadAnimations(
 			std::span<aiAnimation*> aiAnimations,
+			std::unordered_map<std::string, entt::entity>& nodeNameAnimationMap,
 			LoadResult& loadResult,
 			entt::registry& registry
 		) const;
@@ -55,6 +57,7 @@ namespace drk::Loaders {
 			const std::unordered_map<std::string, std::tuple<entt::entity, aiLightSourceType>>& lightMap,
 			const std::unordered_map<std::string, entt::entity>& cameraMap,
 			const std::unordered_map<std::string, entt::entity>& aiBonePtrBoneEntityMap,
+			const std::unordered_map<std::string, entt::entity>& aiNodeNameNodeAnimationMap,
 			LoadResult& loadResult,
 			entt::registry& registry,
 			std::unordered_map<const aiNode*, entt::entity>& cache,

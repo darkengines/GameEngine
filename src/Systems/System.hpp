@@ -26,7 +26,7 @@ namespace drk::Systems {
 					entity,
 					storeItem
 				);
-				registry.emplace<Graphics::SynchronizationState<TModel>>(entity, engineState.getFrameCount());
+				registry.emplace_or_replace<Graphics::SynchronizationState<TModel>>(entity, engineState.getFrameCount());
 				itemCount++;
 			}
 		}

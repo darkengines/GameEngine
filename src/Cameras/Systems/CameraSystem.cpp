@@ -35,17 +35,17 @@ namespace drk::Cameras::Systems {
 	void CameraSystem::processDirtyItems() {
 		auto dirtyCameraView = registry.view<
 			Components::Camera,
-			Spatials::Components::Spatial,
-			Objects::Components::Dirty<Spatials::Components::Spatial>
+			Spatials::Components::Spatial<Spatials::Components::Absolute>,
+			Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>
 		>();
 		dirtyCameraView.each(
 			[&](
 				entt::entity cameraEntity,
 				Components::Camera& camera,
-				Spatials::Components::Spatial& spatial
+				Spatials::Components::Spatial<Spatials::Components::Absolute>& spatial
 				) {
-					camera.absolutePosition = spatial.absolutePosition;
-					auto absoluteRotation = glm::toMat4(spatial.absoluteRotation);
+					camera.absolutePosition = spatial.position;
+					auto absoluteRotation = glm::toMat4(spatial.rotation);
 					camera.absoluteFront = absoluteRotation * camera.relativeFront;
 					camera.absoluteUp = absoluteRotation * camera.relativeUp;
 					camera.view = glm::lookAt(
@@ -87,10 +87,10 @@ namespace drk::Cameras::Systems {
 			.near = near,
 			.far = far
 		};
-		Spatials::Components::Spatial cameraSpatial = {
-			.relativeScale = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
-			.relativeRotation = glm::quat(1, 0, 0, 0),
-			.relativePosition = position
+		Spatials::Components::Spatial<Spatials::Components::Relative> cameraSpatial = {
+			.position = position,
+			.rotation = glm::quat(1, 0, 0, 0),
+			.scale = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
 		};
 		Objects::Components::Relationship cameraRelationship = {
 			.parent = entt::null
@@ -102,7 +102,7 @@ namespace drk::Cameras::Systems {
 		auto frustum = Frustums::Components::Frustum::createFrustumFromView(position, front, up, verticalFov, aspectRatio, near, far);
 		registry.emplace<Frustums::Components::Frustum>(cameraEntity, std::move(frustum));
 		registry.emplace<Components::Camera>(cameraEntity, std::move(camera));
-		registry.emplace<Spatials::Components::Spatial>(cameraEntity, std::move(cameraSpatial));
+		registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(cameraEntity, std::move(cameraSpatial));
 		registry.emplace<Objects::Components::Relationship>(cameraEntity, std::move(cameraRelationship));
 		registry.emplace<Objects::Components::Object>(cameraEntity, std::move(cameraObject));
 

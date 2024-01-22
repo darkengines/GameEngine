@@ -1,8 +1,11 @@
+#pragma once
+
 #include <vector>
 #include <string>
 #include "./VectorKey.hpp"
 #include "./QuatKey.hpp"
 #include "./AnimationBehavior.hpp"
+#include <entt/entt.hpp>
 
 namespace drk::Animations::Components {
 	struct NodeAnimation {

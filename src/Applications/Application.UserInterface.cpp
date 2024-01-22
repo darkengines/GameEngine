@@ -8,6 +8,7 @@
 #include <imgui_impl_vulkan.h>
 #include <imgui.h>
 #include <imfilebrowser.h>
+#include "../Common/Components/Name.hpp"
 
 namespace drk::Applications {
 	void Application::renderEntities() {
@@ -53,12 +54,12 @@ namespace drk::Applications {
 				auto typeInfo = storage.type();
 				auto component = storage.find(entity);
 				ImGui::Text(typeInfo.name().data());
-				auto spatialComponentTypeId = entt::type_id<Spatials::Components::Spatial>();
+				auto spatialComponentTypeId = entt::type_id<Spatials::Components::Spatial<Spatials::Components::Relative>>();
 				auto cameraComponentTypeId = entt::type_id<Cameras::Components::Camera>();
 				if (typeInfo == spatialComponentTypeId) {
-					auto& spatial = registry.get<Spatials::Components::Spatial>(entity);
+					auto& spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity);
 					if (Spatials::Components::SpatialEditor::Spatial(spatial)) {
-						spatialSystem.makeDirty(entity);
+						Spatials::Systems::SpatialSystem::makeDirty(registry, entity);
 					}
 				}
 				if (typeInfo == cameraComponentTypeId) {
@@ -71,6 +72,45 @@ namespace drk::Applications {
 				}
 			}
 		}
+		ImGui::End();
+	};
+
+	void Application::renderInspector() {
+		ImGui::Begin("Inspector");
+		registry.each([this](entt::entity entity) {
+			auto nameComponent = registry.try_get<Common::Components::Name>(entity);
+			if (nameComponent != nullptr) {
+				ImGui::Text(nameComponent->name.c_str());
+			}
+			else {
+				ImGui::Text(fmt::format("entity #{0}", (int)entity).c_str());
+			}
+			if (ImGui::IsItemClicked()) {
+				selectedEntity = entity;
+			}
+			});
+		ImGui::End();
+	};
+
+	void Application::renderAnimations() {
+		ImGui::Begin("Animations");
+		auto animationView = registry.view<
+			Animations::Components::Animation,
+			Common::Components::Name
+		>();
+		animationView.each([](
+			entt::entity animationEntity,
+			const Animations::Components::Animation animation,
+			const Common::Components::Name& name
+			) {
+				ImGui::Text(name.name.c_str());
+			});
+		ImGui::End();
+	};
+
+	void Application::renderSystemInfos() {
+		ImGui::Begin("System");
+		ImGui::Text(fmt::format("{0}", engineState.getDuration()).c_str());
 		ImGui::End();
 	};
 
