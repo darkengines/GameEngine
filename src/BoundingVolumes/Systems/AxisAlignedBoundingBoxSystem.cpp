@@ -108,7 +108,7 @@ namespace drk::BoundingVolumes::Systems {
 			Components::AxisAlignedBoundingBox,
 			Objects::Components::ObjectReference,
 			Meshes::Components::MeshReference,
-			Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>
+			Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>
 		>();
 		view.each([this](
 			entt::entity entity,

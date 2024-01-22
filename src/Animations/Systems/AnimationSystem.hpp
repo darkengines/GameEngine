@@ -117,11 +117,11 @@ namespace drk::Animations::Systems {
 				const Animations::Components::NodeAnimation& nodeAnimation
 				) {
 					const Components::Animation& animation = registry.get<Animations::Components::Animation>(animationReference.animationEntity);
-					Spatials::Components::Spatial<Spatials::Components::Relative>& nodeSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(objectReference.objectEntity);
+					auto& nodeSpatial = registry.get_or_emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(objectReference.objectEntity);
 
-					glm::vec3 position{ 0, 0, 0 };
-					glm::vec3 scaling{ 0, 0, 0 };
-					glm::quat rotation{ 0, 0, 0, 0 };
+					auto position = glm::make_vec3(nodeSpatial.position);
+					auto scaling = glm::make_vec3(nodeSpatial.scale);
+					auto rotation = nodeSpatial.rotation;
 					auto time = std::chrono::duration<double, std::milli>(engineState.getDuration()).count();
 					update(time, nodeAnimation, animation, position, rotation, scaling);
 
@@ -145,42 +145,60 @@ namespace drk::Animations::Systems {
 			time = std::fmod(time, animation.duration);
 
 			if (nodeAnimation.positionKeys.size() > 1) {
-				auto positionLowerBound = std::lower_bound(nodeAnimation.positionKeys.begin(), nodeAnimation.positionKeys.end(), time, [](const auto& positionKey, double time) { return positionKey.time < time; });
-				auto currentPositionIndex = std::distance(nodeAnimation.positionKeys.begin(), positionLowerBound) % (nodeAnimation.positionKeys.size() - 1);
-				const auto& currentPosition = nodeAnimation.positionKeys[currentPositionIndex];
-				const auto& nextPosition = nodeAnimation.positionKeys[currentPositionIndex + 1];
-				auto positionTransitionDuration = nextPosition.time - currentPosition.time;
-				auto positionTransitionTime = time - currentPosition.time;
-				auto positionTransitionProgress = positionTransitionTime / positionTransitionDuration;
-				position = currentPosition.vector + (nextPosition.vector - currentPosition.vector) * (float)positionTransitionProgress;
+				auto positionUpperBound = std::upper_bound(nodeAnimation.positionKeys.begin(), nodeAnimation.positionKeys.end(), time, [](double time, const auto& positionKey) { return time < positionKey.time; });
+				if (positionUpperBound == nodeAnimation.positionKeys.end()) {
+					position = nodeAnimation.positionKeys[nodeAnimation.positionKeys.size() - 1].vector;
+				}
+				else if (positionUpperBound != nodeAnimation.positionKeys.begin())
+				{
+					auto currentPositionIndex = std::distance(nodeAnimation.positionKeys.begin(), positionUpperBound) - 1;
+					const auto& currentPosition = nodeAnimation.positionKeys[currentPositionIndex];
+					const auto& nextPosition = nodeAnimation.positionKeys[currentPositionIndex + 1];
+					auto positionTransitionDuration = nextPosition.time - currentPosition.time;
+					auto positionTransitionTime = time - currentPosition.time;
+					auto positionTransitionProgress = positionTransitionTime / positionTransitionDuration;
+					position = currentPosition.vector + (nextPosition.vector - currentPosition.vector) * (float)positionTransitionProgress;
+				}
 			}
 			else {
 				position = nodeAnimation.positionKeys[0].vector;
 			}
 
 			if (nodeAnimation.rotationKeys.size() > 1) {
-				auto rotationLowerBound = std::lower_bound(nodeAnimation.rotationKeys.begin(), nodeAnimation.rotationKeys.end(), time, [](const auto& rotationKey, double time) { return rotationKey.time < time; });
-				auto currentRotationIndex = std::distance(nodeAnimation.rotationKeys.begin(), rotationLowerBound) % (nodeAnimation.rotationKeys.size() - 1);
-				const auto& currentRotation = nodeAnimation.rotationKeys[currentRotationIndex];
-				const auto& nextRotation = nodeAnimation.rotationKeys[currentRotationIndex + 1];
-				auto rotationTransitionDuration = nextRotation.time - currentRotation.time;
-				auto rotationTransitionTime = time - currentRotation.time;
-				auto rotationTransitionProgress = rotationTransitionTime / rotationTransitionDuration;
-				rotation = glm::slerp(currentRotation.quat, nextRotation.quat, (float)rotationTransitionProgress);
+				auto rotationUpperBound = std::upper_bound(nodeAnimation.rotationKeys.begin(), nodeAnimation.rotationKeys.end(), time, [](double time, const auto& rotationKey) { return time < rotationKey.time; });
+				if (rotationUpperBound == nodeAnimation.rotationKeys.end()) {
+					rotation = nodeAnimation.rotationKeys[nodeAnimation.rotationKeys.size() - 1].quat;
+				}
+				else if (rotationUpperBound != nodeAnimation.rotationKeys.begin())
+				{
+					auto currentRotationIndex = std::distance(nodeAnimation.rotationKeys.begin(), rotationUpperBound) - 1;
+					const auto& currentRotation = nodeAnimation.rotationKeys[currentRotationIndex];
+					const auto& nextRotation = nodeAnimation.rotationKeys[currentRotationIndex + 1];
+					auto rotationTransitionDuration = nextRotation.time - currentRotation.time;
+					auto rotationTransitionTime = time - currentRotation.time;
+					auto rotationTransitionProgress = rotationTransitionTime / rotationTransitionDuration;
+					rotation = glm::slerp(currentRotation.quat, nextRotation.quat, (float)rotationTransitionProgress);
+				}
 			}
 			else {
 				rotation = nodeAnimation.rotationKeys[0].quat;
 			}
 
 			if (nodeAnimation.scalingKeys.size() > 1) {
-				auto scalingLowerBound = std::lower_bound(nodeAnimation.scalingKeys.begin(), nodeAnimation.scalingKeys.end(), time, [](const auto& scalingKey, double time) { return scalingKey.time < time; });
-				auto currentScalingIndex = std::distance(nodeAnimation.scalingKeys.begin(), scalingLowerBound) % (nodeAnimation.scalingKeys.size() - 1);
-				const auto& currentScaling = nodeAnimation.scalingKeys[currentScalingIndex];
-				const auto& nextScaling = nodeAnimation.scalingKeys[currentScalingIndex + 1];
-				auto scalingTransitionDuration = nextScaling.time - currentScaling.time;
-				auto scalingTransitionTime = time - currentScaling.time;
-				auto scalingTransitionProgress = scalingTransitionTime / scalingTransitionDuration;
-				scaling = currentScaling.vector + (nextScaling.vector - currentScaling.vector) * (float)scalingTransitionProgress;
+				auto scaleUpperBound = std::upper_bound(nodeAnimation.scalingKeys.begin(), nodeAnimation.scalingKeys.end(), time, [](double time, const auto& scaleKey) { return time < scaleKey.time; });
+				if (scaleUpperBound == nodeAnimation.scalingKeys.end()) {
+					scaling = nodeAnimation.scalingKeys[nodeAnimation.scalingKeys.size() - 1].vector;
+				}
+				else if (scaleUpperBound != nodeAnimation.scalingKeys.begin())
+				{
+					auto currentScaleIndex = std::distance(nodeAnimation.scalingKeys.begin(), scaleUpperBound) - 1;
+					const auto& currentScale = nodeAnimation.scalingKeys[currentScaleIndex];
+					const auto& nextScale = nodeAnimation.scalingKeys[currentScaleIndex + 1];
+					auto scaleTransitionDuration = nextScale.time - currentScale.time;
+					auto scaleTransitionTime = time - currentScale.time;
+					auto scaleTransitionProgress = scaleTransitionTime / scaleTransitionDuration;
+					scaling = currentScale.vector + (nextScale.vector - currentScale.vector) * (float)scaleTransitionProgress;
+				}
 			}
 			else {
 				scaling = nodeAnimation.scalingKeys[0].vector;
