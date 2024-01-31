@@ -1,14 +1,15 @@
 #include <vulkan/vulkan.hpp>
+#include "../Models/VertexWeightPipelineOptions.hpp"
 #include "../Models/SkinningInput.hpp"
 #include <algorithm>
 
-#include "SkinningPipeline.hpp"
+#include "VertexWeightPipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
 #include "../../Objects/Models/Object.hpp"
 #include "../../Cameras/Components/Camera.hpp"
 
 namespace drk::Animations::Pipelines {
-	SkinningPipeline::SkinningPipeline(
+	VertexWeightPipeline::VertexWeightPipeline(
 		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
 		Animations::Resources::AnimationResourceManager& animationResourceManager,
@@ -27,18 +28,18 @@ namespace drk::Animations::Pipelines {
 		configure([](auto& config) {});
 	}
 
-	SkinningPipeline::~SkinningPipeline() {
+	VertexWeightPipeline::~VertexWeightPipeline() {
 		deviceContext.device.destroyPipeline(pipeline);
 		destroyShaderModules();
 		deviceContext.device.destroyPipelineLayout(pipelineLayout);
 	}
 
-	void SkinningPipeline::destroyShaderModules() {
+	void VertexWeightPipeline::destroyShaderModules() {
 		deviceContext.device.destroyShaderModule(mainFragmentShaderModule);
 		deviceContext.device.destroyShaderModule(skinningShaderModule);
 	}
 
-	void SkinningPipeline::createPipeline(const vk::ComputePipelineCreateInfo& computePipelineCreateInfo) {
+	void VertexWeightPipeline::createPipeline(const vk::ComputePipelineCreateInfo& computePipelineCreateInfo) {
 
 		auto result = deviceContext.device.createComputePipeline(VK_NULL_HANDLE, computePipelineCreateInfo);
 		if ((VkResult)result.result != VK_SUCCESS) {
@@ -47,7 +48,7 @@ namespace drk::Animations::Pipelines {
 		pipeline = result.value;
 	}
 
-	void SkinningPipeline::configure(std::function<void(vk::ComputePipelineCreateInfo&)> configuration) {
+	void VertexWeightPipeline::configure(std::function<void(vk::ComputePipelineCreateInfo&)> configuration) {
 		vk::PipelineShaderStageCreateInfo skinningPipelineShaderStageCreateInfo = {
 			.stage = vk::ShaderStageFlagBits::eCompute,
 			.module = skinningShaderModule,
@@ -62,27 +63,36 @@ namespace drk::Animations::Pipelines {
 		configuration(graphicPipelineCreateInfo);
 		createPipeline(graphicPipelineCreateInfo);
 	}
-	void SkinningPipeline::destroyPipeline() {
+	void VertexWeightPipeline::destroyPipeline() {
 		deviceContext.device.waitIdle();
 		deviceContext.device.destroyPipeline(pipeline);
 	}
 
 	vk::PipelineLayout
-		SkinningPipeline::createPipelineLayout(
+		VertexWeightPipeline::createPipelineLayout(
 			const Devices::DeviceContext& deviceContext,
 			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
 		) {
+		vk::PushConstantRange optionsPushConstant{
+			.stageFlags = vk::ShaderStageFlagBits::eCompute,
+			.offset = 0,
+			.size = sizeof(Models::VertexWeightPipelineOptions)
+		};
+		
 		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
 			.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
 			.pSetLayouts = descriptorSetLayouts.data(),
+			.pushConstantRangeCount = 1,
+			.pPushConstantRanges = &optionsPushConstant
 		};
+
 		return deviceContext.device.createPipelineLayout(pipelineLayoutCreateInfo);
 	}
 
-	void SkinningPipeline::createShaderModules() {
-		skinningShaderModule = deviceContext.CreateShaderModule("shaders/spv/Skinning.comp.spv");
+	void VertexWeightPipeline::createShaderModules() {
+		skinningShaderModule = deviceContext.CreateShaderModule("shaders/spv/VertexWeight.comp.spv");
 	}
-	void SkinningPipeline::bind(const vk::CommandBuffer& commandBuffer) {
+	void VertexWeightPipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();
 		const auto& inputDescriptorSet = frameState.getUniformStore<Models::SkinningInput>().descriptorSet;
 		std::array<vk::DescriptorSet, 4> descriptorSets{

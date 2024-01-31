@@ -1,0 +1,54 @@
+#version 460
+#extension GL_EXT_nonuniform_qualifier: enable
+#extension GL_KHR_vulkan_glsl: enable
+
+#include "./VertexWeightInput.glsl"
+#include "./VertexWeight.glsl"
+#include "./Bone.glsl"
+#include "../../Graphics/Shaders/StoreItemLocation.glsl"
+#include "../../Spatials/shaders/Spatial.glsl"
+#include "../../Objects/shaders/Object.glsl"
+
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(push_constant) uniform optionsLayout {
+    uint offset;
+    uint length;
+    uint stride;
+} options;
+
+layout (set = 0, binding = 0, std430) readonly buffer inputLayout {
+    VertexWeightInput[] vertexWeightInputs;
+} vertexWeightInputBuffer[];
+layout (set = 1, binding = 0) readonly buffer objectLayout {
+    Object[] objects;
+} objectBuffer[];
+layout (set = 1, binding = 0) readonly buffer spatialLayout {
+    Spatial[] spatials;
+} spatialBuffer[];
+layout (set = 1, binding = 0) readonly buffer boneLayout {
+    Bone[] bones;
+} boneBuffer[];
+layout (set = 2, binding = 0) readonly buffer weightLayout {
+    VertexWeight[] vertexWeights;
+} vertexWeightBuffer[];
+layout (set = 3, binding = 0) buffer outputLayout {
+    mat4[] outputs;
+} outputBuffer;
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index < options.length) {
+        index += options.offset;
+        VertexWeightInput left = vertexWeightInputBuffer[0].vertexWeightInputs[index];
+        VertexWeightInput right = vertexWeightInputBuffer[0].vertexWeightInputs[index + options.stride];
+        Object leftObject = objectBuffer[left.instanceStoreItemLocation.storeIndex].objects[left.instanceStoreItemLocation.itemIndex];
+        Object rightObject = objectBuffer[right.instanceStoreItemLocation.storeIndex].objects[right.instanceStoreItemLocation.itemIndex];
+        Spatial leftSpatial = spatialBuffer[leftObject.spatialItemLocation.storeIndex].spatials[leftObject.spatialItemLocation.itemIndex];
+        Spatial rightSpatial = spatialBuffer[rightObject.spatialItemLocation.storeIndex].spatials[rightObject.spatialItemLocation.itemIndex];
+        VertexWeight leftWeight = vertexWeightBuffer[left.vertexWeightStoreItemLocation.storeIndex].vertexWeights[left.vertexWeightStoreItemLocation.itemIndex];
+        VertexWeight rightWeight = vertexWeightBuffer[right.vertexWeightStoreItemLocation.storeIndex].vertexWeights[right.vertexWeightStoreItemLocation.itemIndex];
+
+        outputBuffer.outputs[index] = leftWeight.weight * leftSpatial.model + rightWeight.weight * rightSpatial.model;
+    }
+}

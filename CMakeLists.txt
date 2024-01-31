@@ -232,6 +232,7 @@ file(
     src/main.cpp
     src/Animations/Systems/BoneSystem.cpp
     src/Animations/Pipelines/SkinningPipeline.cpp
+    src/Animations/Pipelines/VertexWeightPipeline.cpp
     src/Animations/Resources/AnimationResourceManager.cpp
     src/Animations/Resources/AnimationFrameResource.cpp
     src/Applications/Application.cpp

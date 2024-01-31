@@ -1,4 +1,5 @@
 #include "MeshSystem.hpp"
+#include "../../Animations/Components/SkinnedBufferView.hpp"
 #include "../../Cameras/Components/CameraRefrence.hpp"
 #include "../Components/HasShadowDraw.hpp"
 #include "../Components/MeshResource.hpp"
@@ -108,38 +109,47 @@ namespace drk::Meshes::Systems {
 		>(engineState.cameraEntity);
 		auto objectMeshEntities = registry.view<
 			Objects::Components::ObjectReference,
-			Meshes::Components::MeshReference
+			Meshes::Components::MeshReference,
+			Meshes::Components::Mesh
 		>(entt::exclude<Components::MeshDraw>);
 		const auto& cameraStoreItemLocation = cameraStoreItem.frameStoreItems[engineState.getFrameIndex()];
 
 		objectMeshEntities.each([&](
-			entt::entity objectMeshEntity, 
+			entt::entity objectMeshEntity,
 			const Objects::Components::ObjectReference& objectReference,
 			const Meshes::Components::MeshReference& meshReference
-		) {
-			const auto& [meshResource, meshBufferView, materialReference] = registry.get<
-				std::shared_ptr<Meshes::Components::MeshResource>,
-				Meshes::Components::MeshBufferView,
-				Materials::Components::MaterialReference
-			>(meshReference.meshEntity);
-			const auto& spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(objectReference.objectEntity);
-			auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(materialReference.materialEntity);
-			Scenes::Draws::SceneDraw draw = {
-				.drawSystem = this,
-				.pipelineTypeIndex = std::type_index(typeid(Pipelines::MeshPipeline)),
-				.indexBufferView = meshBufferView.IndexBufferView,
-				.vertexBufferView = meshBufferView.VertexBufferView,
-				.hasTransparency = material->hasTransparency,
-				.depth = glm::distance(camera.absolutePosition, spatial.position),
-			};
-			Components::MeshDraw meshDraw = {
-				.meshResource = meshResource,
-				.meshBufferView = meshBufferView,
-			};
-			auto entity = registry.create();
-			registry.emplace_or_replace<Scenes::Draws::SceneDraw>(objectMeshEntity, std::move(draw));
-			registry.emplace_or_replace<Components::MeshDraw>(objectMeshEntity, std::move(meshDraw));
-			registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(objectMeshEntity, engineState.getFrameCount());
+			) {
+				const auto& [meshResource, meshBufferView, materialReference] = registry.get<
+					std::shared_ptr<Meshes::Components::MeshResource>,
+					Meshes::Components::MeshBufferView,
+					Materials::Components::MaterialReference
+				>(meshReference.meshEntity);
+				const auto& spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(objectReference.objectEntity);
+				auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(materialReference.materialEntity);
+				auto animationVertexBufferViewPtr = registry.try_get<Animations::Components::SkinnedBufferView>(objectMeshEntity);
+				Devices::BufferView* bufferView = &meshBufferView.VertexBufferView;
+				if (animationVertexBufferViewPtr != nullptr) {
+					bufferView = &animationVertexBufferViewPtr->skinnedBufferView;
+				}
+				Scenes::Draws::SceneDraw draw = {
+					.drawSystem = this,
+					.pipelineTypeIndex = std::type_index(typeid(Pipelines::MeshPipeline)),
+					.indexBufferView = meshBufferView.IndexBufferView,
+					.vertexBufferView = *bufferView,
+					.hasTransparency = material->hasTransparency,
+					.depth = glm::distance(camera.absolutePosition, spatial.position),
+				};
+				Components::MeshDraw meshDraw = {
+					.meshResource = meshResource,
+					.meshBufferView = {
+						.IndexBufferView = meshBufferView.IndexBufferView,
+						.VertexBufferView = *bufferView,
+					}
+				};
+				auto entity = registry.create();
+				registry.emplace_or_replace<Scenes::Draws::SceneDraw>(objectMeshEntity, std::move(draw));
+				registry.emplace_or_replace<Components::MeshDraw>(objectMeshEntity, std::move(meshDraw));
+				registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(objectMeshEntity, engineState.getFrameCount());
 			});
 	}
 	void MeshSystem::processDirtyDraws() {

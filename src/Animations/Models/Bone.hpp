@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include "./VertexWeight.hpp"
 #include <glm/glm.hpp>

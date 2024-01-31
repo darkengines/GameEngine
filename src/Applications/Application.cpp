@@ -39,6 +39,7 @@ namespace drk::Applications {
 		Lights::Systems::SpotlightSystem& spotlightSystem,
 		Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
 		Animations::Systems::AnimationSystem& animationSystem,
+		Animations::Systems::BoneSystem& boneSystem,
 		UserInterfaces::AssetExplorer& assetExplorer
 	)
 		: window(window),
@@ -70,6 +71,7 @@ namespace drk::Applications {
 		spotlightSystem(spotlightSystem),
 		lightPerspectiveSystem(lightPerspectiveSystem),
 		animationSystem(animationSystem),
+		boneSystem(boneSystem),
 		windowExtent(window.GetExtent()),
 		assetExplorer(assetExplorer) {
 		//ImGui::GetIO().IniFilename = NULL;
@@ -356,6 +358,7 @@ namespace drk::Applications {
 				meshSystem.uploadMeshes();
 				animationSystem.storeMeshes();
 				animationSystem.uploadVertexWeights();
+				//animationSystem.mamadou();
 
 				//Alterations
 				flyCamController.Step();
@@ -388,6 +391,7 @@ namespace drk::Applications {
 				spotlightSystem.store();
 				axisAlignedBoundingBoxSystem.store();
 				frustumSystem.store();
+				boneSystem.store();
 
 				//Store updates to GPU
 				materialSystem.updateStore();
@@ -403,6 +407,7 @@ namespace drk::Applications {
 				directionalLightSystem.updateStore();
 				spotlightSystem.updateStore();
 				axisAlignedBoundingBoxSystem.updateStore();
+				boneSystem.updateStore();
 				frustumSystem.updateStore();
 				globalSystem.update();
 
@@ -424,6 +429,8 @@ namespace drk::Applications {
 				//Clear frame
 				registry.clear<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>();
 				registry.clear<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>>();
+
+				animationSystem.updateSkins(frameState.commandBuffer);
 
 				//Renders
 				sceneRenderer.render(0, frameState.commandBuffer);

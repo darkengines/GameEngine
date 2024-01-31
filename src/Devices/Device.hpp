@@ -280,8 +280,8 @@ namespace drk::Devices {
 					commandPool,
 					sourceBufferView.buffer,
 					destinationBuffer,
-					writtenByteLength,
 					sourceBufferView.byteOffset,
+					writtenByteLength,
 					sourceBufferView.byteLength
 				);
 

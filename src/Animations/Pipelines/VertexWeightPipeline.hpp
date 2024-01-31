@@ -6,15 +6,15 @@
 #include "../Resources/AnimationResourceManager.hpp"
 
 namespace drk::Animations::Pipelines {
-	class SkinningPipeline : public drk::Pipelines::ComputePipeline {
+	class VertexWeightPipeline : public drk::Pipelines::ComputePipeline {
 	public:
-		SkinningPipeline(
+		VertexWeightPipeline(
 			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
 			Animations::Resources::AnimationResourceManager& animationResourceManager,
 			Engine::DescriptorSetLayouts& descriptorSetLayouts
 		);
-		~SkinningPipeline();
+		~VertexWeightPipeline();
 
 		void configure(std::function<void(vk::ComputePipelineCreateInfo&)> configure) override;
 		//Draws::Components::DrawVertexBufferInfo getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const;

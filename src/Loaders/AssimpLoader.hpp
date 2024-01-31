@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <stack>
 #include <unordered_map>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -58,9 +59,11 @@ namespace drk::Loaders {
 			const std::unordered_map<std::string, entt::entity>& cameraMap,
 			const std::unordered_map<std::string, entt::entity>& aiBonePtrBoneEntityMap,
 			const std::unordered_map<std::string, entt::entity>& aiNodeNameNodeAnimationMap,
+			std::stack<std::unordered_map<entt::entity, entt::entity>>& meshEntityInstanceEntityMap,
 			LoadResult& loadResult,
 			entt::registry& registry,
 			std::unordered_map<const aiNode*, entt::entity>& cache,
+			entt::entity rootBoneInstanceEntity,
 			int depth = 0
 		) const;
 

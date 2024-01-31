@@ -13,7 +13,7 @@ namespace drk::Meshes {
 		glm::vec4 tangent;
 		glm::vec4 bitangent;
 		glm::vec4 diffuseColor;
-		glm::vec2 textureCoordinates;
+		glm::vec4 textureCoordinates;
 
 		static std::vector<vk::VertexInputBindingDescription> getBindingDescriptions();
 		static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions();

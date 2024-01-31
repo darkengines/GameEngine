@@ -48,7 +48,7 @@ namespace drk::Lights::Systems {
 				Spatials::Components::Spatial<Spatials::Components::Absolute>& spatial
 			) {
 					if (lightPerspective.shadowMapRect.extent.width == 0) {
-						auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({ 512, 512 });
+						auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({ 1024, 1024});
 						lightPerspective.shadowMapRect = allocation.scissor;
 					}
 					lightPerspective.absoluteFront = spatial.rotation * lightPerspective.relativeFront;

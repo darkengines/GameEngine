@@ -8,6 +8,7 @@
 #include "../../Scenes/Draws/SceneDraw.hpp"
 #include "../Components/HasDraw.hpp"
 #include "../Models/BoundingVolumeDraw.hpp"
+#include "../../Meshes/Components/Mesh.hpp"
 
 namespace drk::BoundingVolumes::Systems {
 	AxisAlignedBoundingBoxSystem::AxisAlignedBoundingBoxSystem(
@@ -126,7 +127,8 @@ namespace drk::BoundingVolumes::Systems {
 		const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
 		auto objectMeshEntities = registry.view<
 			Objects::Components::ObjectReference,
-			Meshes::Components::MeshReference
+			Meshes::Components::MeshReference,
+			Meshes::Components::Mesh
 		>(entt::exclude<Components::HasDraw>);
 
 		objectMeshEntities.each([&](
