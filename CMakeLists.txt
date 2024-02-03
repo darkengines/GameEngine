@@ -25,6 +25,12 @@ file(
     src/Animations/Systems/AnimationSystem.hpp
     src/Animations/Components/SkinnedBufferView.hpp
     src/Animations/Components/AnimationState.hpp
+    src/Animations/Components/HasVertexWeightRange.hpp
+    src/Animations/Components/SkinnedMeshInstance.hpp
+    src/Animations/Components/VertexWeightInstance.hpp
+    src/Animations/Models/SkinnedVertex.hpp
+    src/Animations/Models/SkinnedVertexRange.hpp
+    src/Animations/Components/SkinnedVertexRange.hpp
     src/Animations/Components/AnimationVertexBufferView.hpp
     src/Animations/Components/Animation.hpp
     src/Animations/Components/AnimationBehavior.hpp
@@ -41,6 +47,7 @@ file(
     src/Animations/Models/VertexWeight.hpp
     src/Animations/Models/QuatKey.hpp
     src/Animations/Models/VectorKey.hpp
+    src/Animations/Systems/SkinnedMeshInstanceSystem.hpp
     src/Animations/Systems/BoneSystem.hpp
     src/Animations/Pipelines/SkinningPipeline.hpp
     src/Applications/Application.hpp

@@ -270,53 +270,55 @@ namespace drk::Loaders {
 				const std::span<aiBone*> aiBones(aiMesh->mBones, aiMesh->mNumBones);
 				uint32_t boneIndex = 0;
 				for (const auto& aiBone : aiBones) {
-					auto boneEntityEntry = aiBoneNodeNameBoneEntityMap.find(aiBone->mName.C_Str());
-					entt::entity boneEntity;
-					if (boneEntityEntry != aiBoneNodeNameBoneEntityMap.end()) {
-						boneEntity = boneEntityEntry->second;
+					if (aiBone->mNumWeights > 1 || aiBone->mWeights[0].mWeight != 0) {
+						auto boneEntityEntry = aiBoneNodeNameBoneEntityMap.find(aiBone->mName.C_Str());
+						entt::entity boneEntity;
+						if (boneEntityEntry != aiBoneNodeNameBoneEntityMap.end()) {
+							boneEntity = boneEntityEntry->second;
+						}
+						else {
+							boneEntity = registry.create();
+							aiBonePtrBoneEntityMap[aiBone] = boneEntity;
+							aiBoneNodeNameBoneEntityMap[aiBone->mName.C_Str()] = boneEntity;
+							registry.emplace<Common::Components::Name>(boneEntity, aiBone->mName.C_Str());
+							registry.emplace<Animations::Components::MeshBoneCollection>(boneEntity, std::vector<entt::entity>{});
+						}
+
+						entt::entity meshBoneEntity = registry.create();
+
+
+						aiVector3D aiScale, aiPosition;
+						aiQuaternion aiRotation;
+						aiBone->mOffsetMatrix.Decompose(aiScale, aiRotation, aiPosition);
+						glm::vec4 scale(aiScale.x, aiScale.y, aiScale.z, 1), position(aiPosition.x, aiPosition.y, aiPosition.z, 1);
+						glm::quat rotation(aiRotation.w, aiRotation.x, aiRotation.y, aiRotation.z);
+						auto translationMatrix = glm::translate(glm::identity<glm::mat4>(), glm::vec3(position));
+						auto rotationMatrix = glm::toMat4(rotation);
+						auto scalingMatrix = glm::scale(glm::identity<glm::mat4>(), glm::vec3(scale));
+						auto localModel = translationMatrix * rotationMatrix * scalingMatrix;
+
+						Spatials::Components::Spatial<Spatials::Components::Relative> boneSpatial{
+							position,
+							rotation,
+							scale,
+							localModel,
+						};
+
+						Animations::Components::Bone bone{
+							.spatialOffset = std::move(boneSpatial)
+						};
+						registry.emplace<Animations::Components::Bone>(meshBoneEntity, bone);
+						std::vector<Animations::Components::VertexWeight> weights(aiBone->mNumWeights);
+						memcpy(weights.data(), (Animations::Components::VertexWeight*)aiBone->mWeights, aiBone->mNumWeights * sizeof(Animations::Components::VertexWeight));
+						registry.emplace<std::vector<Animations::Components::VertexWeight>>(meshBoneEntity, std::move(weights));
+						registry.emplace<Meshes::Components::MeshReference>(meshBoneEntity, meshEntity);
+						registry.emplace<Animations::Components::BoneReference>(meshBoneEntity, boneEntity);
+						auto& meshBoneCollection = registry.get<Animations::Components::MeshBoneCollection>(boneEntity);
+						meshBoneCollection.meshBoneEntities.push_back(meshBoneEntity);
+
+						boneEntities[boneIndex] = boneEntity;
+						boneIndex++;
 					}
-					else {
-						boneEntity = registry.create();
-						aiBonePtrBoneEntityMap[aiBone] = boneEntity;
-						aiBoneNodeNameBoneEntityMap[aiBone->mName.C_Str()] = boneEntity;
-						registry.emplace<Common::Components::Name>(boneEntity, aiBone->mName.C_Str());
-						registry.emplace<Animations::Components::MeshBoneCollection>(boneEntity, std::vector<entt::entity>{});
-					}
-
-					entt::entity meshBoneEntity = registry.create();
-
-
-					aiVector3D aiScale, aiPosition;
-					aiQuaternion aiRotation;
-					aiBone->mOffsetMatrix.Decompose(aiScale, aiRotation, aiPosition);
-					glm::vec4 scale(aiScale.x, aiScale.y, aiScale.z, 1), position(aiPosition.x, aiPosition.y, aiPosition.z, 1);
-					glm::quat rotation(aiRotation.w, aiRotation.x, aiRotation.y, aiRotation.z);
-					auto translationMatrix = glm::translate(glm::identity<glm::mat4>(), glm::vec3(position));
-					auto rotationMatrix = glm::toMat4(rotation);
-					auto scalingMatrix = glm::scale(glm::identity<glm::mat4>(), glm::vec3(scale));
-					auto localModel = translationMatrix * rotationMatrix * scalingMatrix;
-
-					Spatials::Components::Spatial<Spatials::Components::Relative> boneSpatial{
-						position,
-						rotation,
-						scale,
-						localModel,
-					};
-
-					Animations::Components::Bone bone{
-						.spatialOffset = std::move(boneSpatial)
-					};
-					registry.emplace<Animations::Components::Bone>(meshBoneEntity, bone);
-					std::vector<Animations::Components::VertexWeight> weights(aiBone->mNumWeights);
-					memcpy(weights.data(), (Animations::Components::VertexWeight*)aiBone->mWeights, aiBone->mNumWeights * sizeof(Animations::Components::VertexWeight));
-					registry.emplace<std::vector<Animations::Components::VertexWeight>>(meshBoneEntity, std::move(weights));
-					registry.emplace<Meshes::Components::MeshReference>(meshBoneEntity, meshEntity);
-					registry.emplace<Animations::Components::BoneReference>(meshBoneEntity, boneEntity);
-					auto& meshBoneCollection = registry.get<Animations::Components::MeshBoneCollection>(boneEntity);
-					meshBoneCollection.meshBoneEntities.push_back(meshBoneEntity);
-
-					boneEntities[boneIndex] = boneEntity;
-					boneIndex++;
 				}
 				registry.emplace<Animations::Components::BoneCollection>(meshEntity, std::move(boneEntities));
 			}
