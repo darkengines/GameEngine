@@ -105,192 +105,6 @@ namespace drk::Animations::Systems {
 			}
 		}
 
-		void meshBoneInstances() {
-			auto view = registry.view<
-				Objects::Components::ObjectReference,
-				Components::RootBoneInstanceReference,
-				Components::BoneReference,
-				Objects::Components::ObjectMeshReference
-			>(entt::exclude<Components::HasVertexWeightInput>);
-			view.each([this](
-				entt::entity entity,
-				const Objects::Components::ObjectReference& objectReference,
-				Components::RootBoneInstanceReference& rootBoneInstanceReference,
-				const Components::BoneReference& boneReference,
-				const Objects::Components::ObjectMeshReference& objectMeshReference
-				) {
-					const auto& [bone, vertexWeights] = registry.get<
-						Animations::Components::Bone,
-						std::vector<Animations::Components::VertexWeight>
-					>(boneReference.boneEntity);
-					const auto& meshReference = registry.get<Meshes::Components::MeshReference>(objectMeshReference.meshInstanceEntity);
-					for (const auto& vertexWeight : vertexWeights) {
-						const auto inputEntity = registry.create();
-						Components::VertexWeightInput input{
-							.pVertexWeight = &vertexWeight
-						};
-						registry.emplace<Components::VertexWeightInput>(inputEntity, input);
-						registry.emplace<Objects::Components::ObjectReference>(inputEntity, objectReference);
-						registry.emplace<Components::RootBoneInstanceReference>(inputEntity, rootBoneInstanceReference);
-						registry.emplace<Meshes::Components::MeshReference>(inputEntity, meshReference);
-						registry.emplace<Objects::Components::ObjectMeshReference>(inputEntity, objectMeshReference);
-					}
-					registry.emplace<Components::HasVertexWeightInput>(entity);
-				});
-			registry.sort<Components::VertexWeightInput>([this](
-				entt::entity leftEntity,
-				entt::entity rightEntity
-				) {
-					const auto& [leftWertexWeightInput, leftRootBoneInstanceReference, leftMeshReference] = registry.get<
-						Components::VertexWeightInput,
-						Components::RootBoneInstanceReference,
-						Meshes::Components::MeshReference
-					>(leftEntity);
-					const auto& [rightWertexWeightInput, rightRootBoneInstanceReference, rightMeshReference] = registry.get<
-						Components::VertexWeightInput,
-						Components::RootBoneInstanceReference,
-						Meshes::Components::MeshReference
-					>(rightEntity);
-
-					if (leftWertexWeightInput.pVertexWeight->vertexIndex != rightWertexWeightInput.pVertexWeight->vertexIndex) {
-						return leftWertexWeightInput.pVertexWeight->vertexIndex < rightWertexWeightInput.pVertexWeight->vertexIndex;
-					}
-					if (leftMeshReference.meshEntity != rightMeshReference.meshEntity) {
-						return leftMeshReference.meshEntity < rightMeshReference.meshEntity;
-					}
-					return leftRootBoneInstanceReference.rootBoneInstanceEntity > rightRootBoneInstanceReference.rootBoneInstanceEntity;
-
-				});
-
-
-			auto inputView = registry.view<
-				Components::VertexWeightInput,
-				Components::RootBoneInstanceReference,
-				Meshes::Components::MeshReference
-			>();
-			inputView.use<Components::VertexWeightInput>();
-
-			entt::entity previousMeshEntity = entt::null;
-			entt::entity previousRootBoneInstanceEntity = entt::null;
-			uint32_t const* previousVertexIndexPtr = nullptr;
-			std::vector<Components::VertexWeightInput*> previousVertexWeightInputs;
-			uint32_t previousWeightInputCount = 0;
-			inputView.each([this, &previousMeshEntity, &previousRootBoneInstanceEntity, &previousVertexIndexPtr, &previousVertexWeightInputs, &previousWeightInputCount](
-				entt::entity entity,
-				Components::VertexWeightInput& vertexWeightInput,
-				const Components::RootBoneInstanceReference& rootBoneInstanceReference,
-				const Meshes::Components::MeshReference& meshReference
-				) {
-
-					if (previousVertexIndexPtr != nullptr
-						&& (vertexWeightInput.pVertexWeight->vertexIndex != *previousVertexIndexPtr
-							|| (previousRootBoneInstanceEntity != entt::null && rootBoneInstanceReference.rootBoneInstanceEntity != previousRootBoneInstanceEntity)
-							|| meshReference.meshEntity != previousMeshEntity)) {
-						for (auto previousVertexWeightInput : previousVertexWeightInputs) {
-							previousVertexWeightInput->vertexWeightCount = previousWeightInputCount;
-						}
-						previousWeightInputCount = 0;
-						previousVertexWeightInputs.clear();
-					}
-					previousVertexWeightInputs.push_back(&vertexWeightInput);
-					previousMeshEntity = meshReference.meshEntity;
-					previousRootBoneInstanceEntity = rootBoneInstanceReference.rootBoneInstanceEntity;
-					previousVertexIndexPtr = &vertexWeightInput.pVertexWeight->vertexIndex;
-					previousWeightInputCount++;
-				});
-			for (auto previousVertexWeightInput : previousVertexWeightInputs) {
-				previousVertexWeightInput->vertexWeightCount = previousWeightInputCount;
-			}
-
-			registry.sort<Components::VertexWeightInput>([this](
-				entt::entity leftEntity,
-				entt::entity rightEntity
-				) {
-					const auto& [leftWertexWeightInput, leftRootBoneInstanceReference, leftMeshReference] = registry.get<
-						Components::VertexWeightInput,
-						Components::RootBoneInstanceReference,
-						Meshes::Components::MeshReference
-					>(leftEntity);
-					const auto& [rightWertexWeightInput, rightRootBoneInstanceReference, rightMeshReference] = registry.get<
-						Components::VertexWeightInput,
-						Components::RootBoneInstanceReference,
-						Meshes::Components::MeshReference
-					>(rightEntity);
-
-					if (leftWertexWeightInput.vertexWeightCount != rightWertexWeightInput.vertexWeightCount) {
-						return leftWertexWeightInput.vertexWeightCount < rightWertexWeightInput.vertexWeightCount;
-					}
-					if (leftWertexWeightInput.pVertexWeight->vertexIndex != rightWertexWeightInput.pVertexWeight->vertexIndex) {
-						return leftWertexWeightInput.pVertexWeight->vertexIndex < rightWertexWeightInput.pVertexWeight->vertexIndex;
-					}
-					if (leftMeshReference.meshEntity != rightMeshReference.meshEntity) {
-						return leftMeshReference.meshEntity < rightMeshReference.meshEntity;
-					}
-					return leftRootBoneInstanceReference.rootBoneInstanceEntity > rightRootBoneInstanceReference.rootBoneInstanceEntity;
-				});
-
-			auto view1 = registry.view <
-				Components::VertexWeightInput,
-				Components::RootBoneInstanceReference,
-				Meshes::Components::MeshReference,
-				Objects::Components::ObjectMeshReference
-			>();
-			view1.use<Components::VertexWeightInput>();
-			std::vector<Components::VertexWeightInputMap> vertexWeightInputMapping;
-			std::vector<Components::VertexWeightInputRange> vertexWeightInputRanges;
-
-			previousMeshEntity = entt::null;
-			previousRootBoneInstanceEntity = entt::null;
-			previousVertexIndexPtr = nullptr;
-			entt::entity previousMeshInstance = entt::null;
-			auto previousInputCount = 0u;
-			auto vertexWeightInputIndex = 0u;
-			Components::VertexWeightInputRange range{ .offset = 0, .length = 0 };
-
-			view1.each([this, &previousMeshEntity, &previousRootBoneInstanceEntity, &previousVertexIndexPtr, &previousInputCount, &vertexWeightInputMapping, &vertexWeightInputRanges, &vertexWeightInputIndex, &range, &previousMeshInstance](
-				entt::entity entity,
-				Components::VertexWeightInput& vertexWeightInput,
-				const Components::RootBoneInstanceReference& rootBoneInstanceReference,
-				const Meshes::Components::MeshReference& meshReference,
-				const Objects::Components::ObjectMeshReference& meshInstanceReference
-				) {
-					if (previousInputCount > 0 && previousInputCount != vertexWeightInput.vertexWeightCount) {
-						vertexWeightInputRanges.emplace_back(range.offset, range.length);
-						range = { .offset = vertexWeightInputIndex, .length = 0 };
-					}
-					range.length++;
-					if (previousVertexIndexPtr != nullptr
-						&& (vertexWeightInput.pVertexWeight->vertexIndex != *previousVertexIndexPtr
-							|| (previousRootBoneInstanceEntity != entt::null && rootBoneInstanceReference.rootBoneInstanceEntity != previousRootBoneInstanceEntity)
-							|| meshReference.meshEntity != previousMeshEntity)) {
-						auto skinnedBufferView = registry.get<Components::SkinnedBufferView>(previousMeshInstance);
-						vertexWeightInputMapping.emplace_back(
-							skinnedBufferView.bufferArrayElement,
-							skinnedBufferView.bufferView.byteOffset / sizeof(Models::VertexWeight) + *previousVertexIndexPtr,
-							skinnedBufferView.skinnedBufferArrayElement,
-							skinnedBufferView.skinnedBufferView.byteOffset / sizeof(Models::VertexWeight) + *previousVertexIndexPtr
-						);
-					}
-					previousMeshEntity = meshReference.meshEntity;
-					previousRootBoneInstanceEntity = rootBoneInstanceReference.rootBoneInstanceEntity;
-					previousVertexIndexPtr = &vertexWeightInput.pVertexWeight->vertexIndex;
-					previousInputCount = vertexWeightInput.vertexWeightCount;
-					previousMeshInstance = meshInstanceReference.meshInstanceEntity;
-					vertexWeightInputIndex++;
-				});
-			if (vertexWeightInputIndex > 0) {
-				vertexWeightInputRanges.emplace_back(range.offset, range.length);
-				auto skinnedBufferView = registry.get<Components::SkinnedBufferView>(previousMeshInstance);
-				vertexWeightInputMapping.emplace_back(
-					skinnedBufferView.bufferArrayElement,
-					skinnedBufferView.bufferView.byteOffset / sizeof(Models::VertexWeight) + *previousVertexIndexPtr,
-					skinnedBufferView.skinnedBufferArrayElement,
-					skinnedBufferView.skinnedBufferView.byteOffset / sizeof(Models::VertexWeight) + *previousVertexIndexPtr
-				);
-				auto x = 0;
-			}
-		}
-
 		void uploadVertexWeights() {
 			auto entities = registry.view<std::vector<Components::VertexWeight>>(entt::exclude<Components::VertexWeightBufferView>);
 			std::vector<entt::entity> processedEntities;
@@ -312,17 +126,51 @@ namespace drk::Animations::Systems {
 			}
 		}
 
-		void createSkinnedMeshInstanceResources(const Components::SkinnedMeshInstance& skinnedMeshInstance) {
-			std::span span(skinnedMeshInstance.skinnedVertices.begin(), skinnedMeshInstance.skinnedVertices.end());
-			const auto& bufferUploadResult = Devices::Device::uploadBuffers(
+		void createSkinnedMeshInstanceResources() {
+			auto skinnedMeshInstances = registry.view<Components::SkinnedMeshInstance>();
+			std::vector<entt::entity> entities(skinnedMeshInstances.size());
+			std::vector<std::span<const Components::VertexWeightInstance>> vertexWeightInstanceBuffers(skinnedMeshInstances.size());
+			std::vector<std::span<const Components::SkinnedVertexRange>> skinnedVertexRangeBuffers(skinnedMeshInstances.size());
+			uint32_t skinnedMeshInstanceIndex = 0u;
+
+			skinnedMeshInstances.each([&](
+				entt::entity entity,
+				const Components::SkinnedMeshInstance& skinnedMeshInstance
+				) {
+					entities[skinnedMeshInstanceIndex] = entity;
+					vertexWeightInstanceBuffers[skinnedMeshInstanceIndex] = std::span(
+						skinnedMeshInstance.skinnedVertices.begin(), 
+						skinnedMeshInstance.skinnedVertices.end()
+					);
+					skinnedVertexRangeBuffers[skinnedMeshInstanceIndex] = std::span(
+						skinnedMeshInstance.skinnedVertexRanges.begin(),
+						skinnedMeshInstance.skinnedVertexRanges.end()
+					);
+					skinnedMeshInstanceIndex++;
+				});
+
+			const auto& vertexWeightInstanceBufferUploadResult = Devices::Device::uploadBuffers(
 				deviceContext.PhysicalDevice,
 				deviceContext.device,
 				deviceContext.GraphicQueue,
 				deviceContext.CommandPool,
 				deviceContext.Allocator,
-				sourceVertexWeightBufferSpans,
+				vertexWeightInstanceBuffers,
 				vk::BufferUsageFlagBits::eStorageBuffer
 			);
+			const auto& skinnedVertexRangeBufferUploadResult = Devices::Device::uploadBuffers(
+				deviceContext.PhysicalDevice,
+				deviceContext.device,
+				deviceContext.GraphicQueue,
+				deviceContext.CommandPool,
+				deviceContext.Allocator,
+				skinnedVertexRangeBuffers,
+				vk::BufferUsageFlagBits::eStorageBuffer
+			);
+			for (skinnedMeshInstanceIndex = 0u; skinnedMeshInstanceIndex < entities.size(); skinnedMeshInstanceIndex++) {
+				auto entity = entities[skinnedMeshInstanceIndex];
+				auto 
+			}
 		}
 
 		void updateSkins(vk::CommandBuffer commandBuffer) {
