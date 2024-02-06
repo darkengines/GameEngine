@@ -1,6 +1,9 @@
 #pragma once
 #include "../Models/VertexWeightInput.hpp"
+#include "../Models/SkinnedVertexRange.hpp"
+#include "../Models/BoneInstanceWeight.hpp"
 #include "../Components/VertexWeightInstance.hpp"
+#include "../Components/BoneInstanceWeightBufferView.hpp"
 #include "../Components/HasVertexWeightRange.hpp"
 #include "../Components/SkinnedMeshInstance.hpp"
 #include "../Components/VertexWeightInputRange.hpp"
@@ -105,219 +108,135 @@ namespace drk::Animations::Systems {
 			}
 		}
 
-		void uploadVertexWeights() {
-			auto entities = registry.view<std::vector<Components::VertexWeight>>(entt::exclude<Components::VertexWeightBufferView>);
-			std::vector<entt::entity> processedEntities;
-			std::vector<std::vector<Components::VertexWeight>> vertexWeights;
-			entities.each(
-				[&vertexWeights, &processedEntities](const auto entity, const auto& weights) {
-					processedEntities.push_back(entity);
-					vertexWeights.push_back(weights);
-				}
-			);
-			if (!vertexWeights.empty()) {
-				const auto& result = animationResourceManager.createVertexWeightBuffers(vertexWeights);
-				for (auto bufferIndex = 0u; bufferIndex < processedEntities.size(); bufferIndex++) {
-					registry.emplace<Components::VertexWeightBufferView>(
-						processedEntities[bufferIndex],
-						result[bufferIndex]
-					);
-				}
-			}
-		}
+		void createSkinnedMeshInstanceResources(uint32_t frameIndex) {
+			auto skinnedMeshInstances = registry.view<
+				Components::SkinnedMeshInstance,
+				Meshes::Components::MeshReference,
+				Components::SkinnedBufferView
+			>(entt::exclude<Components::BoneInstanceWeightBufferView>);
 
-		void createSkinnedMeshInstanceResources() {
-			auto skinnedMeshInstances = registry.view<Components::SkinnedMeshInstance>();
-			std::vector<entt::entity> entities(skinnedMeshInstances.size());
-			std::vector<std::span<const Components::VertexWeightInstance>> vertexWeightInstanceBuffers(skinnedMeshInstances.size());
-			std::vector<std::span<const Components::SkinnedVertexRange>> skinnedVertexRangeBuffers(skinnedMeshInstances.size());
-			uint32_t skinnedMeshInstanceIndex = 0u;
+			std::vector<entt::entity> entities;
+			std::vector<std::vector<Models::BoneInstanceWeight>> boneInstanceWeightBuffers;
+			std::vector<std::vector<Models::SkinnedVertexRange>> skinnedVertexRangeBuffers;
+			std::vector<Devices::BufferView> vertexBufferViews;
 
 			skinnedMeshInstances.each([&](
 				entt::entity entity,
-				const Components::SkinnedMeshInstance& skinnedMeshInstance
+				const Components::SkinnedMeshInstance& skinnedMeshInstance,
+				const Meshes::Components::MeshReference& meshReference,
+				const Components::SkinnedBufferView& skinnedBufferView
 				) {
-					entities[skinnedMeshInstanceIndex] = entity;
-					vertexWeightInstanceBuffers[skinnedMeshInstanceIndex] = std::span(
-						skinnedMeshInstance.skinnedVertices.begin(), 
-						skinnedMeshInstance.skinnedVertices.end()
+					const auto& meshBufferView = registry.get<Meshes::Components::MeshBufferView>(meshReference.meshEntity);
+					vertexBufferViews.emplace_back(meshBufferView.VertexBufferView);
+
+					entities.emplace_back(entity);
+					std::vector<Models::BoneInstanceWeight> boneInstanceWeights(skinnedMeshInstance.skinnedVertices.size());
+					std::transform(
+						skinnedMeshInstance.skinnedVertices.begin(),
+						skinnedMeshInstance.skinnedVertices.end(),
+						boneInstanceWeights.data(),
+						[&](const Components::VertexWeightInstance& vertexWeightInstance) {
+							/*auto boneInstanceNodeReference = registry.get<
+								Objects::Components::ObjectReference
+							>(vertexWeightInstance.boneInstanceEntity);*/
+							auto boneInstanceStoreItem = registry.get<
+								Stores::StoreItem<Objects::Models::Object>
+							>(vertexWeightInstance.boneInstanceEntity);
+							const auto& spatial = registry.get<
+								Spatials::Components::Spatial<Spatials::Components::Relative>
+							>(vertexWeightInstance.boneInstanceEntity);
+							auto boneStoreItem = registry.get<
+								Stores::StoreItem<Models::Bone>
+							>(vertexWeightInstance.boneEntity);
+							return Models::BoneInstanceWeight{
+								.boneInstanceStoreItemLocation = boneInstanceStoreItem.frameStoreItems[frameIndex],
+								.boneStoreItemLocation = boneStoreItem.frameStoreItems[frameIndex],
+								.weight = vertexWeightInstance.weight
+							};
+						}
 					);
-					skinnedVertexRangeBuffers[skinnedMeshInstanceIndex] = std::span(
-						skinnedMeshInstance.skinnedVertexRanges.begin(),
-						skinnedMeshInstance.skinnedVertexRanges.end()
-					);
-					skinnedMeshInstanceIndex++;
+					boneInstanceWeightBuffers.emplace_back(std::move(boneInstanceWeights));
 				});
 
-			const auto& vertexWeightInstanceBufferUploadResult = Devices::Device::uploadBuffers(
-				deviceContext.PhysicalDevice,
-				deviceContext.device,
-				deviceContext.GraphicQueue,
-				deviceContext.CommandPool,
-				deviceContext.Allocator,
-				vertexWeightInstanceBuffers,
-				vk::BufferUsageFlagBits::eStorageBuffer
-			);
-			const auto& skinnedVertexRangeBufferUploadResult = Devices::Device::uploadBuffers(
-				deviceContext.PhysicalDevice,
-				deviceContext.device,
-				deviceContext.GraphicQueue,
-				deviceContext.CommandPool,
-				deviceContext.Allocator,
-				skinnedVertexRangeBuffers,
-				vk::BufferUsageFlagBits::eStorageBuffer
-			);
-			for (skinnedMeshInstanceIndex = 0u; skinnedMeshInstanceIndex < entities.size(); skinnedMeshInstanceIndex++) {
-				auto entity = entities[skinnedMeshInstanceIndex];
-				auto 
+			if (!boneInstanceWeightBuffers.empty()) {
+				std::vector<std::span<Models::BoneInstanceWeight>> boneInstanceWeightBufferSpans(boneInstanceWeightBuffers.size());
+				std::transform(boneInstanceWeightBuffers.begin(), boneInstanceWeightBuffers.end(), boneInstanceWeightBufferSpans.data(), [](auto& boneInstanceWeights) {
+					return std::span(boneInstanceWeights.begin(), boneInstanceWeights.end());
+					});
+				auto boneInstanceWeightBufferViews = animationResourceManager.createBoneInstanceWeightBufferViews(boneInstanceWeightBufferSpans);
+
+				for (auto entityIndex = 0; entityIndex < entities.size(); entityIndex++) {
+					registry.emplace<Components::BoneInstanceWeightBufferView>(
+						entities[entityIndex],
+						boneInstanceWeightBufferViews[entityIndex]
+					);
+				}
+
+				auto skinnedWeightedMeshInstances = registry.view<
+					Components::SkinnedMeshInstance,
+					Meshes::Components::MeshReference,
+					Components::SkinnedBufferView,
+					Components::BoneInstanceWeightBufferView
+				>();
+
+				skinnedWeightedMeshInstances.each([&](
+					entt::entity entity,
+					const Components::SkinnedMeshInstance& skinnedMeshInstance,
+					const Meshes::Components::MeshReference& meshReference,
+					const Components::SkinnedBufferView& skinnedBufferView,
+					const Components::BoneInstanceWeightBufferView& boneInstanceWeightBufferView
+					) {
+						const auto& meshBufferView = registry.get<Meshes::Components::MeshBufferView>(meshReference.meshEntity);
+						vertexBufferViews.emplace_back(meshBufferView.VertexBufferView);
+
+						std::vector<Models::SkinnedVertexRange> skinnedVertexRanges(skinnedMeshInstance.skinnedVertexRanges.size());
+						std::transform(
+							skinnedMeshInstance.skinnedVertexRanges.begin(),
+							skinnedMeshInstance.skinnedVertexRanges.end(),
+							skinnedVertexRanges.data(),
+							[&](const Components::SkinnedVertexRange& skinnedVertexRange) {
+								return Models::SkinnedVertexRange{
+									.vertexBufferIndex = skinnedBufferView.bufferArrayElement,
+									.vertexBufferItemOffset = static_cast<uint32_t>(skinnedBufferView.bufferView.byteOffset / sizeof(Meshes::Vertex)),
+									.vertexIndex = skinnedVertexRange.vertexIndex,
+									.skinnedVertexBufferIndex = skinnedBufferView.frameSkinnedBufferArrayElements[0],
+									.skinnedVertexBufferItemOffset = static_cast<uint32_t>(skinnedBufferView.frameSkinnedBufferViews[0].byteOffset / sizeof(Meshes::Vertex)),
+									.skinnedVertexIndex = skinnedVertexRange.vertexIndex,
+									.vertexWeightBufferIndex = boneInstanceWeightBufferView.bufferIndex,
+									.vertexWeightBufferItemOffset = static_cast<uint32_t>(boneInstanceWeightBufferView.bufferView.byteOffset / sizeof(Models::BoneInstanceWeight)),
+									.vertexWeightIndex = skinnedVertexRange.weightOffset,
+									.vertexWeightCount = skinnedVertexRange.weightCount
+								};
+							}
+						);
+						skinnedVertexRangeBuffers.emplace_back(std::move(skinnedVertexRanges));
+					});
+				std::vector<std::span<Models::SkinnedVertexRange>> skinnedVertexRangeBufferSpans(skinnedVertexRangeBuffers.size());
+				std::transform(skinnedVertexRangeBuffers.begin(), skinnedVertexRangeBuffers.end(), skinnedVertexRangeBufferSpans.data(), [](auto& skinnedVertexRangeBuffer) {
+					return std::span(skinnedVertexRangeBuffer.begin(), skinnedVertexRangeBuffer.end());
+					});
+				auto result = animationResourceManager.createSkinnedVertexRangeBufferViews(skinnedVertexRangeBufferSpans);
+				for (auto entityIndex = 0; entityIndex < entities.size(); entityIndex++) {
+					registry.emplace<Components::SkinnedVertexRangeBufferView>(
+						entities[entityIndex],
+						result[entityIndex].bufferView,
+						result[entityIndex].bufferIndex
+					);
+				}
 			}
 		}
 
 		void updateSkins(vk::CommandBuffer commandBuffer) {
-			registry.sort<Objects::Components::ObjectMeshReference>([](const Objects::Components::ObjectMeshReference& left, const Objects::Components::ObjectMeshReference& right) {
-				return left.meshInstanceEntity < right.meshInstanceEntity;
-				});
-			auto meshBoneInstances = registry.view<
-				Objects::Components::ObjectReference,
-				Components::RootBoneInstanceReference,
-				Components::BoneReference,
-				Objects::Components::ObjectMeshReference
-			>(entt::exclude<Components::HasVertexWeightRange>);
-			meshBoneInstances.use<Objects::Components::ObjectMeshReference>();
-			std::vector<std::pair<entt::entity, std::vector<entt::entity>>> skinnedMeshInstances;
-			entt::entity previousMeshInstanceEntity = entt::null;
-			meshBoneInstances.each([this, &previousMeshInstanceEntity, &skinnedMeshInstances](
-				entt::entity objectMeshEntity,
-				const Objects::Components::ObjectReference& objectReference,
-				const Components::RootBoneInstanceReference& rootBoneInstanceReference,
-				const Components::BoneReference& boneReference,
-				const Objects::Components::ObjectMeshReference& objectMeshReference
-				) {
-					if (previousMeshInstanceEntity != objectMeshReference.meshInstanceEntity) {
-						skinnedMeshInstances.emplace_back(objectMeshReference.meshInstanceEntity, std::vector<entt::entity>());
-					}
-					skinnedMeshInstances.back().second.emplace_back(objectMeshEntity);
-					previousMeshInstanceEntity = objectMeshReference.meshInstanceEntity;
-					registry.emplace<Components::HasVertexWeightRange>(objectMeshEntity);
-				});
 
-			for (const auto& skinnedMeshInstance : skinnedMeshInstances) {
-				const auto& [meshReference] = registry.get<Meshes::Components::MeshReference>(skinnedMeshInstance.first);
-				std::vector<Components::VertexWeightInstance> instanceSkinnedVertices;
-				for (const auto& instance : skinnedMeshInstance.second) {
-					const auto& [objectReference, rootBoneInstanceReference, boneReference] = registry.get<
-						Objects::Components::ObjectReference,
-						Components::RootBoneInstanceReference,
-						Components::BoneReference
-					>(instance);
-					const auto& [boneNodeSpatialStoreItem, boneNodeStoreItem] = registry.get<
-						Stores::StoreItem<Spatials::Models::Spatial>,
-						Stores::StoreItem<Objects::Models::Object>
-					>(objectReference.objectEntity);
-					const auto& [bone, vertexWeights, boneStoreItem] = registry.get<
-						Components::Bone,
-						std::vector<Components::VertexWeight>,
-						Stores::StoreItem<Models::Bone>
-					>(boneReference.boneEntity);
-					uint32_t vertexWeightIndex = 0;
-					for (const auto& vertexWeight : vertexWeights) {
-						instanceSkinnedVertices.emplace_back(vertexWeight.vertexIndex, vertexWeight.weight, instance);
-						vertexWeightIndex++;
-					}
-				}
-				std::sort(instanceSkinnedVertices.begin(), instanceSkinnedVertices.end(), [](const Components::VertexWeightInstance& left, const Components::VertexWeightInstance& right) {
-					return left.vertexIndex < right.vertexIndex;
-					});
-				uint32_t const* previousInstanceVertexWeightVertexIndexPtr = nullptr;
-				std::vector<Components::VertexWeightInputRange> instanceVertexWeightRanges;
-				uint32_t instanceVertexWeightOffset = 0;
-				for (const auto& instanceVertexWeight : instanceSkinnedVertices) {
-					if (previousInstanceVertexWeightVertexIndexPtr == nullptr
-						|| *previousInstanceVertexWeightVertexIndexPtr != instanceVertexWeight.vertexIndex) {
-						instanceVertexWeightRanges.emplace_back(instanceVertexWeight.vertexIndex, instanceVertexWeightOffset, 0);
-					}
-					instanceVertexWeightRanges.back().length++;
-					previousInstanceVertexWeightVertexIndexPtr = &instanceVertexWeight.vertexIndex;
-					instanceVertexWeightOffset++;
-				}
-				registry.emplace<Components::SkinnedMeshInstance>(skinnedMeshInstance.first, std::move(instanceVertexWeightRanges), std::move(instanceSkinnedVertices));
-			}
-
-			auto skinnedObjectMeshView = registry.view<
-				Objects::Components::ObjectReference,
-				Components::RootBoneInstanceReference,
-				Components::BoneReference,
-				Objects::Components::ObjectMeshReference
-			>(entt::exclude<Components::HasSkinInput>);
-			std::vector<Models::SkinningInput> skinningInputs;
-			uint32_t skinningInputCount = 0;
-			skinnedObjectMeshView.each([this, &skinningInputCount](
-				entt::entity objectMeshEntity,
-				const Objects::Components::ObjectReference& objectReference,
-				const Components::RootBoneInstanceReference& rootBoneInstanceReference,
-				const Components::BoneReference& boneReference,
-				const Objects::Components::ObjectMeshReference& objectMeshReference
-				) {
-					const auto& [bone, vertexWeights, vertexWeightBufferView, boneStoreItem] = registry.get<
-						Components::Bone,
-						std::vector<Animations::Components::VertexWeight>,
-						Components::VertexWeightBufferView,
-						Stores::StoreItem<Models::Bone>
-					>(boneReference.boneEntity);
-					const auto& [meshReference, skinnedBufferView] = registry.get<Meshes::Components::MeshReference, Components::SkinnedBufferView>(objectMeshReference.meshInstanceEntity);
-
-
-					const auto& [boneNodeStoreItem, boneNodeSpatialStoreItem] = registry.get<
-						Stores::StoreItem<Spatials::Models::Spatial>,
-						Stores::StoreItem<Objects::Models::Object>
-					>(objectReference.objectEntity);
-
-					uint32_t weightIndex = 0;
-					for (const auto vertexWeight : vertexWeights) {
-
-						Stores::Models::StoreItemLocation vertexWeightItemLocation{
-							.storeIndex = static_cast<uint32_t>(vertexWeightBufferView.bufferIndex),
-							.itemIndex = static_cast<uint32_t>(vertexWeightBufferView.bufferView.byteOffset / sizeof(Models::VertexWeight)) + weightIndex
-						};
-
-						Stores::Models::StoreItemLocation vertexItemLocation{
-							.storeIndex = static_cast<uint32_t>(skinnedBufferView.bufferArrayElement),
-							.itemIndex = static_cast<uint32_t>(skinnedBufferView.bufferView.byteOffset / sizeof(Meshes::Vertex)) + vertexWeight.vertexIndex,
-						};
-						Stores::Models::StoreItemLocation skinnedVertexItemLocation{
-							.storeIndex = static_cast<uint32_t>(skinnedBufferView.skinnedBufferArrayElement),
-							.itemIndex = static_cast<uint32_t>(skinnedBufferView.skinnedBufferView.byteOffset / sizeof(Meshes::Vertex)) + vertexWeight.vertexIndex,
-						};
-
-						Models::SkinningInput skinningInput{
-							.objectItemLocation = boneNodeSpatialStoreItem.frameStoreItems[engineState.getFrameIndex()],
-							.vertexItemLocation = vertexItemLocation,
-							.skinnedVertexItemLocation = skinnedVertexItemLocation,
-							.vertexWeightItemLocation = vertexWeightItemLocation,
-							.boneItemLocation = boneStoreItem.frameStoreItems[engineState.getFrameIndex()],
-						};
-
-						auto skinningInputStoreItem1 = engineState.frameStates[0].AddUniformStoreItem<Models::SkinningInput>();
-						auto skinningInputStoreItem2 = engineState.frameStates[1].AddUniformStoreItem<Models::SkinningInput>();
-						*skinningInputStoreItem1.pItem = skinningInput;
-						*skinningInputStoreItem2.pItem = skinningInput;
-						auto inputEntity = registry.create();
-						registry.emplace<Stores::StoreItemLocation<Models::SkinningInput>>(inputEntity, skinningInputStoreItem1);
-						skinningInputCount++;
-						weightIndex++;
-					}
-					//skinningInputs.emplace_back(std::move(skinningInput));
-
-					registry.emplace<Components::HasSkinInput>(objectMeshEntity);
-				});
+			auto view = registry.view<Components::SkinnedVertexRangeBufferView>();
 			skinningPipeline.bind(commandBuffer);
-			auto view = registry.view<Stores::StoreItemLocation<Models::SkinningInput>>();
-			view.each([](entt::entity entity, Stores::StoreItemLocation<Models::SkinningInput>& input) {
-				auto x = input;
+			view.each([&commandBuffer, this](entt::entity entity, const Components::SkinnedVertexRangeBufferView& skinnedVertexRangeBufferView) {
+				auto rangeCount = static_cast<uint32_t>(skinnedVertexRangeBufferView.bufferView.byteLength / sizeof(Models::SkinnedVertexRange));
+				auto itemOffset = static_cast<uint32_t>(skinnedVertexRangeBufferView.bufferView.byteOffset / sizeof(Models::SkinnedVertexRange));
+				auto dispatchCount = (int)std::ceil(rangeCount / 32.0f);
+				skinningPipeline.setOptions(commandBuffer, { skinnedVertexRangeBufferView.bufferIndex, itemOffset, rangeCount });
+				commandBuffer.dispatch(dispatchCount, 1, 1);
 				});
-			auto entityCount = view.size();
-			auto count = static_cast<uint32_t>(std::ceil(entityCount / 32.0f));
-			commandBuffer.dispatch(entityCount, 1, 1);
 		}
 
 		void updateAnimations() {

@@ -3,6 +3,7 @@
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
 #include "../../Pipelines/ComputePipeline.hpp"
+#include "../Models/VertexWeightPipelineOptions.hpp"
 #include "../Resources/AnimationResourceManager.hpp"
 
 namespace drk::Animations::Pipelines {
@@ -20,6 +21,7 @@ namespace drk::Animations::Pipelines {
 		//Draws::Components::DrawVertexBufferInfo getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const;
 		void destroyPipeline() override;
 		void bind(const vk::CommandBuffer& commandBuffer) override;
+		void setOptions(const vk::CommandBuffer& commandBuffer, const Models::VertexWeightPipelineOptions& options);
 
 	protected:
 		const Devices::DeviceContext& deviceContext;
@@ -27,7 +29,7 @@ namespace drk::Animations::Pipelines {
 		vk::ShaderModule skinningShaderModule;
 		vk::ShaderModule mainFragmentShaderModule;
 		vk::Pipeline pipeline;
-		std::array<vk::DescriptorSetLayout, 4> descriptorSetLayouts;
+		std::array<vk::DescriptorSetLayout, 5> descriptorSetLayouts;
 		vk::PipelineLayout pipelineLayout;
 		Animations::Resources::AnimationResourceManager& animationResourceManager;
 
@@ -38,7 +40,7 @@ namespace drk::Animations::Pipelines {
 
 		static vk::PipelineLayout createPipelineLayout(
 			const Devices::DeviceContext& deviceContext,
-			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+			const std::array<vk::DescriptorSetLayout, 5>& descriptorSetLayouts
 		);
 	};
 }

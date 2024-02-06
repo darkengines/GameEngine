@@ -27,7 +27,7 @@ namespace drk::Animations::Pipelines {
 		vk::ShaderModule skinningShaderModule;
 		vk::ShaderModule mainFragmentShaderModule;
 		vk::Pipeline pipeline;
-		std::array<vk::DescriptorSetLayout, 4> descriptorSetLayouts;
+		std::array<vk::DescriptorSetLayout, 5> descriptorSetLayouts;
 		vk::PipelineLayout pipelineLayout;
 		Animations::Resources::AnimationResourceManager& animationResourceManager;
 
@@ -38,7 +38,7 @@ namespace drk::Animations::Pipelines {
 
 		static vk::PipelineLayout createPipelineLayout(
 			const Devices::DeviceContext& deviceContext,
-			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+			const std::array<vk::DescriptorSetLayout, 5>& descriptorSetLayouts
 		);
 	};
 }

@@ -19,7 +19,8 @@ namespace drk::Animations::Pipelines {
 		descriptorSetLayouts{
 			descriptorSetLayouts.storeDescriptorSetLayout,
 			descriptorSetLayouts.storeDescriptorSetLayout,
-			animationResourceManager.skinnedMeshDescriptorSetLayout,
+			animationResourceManager.vertexBufferDescriptorSetLayout,
+			animationResourceManager.skinnedVertexBufferDescriptorSetLayout,
 			animationResourceManager.vertexWeightDescriptorSetLayout
 		},
 		pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
@@ -71,7 +72,7 @@ namespace drk::Animations::Pipelines {
 	vk::PipelineLayout
 		VertexWeightPipeline::createPipelineLayout(
 			const Devices::DeviceContext& deviceContext,
-			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+			const std::array<vk::DescriptorSetLayout, 5>& descriptorSetLayouts
 		) {
 		vk::PushConstantRange optionsPushConstant{
 			.stageFlags = vk::ShaderStageFlagBits::eCompute,
@@ -95,10 +96,11 @@ namespace drk::Animations::Pipelines {
 	void VertexWeightPipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();
 		const auto& inputDescriptorSet = frameState.getUniformStore<Models::SkinningInput>().descriptorSet;
-		std::array<vk::DescriptorSet, 4> descriptorSets{
+		std::array<vk::DescriptorSet, 5> descriptorSets{
 			inputDescriptorSet,
 			engineState.getCurrentFrameState().storeDescriptorSet,
-			animationResourceManager.skinnedMeshDescriptorSet,
+			animationResourceManager.vertexBufferDescriptorSet,
+			animationResourceManager.skinnedVertexBufferDescriptorSet,
 			animationResourceManager.vertexWeightDescriptorSet
 		};
 		frameState.commandBuffer.bindDescriptorSets(

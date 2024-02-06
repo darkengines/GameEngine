@@ -2,54 +2,75 @@
 #extension GL_EXT_nonuniform_qualifier: enable
 #extension GL_KHR_vulkan_glsl: enable
 
-#include "./SkinningInput.glsl"
-#include "./VertexWeight.glsl"
+#include "./SkinnedVertexRange.glsl"
+#include "./BoneInstanceWeight.glsl"
 #include "./Bone.glsl"
 #include "../../Graphics/Shaders/StoreItemLocation.glsl"
 #include "../../Spatials/shaders/Spatial.glsl"
 #include "../../Objects/shaders/Object.glsl"
+#include "../../Meshes/shaders/Vertex.glsl"
 
 
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
-layout (set = 0, binding = 0, std430) readonly buffer inputLayout {
-    SkinningInput[] skinningInputs;
-} skinningInputBuffer[];
-layout (set = 1, binding = 0) readonly buffer spatialLayout {
-    Spatial[] spatials;
-} spatialBuffer[];
-layout (set = 1, binding = 0) readonly buffer objectLayout {
-    Object[] objects;
-} objectBuffer[];
-layout (set = 1, binding = 0) readonly buffer boneLayout {
-    Bone[] bones;
-} boneBuffer[];
+layout(push_constant) uniform optionsLayout {
+    uint bufferIndex;
+    uint offset;
+    uint l;
+} options;
 
-struct Vertex {
-	vec4 position;
-	vec4 normal;
-	vec4 tangent;
-	vec4 bitangent;
-	vec4 diffuseColor;
-	vec4 textureCoordinates;
-};
-
+layout (set = 0, binding = 0, std430) readonly buffer skinnedVertexRangeLayout {
+    SkinnedVertexRange[] skinnedVertexRanges;
+} skinnedVertexRangeBuffer[];
+layout (set = 1, binding = 0, std430) readonly buffer boneInstanceWeightLayout {
+    BoneInstanceWeight[] boneInstanceWeights;
+} boneInstanceWeightBuffer[];
 layout (set = 2, binding = 0, std430) buffer vertexLayout {
     Vertex[] vertices;
 } vertexBuffer[];
-
-layout (set = 3, binding = 0) readonly buffer weightLayout {
-    VertexWeight[] vertexWeights;
-} vertexWeightBuffer[];
+layout (set = 3, binding = 0, std430) buffer skinnedVertexLayout {
+    Vertex[] vertices;
+} skinnedVertexBuffer[];
+layout (set = 4, binding = 0) readonly buffer spatialLayout {
+    Spatial[] spatials;
+} spatialBuffer[];
+layout (set = 4, binding = 0) readonly buffer objectLayout {
+    Object[] objects;
+} objectBuffer[];
+layout (set = 4, binding = 0) readonly buffer boneLayout {
+    Bone[] bones;
+} boneBuffer[];
 
 void main() {
     uint index = gl_GlobalInvocationID.x;
-    SkinningInput skinningInput = skinningInputBuffer[0].skinningInputs[index];
-    Object object = objectBuffer[skinningInput.objectItemLocation.storeIndex].objects[skinningInput.objectItemLocation.itemIndex];
-    Bone bone = boneBuffer[skinningInput.boneItemLocation.storeIndex].bones[skinningInput.boneItemLocation.itemIndex];
+    if (index >= options.l) return;
+    SkinnedVertexRange skinnedVertexRange = skinnedVertexRangeBuffer[options.bufferIndex].skinnedVertexRanges[options.offset + index];
+    Vertex inputVertex = vertexBuffer[skinnedVertexRange.vertexBufferIndex].vertices[skinnedVertexRange.vertexBufferItemOffset + skinnedVertexRange.vertexIndex];
+
+    BoneInstanceWeight boneInstanceWeight = boneInstanceWeightBuffer[skinnedVertexRange.vertexWeightBufferIndex].boneInstanceWeights[skinnedVertexRange.vertexWeightBufferItemOffset + skinnedVertexRange.vertexWeightIndex];
+    Bone bone = boneBuffer[boneInstanceWeight.boneStoreItemLocation.storeIndex].bones[boneInstanceWeight.boneStoreItemLocation.itemIndex];
+    Object object = objectBuffer[boneInstanceWeight.boneInstanceStoreItemLocation.storeIndex].objects[boneInstanceWeight.boneInstanceStoreItemLocation.itemIndex];
     Spatial spatial = spatialBuffer[object.spatialItemLocation.storeIndex].spatials[object.spatialItemLocation.itemIndex];
-    VertexWeight vertexWeight = vertexWeightBuffer[skinningInput.vertexWeightItemLocation.storeIndex].vertexWeights[skinningInput.vertexWeightItemLocation.itemIndex];
-    Vertex inputVertex = vertexBuffer[skinningInput.vertexItemLocation.storeIndex].vertices[skinningInput.vertexItemLocation.itemIndex];
-    Vertex outputVertex = vertexBuffer[skinningInput.skinnedVertexItemLocation.storeIndex].vertices[skinningInput.skinnedVertexItemLocation.itemIndex];
-    vertexBuffer[skinningInput.skinnedVertexItemLocation.storeIndex].vertices[skinningInput.skinnedVertexItemLocation.itemIndex].position = vertexWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.position;
+
+    vec4 position = boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.position;
+	vec4 normal = boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.normal;
+	vec4 tangent = boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.tangent;
+	vec4 bitangent = boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.bitangent;
+
+    for(uint boneInstanceWeightIndex = 1; boneInstanceWeightIndex < skinnedVertexRange.vertexWeightCount; boneInstanceWeightIndex++) {
+        BoneInstanceWeight boneInstanceWeight = boneInstanceWeightBuffer[skinnedVertexRange.vertexWeightBufferIndex].boneInstanceWeights[skinnedVertexRange.vertexWeightBufferItemOffset + skinnedVertexRange.vertexWeightIndex + boneInstanceWeightIndex];
+        Bone bone = boneBuffer[boneInstanceWeight.boneStoreItemLocation.storeIndex].bones[boneInstanceWeight.boneStoreItemLocation.itemIndex];
+        Object object = objectBuffer[boneInstanceWeight.boneInstanceStoreItemLocation.storeIndex].objects[boneInstanceWeight.boneInstanceStoreItemLocation.itemIndex];
+        Spatial spatial = spatialBuffer[object.spatialItemLocation.storeIndex].spatials[object.spatialItemLocation.itemIndex];
+
+        position += boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.position;
+        normal += boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.normal;
+	    tangent += boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.tangent;
+	    bitangent += boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.bitangent;
+    }
+
+    skinnedVertexBuffer[skinnedVertexRange.skinnedVertexBufferIndex].vertices[skinnedVertexRange.skinnedVertexBufferItemOffset + skinnedVertexRange.skinnedVertexIndex].position = position;
+    skinnedVertexBuffer[skinnedVertexRange.skinnedVertexBufferIndex].vertices[skinnedVertexRange.skinnedVertexBufferItemOffset + skinnedVertexRange.skinnedVertexIndex].normal = normal;
+    skinnedVertexBuffer[skinnedVertexRange.skinnedVertexBufferIndex].vertices[skinnedVertexRange.skinnedVertexBufferItemOffset + skinnedVertexRange.skinnedVertexIndex].tangent = tangent;
+    skinnedVertexBuffer[skinnedVertexRange.skinnedVertexBufferIndex].vertices[skinnedVertexRange.skinnedVertexBufferItemOffset + skinnedVertexRange.skinnedVertexIndex].bitangent = bitangent;
 }

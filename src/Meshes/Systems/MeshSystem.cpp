@@ -129,7 +129,7 @@ namespace drk::Meshes::Systems {
 				auto animationVertexBufferViewPtr = registry.try_get<Animations::Components::SkinnedBufferView>(objectMeshEntity);
 				Devices::BufferView* bufferView = &meshBufferView.VertexBufferView;
 				if (animationVertexBufferViewPtr != nullptr) {
-					bufferView = &animationVertexBufferViewPtr->skinnedBufferView;
+					bufferView = &animationVertexBufferViewPtr->frameSkinnedBufferViews[engineState.getFrameIndex()];
 				}
 				Scenes::Draws::SceneDraw draw = {
 					.drawSystem = this,

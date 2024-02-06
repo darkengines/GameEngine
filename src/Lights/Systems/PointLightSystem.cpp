@@ -60,7 +60,7 @@ namespace drk::Lights::Systems {
 					for (auto lightPerspectiveEntity : lightPerspectiveCollection.lightPerspectives) {
 						auto& lightPerspective = registry.get<Components::LightPerspective>(lightPerspectiveEntity);
 						if (lightPerspective.shadowMapRect.extent.width == 0) {
-							auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({ 512, 512 });
+							auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({ 1024, 1024 });
 							lightPerspective.shadowMapRect = allocation.scissor;
 						}
 						auto absoluteRotation = glm::toMat4(spatial.rotation);

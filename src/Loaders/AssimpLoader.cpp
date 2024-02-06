@@ -6,11 +6,16 @@
 #include "../Animations/Components/AnimationReference.hpp"
 #include "../Animations/Components/BoneReference.hpp"
 #include "../Animations/Components/MeshAnimation.hpp"
+#include "../Animations/Components/VertexWeightInstance.hpp"
+#include "../Animations/Components/VertexWeightInputRange.hpp"
+#include "../Animations/Components/SkinnedMeshInstance.hpp"
 #include "../Animations/Components/AnimationState.hpp"
 #include "../Animations/Components/Bone.hpp"
 #include "../Animations/Components/VectorKey.hpp"
 #include "../Animations/Components/QuatKey.hpp"
 #include "../Animations/Components/VertexWeight.hpp"
+#include "../Animations/Components/RootBoneInstanceReference.hpp"
+#include "../Animations/Components/BoneReference.hpp"
 #include "../BoundingVolumes/Components/AxisAlignedBoundingBox.hpp"
 #include "../BoundingVolumes/Components/AxisAlignedBoundingBox.hpp"
 #include "../Cameras/Components/Camera.hpp"
@@ -107,6 +112,8 @@ namespace drk::Loaders {
 			cache,
 			entt::null
 		);
+
+		postProcessSkinnedMeshes(registry);
 
 		return loadResult;
 	}
@@ -250,7 +257,76 @@ namespace drk::Loaders {
 			loadResult.materialIdEntityMap[aiMaterialIndex] = materialEntity;
 		}
 	}
+	void AssimpLoader::postProcessSkinnedMeshes(entt::registry& registry) {
+		registry.sort<Objects::Components::ObjectMeshReference>([](const Objects::Components::ObjectMeshReference& left, const Objects::Components::ObjectMeshReference& right) {
+			return left.meshInstanceEntity < right.meshInstanceEntity;
+			});
+		auto meshBoneInstances = registry.view<
+			Objects::Components::ObjectReference,
+			Animations::Components::RootBoneInstanceReference,
+			Animations::Components::BoneReference,
+			Objects::Components::ObjectMeshReference
+		>();
+		meshBoneInstances.use<Objects::Components::ObjectMeshReference>();
+		std::vector<std::pair<entt::entity, std::vector<entt::entity>>> skinnedMeshInstances;
+		entt::entity previousMeshInstanceEntity = entt::null;
+		meshBoneInstances.each([&previousMeshInstanceEntity, &skinnedMeshInstances](
+			entt::entity objectMeshEntity,
+			const Objects::Components::ObjectReference& objectReference,
+			const Animations::Components::RootBoneInstanceReference& rootBoneInstanceReference,
+			const Animations::Components::BoneReference& boneReference,
+			const Objects::Components::ObjectMeshReference& objectMeshReference
+			) {
+				if (previousMeshInstanceEntity != objectMeshReference.meshInstanceEntity) {
+					skinnedMeshInstances.emplace_back(objectMeshReference.meshInstanceEntity, std::vector<entt::entity>());
+				}
+				skinnedMeshInstances.back().second.emplace_back(objectMeshEntity);
+				previousMeshInstanceEntity = objectMeshReference.meshInstanceEntity;
+			});
 
+		for (const auto& skinnedMeshInstance : skinnedMeshInstances) {
+			const auto& [meshReference] = registry.get<Meshes::Components::MeshReference>(skinnedMeshInstance.first);
+			std::vector<Animations::Components::VertexWeightInstance> instanceSkinnedVertices;
+			for (const auto& instance : skinnedMeshInstance.second) {
+				const auto& [objectReference, rootBoneInstanceReference, boneReference] = registry.get<
+					Objects::Components::ObjectReference,
+					Animations::Components::RootBoneInstanceReference,
+					Animations::Components::BoneReference
+				>(instance);
+				const auto& [bone, vertexWeights] = registry.get<
+					Animations::Components::Bone,
+					std::vector<Animations::Components::VertexWeight>
+				>(boneReference.boneEntity);
+				uint32_t vertexWeightIndex = 0;
+				for (const auto& vertexWeight : vertexWeights) {
+					instanceSkinnedVertices.emplace_back(vertexWeight.vertexIndex, vertexWeight.weight, objectReference.objectEntity, boneReference.boneEntity);
+					vertexWeightIndex++;
+				}
+			}
+			std::sort(
+				instanceSkinnedVertices.begin(),
+				instanceSkinnedVertices.end(),
+				[](
+					const Animations::Components::VertexWeightInstance& left,
+					const Animations::Components::VertexWeightInstance& right
+					) {
+						return left.vertexIndex < right.vertexIndex;
+				});
+			uint32_t const* previousInstanceVertexWeightVertexIndexPtr = nullptr;
+			std::vector<Animations::Components::SkinnedVertexRange> instanceVertexWeightRanges;
+			uint32_t instanceVertexWeightOffset = 0;
+			for (const auto& instanceVertexWeight : instanceSkinnedVertices) {
+				if (previousInstanceVertexWeightVertexIndexPtr == nullptr
+					|| *previousInstanceVertexWeightVertexIndexPtr != instanceVertexWeight.vertexIndex) {
+					instanceVertexWeightRanges.emplace_back(instanceVertexWeight.vertexIndex, instanceVertexWeightOffset, 0);
+				}
+				instanceVertexWeightRanges.back().weightCount++;
+				previousInstanceVertexWeightVertexIndexPtr = &instanceVertexWeight.vertexIndex;
+				instanceVertexWeightOffset++;
+			}
+			registry.emplace<Animations::Components::SkinnedMeshInstance>(skinnedMeshInstance.first, std::move(instanceVertexWeightRanges), std::move(instanceSkinnedVertices));
+		}
+	}
 	void AssimpLoader::loadMeshes(
 		std::span<aiMesh*> aiMeshes,
 		LoadResult& loadResult,

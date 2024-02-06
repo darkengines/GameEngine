@@ -2,6 +2,7 @@
 #include "../Models/SkinningInput.hpp"
 #include <algorithm>
 
+#include "../Models/VertexWeightPipelineOptions.hpp"
 #include "SkinningPipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
 #include "../../Objects/Models/Object.hpp"
@@ -16,10 +17,11 @@ namespace drk::Animations::Pipelines {
 	) : deviceContext(deviceContext),
 		animationResourceManager(animationResourceManager),
 		descriptorSetLayouts{
+			animationResourceManager.skinnedVertexRangeDescriptorSetLayout,
+			animationResourceManager.vertexWeightDescriptorSetLayout,
+			animationResourceManager.vertexBufferDescriptorSetLayout,
+			animationResourceManager.skinnedVertexBufferDescriptorSetLayout,
 			descriptorSetLayouts.storeDescriptorSetLayout,
-			descriptorSetLayouts.storeDescriptorSetLayout,
-			animationResourceManager.skinnedMeshDescriptorSetLayout,
-			animationResourceManager.vertexWeightDescriptorSetLayout
 		},
 		pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
 		engineState(engineState) {
@@ -70,11 +72,20 @@ namespace drk::Animations::Pipelines {
 	vk::PipelineLayout
 		SkinningPipeline::createPipelineLayout(
 			const Devices::DeviceContext& deviceContext,
-			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+			const std::array<vk::DescriptorSetLayout, 5>& descriptorSetLayouts
 		) {
+
+		vk::PushConstantRange optionsPushConstant{
+			.stageFlags = vk::ShaderStageFlagBits::eCompute,
+			.offset = 0,
+			.size = sizeof(Models::VertexWeightPipelineOptions)
+		};
+
 		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
 			.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
 			.pSetLayouts = descriptorSetLayouts.data(),
+			.pushConstantRangeCount = 1,
+			.pPushConstantRanges = &optionsPushConstant
 		};
 		return deviceContext.device.createPipelineLayout(pipelineLayoutCreateInfo);
 	}
@@ -85,11 +96,12 @@ namespace drk::Animations::Pipelines {
 	void SkinningPipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();
 		const auto& inputDescriptorSet = frameState.getUniformStore<Models::SkinningInput>().descriptorSet;
-		std::array<vk::DescriptorSet, 4> descriptorSets{
-			inputDescriptorSet,
-			engineState.getCurrentFrameState().storeDescriptorSet,
-			animationResourceManager.skinnedMeshDescriptorSet,
-			animationResourceManager.vertexWeightDescriptorSet
+		std::array<vk::DescriptorSet, 5> descriptorSets{
+			animationResourceManager.skinnedVertexRangeDescriptorSet,
+			animationResourceManager.vertexWeightDescriptorSet,
+			animationResourceManager.vertexBufferDescriptorSet,
+			animationResourceManager.frameResources[engineState.getFrameIndex()].skinnedMeshDescriptorSet,
+			engineState.getCurrentFrameState().storeDescriptorSet
 		};
 		frameState.commandBuffer.bindDescriptorSets(
 			vk::PipelineBindPoint::eCompute,
@@ -101,5 +113,11 @@ namespace drk::Animations::Pipelines {
 			nullptr
 		);
 		commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline);
+	}
+	void SkinningPipeline::setOptions(
+		const vk::CommandBuffer& commandBuffer,
+		const Models::VertexWeightPipelineOptions& options
+	) {
+		commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(Models::VertexWeightPipelineOptions), &options);
 	}
 }

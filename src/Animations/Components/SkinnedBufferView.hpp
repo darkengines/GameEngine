@@ -4,8 +4,8 @@
 namespace drk::Animations::Components {
 	struct SkinnedBufferView {
 		Devices::BufferView bufferView;
-		Devices::BufferView skinnedBufferView;
+		std::vector<Devices::BufferView> frameSkinnedBufferViews;
 		uint32_t bufferArrayElement;
-		uint32_t skinnedBufferArrayElement;
+		std::vector<uint32_t> frameSkinnedBufferArrayElements;
 	};
 }

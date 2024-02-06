@@ -24,6 +24,7 @@
 #include "../Models/ShadowMeshDraw.hpp"
 #include "../Pipelines/ShadowMeshPipeline.hpp"
 #include "MeshShadowSystem.hpp"
+#include "../../Animations/Components/SkinnedBufferView.hpp"
 
 namespace drk::Meshes::Systems {
 	MeshShadowSystem::MeshShadowSystem(
@@ -183,11 +184,16 @@ namespace drk::Meshes::Systems {
 		entt::entity cameraEntity,
 		entt::entity lightPerspectiveSpatialEntity
 	) {
+		auto animationVertexBufferViewPtr = registry.try_get<Animations::Components::SkinnedBufferView>(objectMeshEntity);
+		Devices::BufferView const * bufferView = &meshBufferView.VertexBufferView;
+		if (animationVertexBufferViewPtr != nullptr) {
+			bufferView = &animationVertexBufferViewPtr->frameSkinnedBufferViews[engineState.getFrameIndex()];
+		}
 		Scenes::Draws::ShadowSceneDraw draw = {
 			.drawSystem = this,
 			.pipelineTypeIndex = std::type_index(typeid(Pipelines::ShadowMeshPipeline)),
 			.indexBufferView = meshBufferView.IndexBufferView,
-			.vertexBufferView = meshBufferView.VertexBufferView,
+			.vertexBufferView = *bufferView,
 			.lightEntity = lightEntity,
 			.scissor = perspective.shadowMapRect,
 			.lightPerspectiveEntity = lightPerspectiveEntity,
@@ -196,7 +202,7 @@ namespace drk::Meshes::Systems {
 		};
 		Components::ShadowMeshDraw meshDraw = {
 			.meshResource = pMeshResource,
-			.meshBufferView = meshBufferView,
+			.meshBufferView = { meshBufferView.IndexBufferView, *bufferView },
 			.meshEntity = meshEntity,
 			.objectEntity = objectEntity,
 			.cameraEntity = cameraEntity,

@@ -4,8 +4,8 @@
 
 namespace drk::Animations::Components {
 	struct SkinnedVertexRange {
-		Stores::StoreItem<Meshes::Vertex> vertexStoreItem;
-		Stores::StoreItem<Models::SkinnedVertex> skinnedVertexStoreItem;
-		uint32_t skinnedVertexCount;
+		uint32_t vertexIndex;
+		uint32_t weightOffset;
+		uint32_t weightCount;
 	};
 }

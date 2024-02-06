@@ -340,7 +340,7 @@ namespace drk::Applications {
 					renderStorageBuffers();
 					renderAnimations();
 					renderSystemInfos();
-					renderInspector();
+					//renderInspector();
 					assetExplorer.render(registry);
 
 					fileBrowser.Display();
@@ -357,7 +357,7 @@ namespace drk::Applications {
 				textureSystem.UploadTextures();
 				meshSystem.uploadMeshes();
 				animationSystem.storeMeshes();
-				animationSystem.uploadVertexWeights();
+				//animationSystem.uploadVertexWeights();
 				//animationSystem.mamadou();
 
 				//Alterations
@@ -392,6 +392,8 @@ namespace drk::Applications {
 				axisAlignedBoundingBoxSystem.store();
 				frustumSystem.store();
 				boneSystem.store();
+
+				animationSystem.createSkinnedMeshInstanceResources(engineState.getFrameIndex());
 
 				//Store updates to GPU
 				materialSystem.updateStore();

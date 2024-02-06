@@ -10,25 +10,49 @@ namespace drk::Animations::Resources {
 		deviceContext(deviceContext),
 		descriptorSetAllocator(descriptorSetAllocator),
 		descriptorSetLayoutCache(descriptorSetLayoutCache),
-		skinnedMeshDescriptorSetLayout(createSkinnedMeshDescriptorSetLayout(this->descriptorSetLayoutCache)),
-		skinnedMeshDescriptorSet(createSkinnedMeshDescriptorSet(this->descriptorSetAllocator, this->skinnedMeshDescriptorSetLayout)),
+		vertexBufferDescriptorSetLayout(createVertexBufferDescriptorSetLayout(this->descriptorSetLayoutCache)),
+		vertexBufferDescriptorSet(createVertexBufferDescriptorSet(this->descriptorSetAllocator, this->vertexBufferDescriptorSetLayout)),
+		skinnedVertexBufferDescriptorSetLayout(createVertexBufferDescriptorSetLayout(this->descriptorSetLayoutCache)),
+		skinnedVertexBufferDescriptorSet(createVertexBufferDescriptorSet(this->descriptorSetAllocator, this->vertexBufferDescriptorSetLayout)),
 		vertexWeightDescriptorSetLayout(createVertexWeightDescriptorSetLayout(this->descriptorSetLayoutCache)),
 		vertexWeightDescriptorSet(createVertexWeightDescriptorSet(this->descriptorSetAllocator, this->vertexWeightDescriptorSetLayout)),
-		skinnedMeshDescriptorSetArrayElementOffset(0),
-		vertexWeightDescriptorSetArrayElementOffset(0)
+		skinnedVertexRangeDescriptorSetLayout(createSkinnedVertexRangeDescriptorSetLayout(this->descriptorSetLayoutCache)),
+		skinnedVertexRangeDescriptorSet(createSkinnedVertexRangeDescriptorSet(this->descriptorSetAllocator, this->skinnedVertexRangeDescriptorSetLayout)),
+		vertexBufferDescriptorSetArrayElementOffset(0),
+		skinnedVertexBufferDescriptorSetArrayElementOffset(0),
+		vertexWeightDescriptorSetArrayElementOffset(0),
+		skinnedVertexRangeDescriptorSetArrayElementOffset(0),
+		frameResources(createFrameResources(this->configuration, this->descriptorSetAllocator, this->vertexBufferDescriptorSetLayout))
 	{
 
 	}
 
-	vk::DescriptorSet AnimationResourceManager::createSkinnedMeshDescriptorSet(
+
+
+	vk::DescriptorSet AnimationResourceManager::createVertexBufferDescriptorSet(
 		Engine::DescriptorSetAllocator& descriptorSetAllocator,
-		vk::DescriptorSetLayout& skinnedMeshDescriptorSetLayout
+		vk::DescriptorSetLayout& vertexBufferDescriptorSetLayout
 	) {
-		std::vector<vk::DescriptorSetLayout> descriptorSetLayouts{ skinnedMeshDescriptorSetLayout };
+		std::vector<vk::DescriptorSetLayout> descriptorSetLayouts{ vertexBufferDescriptorSetLayout };
 		return descriptorSetAllocator.allocateDescriptorSets(descriptorSetLayouts)[0];
 	}
 
-	vk::DescriptorSetLayout AnimationResourceManager::createSkinnedMeshDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache) {
+	std::vector<AnimationFrameResource> AnimationResourceManager::createFrameResources(
+		const drk::Resources::Configuration::ResourcesConfiguration& resourceConfiguration,
+		Engine::DescriptorSetAllocator& descriptorSetAllocator,
+		vk::DescriptorSetLayout& vertexBufferDescriptorSetLayout
+	) {
+		std::vector<AnimationFrameResource> frameResources(resourceConfiguration.frameCount);
+		for (auto frameIndex = 0; frameIndex < resourceConfiguration.frameCount; frameIndex++) {
+			auto skinnedMeshDescriptorSet = createVertexBufferDescriptorSet(descriptorSetAllocator, vertexBufferDescriptorSetLayout);
+			frameResources[frameIndex] = {
+				.skinnedMeshDescriptorSet = skinnedMeshDescriptorSet
+			};
+		}
+		return frameResources;
+	}
+
+	vk::DescriptorSetLayout AnimationResourceManager::createVertexBufferDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache) {
 		auto bindFlags =
 			vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateAfterBind;
 
@@ -84,5 +108,37 @@ namespace drk::Animations::Resources {
 		};
 
 		return descriptorSetLayoutCache.get(descriptorSetLayoutCreateInfo);
+	}
+
+	vk::DescriptorSetLayout AnimationResourceManager::createSkinnedVertexRangeDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache) {
+		auto bindFlags =
+			vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateAfterBind;
+
+		vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo = {
+			.bindingCount = 1u,
+			.pBindingFlags = &bindFlags
+		};
+
+		vk::DescriptorSetLayoutBinding binding = {
+			.binding = 0,
+			.descriptorType = vk::DescriptorType::eStorageBuffer,
+			.descriptorCount = 64,
+			.stageFlags = vk::ShaderStageFlagBits::eCompute
+		};
+		vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+			.pNext = &extendedInfo,
+			.flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool,
+			.bindingCount = 1,
+			.pBindings = &binding,
+		};
+
+		return descriptorSetLayoutCache.get(descriptorSetLayoutCreateInfo);
+	}
+	vk::DescriptorSet AnimationResourceManager::createSkinnedVertexRangeDescriptorSet(
+		Engine::DescriptorSetAllocator& descriptorSetAllocator,
+		vk::DescriptorSetLayout& skinnedVertexRangeDescriptorSetLayout
+	) {
+		std::vector<vk::DescriptorSetLayout> descriptorSetLayouts{ skinnedVertexRangeDescriptorSetLayout };
+		return descriptorSetAllocator.allocateDescriptorSets(descriptorSetLayouts)[0];
 	}
 }
