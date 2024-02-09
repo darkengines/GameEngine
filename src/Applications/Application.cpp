@@ -18,6 +18,7 @@ namespace drk::Applications {
 		Meshes::Systems::MeshSystem& meshSystem,
 		Meshes::Systems::MeshShadowSystem& meshShadowSystem,
 		Spatials::Systems::SpatialSystem& spatialSystem,
+		Spatials::Systems::RelativeSpatialSystem& relativeSpatialSystem,
 		Objects::Systems::ObjectSystem& objectSystem,
 		Cameras::Systems::CameraSystem& cameraSystem,
 		Graphics::GlobalSystem& globalSystem,
@@ -40,6 +41,7 @@ namespace drk::Applications {
 		Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
 		Animations::Systems::AnimationSystem& animationSystem,
 		Animations::Systems::BoneSystem& boneSystem,
+		Animations::Systems::BoneSpatialSystem& boneSpatialSystem,
 		UserInterfaces::AssetExplorer& assetExplorer
 	)
 		: window(window),
@@ -50,6 +52,7 @@ namespace drk::Applications {
 		meshSystem(meshSystem),
 		meshShadowSystem(meshShadowSystem),
 		spatialSystem(spatialSystem),
+		relativeSpatialSystem(relativeSpatialSystem),
 		objectSystem(objectSystem),
 		cameraSystem(cameraSystem),
 		globalSystem(globalSystem),
@@ -72,6 +75,7 @@ namespace drk::Applications {
 		lightPerspectiveSystem(lightPerspectiveSystem),
 		animationSystem(animationSystem),
 		boneSystem(boneSystem),
+		boneSpatialSystem(boneSpatialSystem),
 		windowExtent(window.GetExtent()),
 		assetExplorer(assetExplorer) {
 		//ImGui::GetIO().IniFilename = NULL;
@@ -382,6 +386,7 @@ namespace drk::Applications {
 				pointSystem.store();
 				lineSystem.store();
 				spatialSystem.store();
+				relativeSpatialSystem.store();
 				objectSystem.store();
 				cameraSystem.store();
 				lightSystem.store();
@@ -393,14 +398,13 @@ namespace drk::Applications {
 				frustumSystem.store();
 				boneSystem.store();
 
-				animationSystem.createSkinnedMeshInstanceResources(engineState.getFrameIndex());
-
 				//Store updates to GPU
 				materialSystem.updateStore();
 				meshSystem.updateStore();
 				pointSystem.updateStore();
 				lineSystem.updateStore();
 				spatialSystem.updateStore();
+				relativeSpatialSystem.updateStore();
 				objectSystem.updateStore();
 				cameraSystem.updateStore();
 				lightSystem.updateStore();
@@ -413,6 +417,11 @@ namespace drk::Applications {
 				frustumSystem.updateStore();
 				globalSystem.update();
 
+				boneSpatialSystem.propagateChanges();
+				boneSpatialSystem.store();
+				boneSpatialSystem.updateStore();
+				animationSystem.createSkinnedMeshInstanceResources(engineState.getFrameIndex());
+				animationSystem.updateSkins(frameState.commandBuffer);
 				//auto draws = registry.view<Scenes::Draws::SceneDraw>();
 				//registry.destroy(draws.begin(), draws.end());
 
@@ -431,8 +440,6 @@ namespace drk::Applications {
 				//Clear frame
 				registry.clear<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>();
 				registry.clear<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>>();
-
-				animationSystem.updateSkins(frameState.commandBuffer);
 
 				//Renders
 				sceneRenderer.render(0, frameState.commandBuffer);

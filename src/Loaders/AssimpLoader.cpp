@@ -346,7 +346,7 @@ namespace drk::Loaders {
 				const std::span<aiBone*> aiBones(aiMesh->mBones, aiMesh->mNumBones);
 				uint32_t boneIndex = 0;
 				for (const auto& aiBone : aiBones) {
-					if (aiBone->mNumWeights > 1 || aiBone->mWeights[0].mWeight != 0) {
+					//if (aiBone->mNumWeights > 1 || aiBone->mWeights[0].mWeight != 0) {
 						auto boneEntityEntry = aiBoneNodeNameBoneEntityMap.find(aiBone->mName.C_Str());
 						entt::entity boneEntity;
 						if (boneEntityEntry != aiBoneNodeNameBoneEntityMap.end()) {
@@ -394,7 +394,7 @@ namespace drk::Loaders {
 
 						boneEntities[boneIndex] = boneEntity;
 						boneIndex++;
-					}
+					//}
 				}
 				registry.emplace<Animations::Components::BoneCollection>(meshEntity, std::move(boneEntities));
 			}
@@ -765,18 +765,13 @@ namespace drk::Loaders {
 
 			auto verticalFov = aiCamera->mHorizontalFOV / aiCamera->mAspect;
 
-
-			Spatials::Components::Spatial<Spatials::Components::Relative> cameraSpatial{
-				.position = { aiCamera->mPosition.x, aiCamera->mPosition.y, aiCamera->mPosition.z, 1 },
-				.scale = {1.0f, 1.0f, 1.0f, 1.0f},
-			};
-
 			Cameras::Components::Camera camera{
 				perspective,
 				glm::lookAt(
 					glm::make_vec3(relativePosition),
 					glm::make_vec3(relativePosition + relativeFront),
-					glm::make_vec3(relativeUp)),
+					glm::make_vec3(relativeUp)
+				),
 				relativePosition,
 				relativeFront,
 				relativeUp,
@@ -802,7 +797,7 @@ namespace drk::Loaders {
 			auto entity = registry.create();
 			registry.emplace<Cameras::Components::Camera>(entity, camera);
 			registry.emplace<Frustums::Components::Frustum>(entity, cameraFrustum);
-			registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity, cameraSpatial);
+
 			cameraNameMap[cameraName] = entity;
 		}
 	}
@@ -825,6 +820,7 @@ namespace drk::Loaders {
 			return cacheEntry->second;
 		}
 		auto nodeName = std::string(assimpNode->mName.C_Str());
+
 		aiVector3D aiScale, aiPosition;
 		aiQuaternion aiRotation;
 		assimpNode->mTransformation.Decompose(aiScale, aiRotation, aiPosition);
@@ -870,11 +866,21 @@ namespace drk::Loaders {
 		}
 		auto cameraEntry = cameraMap.find(nodeName);
 		if (cameraEntry != cameraMap.end()) {
-			shouldEmplaceSpatial = false;
 			entity = cameraEntry->second;
-			auto& cameraSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity);
-			cameraSpatial.rotation = spatial.rotation;
-			cameraSpatial.position += glm::vec4(glm::vec3(spatial.position), 0.0f);
+			auto camera = registry.get<Cameras::Components::Camera>(entity);
+			auto translationMatrix = glm::translate(
+				glm::identity<glm::mat4>(),
+				glm::vec3(spatial.position));
+			auto rotationMatrix = glm::toMat4(spatial.rotation);
+			auto scalingMatrix = glm::scale(glm::identity<glm::mat4>(), glm::vec3(spatial.scale));
+			spatial.model = translationMatrix * rotationMatrix * scalingMatrix;
+			auto inverse = glm::inverse(spatial.model);
+			auto inverseUp = inverse * camera.relativeUp;
+			auto inverseFront = inverse * camera.relativeFront;
+			auto up = spatial.model * camera.relativeUp;
+			auto front = spatial.model * camera.relativeFront;
+
+			auto x = 0;
 		}
 
 		if (entity == entt::null) entity = registry.create();
@@ -900,6 +906,7 @@ namespace drk::Loaders {
 				auto& map = meshEntityInstanceEntityMap.top();
 				registry.emplace<Objects::Components::ObjectMeshReference>(meshBoneInstanceEntity, map[meshReference.meshEntity]);
 			}
+			registry.emplace<Animations::Components::RootBoneInstanceReference>(entity, rootBoneInstanceEntity);
 			if (rootBoneInstanceEntity == entt::null) {
 				rootBoneInstanceEntity = boneInstanceEntity;
 			}

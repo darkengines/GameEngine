@@ -1,4 +1,5 @@
 #include "SpatialSystem.hpp"
+#include "../Models/RelativeSpatial.hpp"
 #include "../../Objects/Components/Relationship.hpp"
 #include "../../Objects/Components/Dirty.hpp"
 #include "../../Objects/Components/Object.hpp"
@@ -131,6 +132,9 @@ namespace drk::Spatials::Systems {
 					}
 					registry.emplace_or_replace<Objects::Components::Dirty<Components::Spatial<Components::Absolute>>>(entity);
 					registry.emplace_or_replace<Graphics::SynchronizationState<Models::Spatial>>(
+						entity,
+						(uint32_t)engineState.getFrameCount());
+					registry.emplace_or_replace<Graphics::SynchronizationState<Models::RelativeSpatial>>(
 						entity,
 						(uint32_t)engineState.getFrameCount());
 			}

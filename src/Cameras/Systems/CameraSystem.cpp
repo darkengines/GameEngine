@@ -45,9 +45,8 @@ namespace drk::Cameras::Systems {
 				Spatials::Components::Spatial<Spatials::Components::Absolute>& spatial
 				) {
 					camera.absolutePosition = spatial.position;
-					auto absoluteRotation = glm::toMat4(spatial.rotation);
-					camera.absoluteFront = absoluteRotation * camera.relativeFront;
-					camera.absoluteUp = absoluteRotation * camera.relativeUp;
+					camera.absoluteFront = spatial.model * camera.relativeFront;
+					camera.absoluteUp = spatial.model * camera.relativeUp;
 					camera.view = glm::lookAt(
 						glm::make_vec3(camera.absolutePosition),
 						glm::make_vec3(camera.absolutePosition + camera.absoluteFront),
@@ -90,7 +89,7 @@ namespace drk::Cameras::Systems {
 		Spatials::Components::Spatial<Spatials::Components::Relative> cameraSpatial = {
 			.position = position,
 			.rotation = glm::quat(1, 0, 0, 0),
-			.scale = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
+			.scale = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f)
 		};
 		Objects::Components::Relationship cameraRelationship = {
 			.parent = entt::null

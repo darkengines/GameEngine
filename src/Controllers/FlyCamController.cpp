@@ -72,8 +72,10 @@ namespace drk::Controllers {
 	}
 
 	void FlyCamController::Step() {
-		auto& camera = Registry.get<Cameras::Components::Camera>(CameraEntity);
-		auto& cameraSpatial = Registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(CameraEntity);
+		const auto& [camera, spatial] = Registry.get<
+			Cameras::Components::Camera,
+			Spatials::Components::Spatial<Spatials::Components::Relative>
+		>(CameraEntity);
 		auto up = camera.absoluteUp;
 		auto front = camera.absoluteFront;
 		auto side = GlmExtensions::cross(front, up);
@@ -81,42 +83,40 @@ namespace drk::Controllers {
 		auto hasUpdate = false;
 
 		if (MoveForward) {
-			cameraSpatial.position += front * 0.01f;
+			spatial.position += front * 0.01f;
 			hasUpdate = true;
 		}
 		if (MoveBackward) {
-			cameraSpatial.position -= front * 0.01f;
+			spatial.position -= front * 0.01f;
 			hasUpdate = true;
 		}
 		if (MoveRight) {
-			cameraSpatial.position += side * 0.005f;
+			spatial.position += side * 0.005f;
 			hasUpdate = true;
 		}
 		if (MoveLeft) {
-			cameraSpatial.position -= side * 0.005f;
+			spatial.position -= side * 0.005f;
 			hasUpdate = true;
 		}
 		if (MoveUp) {
-			cameraSpatial.position += camera.relativeUp * 0.005f;
+			spatial.position += spatial.model * camera.relativeUp * 0.005f;
 			hasUpdate = true;
 		}
 		if (MoveDown) {
-			cameraSpatial.position -= camera.relativeUp * 0.005f;
+			spatial.position -= spatial.model * camera.relativeUp * 0.005f;
 			hasUpdate = true;
 		}
 
 		if (MousePositionDelta.x != 0 || MousePositionDelta.y != 0) {
 			if (MousePositionDelta.x) {
-				auto q = glm::angleAxis(-MousePositionDelta.x, glm::vec3(camera.relativeUp));
-				cameraSpatial.rotation = q * cameraSpatial.rotation;
+				auto q = glm::angleAxis(-MousePositionDelta.x, glm::vec3(GlmExtensions::up));
+				spatial.rotation = q * spatial.rotation;
 				MousePositionDelta.x = 0;
 			}
 			if (MousePositionDelta.y) {
-				cameraSpatial.rotation = glm::rotate(
-					cameraSpatial.rotation,
-					-MousePositionDelta.y,
-					glm::vec3(GlmExtensions::cross(camera.relativeFront, camera.relativeUp))
-				);
+				auto side = glm::vec3(GlmExtensions::cross(front, GlmExtensions::up));
+				auto q = glm::angleAxis(-MousePositionDelta.y, side);
+				spatial.rotation = q * spatial.rotation;
 				MousePositionDelta.y = 0;
 			}
 			hasUpdate = true;

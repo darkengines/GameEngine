@@ -2,4 +2,5 @@
 
 struct Object {
     StoreItemLocation spatialItemLocation;
+    StoreItemLocation relativeSpatialItemLocation;
 };

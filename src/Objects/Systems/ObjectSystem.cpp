@@ -17,11 +17,16 @@ namespace drk::Objects {
 		: System(engineState, registry), DeviceContext(deviceContext) {}
 
 	void Systems::ObjectSystem::update(
-		Models::Object& objectModel, const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem
+		Models::Object& objectModel, 
+		const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem,
+		const Stores::StoreItem<Spatials::Models::RelativeSpatial>& relativeSpatialStoreItem
 	) {
 		const auto& spatialItemLocation = spatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
 		objectModel.spatialItemLocation.storeIndex = spatialItemLocation.pStore->descriptorArrayElement;
 		objectModel.spatialItemLocation.itemIndex = spatialItemLocation.index;
+		const auto& relativeSpatialItemLocation = relativeSpatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
+		objectModel.relativeSpatialItemLocation.storeIndex = relativeSpatialItemLocation.pStore->descriptorArrayElement;
+		objectModel.relativeSpatialItemLocation.itemIndex = relativeSpatialItemLocation.index;
 	}
 	entt::entity
 		Systems::ObjectSystem::copyObjectEntity(

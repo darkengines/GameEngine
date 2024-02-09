@@ -142,7 +142,7 @@ float samplePointLightShadow(vec3 lightToObject, PointLight pointLight, float di
 	LightPerspective lightPerspective;
 	for(int i = 0; i < samples; ++i)
 	{
-		float bias = max(0.1 * (1.0 - dot(point.normal.xyz, normalize(lightDirection + sampleOffsetDirections[i] * diskRadius))), 0.005);
+		float bias = max(0.1 * (1.0 - dot(point.normal.xyz, normalize(lightDirection + sampleOffsetDirections[i] * diskRadius))), 0.5);
 		float closestDepth = sampleCube(lightToObject + sampleOffsetDirections[i] * diskRadius, pointLight, lightPerspective);
 		closestDepth = delinearize_depth(closestDepth, lightPerspective.near, lightPerspective.far);
 
@@ -170,7 +170,7 @@ float sampleSpotlightShadow(
 	for(int i = 0; i < samples; ++i)
 	{
 		vec3 sampleLightDirection = normalize(lightDirection + sampleOffsetDirections[i] * diskRadius);
-		float bias = max(0.1 * (1.0 - dot(point.normal.xyz, -sampleLightDirection)), 0.005);
+		float bias = max(0.1 * (1.0 - dot(point.normal.xyz, -sampleLightDirection)), 0.5);
 		vec2 preShadowMapUv = (vec2(
 			-dot(sampleLightDirection, cross(lightPerspective.absoluteFront.xyz, lightPerspective.absoluteUp.xyz)) / uDenominator,
 			dot(sampleLightDirection, lightPerspective.absoluteUp.xyz) / vDenominator

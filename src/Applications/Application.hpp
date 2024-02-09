@@ -16,6 +16,7 @@
 #include "../Meshes/Systems/MeshSystem.hpp"
 #include "../Materials/Systems/MaterialSystem.hpp"
 #include "../Spatials/Systems/SpatialSystem.hpp"
+#include "../Spatials/Systems/RelativeSpatialSystem.hpp"
 #include "../Objects/Systems/ObjectSystem.hpp"
 #include "../Cameras/Systems/CameraSystem.hpp"
 #include "../Graphics/GlobalSystem.hpp"
@@ -31,6 +32,7 @@
 #include "../BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.hpp"
 #include "../Frustums/Systems/FrustumSystem.hpp"
 #include "../Animations/Systems/BoneSystem.hpp"
+#include "../Animations/Systems/BoneSpatialSystem.hpp"
 #include <memory>
 
 namespace drk::Applications {
@@ -45,6 +47,7 @@ namespace drk::Applications {
 			Meshes::Systems::MeshSystem&,
 			Meshes::Systems::MeshShadowSystem&,
 			Spatials::Systems::SpatialSystem&,
+			Spatials::Systems::RelativeSpatialSystem&,
 			Objects::Systems::ObjectSystem&,
 			Cameras::Systems::CameraSystem&,
 			Graphics::GlobalSystem&,
@@ -67,6 +70,7 @@ namespace drk::Applications {
 			Lights::Systems::LightPerspectiveSystem&,
 			Animations::Systems::AnimationSystem&,
 			Animations::Systems::BoneSystem&,
+			Animations::Systems::BoneSpatialSystem&,
 			UserInterfaces::AssetExplorer&
 		> ;
 
@@ -79,6 +83,7 @@ namespace drk::Applications {
 			Meshes::Systems::MeshSystem& meshSystem,
 			Meshes::Systems::MeshShadowSystem& meshShadowSystem,
 			Spatials::Systems::SpatialSystem& spatialSystem,
+			Spatials::Systems::RelativeSpatialSystem& relativeSpatialSystem,
 			Objects::Systems::ObjectSystem& objectSystem,
 			Cameras::Systems::CameraSystem& cameraSystem,
 			Graphics::GlobalSystem& globalSystem,
@@ -101,6 +106,7 @@ namespace drk::Applications {
 			Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
 			Animations::Systems::AnimationSystem& animationSystem,
 			Animations::Systems::BoneSystem& boneSystem,
+			Animations::Systems::BoneSpatialSystem& boneSpatialSystem,
 			UserInterfaces::AssetExplorer& assetExplorer
 		);
 		~Application();
@@ -116,6 +122,7 @@ namespace drk::Applications {
 		Meshes::Systems::MeshSystem& meshSystem;
 		Meshes::Systems::MeshShadowSystem& meshShadowSystem;
 		Spatials::Systems::SpatialSystem& spatialSystem;
+		Spatials::Systems::RelativeSpatialSystem& relativeSpatialSystem;
 		Objects::Systems::ObjectSystem& objectSystem;
 		Cameras::Systems::CameraSystem& cameraSystem;
 		Graphics::GlobalSystem& globalSystem;
@@ -138,6 +145,7 @@ namespace drk::Applications {
 		Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem;
 		Animations::Systems::AnimationSystem& animationSystem;
 		Animations::Systems::BoneSystem& boneSystem;
+		Animations::Systems::BoneSpatialSystem& boneSpatialSystem;
 		entt::entity selectedEntity = entt::null;
 		UserInterfaces::AssetExplorer& assetExplorer;
 

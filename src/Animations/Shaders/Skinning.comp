@@ -50,7 +50,7 @@ void main() {
     BoneInstanceWeight boneInstanceWeight = boneInstanceWeightBuffer[skinnedVertexRange.vertexWeightBufferIndex].boneInstanceWeights[skinnedVertexRange.vertexWeightBufferItemOffset + skinnedVertexRange.vertexWeightIndex];
     Bone bone = boneBuffer[boneInstanceWeight.boneStoreItemLocation.storeIndex].bones[boneInstanceWeight.boneStoreItemLocation.itemIndex];
     Object object = objectBuffer[boneInstanceWeight.boneInstanceStoreItemLocation.storeIndex].objects[boneInstanceWeight.boneInstanceStoreItemLocation.itemIndex];
-    Spatial spatial = spatialBuffer[object.spatialItemLocation.storeIndex].spatials[object.spatialItemLocation.itemIndex];
+    Spatial spatial = spatialBuffer[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.storeIndex].spatials[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.itemIndex];
 
     vec4 position = boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.position;
 	vec4 normal = boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.normal;
@@ -61,7 +61,7 @@ void main() {
         BoneInstanceWeight boneInstanceWeight = boneInstanceWeightBuffer[skinnedVertexRange.vertexWeightBufferIndex].boneInstanceWeights[skinnedVertexRange.vertexWeightBufferItemOffset + skinnedVertexRange.vertexWeightIndex + boneInstanceWeightIndex];
         Bone bone = boneBuffer[boneInstanceWeight.boneStoreItemLocation.storeIndex].bones[boneInstanceWeight.boneStoreItemLocation.itemIndex];
         Object object = objectBuffer[boneInstanceWeight.boneInstanceStoreItemLocation.storeIndex].objects[boneInstanceWeight.boneInstanceStoreItemLocation.itemIndex];
-        Spatial spatial = spatialBuffer[object.spatialItemLocation.storeIndex].spatials[object.spatialItemLocation.itemIndex];
+        Spatial spatial = spatialBuffer[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.storeIndex].spatials[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.itemIndex];
 
         position += boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.position;
         normal += boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.normal;

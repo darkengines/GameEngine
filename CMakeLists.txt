@@ -23,6 +23,8 @@ file(
     src/Animations/Resources/AnimationFrameResource.hpp
     src/Animations/Systems/VertexWeightSystem.hpp
     src/Animations/Systems/AnimationSystem.hpp
+    src/Animations/Systems/BoneSpatialSystem.hpp
+    src/Animations/Models/BoneSpatial.hpp
     src/Animations/Components/SkinnedBufferView.hpp
     src/Animations/Components/AnimationState.hpp
     src/Animations/Components/HasVertexWeightRange.hpp
@@ -207,7 +209,9 @@ file(
     src/Spatials/Components/Spatial.hpp
     src/Spatials/Components/SpatialEditor.hpp
     src/Spatials/Models/Spatial.hpp
+    src/Spatials/Models/RelativeSpatial.hpp
     src/Spatials/Systems/SpatialSystem.hpp
+    src/Spatials/Systems/RelativeSpatialSystem.hpp
     src/Stores/Extensions.hpp
     src/Stores/Store.hpp
     src/Stores/StoreBuffer.hpp
@@ -242,6 +246,7 @@ file(
     src/Animations/Pipelines/VertexWeightPipeline.cpp
     src/Animations/Resources/AnimationResourceManager.cpp
     src/Animations/Resources/AnimationFrameResource.cpp
+    src/Animations/Systems/BoneSpatialSystem.cpp
     src/Applications/Application.cpp
     src/Applications/Application.UserInterface.cpp
     src/BoundingVolumes/Components/AxisAlignedBoundingBox.cpp

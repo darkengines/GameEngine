@@ -164,7 +164,8 @@ namespace drk::Scenes::Renderers {
 					operations |= drk::Renderers::RenderOperation::BindPipeline;
 				}
 				if (previousDrawEntity == entt::null ||
-					(previousSceneDraw->indexBufferView.buffer.buffer != sceneDraw.indexBufferView.buffer.buffer)) {
+					(previousSceneDraw->indexBufferView.buffer.buffer != sceneDraw.indexBufferView.buffer.buffer)
+					|| (previousSceneDraw->vertexBufferView.buffer.buffer != sceneDraw.vertexBufferView.buffer.buffer)) {
 					operations |= drk::Renderers::RenderOperation::BindIndexBuffer | drk::Renderers::RenderOperation::BindVertexBuffer;
 				}
 				if (previousDrawEntity == entt::null ||

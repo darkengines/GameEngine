@@ -2,6 +2,7 @@
 #include "../Models/VertexWeightInput.hpp"
 #include "../Models/SkinnedVertexRange.hpp"
 #include "../Models/BoneInstanceWeight.hpp"
+#include "../Models/BoneSpatial.hpp"
 #include "../Components/VertexWeightInstance.hpp"
 #include "../Components/BoneInstanceWeightBufferView.hpp"
 #include "../Components/HasVertexWeightRange.hpp"
@@ -139,8 +140,9 @@ namespace drk::Animations::Systems {
 							/*auto boneInstanceNodeReference = registry.get<
 								Objects::Components::ObjectReference
 							>(vertexWeightInstance.boneInstanceEntity);*/
-							auto boneInstanceStoreItem = registry.get<
-								Stores::StoreItem<Objects::Models::Object>
+							const auto& [boneInstanceStoreItem, boneSpatialStoreItem] = registry.get<
+								Stores::StoreItem<Objects::Models::Object>,
+								Stores::StoreItem<Models::BoneSpatial>
 							>(vertexWeightInstance.boneInstanceEntity);
 							const auto& spatial = registry.get<
 								Spatials::Components::Spatial<Spatials::Components::Relative>
@@ -150,6 +152,7 @@ namespace drk::Animations::Systems {
 							>(vertexWeightInstance.boneEntity);
 							return Models::BoneInstanceWeight{
 								.boneInstanceStoreItemLocation = boneInstanceStoreItem.frameStoreItems[frameIndex],
+								.boneInstanceSpatialStoreItemLocation = boneSpatialStoreItem.frameStoreItems[frameIndex],
 								.boneStoreItemLocation = boneStoreItem.frameStoreItems[frameIndex],
 								.weight = vertexWeightInstance.weight
 							};
