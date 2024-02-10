@@ -45,6 +45,9 @@
 #include <glm/gtx/quaternion.hpp>
 
 namespace drk::Loaders {
+
+	struct PostProcessed {};
+
 	AssimpLoader::AssimpLoader() {}
 	LoadResult AssimpLoader::Load(std::filesystem::path scenePath, entt::registry& registry) const {
 		Assimp::Importer importer;
@@ -266,11 +269,11 @@ namespace drk::Loaders {
 			Animations::Components::RootBoneInstanceReference,
 			Animations::Components::BoneReference,
 			Objects::Components::ObjectMeshReference
-		>();
+		>(entt::exclude<PostProcessed>);
 		meshBoneInstances.use<Objects::Components::ObjectMeshReference>();
 		std::vector<std::pair<entt::entity, std::vector<entt::entity>>> skinnedMeshInstances;
 		entt::entity previousMeshInstanceEntity = entt::null;
-		meshBoneInstances.each([&previousMeshInstanceEntity, &skinnedMeshInstances](
+		meshBoneInstances.each([&previousMeshInstanceEntity, &skinnedMeshInstances, &registry](
 			entt::entity objectMeshEntity,
 			const Objects::Components::ObjectReference& objectReference,
 			const Animations::Components::RootBoneInstanceReference& rootBoneInstanceReference,
@@ -282,6 +285,7 @@ namespace drk::Loaders {
 				}
 				skinnedMeshInstances.back().second.emplace_back(objectMeshEntity);
 				previousMeshInstanceEntity = objectMeshReference.meshInstanceEntity;
+				registry.emplace<PostProcessed>(objectMeshEntity);
 			});
 
 		for (const auto& skinnedMeshInstance : skinnedMeshInstances) {

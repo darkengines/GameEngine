@@ -180,7 +180,7 @@ namespace drk::Animations::Systems {
 					Meshes::Components::MeshReference,
 					Components::SkinnedBufferView,
 					Components::BoneInstanceWeightBufferView
-				>();
+				>(entt::exclude<Components::SkinnedVertexRangeBufferView>);
 
 				skinnedWeightedMeshInstances.each([&](
 					entt::entity entity,
