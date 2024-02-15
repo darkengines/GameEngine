@@ -1,13 +1,14 @@
 #include "CameraSystem.hpp"
-#include "../../Objects/Components/Dirty.hpp"
+#include "../../Common/Components/Dirty.hpp"
 #include <entt/entt.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include "../../Spatials/Components/Spatial.hpp"
-#include "../../Objects/Components/Relationship.hpp"
-#include "../../Objects/Components/Object.hpp"
+#include "../../Nodes/Components/Node.hpp"
+#include "../../Nodes/Components/Node.hpp"
 #include "../../Graphics/SynchronizationState.hpp"
 #include "../../Frustums/Components/Frustum.hpp"
 #include "../Models/Camera.hpp"
+#include "../../Common/Components/Name.hpp"
 
 namespace drk::Cameras::Systems {
 
@@ -36,33 +37,33 @@ namespace drk::Cameras::Systems {
 		auto dirtyCameraView = registry.view<
 			Components::Camera,
 			Spatials::Components::Spatial<Spatials::Components::Absolute>,
-			Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>
+			Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>
 		>();
 		dirtyCameraView.each(
 			[&](
 				entt::entity cameraEntity,
 				Components::Camera& camera,
 				Spatials::Components::Spatial<Spatials::Components::Absolute>& spatial
-				) {
-					camera.absolutePosition = spatial.position;
-					camera.absoluteFront = spatial.model * camera.relativeFront;
-					camera.absoluteUp = spatial.model * camera.relativeUp;
-					camera.view = glm::lookAt(
-						glm::make_vec3(camera.absolutePosition),
-						glm::make_vec3(camera.absolutePosition + camera.absoluteFront),
-						glm::make_vec3(camera.absoluteUp));
-					camera.perspective = glm::perspectiveZO(
-						camera.verticalFov,
-						camera.aspectRatio,
-						camera.near,
-						camera.far
-					);
-					camera.perspective[1][1] *= -1.0f;
+			) {
+				camera.absolutePosition = spatial.position;
+				camera.absoluteFront = spatial.model * camera.relativeFront;
+				camera.absoluteUp = spatial.model * camera.relativeUp;
+				camera.view = glm::lookAt(
+					glm::make_vec3(camera.absolutePosition),
+					glm::make_vec3(camera.absolutePosition + camera.absoluteFront),
+					glm::make_vec3(camera.absoluteUp));
+				camera.perspective = glm::perspectiveZO(
+					camera.verticalFov,
+					camera.aspectRatio,
+					camera.near,
+					camera.far
+				);
+				camera.perspective[1][1] *= -1.0f;
 
-					registry.emplace_or_replace<Graphics::SynchronizationState<Models::Camera>>(
-						cameraEntity,
-						static_cast<uint32_t>(engineState.getFrameCount())
-					);
+				registry.emplace_or_replace<Graphics::SynchronizationState<Models::Camera>>(
+					cameraEntity,
+					static_cast<uint32_t>(engineState.getFrameCount())
+				);
 			}
 		);
 	}
@@ -91,19 +92,26 @@ namespace drk::Cameras::Systems {
 			.rotation = glm::quat(1, 0, 0, 0),
 			.scale = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f)
 		};
-		Objects::Components::Relationship cameraRelationship = {
+		Nodes::Components::Node cameraRelationship = {
 			.parent = entt::null
 		};
-		Objects::Components::Object cameraObject = {
-			.Name = "Default camera"
-		};
 
-		auto frustum = Frustums::Components::Frustum::createFrustumFromView(position, front, up, verticalFov, aspectRatio, near, far);
+		auto frustum = Frustums::Components::Frustum::createFrustumFromView(
+			position,
+			front,
+			up,
+			verticalFov,
+			aspectRatio,
+			near,
+			far
+		);
 		registry.emplace<Frustums::Components::Frustum>(cameraEntity, std::move(frustum));
 		registry.emplace<Components::Camera>(cameraEntity, std::move(camera));
-		registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(cameraEntity, std::move(cameraSpatial));
-		registry.emplace<Objects::Components::Relationship>(cameraEntity, std::move(cameraRelationship));
-		registry.emplace<Objects::Components::Object>(cameraEntity, std::move(cameraObject));
+		registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(
+			cameraEntity,
+			std::move(cameraSpatial));
+		registry.emplace<Nodes::Components::Node>(cameraEntity, std::move(cameraRelationship));
+		registry.emplace<Common::Components::Name>(cameraEntity, "DefaultCamera");
 
 		return cameraEntity;
 	}

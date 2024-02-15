@@ -1,28 +1,19 @@
 #pragma once
-#include "../Models/VertexWeightInput.hpp"
 #include "../Models/SkinnedVertexRange.hpp"
 #include "../Models/BoneInstanceWeight.hpp"
 #include "../Models/BoneSpatial.hpp"
 #include "../Components/VertexWeightInstance.hpp"
 #include "../Components/BoneInstanceWeightBufferView.hpp"
-#include "../Components/HasVertexWeightRange.hpp"
 #include "../Components/SkinnedMeshInstance.hpp"
-#include "../Components/VertexWeightInputRange.hpp"
-#include "../Components/VertexWeightInputMap.hpp"
 #include "../Components/RootBoneInstanceReference.hpp"
-#include "../Components/VertexWeightInput.hpp"
-#include "../Components/HasVertexWeightInput.hpp"
-#include "../Models/SkinningInput.hpp"
-#include "../Components/HasSkinInput.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
 #include "../../Objects/Models/Object.hpp"
 #include "../../Stores/Models/StoreItemLocation.hpp"
 #include "../Models/Bone.hpp"
 
-#include "../Models/SkinningInput.hpp"
 #include "../../Spatials/Systems/SpatialSystem.hpp"
 #include "../Components/Animation.hpp"
-#include "../Components/BoneCollection.hpp"	
+#include "../Components/BoneCollection.hpp"
 #include "../Components/Skinned.hpp"
 #include "../Components/NodeAnimation.hpp"
 #include "../Components/BoneReference.hpp"
@@ -37,7 +28,6 @@
 #include "../../Objects/Components/ObjectReference.hpp"
 #include "../../Meshes/Components/MeshReference.hpp"
 #include "../Components/AnimationState.hpp"
-#include "../Components/AnimationVertexBufferView.hpp"
 #include "../../Meshes/Components/Mesh.hpp"
 #include "../../Meshes/Components/MeshBufferView.hpp"
 #include "../../Devices/BufferViewState.hpp"
@@ -47,7 +37,6 @@
 #include "../../Engine/DescriptorSetAllocator.hpp"
 #include "../../Engine/DescriptorSetLayoutCache.hpp"
 #include "../Components/Bone.hpp"
-#include "../Components/VertexWeightBufferView.hpp"
 #include "../Pipelines/SkinningPipeline.hpp"
 #include "../../Objects/Components/ObjectMeshReference.hpp"
 
@@ -78,32 +67,37 @@ namespace drk::Animations::Systems {
 			animationResourceManager(animationResourceManager),
 			skinningPipeline(skinningPipeline) {}
 		~AnimationSystem() {
-			for (const auto buffer : buffers) {
+			for (const auto buffer: buffers) {
 				Devices::Device::destroyBuffer(deviceContext.Allocator, buffer);
 			}
 		}
 		void storeMeshes() {
 			auto view = registry.view<
-				Objects::Components::ObjectReference,
+				Nodes::Components::ObjectReference,
 				Meshes::Components::MeshReference,
 				Animations::Components::Skinned
 			>(entt::exclude<Components::SkinnedBufferView>);
 			std::vector<Devices::BufferView> vertexBufferViews;
 			std::vector<entt::entity> entities;
-			view.each([&](
-				entt::entity objectMeshEntity,
-				const Objects::Components::ObjectReference& objectReference,
-				const Meshes::Components::MeshReference& meshReference
+			view.each(
+				[&](
+					entt::entity objectMeshEntity,
+					const Nodes::Components::ObjectReference& objectReference,
+					const Meshes::Components::MeshReference& meshReference
 				) {
 					const auto& meshBufferView = registry.get<
 						Meshes::Components::MeshBufferView
 					>(meshReference.meshEntity);
 					vertexBufferViews.emplace_back(meshBufferView.VertexBufferView);
 					entities.emplace_back(objectMeshEntity);
-				});
+				}
+			);
 			if (entities.size() > 0) {
-				const auto& skinnedBufferViews = animationResourceManager.createSkinnedMesh(entities, vertexBufferViews);
-				for (const auto& skinnedBufferView : skinnedBufferViews) {
+				const auto& skinnedBufferViews = animationResourceManager.createSkinnedMesh(
+					entities,
+					vertexBufferViews
+				);
+				for (const auto& skinnedBufferView: skinnedBufferViews) {
 					registry.emplace<Components::SkinnedBufferView>(skinnedBufferView.second, skinnedBufferView.first);
 				}
 			}
@@ -121,11 +115,12 @@ namespace drk::Animations::Systems {
 			std::vector<std::vector<Models::SkinnedVertexRange>> skinnedVertexRangeBuffers;
 			std::vector<Devices::BufferView> vertexBufferViews;
 
-			skinnedMeshInstances.each([&](
-				entt::entity entity,
-				const Components::SkinnedMeshInstance& skinnedMeshInstance,
-				const Meshes::Components::MeshReference& meshReference,
-				const Components::SkinnedBufferView& skinnedBufferView
+			skinnedMeshInstances.each(
+				[&](
+					entt::entity entity,
+					const Components::SkinnedMeshInstance& skinnedMeshInstance,
+					const Meshes::Components::MeshReference& meshReference,
+					const Components::SkinnedBufferView& skinnedBufferView
 				) {
 					const auto& meshBufferView = registry.get<Meshes::Components::MeshBufferView>(meshReference.meshEntity);
 					vertexBufferViews.emplace_back(meshBufferView.VertexBufferView);
@@ -141,7 +136,7 @@ namespace drk::Animations::Systems {
 								Objects::Components::ObjectReference
 							>(vertexWeightInstance.boneInstanceEntity);*/
 							const auto& [boneInstanceStoreItem, boneSpatialStoreItem] = registry.get<
-								Stores::StoreItem<Objects::Models::Object>,
+								Stores::StoreItem<Nodes::Models::Object>,
 								Stores::StoreItem<Models::BoneSpatial>
 							>(vertexWeightInstance.boneInstanceEntity);
 							const auto& spatial = registry.get<
@@ -159,14 +154,23 @@ namespace drk::Animations::Systems {
 						}
 					);
 					boneInstanceWeightBuffers.emplace_back(std::move(boneInstanceWeights));
-				});
+				}
+			);
 
 			if (!boneInstanceWeightBuffers.empty()) {
-				std::vector<std::span<Models::BoneInstanceWeight>> boneInstanceWeightBufferSpans(boneInstanceWeightBuffers.size());
-				std::transform(boneInstanceWeightBuffers.begin(), boneInstanceWeightBuffers.end(), boneInstanceWeightBufferSpans.data(), [](auto& boneInstanceWeights) {
-					return std::span(boneInstanceWeights.begin(), boneInstanceWeights.end());
-					});
-				auto boneInstanceWeightBufferViews = animationResourceManager.createBoneInstanceWeightBufferViews(boneInstanceWeightBufferSpans);
+				std::vector<std::span<Models::BoneInstanceWeight>> boneInstanceWeightBufferSpans(
+					boneInstanceWeightBuffers.size());
+				std::transform(
+					boneInstanceWeightBuffers.begin(),
+					boneInstanceWeightBuffers.end(),
+					boneInstanceWeightBufferSpans.data(),
+					[](auto& boneInstanceWeights) {
+						return std::span(boneInstanceWeights.begin(), boneInstanceWeights.end());
+					}
+				);
+				auto boneInstanceWeightBufferViews = animationResourceManager.createBoneInstanceWeightBufferViews(
+					boneInstanceWeightBufferSpans
+				);
 
 				for (auto entityIndex = 0; entityIndex < entities.size(); entityIndex++) {
 					registry.emplace<Components::BoneInstanceWeightBufferView>(
@@ -182,12 +186,13 @@ namespace drk::Animations::Systems {
 					Components::BoneInstanceWeightBufferView
 				>(entt::exclude<Components::SkinnedVertexRangeBufferView>);
 
-				skinnedWeightedMeshInstances.each([&](
-					entt::entity entity,
-					const Components::SkinnedMeshInstance& skinnedMeshInstance,
-					const Meshes::Components::MeshReference& meshReference,
-					const Components::SkinnedBufferView& skinnedBufferView,
-					const Components::BoneInstanceWeightBufferView& boneInstanceWeightBufferView
+				skinnedWeightedMeshInstances.each(
+					[&](
+						entt::entity entity,
+						const Components::SkinnedMeshInstance& skinnedMeshInstance,
+						const Meshes::Components::MeshReference& meshReference,
+						const Components::SkinnedBufferView& skinnedBufferView,
+						const Components::BoneInstanceWeightBufferView& boneInstanceWeightBufferView
 					) {
 						const auto& meshBufferView = registry.get<Meshes::Components::MeshBufferView>(meshReference.meshEntity);
 						vertexBufferViews.emplace_back(meshBufferView.VertexBufferView);
@@ -200,24 +205,36 @@ namespace drk::Animations::Systems {
 							[&](const Components::SkinnedVertexRange& skinnedVertexRange) {
 								return Models::SkinnedVertexRange{
 									.vertexBufferIndex = skinnedBufferView.bufferArrayElement,
-									.vertexBufferItemOffset = static_cast<uint32_t>(skinnedBufferView.bufferView.byteOffset / sizeof(Meshes::Vertex)),
+									.vertexBufferItemOffset = static_cast<uint32_t>(
+										skinnedBufferView.bufferView.byteOffset / sizeof(Meshes::Vertex)),
 									.vertexIndex = skinnedVertexRange.vertexIndex,
 									.skinnedVertexBufferIndex = skinnedBufferView.frameSkinnedBufferArrayElements[0],
-									.skinnedVertexBufferItemOffset = static_cast<uint32_t>(skinnedBufferView.frameSkinnedBufferViews[0].byteOffset / sizeof(Meshes::Vertex)),
+									.skinnedVertexBufferItemOffset = static_cast<uint32_t>(
+										skinnedBufferView.frameSkinnedBufferViews[0].byteOffset /
+										sizeof(Meshes::Vertex)),
 									.skinnedVertexIndex = skinnedVertexRange.vertexIndex,
 									.vertexWeightBufferIndex = boneInstanceWeightBufferView.bufferIndex,
-									.vertexWeightBufferItemOffset = static_cast<uint32_t>(boneInstanceWeightBufferView.bufferView.byteOffset / sizeof(Models::BoneInstanceWeight)),
+									.vertexWeightBufferItemOffset = static_cast<uint32_t>(
+										boneInstanceWeightBufferView.bufferView.byteOffset /
+										sizeof(Models::BoneInstanceWeight)),
 									.vertexWeightIndex = skinnedVertexRange.weightOffset,
 									.vertexWeightCount = skinnedVertexRange.weightCount
 								};
 							}
 						);
 						skinnedVertexRangeBuffers.emplace_back(std::move(skinnedVertexRanges));
-					});
-				std::vector<std::span<Models::SkinnedVertexRange>> skinnedVertexRangeBufferSpans(skinnedVertexRangeBuffers.size());
-				std::transform(skinnedVertexRangeBuffers.begin(), skinnedVertexRangeBuffers.end(), skinnedVertexRangeBufferSpans.data(), [](auto& skinnedVertexRangeBuffer) {
-					return std::span(skinnedVertexRangeBuffer.begin(), skinnedVertexRangeBuffer.end());
-					});
+					}
+				);
+				std::vector<std::span<Models::SkinnedVertexRange>> skinnedVertexRangeBufferSpans(
+					skinnedVertexRangeBuffers.size());
+				std::transform(
+					skinnedVertexRangeBuffers.begin(),
+					skinnedVertexRangeBuffers.end(),
+					skinnedVertexRangeBufferSpans.data(),
+					[](auto& skinnedVertexRangeBuffer) {
+						return std::span(skinnedVertexRangeBuffer.begin(), skinnedVertexRangeBuffer.end());
+					}
+				);
 				auto result = animationResourceManager.createSkinnedVertexRangeBufferViews(skinnedVertexRangeBufferSpans);
 				for (auto entityIndex = 0; entityIndex < entities.size(); entityIndex++) {
 					registry.emplace<Components::SkinnedVertexRangeBufferView>(
@@ -233,31 +250,46 @@ namespace drk::Animations::Systems {
 
 			auto view = registry.view<Components::SkinnedVertexRangeBufferView>();
 			skinningPipeline.bind(commandBuffer);
-			view.each([&commandBuffer, this](entt::entity entity, const Components::SkinnedVertexRangeBufferView& skinnedVertexRangeBufferView) {
-				auto rangeCount = static_cast<uint32_t>(skinnedVertexRangeBufferView.bufferView.byteLength / sizeof(Models::SkinnedVertexRange));
-				auto itemOffset = static_cast<uint32_t>(skinnedVertexRangeBufferView.bufferView.byteOffset / sizeof(Models::SkinnedVertexRange));
-				auto dispatchCount = (int)std::ceil(rangeCount / 32.0f);
-				skinningPipeline.setOptions(commandBuffer, { skinnedVertexRangeBufferView.bufferIndex, itemOffset, rangeCount });
-				commandBuffer.dispatch(dispatchCount, 1, 1);
-				});
+			view.each(
+				[&commandBuffer, this](
+					entt::entity entity,
+					const Components::SkinnedVertexRangeBufferView& skinnedVertexRangeBufferView
+				) {
+					auto rangeCount = static_cast<uint32_t>(skinnedVertexRangeBufferView.bufferView.byteLength /
+															sizeof(Models::SkinnedVertexRange));
+					auto itemOffset = static_cast<uint32_t>(skinnedVertexRangeBufferView.bufferView.byteOffset /
+															sizeof(Models::SkinnedVertexRange));
+					auto dispatchCount = (int) std::ceil(rangeCount / 32.0f);
+					skinningPipeline.setOptions(
+						commandBuffer,
+						{skinnedVertexRangeBufferView.bufferIndex, itemOffset, rangeCount}
+					);
+					commandBuffer.dispatch(dispatchCount, 1, 1);
+				}
+			);
 		}
 
 		void updateAnimations() {
 			auto skinnedObjectMeshView = registry.view<
-				Objects::Components::ObjectReference,
+				Nodes::Components::ObjectReference,
 				Animations::Components::AnimationReference,
 				Animations::Components::AnimationState,
 				Animations::Components::NodeAnimation
 			>();
-			skinnedObjectMeshView.each([this](
-				entt::entity objectMeshEntity,
-				const Objects::Components::ObjectReference& objectReference,
-				const Animations::Components::AnimationReference& animationReference,
-				Animations::Components::AnimationState& animationState,
-				const Animations::Components::NodeAnimation& nodeAnimation
+			skinnedObjectMeshView.each(
+				[this](
+					entt::entity objectMeshEntity,
+					const Nodes::Components::ObjectReference& objectReference,
+					const Animations::Components::AnimationReference& animationReference,
+					Animations::Components::AnimationState& animationState,
+					const Animations::Components::NodeAnimation& nodeAnimation
 				) {
-					const Components::Animation& animation = registry.get<Animations::Components::Animation>(animationReference.animationEntity);
-					auto& nodeSpatial = registry.get_or_emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(objectReference.objectEntity);
+					const Components::Animation& animation = registry.get<Animations::Components::Animation>(
+						animationReference.animationEntity
+					);
+					auto& nodeSpatial = registry.get_or_emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(
+						objectReference.objectEntity
+					);
 
 					auto position = glm::make_vec3(nodeSpatial.position);
 					auto scaling = glm::make_vec3(nodeSpatial.scale);
@@ -270,7 +302,8 @@ namespace drk::Animations::Systems {
 					nodeSpatial.scale = glm::vec4(scaling, 0);
 
 					Spatials::Systems::SpatialSystem::makeDirty(registry, objectReference.objectEntity);
-				});
+				}
+			);
 		}
 
 		void update(
@@ -285,62 +318,78 @@ namespace drk::Animations::Systems {
 			time = std::fmod(time, animation.duration);
 
 			if (nodeAnimation.positionKeys.size() > 1) {
-				auto positionUpperBound = std::upper_bound(nodeAnimation.positionKeys.begin(), nodeAnimation.positionKeys.end(), time, [](double time, const auto& positionKey) { return time < positionKey.time; });
+				auto positionUpperBound = std::upper_bound(
+					nodeAnimation.positionKeys.begin(),
+					nodeAnimation.positionKeys.end(),
+					time,
+					[](double time, const auto& positionKey) {
+						return time < positionKey.time;
+					}
+				);
 				if (positionUpperBound == nodeAnimation.positionKeys.end()) {
 					position = nodeAnimation.positionKeys[nodeAnimation.positionKeys.size() - 1].vector;
-				}
-				else if (positionUpperBound != nodeAnimation.positionKeys.begin())
-				{
-					auto currentPositionIndex = std::distance(nodeAnimation.positionKeys.begin(), positionUpperBound) - 1;
+				} else if (positionUpperBound != nodeAnimation.positionKeys.begin()) {
+					auto currentPositionIndex =
+						std::distance(nodeAnimation.positionKeys.begin(), positionUpperBound) - 1;
 					const auto& currentPosition = nodeAnimation.positionKeys[currentPositionIndex];
 					const auto& nextPosition = nodeAnimation.positionKeys[currentPositionIndex + 1];
 					auto positionTransitionDuration = nextPosition.time - currentPosition.time;
 					auto positionTransitionTime = time - currentPosition.time;
 					auto positionTransitionProgress = positionTransitionTime / positionTransitionDuration;
-					position = currentPosition.vector + (nextPosition.vector - currentPosition.vector) * (float)positionTransitionProgress;
+					position = currentPosition.vector +
+							   (nextPosition.vector - currentPosition.vector) * (float) positionTransitionProgress;
 				}
-			}
-			else {
+			} else {
 				position = nodeAnimation.positionKeys[0].vector;
 			}
 
 			if (nodeAnimation.rotationKeys.size() > 1) {
-				auto rotationUpperBound = std::upper_bound(nodeAnimation.rotationKeys.begin(), nodeAnimation.rotationKeys.end(), time, [](double time, const auto& rotationKey) { return time < rotationKey.time; });
+				auto rotationUpperBound = std::upper_bound(
+					nodeAnimation.rotationKeys.begin(),
+					nodeAnimation.rotationKeys.end(),
+					time,
+					[](double time, const auto& rotationKey) {
+						return time < rotationKey.time;
+					}
+				);
 				if (rotationUpperBound == nodeAnimation.rotationKeys.end()) {
 					rotation = nodeAnimation.rotationKeys[nodeAnimation.rotationKeys.size() - 1].quat;
-				}
-				else if (rotationUpperBound != nodeAnimation.rotationKeys.begin())
-				{
-					auto currentRotationIndex = std::distance(nodeAnimation.rotationKeys.begin(), rotationUpperBound) - 1;
+				} else if (rotationUpperBound != nodeAnimation.rotationKeys.begin()) {
+					auto currentRotationIndex =
+						std::distance(nodeAnimation.rotationKeys.begin(), rotationUpperBound) - 1;
 					const auto& currentRotation = nodeAnimation.rotationKeys[currentRotationIndex];
 					const auto& nextRotation = nodeAnimation.rotationKeys[currentRotationIndex + 1];
 					auto rotationTransitionDuration = nextRotation.time - currentRotation.time;
 					auto rotationTransitionTime = time - currentRotation.time;
 					auto rotationTransitionProgress = rotationTransitionTime / rotationTransitionDuration;
-					rotation = glm::slerp(currentRotation.quat, nextRotation.quat, (float)rotationTransitionProgress);
+					rotation = glm::slerp(currentRotation.quat, nextRotation.quat, (float) rotationTransitionProgress);
 				}
-			}
-			else {
+			} else {
 				rotation = nodeAnimation.rotationKeys[0].quat;
 			}
 
 			if (nodeAnimation.scalingKeys.size() > 1) {
-				auto scaleUpperBound = std::upper_bound(nodeAnimation.scalingKeys.begin(), nodeAnimation.scalingKeys.end(), time, [](double time, const auto& scaleKey) { return time < scaleKey.time; });
+				auto scaleUpperBound = std::upper_bound(
+					nodeAnimation.scalingKeys.begin(),
+					nodeAnimation.scalingKeys.end(),
+					time,
+					[](double time, const auto& scaleKey) {
+						return time < scaleKey.time;
+					}
+				);
 				if (scaleUpperBound == nodeAnimation.scalingKeys.end()) {
 					scaling = nodeAnimation.scalingKeys[nodeAnimation.scalingKeys.size() - 1].vector;
-				}
-				else if (scaleUpperBound != nodeAnimation.scalingKeys.begin())
-				{
+				} else if (scaleUpperBound != nodeAnimation.scalingKeys.begin()) {
 					auto currentScaleIndex = std::distance(nodeAnimation.scalingKeys.begin(), scaleUpperBound) - 1;
 					const auto& currentScale = nodeAnimation.scalingKeys[currentScaleIndex];
 					const auto& nextScale = nodeAnimation.scalingKeys[currentScaleIndex + 1];
 					auto scaleTransitionDuration = nextScale.time - currentScale.time;
 					auto scaleTransitionTime = time - currentScale.time;
 					auto scaleTransitionProgress = scaleTransitionTime / scaleTransitionDuration;
-					scaling = currentScale.vector + (nextScale.vector - currentScale.vector) * (float)scaleTransitionProgress;
+					scaling = currentScale.vector +
+							  (nextScale.vector - currentScale.vector) * (float) scaleTransitionProgress;
 				}
-			}
-			else {
+			} else {
 				scaling = nodeAnimation.scalingKeys[0].vector;
 			}
 		}

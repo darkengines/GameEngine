@@ -8,6 +8,6 @@
 
 namespace drk::Points::Models {
 	struct Point {
-		 Stores::Models::StoreItemLocation materialItemLocation;
+		Stores::Models::StoreItemLocation materialItemLocation;
 	};
 }

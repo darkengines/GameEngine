@@ -1,6 +1,6 @@
 #include "LightPerspectiveSystem.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
-#include "../../Objects/Components/Dirty.hpp"
+#include "../../Common/Components/Dirty.hpp"
 #include <glm/gtx/quaternion.hpp>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -24,10 +24,10 @@ namespace drk::Lights::Systems {
 		model.absoluteFront = lightPerspective.absoluteFront;
 		model.absoluteUp = lightPerspective.absoluteUp;
 		model.shadowMapRect = {
-			lightPerspective.shadowMapRect.offset.x / (float)ShadowMappingSystem::shadowMapWidth,
-			lightPerspective.shadowMapRect.offset.y / (float)ShadowMappingSystem::shadowMapHeight,
-			lightPerspective.shadowMapRect.extent.width / (float)ShadowMappingSystem::shadowMapWidth,
-			lightPerspective.shadowMapRect.extent.height / (float)ShadowMappingSystem::shadowMapHeight
+			lightPerspective.shadowMapRect.offset.x / (float) ShadowMappingSystem::shadowMapWidth,
+			lightPerspective.shadowMapRect.offset.y / (float) ShadowMappingSystem::shadowMapHeight,
+			lightPerspective.shadowMapRect.extent.width / (float) ShadowMappingSystem::shadowMapWidth,
+			lightPerspective.shadowMapRect.extent.height / (float) ShadowMappingSystem::shadowMapHeight
 		};
 		model.near = lightPerspective.near;
 		model.far = lightPerspective.far;
@@ -39,7 +39,7 @@ namespace drk::Lights::Systems {
 		auto dirtyLightPerspectiveView = registry.view<
 			Components::LightPerspective,
 			Spatials::Components::Spatial<Spatials::Components::Absolute>,
-			Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>
+			Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>
 		>();
 		dirtyLightPerspectiveView.each(
 			[&](
@@ -47,29 +47,29 @@ namespace drk::Lights::Systems {
 				Components::LightPerspective& lightPerspective,
 				Spatials::Components::Spatial<Spatials::Components::Absolute>& spatial
 			) {
-					if (lightPerspective.shadowMapRect.extent.width == 0) {
-						auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({ 1024, 1024});
-						lightPerspective.shadowMapRect = allocation.scissor;
-					}
-					lightPerspective.absoluteFront = spatial.rotation * lightPerspective.relativeFront;
-					lightPerspective.absoluteUp = spatial.rotation * lightPerspective.relativeUp;
-					//lightPerspective.absoluteUp = lightPerspective.relativeUp;
-					lightPerspective.view = glm::lookAt(
-						glm::make_vec3(spatial.position),
-						glm::make_vec3(spatial.position + lightPerspective.absoluteFront),
-						glm::make_vec3(lightPerspective.absoluteUp));
-					lightPerspective.perspective = glm::perspectiveZO<float>(
-						lightPerspective.verticalFov,
-						lightPerspective.aspectRatio,
-						lightPerspective.near,
-						lightPerspective.far
-					);
-					lightPerspective.perspective[1][1] *= -1.0f;
+				if (lightPerspective.shadowMapRect.extent.width == 0) {
+					auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({1024, 1024});
+					lightPerspective.shadowMapRect = allocation.scissor;
+				}
+				lightPerspective.absoluteFront = spatial.rotation * lightPerspective.relativeFront;
+				lightPerspective.absoluteUp = spatial.rotation * lightPerspective.relativeUp;
+				//lightPerspective.absoluteUp = lightPerspective.relativeUp;
+				lightPerspective.view = glm::lookAt(
+					glm::make_vec3(spatial.position),
+					glm::make_vec3(spatial.position + lightPerspective.absoluteFront),
+					glm::make_vec3(lightPerspective.absoluteUp));
+				lightPerspective.perspective = glm::perspectiveZO<float>(
+					lightPerspective.verticalFov,
+					lightPerspective.aspectRatio,
+					lightPerspective.near,
+					lightPerspective.far
+				);
+				lightPerspective.perspective[1][1] *= -1.0f;
 
-					registry.emplace_or_replace<Graphics::SynchronizationState<Models::LightPerspective>>(
-						lightPerspectiveEntity,
-						static_cast<uint32_t>(engineState.getFrameCount())
-					);
+				registry.emplace_or_replace<Graphics::SynchronizationState<Models::LightPerspective>>(
+					lightPerspectiveEntity,
+					static_cast<uint32_t>(engineState.getFrameCount())
+				);
 			}
 		);
 	}

@@ -1,3 +1,3 @@
-namespace drk::Animations::Systems{
+namespace drk::Animations::Systems {
 
 }

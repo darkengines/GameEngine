@@ -2,7 +2,6 @@
 #pragma once
 
 #include "../Loaders/AssimpLoader.hpp"
-
 #include <iostream>
 #include <regex>
 #include <imgui.h>

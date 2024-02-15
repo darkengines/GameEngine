@@ -38,9 +38,9 @@ namespace drk::Common {
 		template<typename T>
 		void Remove(TIndex index) {
 			const auto typeIndex = std::type_index(typeid(T));
-			auto &indexationPair = Indexations.find(typeIndex);
+			auto& indexationPair = Indexations.find(typeIndex);
 			if (indexationPair != Indexations.end()) {
-				auto &indexation = indexationPair.second();
+				auto& indexation = indexationPair.second();
 				indexation.availableIndices.push_back(index);
 			}
 		}

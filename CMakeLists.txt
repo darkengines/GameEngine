@@ -13,181 +13,192 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(dependencies)
 file(
     GLOB HEADERS
-    src/Buffers/Resources/BufferResourceManager.hpp
-    src/Extensions.hpp
-    src/GlmExtensions.hpp
-    src/implemantations.hpp
-    src/system.hpp
-    src/Animations/Extensions.hpp
-    src/Animations/Resources/AnimationResourceManager.hpp
-    src/Animations/Resources/AnimationFrameResource.hpp
-    src/Animations/Systems/VertexWeightSystem.hpp
-    src/Animations/Systems/AnimationSystem.hpp
-    src/Animations/Systems/BoneSpatialSystem.hpp
-    src/Animations/Models/BoneSpatial.hpp
-    src/Animations/Components/SkinnedBufferView.hpp
-    src/Animations/Components/AnimationState.hpp
-    src/Animations/Components/HasVertexWeightRange.hpp
-    src/Animations/Components/SkinnedMeshInstance.hpp
-    src/Animations/Components/VertexWeightInstance.hpp
-    src/Animations/Models/SkinnedVertex.hpp
-    src/Animations/Models/SkinnedVertexRange.hpp
-    src/Animations/Components/SkinnedVertexRange.hpp
-    src/Animations/Components/AnimationVertexBufferView.hpp
-    src/Animations/Components/Animation.hpp
-    src/Animations/Components/AnimationBehavior.hpp
-    src/Animations/Components/NodeAnimation.hpp
-    src/Animations/Components/Bone.hpp
-    src/Animations/Components/VertexWeight.hpp
-    src/Animations/Components/VertexWeightBufferView.hpp
-    src/Animations/Components/QuatKey.hpp
-    src/Animations/Components/VectorKey.hpp
-    src/Animations/Models/Animation.hpp
-    src/Animations/Models/AnimationBehavior.hpp
-    src/Animations/Models/NodeAnimation.hpp
-    src/Animations/Models/Bone.hpp
-    src/Animations/Models/VertexWeight.hpp
-    src/Animations/Models/QuatKey.hpp
-    src/Animations/Models/VectorKey.hpp
-    src/Animations/Systems/SkinnedMeshInstanceSystem.hpp
-    src/Animations/Systems/BoneSystem.hpp
-    src/Animations/Pipelines/SkinningPipeline.hpp
-    src/Applications/Application.hpp
-    src/Applications/Extentions.hpp
-    src/BoundingVolumes/Extensions.hpp
-    src/BoundingVolumes/Components/AxisAlignedBoundingBox.hpp
-    src/BoundingVolumes/Components/Draw.hpp
-    src/BoundingVolumes/Components/HasDraw.hpp
-    src/BoundingVolumes/Models/AxisAlignedBoundingBox.hpp
-    src/BoundingVolumes/Models/BoundingVolumeDraw.hpp
-    src/BoundingVolumes/Models/Vertex.hpp
-    src/BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp
-    src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.hpp
-    src/Cameras/Extensions.hpp
-    src/Cameras/Components/Camera.hpp
-    src/Cameras/Editors/CameraEditor.hpp
-    src/Cameras/Models/Camera.hpp
-    src/Cameras/Systems/CameraSystem.hpp
-    src/Common/Common.hpp
-    src/Common/ComponentIndex.hpp
-    src/Common/IndexGenerator.hpp
-    src/Common/KGuillotineAllocator.hpp
-    src/Configuration/Extensions.hpp
-    src/Controllers/Extensions.hpp
-    src/Controllers/FlyCamController.hpp
-    src/Debugging/Components/DebugDraw.hpp
-    src/Debugging/Renderers/DebugRenderer.hpp
-    src/Devices/Buffer.hpp
-    src/Devices/BufferUploadResult.hpp
-    src/Devices/BufferStateUploadResult.hpp
-    src/Devices/BufferView.hpp
-    src/Devices/BufferViewState.hpp
-    src/Devices/Device.hpp
-    src/Devices/DeviceContext.hpp
-    src/Devices/DeviceImageInfo.hpp
-    src/Devices/Extensions.hpp
-    src/Devices/Image.hpp
-    src/Devices/ImageInfo.hpp
-    src/Devices/QueueFamilyIndices.hpp
-    src/Devices/Swapchain.hpp
-    src/Devices/SwapChainSupportDetails.hpp
-    src/Devices/Texture.hpp
-    src/Devices/VulkanInstanceConfiguration.hpp
-    src/Devices/VulkanLogicalDeviceInfo.hpp
-    src/Draws/Extentions.hpp
-    src/Draws/Components/DrawVertexBufferInfo.hpp
-    src/Draws/Models/Draw.hpp
-    src/Draws/Systems/DrawSystem.hpp
-    src/Engine/DescriptorSetAllocator.hpp
-    src/Engine/DescriptorSetLayoutCache.hpp
-    src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.hpp
-    src/Engine/DescriptorSetLayouts.hpp
-    src/Engine/EngineState.hpp
-    src/Engine/Extensions.hpp
-    src/Engine/FrameState.hpp
-    src/Engine/Models/Global.hpp
-    src/Frustums/Components/Frustum.hpp
-    src/Frustums/Models/Frustum.hpp
-    src/Frustums/Models/FrustumVertex.hpp
-    src/Frustums/Models/Vertex.hpp
-    src/Frustums/Pipelines/FrustumPipeline.hpp
-    src/Frustums/Systems/FrustumSystem.hpp
-    src/Geometries/Extensions.hpp
-    src/Geometries/Primitives.hpp
-    src/Graphics/Draw.hpp
-    src/Graphics/Extentions.hpp
-    src/Graphics/GlobalSystem.hpp
-    src/Graphics/Graphics.hpp
-    src/Graphics/SynchronizationState.hpp
-    src/Graphics/Models/Draw.hpp
-    src/Lights/Extensions.hpp
-    src/Lights/Components/DirectionalLight.hpp
-    src/Lights/Components/Light.hpp
-    src/Lights/Components/LightPerspective.hpp
-    src/Lights/Components/LightPerspectiveCollection.hpp
-    src/Lights/Components/PointLight.hpp
-    src/Lights/Components/Spotlight.hpp
-    src/Lights/Models/DirectionalLight.hpp
-    src/Lights/Models/Light.hpp
-    src/Lights/Models/LightPerspective.hpp
-    src/Lights/Models/PointLight.hpp
-    src/Lights/Models/Spotlight.hpp
-    src/Lights/Systems/DirectionalLightSystem.hpp
-    src/Lights/Systems/LightPerspectiveSystem.hpp
-    src/Lights/Systems/LightSystem.hpp
-    src/Lights/Systems/PointLightSystem.hpp
-    src/Lights/Systems/ShadowMappingSystem.hpp
-    src/Lights/Systems/SpotlightSystem.hpp
-    src/Lines/Extensions.hpp
-    src/Lines/Components/Line.hpp
-    src/Lines/Components/LineDraw.hpp
-    src/Lines/Models/Line.hpp
-    src/Lines/Models/LineDraw.hpp
-    src/Lines/Models/LineVertex.hpp
-    src/Lines/Pipelines/LinePipeline.hpp
-    src/Lines/Systems/LineSystem.hpp
-    src/Loaders/AssimpLoader.hpp
-    src/Loaders/Extensions.hpp
-    src/Loaders/LoadResult.hpp
-    src/Materials/Extensions.hpp
-    src/Materials/Components/Material.hpp
-    src/Materials/Components/MaterialCollection.hpp
-    src/Materials/Models/Material.hpp
-    src/Materials/Systems/MaterialSystem.hpp
-    src/Meshes/Extensions.hpp
-    src/Meshes/Vertex.hpp
-    src/Meshes/Components/HasShadowDraw.hpp
-    src/Meshes/Components/Mesh.hpp
-    src/Meshes/Components/MeshBufferView.hpp
-    src/Meshes/Components/MeshDraw.hpp
-    src/Meshes/Components/MeshResource.hpp
-    src/Meshes/Components/ShadowMeshDraw.hpp
-    src/Meshes/Models/Mesh.hpp
-    src/Meshes/Models/MeshDraw.hpp
-    src/Meshes/Models/ShadowMeshDraw.hpp
-    src/Meshes/Pipelines/MeshPipeline.hpp
-    src/Meshes/Pipelines/ShadowMeshPipeline.hpp
-    src/Meshes/Resources/MeshResourceManager.hpp
-    src/Meshes/Systems/MeshShadowSystem.hpp
-    src/Meshes/Systems/MeshSystem.hpp
-    src/Meshes/Systems/MeshSystemOperation.hpp
-    src/Meshes/Resources/MeshUploadResult.hpp
-    src/Objects/Extensions.hpp
-    src/Objects/Components/Dirty.hpp
-    src/Objects/Components/Object.hpp
-    src/Objects/Components/ObjectMesh.hpp
-    src/Objects/Components/ObjectMeshCollection.hpp
-    src/Objects/Components/Relationship.hpp
-    src/Objects/Models/Object.hpp
-    src/Objects/Models/ObjectMesh.hpp
-    src/Objects/Systems/ObjectMeshSystem.hpp
-    src/Objects/Systems/ObjectSystem.hpp
-    src/Pipelines/ComputePipeline.hpp
-    src/Pipelines/GraphicsPipeline.hpp
-    src/Planes/Components/Plane.hpp
-    src/Planes/Models/Plane.hpp
-    src/Planes/Systems/PlaneSystem.hpp
-    src/Points/Extensions.hpp
+    H:/GameEngine/src/Extensions.hpp
+    H:/GameEngine/src/GlmExtensions.hpp
+    H:/GameEngine/src/implementations.hpp
+    H:/GameEngine/src/system.hpp
+    H:/GameEngine/src/Animations/Extensions.hpp
+    H:/GameEngine/src/Animations/Components/Animation.hpp
+    H:/GameEngine/src/Animations/Components/AnimationBehavior.hpp
+    H:/GameEngine/src/Animations/Components/AnimationReference.hpp
+    H:/GameEngine/src/Animations/Components/AnimationState.hpp
+    H:/GameEngine/src/Animations/Components/Bone.hpp
+    H:/GameEngine/src/Animations/Components/BoneCollection.hpp
+    H:/GameEngine/src/Animations/Components/BoneInstanceWeightBufferView.hpp
+    H:/GameEngine/src/Animations/Components/BoneReference.hpp
+    H:/GameEngine/src/Animations/Components/MeshAnimation.hpp
+    H:/GameEngine/src/Animations/Components/MeshBoneCollection.hpp
+    H:/GameEngine/src/Animations/Components/MeshMorphAnimation.hpp
+    H:/GameEngine/src/Animations/Components/NodeAnimation.hpp
+    H:/GameEngine/src/Animations/Components/QuatKey.hpp
+    H:/GameEngine/src/Animations/Components/RootBoneInstanceReference.hpp
+    H:/GameEngine/src/Animations/Components/Skinned.hpp
+    H:/GameEngine/src/Animations/Components/SkinnedBufferView.hpp
+    H:/GameEngine/src/Animations/Components/SkinnedMeshInstance.hpp
+    H:/GameEngine/src/Animations/Components/SkinnedVertexRange.hpp
+    H:/GameEngine/src/Animations/Components/SkinnedVertexRangeBufferView.hpp
+    H:/GameEngine/src/Animations/Components/VectorKey.hpp
+    H:/GameEngine/src/Animations/Components/VertexWeight.hpp
+    H:/GameEngine/src/Animations/Components/VertexWeightInstance.hpp
+    H:/GameEngine/src/Animations/Models/AnimationBehavior.hpp
+    H:/GameEngine/src/Animations/Models/Bone.hpp
+    H:/GameEngine/src/Animations/Models/BoneInstanceWeight.hpp
+    H:/GameEngine/src/Animations/Models/BoneSpatial.hpp
+    H:/GameEngine/src/Animations/Models/SkinnedVertexRange.hpp
+    H:/GameEngine/src/Animations/Models/VertexWeight.hpp
+    H:/GameEngine/src/Animations/Models/VertexWeightPipelineOptions.hpp
+    H:/GameEngine/src/Animations/Pipelines/SkinningPipeline.hpp
+    H:/GameEngine/src/Animations/Resources/AnimationFrameResource.hpp
+    H:/GameEngine/src/Animations/Resources/AnimationResourceManager.hpp
+    H:/GameEngine/src/Animations/Systems/AnimationSystem.hpp
+    H:/GameEngine/src/Animations/Systems/BoneSpatialSystem.hpp
+    H:/GameEngine/src/Animations/Systems/BoneSystem.hpp
+    H:/GameEngine/src/Animations/Systems/SkinnedMeshInstanceSystem.hpp
+    H:/GameEngine/src/Animations/Systems/VertexWeightSystem.hpp
+    H:/GameEngine/src/Applications/Application.hpp
+    H:/GameEngine/src/Applications/Extentions.hpp
+    H:/GameEngine/src/BoundingVolumes/Extensions.hpp
+    H:/GameEngine/src/BoundingVolumes/Components/AxisAlignedBoundingBox.hpp
+    H:/GameEngine/src/BoundingVolumes/Components/Draw.hpp
+    H:/GameEngine/src/BoundingVolumes/Components/HasDraw.hpp
+    H:/GameEngine/src/BoundingVolumes/Models/AxisAlignedBoundingBox.hpp
+    H:/GameEngine/src/BoundingVolumes/Models/BoundingVolumeDraw.hpp
+    H:/GameEngine/src/BoundingVolumes/Models/Vertex.hpp
+    H:/GameEngine/src/BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp
+    H:/GameEngine/src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.hpp
+    H:/GameEngine/src/Buffers/Resources/BufferResourceManager.hpp
+    H:/GameEngine/src/Cameras/Extensions.hpp
+    H:/GameEngine/src/Cameras/Components/Camera.hpp
+    H:/GameEngine/src/Cameras/Components/CameraRefrence.hpp
+    H:/GameEngine/src/Cameras/Editors/CameraEditor.hpp
+    H:/GameEngine/src/Cameras/Models/Camera.hpp
+    H:/GameEngine/src/Cameras/Systems/CameraSystem.hpp
+    H:/GameEngine/src/Common/Common.hpp
+    H:/GameEngine/src/Common/ComponentIndex.hpp
+    H:/GameEngine/src/Common/IndexGenerator.hpp
+    H:/GameEngine/src/Common/KGuillotineAllocator.hpp
+    H:/GameEngine/src/Common/Components/Dirty.hpp
+    H:/GameEngine/src/Common/Components/MultiBufferView.hpp
+    H:/GameEngine/src/Common/Components/Name.hpp
+    H:/GameEngine/src/Configuration/Extensions.hpp
+    H:/GameEngine/src/Controllers/Extensions.hpp
+    H:/GameEngine/src/Controllers/FlyCamController.hpp
+    H:/GameEngine/src/Debugging/Components/DebugDraw.hpp
+    H:/GameEngine/src/Debugging/Renderers/DebugRenderer.hpp
+    H:/GameEngine/src/Devices/Buffer.hpp
+    H:/GameEngine/src/Devices/BufferStateUploadResult.hpp
+    H:/GameEngine/src/Devices/BufferUploadResult.hpp
+    H:/GameEngine/src/Devices/BufferView.hpp
+    H:/GameEngine/src/Devices/BufferViewState.hpp
+    H:/GameEngine/src/Devices/Device.hpp
+    H:/GameEngine/src/Devices/DeviceContext.hpp
+    H:/GameEngine/src/Devices/DeviceImageInfo.hpp
+    H:/GameEngine/src/Devices/Extensions.hpp
+    H:/GameEngine/src/Devices/Image.hpp
+    H:/GameEngine/src/Devices/ImageInfo.hpp
+    H:/GameEngine/src/Devices/QueueFamilyIndices.hpp
+    H:/GameEngine/src/Devices/Swapchain.hpp
+    H:/GameEngine/src/Devices/SwapChainSupportDetails.hpp
+    H:/GameEngine/src/Devices/Texture.hpp
+    H:/GameEngine/src/Devices/VulkanInstanceConfiguration.hpp
+    H:/GameEngine/src/Devices/VulkanLogicalDeviceInfo.hpp
+    H:/GameEngine/src/Draws/Extentions.hpp
+    H:/GameEngine/src/Draws/Components/DrawVertexBufferInfo.hpp
+    H:/GameEngine/src/Draws/Models/Draw.hpp
+    H:/GameEngine/src/Draws/Systems/DrawSystem.hpp
+    H:/GameEngine/src/Engine/DescriptorSetAllocator.hpp
+    H:/GameEngine/src/Engine/DescriptorSetLayoutCache.hpp
+    H:/GameEngine/src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.hpp
+    H:/GameEngine/src/Engine/DescriptorSetLayouts.hpp
+    H:/GameEngine/src/Engine/EngineState.hpp
+    H:/GameEngine/src/Engine/Extensions.hpp
+    H:/GameEngine/src/Engine/FrameState.hpp
+    H:/GameEngine/src/Engine/Models/Global.hpp
+    H:/GameEngine/src/FreeList/FreeBlock.hpp
+    H:/GameEngine/src/FreeList/FreeList.hpp
+    H:/GameEngine/src/Frustums/Extensions.hpp
+    H:/GameEngine/src/Frustums/Components/Draw.hpp
+    H:/GameEngine/src/Frustums/Components/Frustum.hpp
+    H:/GameEngine/src/Frustums/Components/HasDraw.hpp
+    H:/GameEngine/src/Frustums/Models/Frustum.hpp
+    H:/GameEngine/src/Frustums/Models/FrustumDraw.hpp
+    H:/GameEngine/src/Frustums/Models/FrustumVertex.hpp
+    H:/GameEngine/src/Frustums/Models/Vertex.hpp
+    H:/GameEngine/src/Frustums/Pipelines/FrustumPipeline.hpp
+    H:/GameEngine/src/Frustums/Systems/FrustumSystem.hpp
+    H:/GameEngine/src/Graphics/Draw.hpp
+    H:/GameEngine/src/Graphics/Extentions.hpp
+    H:/GameEngine/src/Graphics/GlobalSystem.hpp
+    H:/GameEngine/src/Graphics/Graphics.hpp
+    H:/GameEngine/src/Graphics/SynchronizationState.hpp
+    H:/GameEngine/src/Graphics/Models/Draw.hpp
+    H:/GameEngine/src/Lights/Extensions.hpp
+    H:/GameEngine/src/Lights/Components/DirectionalLight.hpp
+    H:/GameEngine/src/Lights/Components/Light.hpp
+    H:/GameEngine/src/Lights/Components/LightPerspective.hpp
+    H:/GameEngine/src/Lights/Components/LightPerspectiveCollection.hpp
+    H:/GameEngine/src/Lights/Components/PointLight.hpp
+    H:/GameEngine/src/Lights/Components/Spotlight.hpp
+    H:/GameEngine/src/Lights/Models/DirectionalLight.hpp
+    H:/GameEngine/src/Lights/Models/Light.hpp
+    H:/GameEngine/src/Lights/Models/LightPerspective.hpp
+    H:/GameEngine/src/Lights/Models/PointLight.hpp
+    H:/GameEngine/src/Lights/Models/Spotlight.hpp
+    H:/GameEngine/src/Lights/Systems/DirectionalLightSystem.hpp
+    H:/GameEngine/src/Lights/Systems/LightPerspectiveSystem.hpp
+    H:/GameEngine/src/Lights/Systems/LightSystem.hpp
+    H:/GameEngine/src/Lights/Systems/PointLightSystem.hpp
+    H:/GameEngine/src/Lights/Systems/ShadowMappingSystem.hpp
+    H:/GameEngine/src/Lights/Systems/SpotlightSystem.hpp
+    H:/GameEngine/src/Lines/Extensions.hpp
+    H:/GameEngine/src/Lines/Components/Line.hpp
+    H:/GameEngine/src/Lines/Components/LineDraw.hpp
+    H:/GameEngine/src/Lines/Models/Line.hpp
+    H:/GameEngine/src/Lines/Models/LineDraw.hpp
+    H:/GameEngine/src/Lines/Models/LineVertex.hpp
+    H:/GameEngine/src/Lines/Pipelines/LinePipeline.hpp
+    H:/GameEngine/src/Lines/Systems/LineSystem.hpp
+    H:/GameEngine/src/Loaders/AssimpLoader.hpp
+    H:/GameEngine/src/Loaders/Extensions.hpp
+    H:/GameEngine/src/Loaders/LoadResult.hpp
+    H:/GameEngine/src/Materials/Extensions.hpp
+    H:/GameEngine/src/Materials/Components/Material.hpp
+    H:/GameEngine/src/Materials/Components/MaterialCollection.hpp
+    H:/GameEngine/src/Materials/Components/MaterialReference.hpp
+    H:/GameEngine/src/Materials/Models/Material.hpp
+    H:/GameEngine/src/Materials/Systems/MaterialSystem.hpp
+    H:/GameEngine/src/Meshes/Extensions.hpp
+    H:/GameEngine/src/Meshes/Vertex.hpp
+    H:/GameEngine/src/Meshes/Components/HasShadowDraw.hpp
+    H:/GameEngine/src/Meshes/Components/Mesh.hpp
+    H:/GameEngine/src/Meshes/Components/MeshBufferView.hpp
+    H:/GameEngine/src/Meshes/Components/MeshDraw.hpp
+    H:/GameEngine/src/Meshes/Components/MeshReference.hpp
+    H:/GameEngine/src/Meshes/Components/MeshResource.hpp
+    H:/GameEngine/src/Meshes/Components/ShadowMeshDraw.hpp
+    H:/GameEngine/src/Meshes/Models/Mesh.hpp
+    H:/GameEngine/src/Meshes/Models/MeshDraw.hpp
+    H:/GameEngine/src/Meshes/Models/ShadowMeshDraw.hpp
+    H:/GameEngine/src/Meshes/Pipelines/MeshPipeline.hpp
+    H:/GameEngine/src/Meshes/Pipelines/ShadowMeshPipeline.hpp
+    H:/GameEngine/src/Meshes/Resources/MeshResourceManager.hpp
+    H:/GameEngine/src/Meshes/Resources/MeshUploadResult.hpp
+    H:/GameEngine/src/Meshes/Systems/MeshShadowSystem.hpp
+    H:/GameEngine/src/Meshes/Systems/MeshSystem.hpp
+    H:/GameEngine/src/Meshes/Systems/MeshSystemOperation.hpp
+    H:/GameEngine/src/Nodes/Components/Node.hpp
+    H:/GameEngine/src/Objects/Extensions.hpp
+    H:/GameEngine/src/Objects/Components/ObjectMeshCollection.hpp
+    H:/GameEngine/src/Objects/Components/ObjectMeshReference.hpp
+    H:/GameEngine/src/Objects/Components/ObjectReference.hpp
+    H:/GameEngine/src/Objects/Models/Object.hpp
+    H:/GameEngine/src/Objects/Systems/ObjectSystem.hpp
+    H:/GameEngine/src/Pipelines/ComputePipeline.hpp
+    H:/GameEngine/src/Pipelines/GraphicsPipeline.hpp
+    H:/GameEngine/src/Planes/Components/Plane.hpp
+    H:/GameEngine/src/Planes/Models/Plane.hpp
+    H:/GameEngine/src/Planes/Systems/PlaneSystem.hpp
+    H:/GameEngine/src/Points/Extensions.hpp
     src/Points/Components/Point.hpp
     src/Points/Components/PointDraw.hpp
     src/Points/Models/Point.hpp
@@ -199,6 +210,9 @@ file(
     src/Relationships/Systems/RelationshipSystem.hpp
     src/Renderers/Renderer.hpp
     src/Renderers/RenderOperation.hpp
+    src/Resources/Allocator.hpp
+    src/Resources/ResourceManager.hpp
+    src/Resources/Configuration/ResourcesConfiguration.hpp
     src/Scenes/Extensions.hpp
     src/Scenes/Draws/SceneDraw.hpp
     src/Scenes/Draws/ShadowSceneDraw.hpp
@@ -208,10 +222,10 @@ file(
     src/Spatials/Extensions.hpp
     src/Spatials/Components/Spatial.hpp
     src/Spatials/Components/SpatialEditor.hpp
-    src/Spatials/Models/Spatial.hpp
     src/Spatials/Models/RelativeSpatial.hpp
-    src/Spatials/Systems/SpatialSystem.hpp
+    src/Spatials/Models/Spatial.hpp
     src/Spatials/Systems/RelativeSpatialSystem.hpp
+    src/Spatials/Systems/SpatialSystem.hpp
     src/Stores/Extensions.hpp
     src/Stores/Store.hpp
     src/Stores/StoreBuffer.hpp
@@ -232,49 +246,47 @@ file(
     src/Windows/Extensions.hpp
     src/Windows/Window.hpp
     src/Windows/WindowConfiguration.hpp
-    src/Resources/ResourceManager.hpp
-    src/Resources/Configuration/ResourcesConfiguration.hpp
 )
 
 file(
     GLOB SOURCES
-    src/Resources/ResourceManager.cpp
-    src/GlmExtensions.cpp
-    src/main.cpp
-    src/Animations/Systems/BoneSystem.cpp
-    src/Animations/Pipelines/SkinningPipeline.cpp
-    src/Animations/Pipelines/VertexWeightPipeline.cpp
-    src/Animations/Resources/AnimationResourceManager.cpp
-    src/Animations/Resources/AnimationFrameResource.cpp
-    src/Animations/Systems/BoneSpatialSystem.cpp
-    src/Applications/Application.cpp
-    src/Applications/Application.UserInterface.cpp
-    src/BoundingVolumes/Components/AxisAlignedBoundingBox.cpp
-    src/BoundingVolumes/Models/Vertex.cpp
-    src/BoundingVolumes/Pipelines/BoundingVolumePipeline.cpp
-    src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.cpp
-    src/Cameras/Systems/CameraSystem.cpp
-    src/Common/Common.cpp
-    src/Common/IndexGenerator.cpp
-    src/Common/KGuillotineAllocator.cpp
-    src/Controllers/FlyCamController.cpp
-    src/Debugging/Renderers/DebugRenderer.cpp
-    src/Devices/Device.cpp
-    src/Devices/DeviceContext.cpp
-    src/Devices/Image.cpp
-    src/Devices/Texture.cpp
-    src/Devices/VulkanInstanceConfiguration.cpp
-    src/Engine/DescriptorSetAllocator.cpp
-    src/Engine/DescriptorSetLayoutCache.cpp
-    src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.cpp
-    src/Engine/DescriptorSetLayouts.cpp
-    src/Engine/EngineState.cpp
-    src/Engine/FrameState.cpp
-    src/Frustums/Components/Frustum.cpp
-    src/Frustums/Models/Vertex.cpp
-    src/Frustums/Pipelines/FrustumPipeline.cpp
-    src/Frustums/Systems/FrustumSystem.cpp
-    src/Graphics/GlobalSystem.cpp
+    H:/GameEngine/src/GlmExtensions.cpp
+    H:/GameEngine/src/main.cpp
+    H:/GameEngine/src/Animations/Pipelines/SkinningPipeline.cpp
+    H:/GameEngine/src/Animations/Resources/AnimationFrameResource.cpp
+    H:/GameEngine/src/Animations/Resources/AnimationResourceManager.cpp
+    H:/GameEngine/src/Animations/Systems/AnimationSystem.cpp
+    H:/GameEngine/src/Animations/Systems/BoneSpatialSystem.cpp
+    H:/GameEngine/src/Animations/Systems/BoneSystem.cpp
+    H:/GameEngine/src/Animations/Systems/VertexWeightSystem.cpp
+    H:/GameEngine/src/Applications/Application.cpp
+    H:/GameEngine/src/Applications/Application.UserInterface.cpp
+    H:/GameEngine/src/BoundingVolumes/Components/AxisAlignedBoundingBox.cpp
+    H:/GameEngine/src/BoundingVolumes/Models/Vertex.cpp
+    H:/GameEngine/src/BoundingVolumes/Pipelines/BoundingVolumePipeline.cpp
+    H:/GameEngine/src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.cpp
+    H:/GameEngine/src/Cameras/Systems/CameraSystem.cpp
+    H:/GameEngine/src/Common/Common.cpp
+    H:/GameEngine/src/Common/IndexGenerator.cpp
+    H:/GameEngine/src/Common/KGuillotineAllocator.cpp
+    H:/GameEngine/src/Controllers/FlyCamController.cpp
+    H:/GameEngine/src/Debugging/Renderers/DebugRenderer.cpp
+    H:/GameEngine/src/Devices/Device.cpp
+    H:/GameEngine/src/Devices/DeviceContext.cpp
+    H:/GameEngine/src/Devices/Image.cpp
+    H:/GameEngine/src/Devices/Texture.cpp
+    H:/GameEngine/src/Devices/VulkanInstanceConfiguration.cpp
+    H:/GameEngine/src/Engine/DescriptorSetAllocator.cpp
+    H:/GameEngine/src/Engine/DescriptorSetLayoutCache.cpp
+    H:/GameEngine/src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.cpp
+    H:/GameEngine/src/Engine/DescriptorSetLayouts.cpp
+    H:/GameEngine/src/Engine/EngineState.cpp
+    H:/GameEngine/src/Engine/FrameState.cpp
+    H:/GameEngine/src/Frustums/Components/Frustum.cpp
+    H:/GameEngine/src/Frustums/Models/Vertex.cpp
+    H:/GameEngine/src/Frustums/Pipelines/FrustumPipeline.cpp
+    H:/GameEngine/src/Frustums/Systems/FrustumSystem.cpp
+    H:/GameEngine/src/Graphics/GlobalSystem.cpp
     src/Graphics/Graphics.cpp
     src/Graphics/SynchronizationState.cpp
     src/ImGui/imgui_impl_glfw.cpp
@@ -296,7 +308,6 @@ file(
     src/Meshes/Pipelines/ShadowMeshPipeline.cpp
     src/Meshes/Systems/MeshShadowSystem.cpp
     src/Meshes/Systems/MeshSystem.cpp
-    src/Objects/Systems/ObjectMeshSystem.cpp
     src/Objects/Systems/ObjectSystem.cpp
     src/Planes/Components/Plane.cpp
     src/Planes/Systems/PlaneSystem.cpp
@@ -305,6 +316,8 @@ file(
     src/Points/Systems/PointSystem.cpp
     src/Relationships/Systems/RelationshipSystem.cpp
     src/Renderers/Renderer.cpp
+    src/Resources/ResourceManager.cpp
+    src/Resources/Configuration/ResourcesConfiguration.cpp
     src/Scenes/Renderers/SceneRenderer.cpp
     src/Scenes/Renderers/ShadowSceneRenderer.cpp
     src/Scenes/Systems/SceneSystem.cpp
@@ -321,9 +334,6 @@ file(
     src/UserInterfaces/UserInterface.cpp
     src/UserInterfaces/Renderers/UserInterfaceRenderer.cpp
     src/Windows/Window.cpp
-    src/Animations/Systems/VertexWeightSystem.cpp
-    src/Animations/Systems/AnimationSystem.cpp
-    src/Resources/Configuration/ResourcesConfiguration.cpp
 )
 
 file(

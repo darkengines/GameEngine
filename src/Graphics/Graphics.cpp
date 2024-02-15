@@ -1,22 +1,6 @@
 #include "Graphics.hpp"
-#include "../Windows/Window.hpp"
-#include "../Common/Common.hpp"
-#include "../Devices/Device.hpp"
-#include "../Meshes/Vertex.hpp"
-#include "../Objects/Components/Object.hpp"
-#include "Draw.hpp"
-#include "../Spatials/Components/Spatial.hpp"
-#include "Models/Draw.hpp"
 #include <imgui_impl_vulkan.h>
-#include "../Objects/Models/Object.hpp"
-#include "../Meshes/Models/Mesh.hpp"
-#include "../Spatials/Models/Spatial.hpp"
-#include <algorithm>
 #include <vector>
-#include "../Meshes/Vertex.hpp"
-#include "../Materials/Components/Material.hpp"
-#include "../Cameras/Components/Camera.hpp"
-#include <stdexcept>
 
 namespace drk::Graphics {
 	std::vector<const char*> Graphics::RequiredInstanceExtensions = Windows::Window::getVulkanInstanceExtension();
@@ -181,8 +165,6 @@ namespace drk::Graphics {
 
 	vk::Result Graphics::Present(uint32_t swapchainImageIndex) {
 		const auto& frameState = EngineState.getCurrentFrameState();
-		const auto& fence = frameState.fence;
-		const auto& imageReadySemaphore = frameState.imageReadySemaphore;
 		const auto& imageRenderedSemaphore = frameState.imageRenderedSemaphore;
 
 		vk::Result presentResults;

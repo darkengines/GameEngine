@@ -54,12 +54,12 @@ namespace drk::Graphics {
 				auto& synchronizationState,
 				const TComponents& ...
 				components
-				) {
-					if (!synchronizationState.Update(frameIndex)) {
-						registry.remove<SynchronizationState<TModel>>(entity);
-					}
-					auto model = storeItem.frameStoreItems[frameIndex].pItem;
-					updater(*model, components...);
+			) {
+				if (!synchronizationState.Update(frameIndex)) {
+					registry.remove<SynchronizationState<TModel>>(entity);
+				}
+				auto model = storeItem.frameStoreItems[frameIndex].pItem;
+				updater(*model, components...);
 			}
 		);
 	}

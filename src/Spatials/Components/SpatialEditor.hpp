@@ -11,7 +11,7 @@ namespace drk::Spatials::Components {
 		template<typename TSpatialType>
 		static bool Spatial(Spatial<TSpatialType>& spatial) {
 			bool hasChanged = false;
-			bool orientationChanged = false;
+			bool orientationChanged;
 			glm::vec4 speed{0, 0, 0, 0};
 
 			ImGui::SeparatorText("Spatial");

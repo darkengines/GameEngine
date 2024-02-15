@@ -7,7 +7,7 @@
 #include "../../Systems/System.hpp"
 
 namespace drk::Materials::Systems {
-class MaterialSystem : public drk::Systems::System<Models::Material, std::shared_ptr<Components::Material>> {
+	class MaterialSystem : public drk::Systems::System<Models::Material, std::shared_ptr<Components::Material>> {
 	protected:
 		const Devices::DeviceContext& deviceContext;
 	public:
@@ -18,7 +18,8 @@ class MaterialSystem : public drk::Systems::System<Models::Material, std::shared
 			entt::registry& registry,
 			Engine::EngineState& engineState
 		);
-		static entt::entity copyMaterialEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
+		static entt::entity
+		copyMaterialEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
 
 	};
 }

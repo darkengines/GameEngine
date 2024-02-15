@@ -6,6 +6,6 @@
 
 namespace drk::Animations::Models {
 	struct Bone {
-		Spatials::Components::Spatial<Spatials::Components::Relative> spatialOffset;
+		Spatials::Components::Spatial <Spatials::Components::Relative> spatialOffset;
 	};
 }

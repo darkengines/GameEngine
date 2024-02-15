@@ -1,4 +1,4 @@
 struct Plane {
-	vec3 point;
-	vec3 normal;
+    vec3 point;
+    vec3 normal;
 };

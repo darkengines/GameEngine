@@ -9,18 +9,26 @@ namespace drk::Lights::Systems {
 		deviceContext(deviceContext),
 		engineState(engineState),
 		shadowMappingTexture(BuildShadowMappingTexture(deviceContext, engineState)),
-		shadowMapAllocator(guillotine::Allocator({
-			ShadowMappingSystem::shadowMapWidth,
-			ShadowMappingSystem::shadowMapHeight
-												 }, {})) {
+		shadowMapAllocator(
+			guillotine::Allocator(
+				{
+					ShadowMappingSystem::shadowMapWidth,
+					ShadowMappingSystem::shadowMapHeight
+				}, {}
+			)) {
 
 	}
-	Devices::Texture ShadowMappingSystem::BuildShadowMappingTexture(Devices::DeviceContext& deviceContext, Engine::EngineState& engineState) {
-		auto texture = Scenes::Renderers::ShadowSceneRenderer::BuildSceneRenderTargetTexture(deviceContext, {
-			ShadowMappingSystem::shadowMapWidth,
-			ShadowMappingSystem::shadowMapHeight,
-			1
-																							 });
+	Devices::Texture ShadowMappingSystem::BuildShadowMappingTexture(
+		Devices::DeviceContext& deviceContext,
+		Engine::EngineState& engineState
+	) {
+		auto texture = Scenes::Renderers::ShadowSceneRenderer::BuildSceneRenderTargetTexture(
+			deviceContext, {
+				ShadowMappingSystem::shadowMapWidth,
+				ShadowMappingSystem::shadowMapHeight,
+				1
+			}
+		);
 		engineState.textureStore->registerTexture(texture);
 		return texture;
 	}

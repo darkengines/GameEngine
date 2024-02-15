@@ -1,5 +1,4 @@
 #include "UserInterfaceRenderer.hpp"
-#include "../../Devices/ImageInfo.hpp"
 #include "imgui_impl_vulkan.h"
 #include <functional>
 
@@ -263,24 +262,22 @@ namespace drk::UserInterfaces::Renderers {
 		if (!isImGuiInitialized) {
 			CreateImguiResources();
 		}
+
 		ImGui_ImplVulkan_InitInfo infos{
 			.Instance = DeviceContext.Instance,
 			.PhysicalDevice = DeviceContext.PhysicalDevice,
 			.Device = DeviceContext.device,
 			.QueueFamily = 0,
 			.Queue = DeviceContext.GraphicQueue,
-			.PipelineCache = VK_NULL_HANDLE,
 			.DescriptorPool = ImGuiDescriptorPool,
-			.Subpass = 0,
+			.RenderPass = static_cast<VkRenderPass>(MainRenderPass),
 			.MinImageCount = 2,
 			.ImageCount = 2,
 			//TODO: Use configurable sample count
 			.MSAASamples = VK_SAMPLE_COUNT_8_BIT,
-			.UseDynamicRendering = false,
-			.ColorAttachmentFormat  = (VkFormat) targetImageInfo->format
 		};
 
-		ImGui_ImplVulkan_Init(&infos, MainRenderPass);
+		ImGui_ImplVulkan_Init(&infos);
 		isImGuiInitialized = true;
 	}
 

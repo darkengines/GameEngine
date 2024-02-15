@@ -8,12 +8,12 @@
 #include <vulkan/vulkan.hpp>
 #include <vector>
 
-namespace drk {
-	namespace guillotine {
+namespace drk::guillotine {
 		typedef enum Orientation {
 			Horizontal = 1 << 0,
 			Vertical = 1 << 1
 		} Orientation;
+
 		class AllocatorPrivate;
 
 		/**
@@ -25,10 +25,10 @@ namespace drk {
 			constexpr AllocationId(size_t value) noexcept
 				: data(value) {
 			}
-			constexpr operator int() const noexcept {
+			constexpr operator size_t() const noexcept {
 				return data;
 			}
-			constexpr bool operator ==(const AllocationId& other) const noexcept {
+			constexpr bool operator==(const AllocationId& other) const noexcept {
 				return data == other.data;
 			}
 
@@ -60,7 +60,7 @@ namespace drk {
 			 * Allocate items in a way that minimizes the remaining height of item bins. The allocator
 			 * will tend to stack items vertically.
 			 */
-			 PreferLessVerticalSpace,
+			PreferLessVerticalSpace,
 		};
 
 		/**
@@ -99,5 +99,4 @@ namespace drk {
 		private:
 			AllocatorPrivate* d;
 		};
-	}
-} // namespace KGuillotineAllocator
+	} // namespace KGuillotineAllocator

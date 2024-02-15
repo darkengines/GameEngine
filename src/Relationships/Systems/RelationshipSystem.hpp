@@ -11,10 +11,10 @@ namespace drk::Relationships::Systems {
 		entt::registry& registry;
 
 	public:
-		RelationshipSystem(const Devices::DeviceContext& deviceContext, Engine::EngineState& engineState, entt::registry& registry);
-		static void AddSpatialSystem(entt::registry &registry);
-		static void RemoveSpatialSystem(entt::registry &registry);
-		static void OnSpatialConstruct(entt::registry &registry, entt::entity spatialEntity);
-		void SortRelationships();
+		RelationshipSystem(
+			const Devices::DeviceContext& deviceContext,
+			Engine::EngineState& engineState,
+			entt::registry& registry
+		);
 	};
 }

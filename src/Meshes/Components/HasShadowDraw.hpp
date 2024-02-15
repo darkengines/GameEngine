@@ -1,3 +1,4 @@
 namespace drk::Meshes::Components {
-	struct HasShadowDraw {};
+	struct HasShadowDraw {
+	};
 }

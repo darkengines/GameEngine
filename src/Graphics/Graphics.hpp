@@ -19,7 +19,6 @@ namespace drk::Graphics {
 		~Graphics();
 
 		vk::ResultValue<uint32_t> AcuireSwapchainImageIndex();
-		void Render(const vk::CommandBuffer& commandBuffer, uint32_t swapchainImageIndex) const;
 		vk::Result Present(uint32_t swapchainImageIndex);
 		static vk::PipelineDepthStencilStateCreateInfo DefaultPipelineDepthStencilStateCreateInfo();
 		static vk::PipelineColorBlendAttachmentState DefaultPipelineColorBlendAttachmentState();
@@ -34,7 +33,7 @@ namespace drk::Graphics {
 			const std::vector<vk::VertexInputBindingDescription>& vertexInputBindingDescriptions,
 			const std::vector<vk::VertexInputAttributeDescription>& vertexInputAttributeDescriptions
 		);
-		const Devices::Swapchain& GetSwapchain() const;
+		[[nodiscard]] const Devices::Swapchain& GetSwapchain() const;
 		void RecreateSwapchain(vk::Extent2D extent);
 	protected:
 		Devices::DeviceContext& DeviceContext;

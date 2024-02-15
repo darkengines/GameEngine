@@ -1,12 +1,8 @@
 #include <vulkan/vulkan.hpp>
-#include "../Models/SkinningInput.hpp"
 #include <algorithm>
 
 #include "../Models/VertexWeightPipelineOptions.hpp"
 #include "SkinningPipeline.hpp"
-#include "../../Graphics/Graphics.hpp"
-#include "../../Objects/Models/Object.hpp"
-#include "../../Cameras/Components/Camera.hpp"
 
 namespace drk::Animations::Pipelines {
 	SkinningPipeline::SkinningPipeline(
@@ -43,7 +39,7 @@ namespace drk::Animations::Pipelines {
 	void SkinningPipeline::createPipeline(const vk::ComputePipelineCreateInfo& computePipelineCreateInfo) {
 
 		auto result = deviceContext.device.createComputePipeline(VK_NULL_HANDLE, computePipelineCreateInfo);
-		if ((VkResult)result.result != VK_SUCCESS) {
+		if ((VkResult) result.result != VK_SUCCESS) {
 			throw new std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		pipeline = result.value;
@@ -70,10 +66,10 @@ namespace drk::Animations::Pipelines {
 	}
 
 	vk::PipelineLayout
-		SkinningPipeline::createPipelineLayout(
-			const Devices::DeviceContext& deviceContext,
-			const std::array<vk::DescriptorSetLayout, 5>& descriptorSetLayouts
-		) {
+	SkinningPipeline::createPipelineLayout(
+		const Devices::DeviceContext& deviceContext,
+		const std::array<vk::DescriptorSetLayout, 5>& descriptorSetLayouts
+	) {
 
 		vk::PushConstantRange optionsPushConstant{
 			.stageFlags = vk::ShaderStageFlagBits::eCompute,
@@ -95,7 +91,6 @@ namespace drk::Animations::Pipelines {
 	}
 	void SkinningPipeline::bind(const vk::CommandBuffer& commandBuffer) {
 		auto& frameState = engineState.getCurrentFrameState();
-		const auto& inputDescriptorSet = frameState.getUniformStore<Models::SkinningInput>().descriptorSet;
 		std::array<vk::DescriptorSet, 5> descriptorSets{
 			animationResourceManager.skinnedVertexRangeDescriptorSet,
 			animationResourceManager.vertexWeightDescriptorSet,
@@ -118,6 +113,12 @@ namespace drk::Animations::Pipelines {
 		const vk::CommandBuffer& commandBuffer,
 		const Models::VertexWeightPipelineOptions& options
 	) {
-		commandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(Models::VertexWeightPipelineOptions), &options);
+		commandBuffer.pushConstants(
+			pipelineLayout,
+			vk::ShaderStageFlagBits::eCompute,
+			0,
+			sizeof(Models::VertexWeightPipelineOptions),
+			&options
+		);
 	}
 }

@@ -16,7 +16,8 @@ namespace drk::BoundingVolumes::Pipelines {
 
 		void bind(const vk::CommandBuffer& commandBuffer);
 		void configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configure);
-		Draws::Components::DrawVertexBufferInfo getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const;
+		Draws::Components::DrawVertexBufferInfo
+		getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const;
 		void destroyPipeline();
 
 	protected:

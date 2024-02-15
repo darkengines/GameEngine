@@ -1,44 +1,40 @@
 #include "Application.hpp"
-#include <iostream>
 #include "../Spatials/Components/SpatialEditor.hpp"
 #include "../Cameras/Editors/CameraEditor.hpp"
 #include <entt/entt.hpp>
-#include <stack>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_vulkan.h>
 #include <imgui.h>
-#include <imfilebrowser.h>
 #include "../Common/Components/Name.hpp"
 
 namespace drk::Applications {
 	void Application::renderEntities() {
-		const auto& relationships = registry.view<Objects::Components::Relationship>();
+		const auto& relationships = registry.view<Nodes::Components::Node>();
 		relationships.each(
-			[this](entt::entity entity, Objects::Components::Relationship& relationship) {
+			[this](entt::entity entity, Nodes::Components::Node& relationship) {
 				if (relationship.parent == entt::null) renderEntity(entity);
 			}
 		);
 	}
 
 	void Application::renderEntity(entt::entity entity) {
-		const auto& [relationship, object] = registry.get<Objects::Components::Relationship, Objects::Components::Object>(entity);
+		const auto& [relationship, nameComponent] = registry.get<Nodes::Components::Node, Common::Components::Name>(
+			entity
+		);
 		if (relationship.children.size() > 0) {
 			auto isOpen = ImGui::TreeNode(
-				(void*)entity,
-				fmt::format("{0}", object.Name).c_str()
+				(void*) entity,
+				fmt::format("{0}", nameComponent.name).c_str()
 			);
 			if (ImGui::IsItemClicked()) {
 				selectedEntity = entity;
 			}
 			if (isOpen) {
-				for (const auto& childEntity : relationship.children) {
+				for (const auto& childEntity: relationship.children) {
 					renderEntity(childEntity);
 				}
 				ImGui::TreePop();
 			}
-		}
-		else {
-			ImGui::Text(fmt::format("{0}", object.Name).c_str());
+		} else {
+			ImGui::Text(fmt::format("{0}", nameComponent.name).c_str());
 			if (ImGui::IsItemClicked()) {
 				selectedEntity = entity;
 			}
@@ -47,7 +43,7 @@ namespace drk::Applications {
 
 	void Application::renderProperties(entt::entity entity) {
 		ImGui::Begin("Properties");
-		for (auto&& curr : registry.storage()) {
+		for (auto&& curr: registry.storage()) {
 			entt::id_type id = curr.first;
 
 			if (auto& storage = curr.second; storage.contains(entity)) {
@@ -75,51 +71,36 @@ namespace drk::Applications {
 		ImGui::End();
 	};
 
-	void Application::renderInspector() {
-		ImGui::Begin("Inspector");
-		registry.each([this](entt::entity entity) {
-			auto nameComponent = registry.try_get<Common::Components::Name>(entity);
-			if (nameComponent != nullptr) {
-				ImGui::Text(nameComponent->name.c_str());
-			}
-			else {
-				ImGui::Text(fmt::format("entity #{0}", (int)entity).c_str());
-			}
-			if (ImGui::IsItemClicked()) {
-				selectedEntity = entity;
-			}
-			});
-		ImGui::End();
-	};
-
 	void Application::renderAnimations() {
 		ImGui::Begin("Animations");
 		auto animationView = registry.view<
 			Animations::Components::Animation,
 			Common::Components::Name
 		>();
-		animationView.each([](
-			entt::entity animationEntity,
-			const Animations::Components::Animation animation,
-			const Common::Components::Name& name
+		animationView.each(
+			[](
+				entt::entity animationEntity,
+				const Animations::Components::Animation animation,
+				const Common::Components::Name& name
 			) {
 				ImGui::Text(name.name.c_str());
-			});
+			}
+		);
 		ImGui::End();
 	};
 
 	void Application::renderSystemInfos() {
 		ImGui::Begin("System");
-		ImGui::Text(fmt::format("{0}", engineState.getDuration()).c_str());
+		ImGui::Text(fmt::format("{:d}", engineState.getDuration().count()).c_str());
 		ImGui::End();
 	};
 
 	void Application::renderStorageBuffers() {
 		ImGui::Begin("StorageBuffers");
 		auto frameIndex = 0;
-		for (auto& frameState : engineState.frameStates) {
-			for (auto& store : frameState.Stores) {
-				for (auto& storeBuffer : store.second.get()->stores) {
+		for (auto& frameState: engineState.frameStates) {
+			for (auto& store: frameState.Stores) {
+				for (auto& storeBuffer: store.second.get()->stores) {
 					ImGui::Text(
 						fmt::format(
 							"frame:{0}, type:{1}, buffer index:{2}, count:{3}",

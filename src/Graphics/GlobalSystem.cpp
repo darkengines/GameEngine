@@ -46,21 +46,23 @@ namespace drk::Graphics {
 			auto directionalLightStoreItems = Registry.view<Stores::StoreItem<Lights::Models::DirectionalLight>>();
 			auto spotlightStoreItems = Registry.view<Stores::StoreItem<Lights::Models::Spotlight>>();
 
-			for (const auto& entity : pointLightStoreItems) {
+			for (const auto& entity: pointLightStoreItems) {
 				auto pointLightStoreItem = Registry.get<Stores::StoreItem<Lights::Models::PointLight>>(entity);
 				global.pointLightArrayIndex = pointLightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
 				break;
 			}
 			global.pointLightCount = pointLightSystem.getItemCount();
 
-			for (const auto& entity : directionalLightStoreItems) {
-				auto directionalLightStoreItem = Registry.get<Stores::StoreItem<Lights::Models::DirectionalLight>>(entity);
+			for (const auto& entity: directionalLightStoreItems) {
+				auto directionalLightStoreItem = Registry.get<Stores::StoreItem<Lights::Models::DirectionalLight>>(
+					entity
+				);
 				global.directionalLightArrayIndex = directionalLightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
 				break;
 			}
 			global.directionalLightCount = directionalLightSystem.getItemCount();
 
-			for (const auto& entity : spotlightStoreItems) {
+			for (const auto& entity: spotlightStoreItems) {
 				auto spotlightStoreItem = Registry.get<Stores::StoreItem<Lights::Models::Spotlight>>(entity);
 				global.spotlightArrayIndex = spotlightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
 				break;

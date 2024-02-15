@@ -3,14 +3,16 @@
 
 namespace drk::Engine {
 
-	DescriptorSetAllocator::DescriptorSetAllocator(const Devices::DeviceContext &deviceContext) : deviceContext(deviceContext) {}
+	DescriptorSetAllocator::DescriptorSetAllocator(const Devices::DeviceContext& deviceContext) : deviceContext(
+		deviceContext
+	) {}
 
 	DescriptorSetAllocator::~DescriptorSetAllocator() {
-		for (const auto pool : pools) deviceContext.device.destroyDescriptorPool(pool);
+		for (const auto pool: pools) deviceContext.device.destroyDescriptorPool(pool);
 	}
 
 	std::vector<vk::DescriptorSet>
-	DescriptorSetAllocator::allocateDescriptorSets(const std::vector<vk::DescriptorSetLayout> &descriptorSetLayouts) {
+	DescriptorSetAllocator::allocateDescriptorSets(const std::vector<vk::DescriptorSetLayout>& descriptorSetLayouts) {
 		vk::DescriptorSetAllocateInfo descriptorSetAllocationInfo = {
 			.descriptorPool = getCurrentPool(),
 			.descriptorSetCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
@@ -19,7 +21,7 @@ namespace drk::Engine {
 		std::vector<vk::DescriptorSet> descriptorSets;
 		try {
 			descriptorSets = deviceContext.device.allocateDescriptorSets(descriptorSetAllocationInfo);
-		} catch (const vk::OutOfPoolMemoryError &error) {
+		} catch (const vk::OutOfPoolMemoryError& error) {
 			currentPool = std::nullopt;
 			descriptorSetAllocationInfo.descriptorPool = getCurrentPool();
 			descriptorSets = deviceContext.device.allocateDescriptorSets(descriptorSetAllocationInfo);
@@ -33,9 +35,9 @@ namespace drk::Engine {
 		if (!currentPool.has_value()) {
 			//TODO: make descriptorCount configurable
 			std::vector<vk::DescriptorPoolSize> poolSizes{
-				{vk::DescriptorType::eStorageBuffer,        2048},
+				{vk::DescriptorType::eStorageBuffer, 2048},
 				{vk::DescriptorType::eCombinedImageSampler, 2048},
-				{vk::DescriptorType::eUniformBuffer,        2048},
+				{vk::DescriptorType::eUniformBuffer, 2048},
 			};
 			vk::DescriptorPoolCreateInfo descriptorPoolCreationInfo = {
 				.flags = vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind,
@@ -52,7 +54,7 @@ namespace drk::Engine {
 
 		return pool;
 	}
-	DescriptorSetAllocator::DescriptorSetAllocator(DescriptorSetAllocator&& descriptorSetAllocator)
+	DescriptorSetAllocator::DescriptorSetAllocator(DescriptorSetAllocator&& descriptorSetAllocator) noexcept
 		: deviceContext(descriptorSetAllocator.deviceContext), pools(std::move(descriptorSetAllocator.pools)),
 		  currentPool(descriptorSetAllocator.currentPool) {}
 }

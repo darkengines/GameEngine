@@ -1,12 +1,16 @@
 #include "Application.hpp"
-#include "../Objects/Components/Dirty.hpp"
-#include <iostream>
+#include "../GlmExtensions.hpp"
+#include "../Lights/Components/LightPerspectiveCollection.hpp"
+#include "../Common/Components/Name.hpp"
 #include <entt/entt.hpp>
 #include <stack>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 #include <imgui.h>
 #include <chrono>
+
+#undef near
+#undef far
 
 namespace drk::Applications {
 	Application::Application(
@@ -19,7 +23,7 @@ namespace drk::Applications {
 		Meshes::Systems::MeshShadowSystem& meshShadowSystem,
 		Spatials::Systems::SpatialSystem& spatialSystem,
 		Spatials::Systems::RelativeSpatialSystem& relativeSpatialSystem,
-		Objects::Systems::ObjectSystem& objectSystem,
+		Nodes::Systems::ObjectSystem& objectSystem,
 		Cameras::Systems::CameraSystem& cameraSystem,
 		Graphics::GlobalSystem& globalSystem,
 		const Loaders::AssimpLoader& loader,
@@ -45,39 +49,39 @@ namespace drk::Applications {
 		UserInterfaces::AssetExplorer& assetExplorer
 	)
 		: window(window),
-		deviceContext(deviceContext),
-		engineState(engineState),
-		textureSystem(textureSystem),
-		materialSystem(materialSystem),
-		meshSystem(meshSystem),
-		meshShadowSystem(meshShadowSystem),
-		spatialSystem(spatialSystem),
-		relativeSpatialSystem(relativeSpatialSystem),
-		objectSystem(objectSystem),
-		cameraSystem(cameraSystem),
-		globalSystem(globalSystem),
-		loader(loader),
-		graphics(graphics),
-		flyCamController(flyCamController),
-		userInterface(userInterface),
-		registry(registry),
-		userInterfaceRenderer(userInterfaceRenderer),
-		sceneRenderer(sceneRenderer),
-		sceneSystem(sceneSystem),
-		pointSystem(pointSystem),
-		axisAlignedBoundingBoxSystem(axisAlignedBoundingBoxSystem),
-		frustumSystem(frustumSystem),
-		lineSystem(lineSystem),
-		lightSystem(lightSystem),
-		pointLightSystem(pointLightSystem),
-		directionalLightSystem(directionalLightSystem),
-		spotlightSystem(spotlightSystem),
-		lightPerspectiveSystem(lightPerspectiveSystem),
-		animationSystem(animationSystem),
-		boneSystem(boneSystem),
-		boneSpatialSystem(boneSpatialSystem),
-		windowExtent(window.GetExtent()),
-		assetExplorer(assetExplorer) {
+		  deviceContext(deviceContext),
+		  engineState(engineState),
+		  textureSystem(textureSystem),
+		  materialSystem(materialSystem),
+		  meshSystem(meshSystem),
+		  meshShadowSystem(meshShadowSystem),
+		  spatialSystem(spatialSystem),
+		  relativeSpatialSystem(relativeSpatialSystem),
+		  objectSystem(objectSystem),
+		  cameraSystem(cameraSystem),
+		  globalSystem(globalSystem),
+		  loader(loader),
+		  graphics(graphics),
+		  flyCamController(flyCamController),
+		  userInterface(userInterface),
+		  registry(registry),
+		  userInterfaceRenderer(userInterfaceRenderer),
+		  sceneRenderer(sceneRenderer),
+		  sceneSystem(sceneSystem),
+		  pointSystem(pointSystem),
+		  axisAlignedBoundingBoxSystem(axisAlignedBoundingBoxSystem),
+		  frustumSystem(frustumSystem),
+		  lineSystem(lineSystem),
+		  lightSystem(lightSystem),
+		  pointLightSystem(pointLightSystem),
+		  directionalLightSystem(directionalLightSystem),
+		  spotlightSystem(spotlightSystem),
+		  lightPerspectiveSystem(lightPerspectiveSystem),
+		  animationSystem(animationSystem),
+		  boneSystem(boneSystem),
+		  boneSpatialSystem(boneSpatialSystem),
+		  windowExtent(window.GetExtent()),
+		  assetExplorer(assetExplorer) {
 		//ImGui::GetIO().IniFilename = NULL;
 		const auto& glfwWindow = window.GetWindow();
 		glfwSetCursorPosCallback(glfwWindow, CursorPosCallback);
@@ -99,9 +103,9 @@ namespace drk::Applications {
 		std::vector<Loaders::LoadResult> loadResults;
 
 		auto defaultCamera = cameraSystem.createCamera(
-			{ 0.0f, 0.0f, 0.0f, 1.0f },
-			glm::vec4{ 1.0f, 0.0f, 0.0f, 0.0f },
-			glm::vec4{ 0.0f, 1.0f, 0.0f, 0.0f },
+			{0.0f, 0.0f, 0.0f, 1.0f},
+			glm::vec4{1.0f, 0.0f, 0.0f, 0.0f},
+			glm::vec4{0.0f, 1.0f, 0.0f, 0.0f},
 			glm::radians(65.0f),
 			16.0f / 9.0f,
 			0.1f,
@@ -122,11 +126,11 @@ namespace drk::Applications {
 		);
 
 		std::optional<Devices::Texture> sceneTexture;
-		vk::Extent3D sceneExtent{ 0, 0, 0 };
+		vk::Extent3D sceneExtent{0, 0, 0};
 		std::optional<vk::DescriptorSet> sceneTextureImageDescriptorSet;
-		vk::Extent3D sceneTextureExtent{ 0, 0, 1 };
+		vk::Extent3D sceneTextureExtent{0, 0, 1};
 
-		glm::vec2 previousMousePosition{ 0, 0 };
+		glm::vec2 previousMousePosition{0, 0};
 		auto isDemoWindowOpen = false;
 
 		/*Materials::Components::Material pointMaterial{
@@ -200,7 +204,7 @@ namespace drk::Applications {
 			}
 
 			auto imGuiMousePosition = ImGui::GetMousePos();
-			glm::vec2 mousePosition{ imGuiMousePosition.x, imGuiMousePosition.y };
+			glm::vec2 mousePosition{imGuiMousePosition.x, imGuiMousePosition.y};
 			if (!userInterface.IsExplorationMode()) {
 				CursorPosCallback(window.GetWindow(), mousePosition.x, mousePosition.y);
 			}
@@ -213,8 +217,7 @@ namespace drk::Applications {
 			if (shouldRecreateSwapchain || swapchainImageAcquisitionResult.result == vk::Result::eSuboptimalKHR ||
 				swapchainImageAcquisitionResult.result == vk::Result::eErrorOutOfDateKHR) {
 				RecreateSwapchain(windowExtent);
-			}
-			else {
+			} else {
 				const auto& resetFenceResult = deviceContext.device.resetFences(1, &fence);
 
 				frameState.commandBuffer.reset();
@@ -262,6 +265,152 @@ namespace drk::Applications {
 							}
 							ImGui::EndMenu();
 						}
+						if (ImGui::BeginMenu("Add")) {
+							if (ImGui::BeginMenu("Light")) {
+								if (ImGui::MenuItem("Spot")) {
+
+								}
+								if (ImGui::MenuItem("Point")) {
+									Lights::Components::LightPerspective frontLightPerspective = {
+										.relativeFront = GlmExtensions::front,
+										.relativeUp = GlmExtensions::up,
+										.verticalFov = glm::half_pi<float>(),
+										.aspectRatio = 1.0f,
+										.near = 0.001f,
+										.far = 128.0f
+									};
+
+									Lights::Components::LightPerspective backLightPerspective = {
+										.relativeFront = GlmExtensions::back,
+										.relativeUp = GlmExtensions::up,
+										.verticalFov = glm::half_pi<float>(),
+										.aspectRatio = 1.0f,
+										.near = 0.001f,
+										.far = 128.0f
+									};
+
+									Lights::Components::LightPerspective leftLightPerspective = {
+										.relativeFront = GlmExtensions::left,
+										.relativeUp = GlmExtensions::up,
+										.verticalFov = glm::half_pi<float>(),
+										.aspectRatio = 1.0f,
+										.near = 0.001f,
+										.far = 128.0f
+									};
+
+									Lights::Components::LightPerspective rightLightPerspective = {
+										.relativeFront = GlmExtensions::right,
+										.relativeUp = GlmExtensions::up,
+										.verticalFov = glm::half_pi<float>(),
+										.aspectRatio = 1.0f,
+										.near = 0.001f,
+										.far = 128.0f
+									};
+
+									Lights::Components::LightPerspective upLightPerspective = {
+										.relativeFront = GlmExtensions::up,
+										.relativeUp = GlmExtensions::back,
+										.verticalFov = glm::half_pi<float>(),
+										.aspectRatio = 1.0f,
+										.near = 0.001f,
+										.far = 128.0f
+									};
+
+									Lights::Components::LightPerspective downLightPerspective = {
+										.relativeFront = GlmExtensions::down,
+										.relativeUp = GlmExtensions::front,
+										.verticalFov = glm::half_pi<float>(),
+										.aspectRatio = 1.0f,
+										.near = 0.001f,
+										.far = 128.0f
+									};
+
+									auto frontLightPerspectiveEntity = registry.create();
+									registry.emplace<Lights::Components::LightPerspective>(
+										frontLightPerspectiveEntity,
+										std::move(
+											frontLightPerspective
+										));
+									auto backLightPerspectiveEntity = registry.create();
+									registry.emplace<Lights::Components::LightPerspective>(
+										backLightPerspectiveEntity,
+										std::move(
+											backLightPerspective
+										));
+									auto leftLightPerspectiveEntity = registry.create();
+									registry.emplace<Lights::Components::LightPerspective>(
+										leftLightPerspectiveEntity,
+										std::move(
+											leftLightPerspective
+										));
+									auto rightLightPerspectiveEntity = registry.create();
+									registry.emplace<Lights::Components::LightPerspective>(
+										rightLightPerspectiveEntity,
+										std::move(
+											rightLightPerspective
+										));
+									auto upLightPerspectiveEntity = registry.create();
+									registry.emplace<Lights::Components::LightPerspective>(
+										upLightPerspectiveEntity,
+										std::move(upLightPerspective));
+									auto downLightPerspectiveEntity = registry.create();
+									registry.emplace<Lights::Components::LightPerspective>(
+										downLightPerspectiveEntity,
+										std::move(
+											downLightPerspective
+										));
+
+									auto lightNodeEntity = registry.create();
+									registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(
+										lightNodeEntity,
+										glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
+										glm::quat{1.0f, 0.0f, 0.0f, 0.0f},
+										glm::vec4{1.0f, 1.0f, 1.0f, 0.0f},
+										glm::identity<glm::mat4>()
+									);
+									registry.emplace<Lights::Components::Light>(
+										lightNodeEntity,
+										glm::vec4{256.0f, 256.0f, 256.0f, 1.0f},
+										glm::vec4{256.0f, 256.0f, 256.0f, 1.0f},
+										glm::vec4{256.0f, 256.0f, 256.0f, 1.0f}
+									);
+									registry.emplace<Lights::Components::PointLight>(
+										lightNodeEntity,
+										1.0f,
+										1.0f,
+										1.0f,
+										frontLightPerspectiveEntity,
+										backLightPerspectiveEntity,
+										leftLightPerspectiveEntity,
+										rightLightPerspectiveEntity,
+										upLightPerspectiveEntity,
+										downLightPerspectiveEntity
+									);
+									registry.emplace<Common::Components::Name>(
+										lightNodeEntity,
+										"PointLight"
+									);
+									registry.emplace<Lights::Components::LightPerspectiveCollection>(
+										lightNodeEntity,
+										std::vector<entt::entity>{
+											frontLightPerspectiveEntity,
+											backLightPerspectiveEntity,
+											leftLightPerspectiveEntity,
+											rightLightPerspectiveEntity,
+											upLightPerspectiveEntity,
+											downLightPerspectiveEntity
+										}
+									);
+									registry.emplace<Nodes::Components::Node>(lightNodeEntity);
+								}
+								if (ImGui::MenuItem("Directional")) {
+
+								}
+
+								ImGui::EndMenu();
+							}
+							ImGui::EndMenu();
+						}
 						if (ImGui::BeginMenu("About")) {
 							isDemoWindowOpen = ImGui::MenuItem("Show demo window", "ctrl + d");
 							ImGui::EndMenu();
@@ -272,8 +421,8 @@ namespace drk::Applications {
 					auto windowExtent = window.GetExtent();
 					ImGui::SetNextWindowSize(
 						ImVec2(
-							windowExtent.width,
-							windowExtent.height - ImGui::GetTextLineHeightWithSpacing()),
+							static_cast<float>(windowExtent.width),
+							static_cast<float>(windowExtent.height) - ImGui::GetTextLineHeightWithSpacing()),
 						ImGuiCond_FirstUseEver
 					);
 					ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
@@ -311,15 +460,14 @@ namespace drk::Applications {
 									newSceneExtent,
 									vk::Format::eR8G8B8A8Srgb,
 								},
-								{ sceneTexture->imageView }
+								{sceneTexture->imageView}
 							);
 							sceneTextureExtent = vk::Extent3D{
 								newSceneExtent.width,
 								newSceneExtent.height,
 								1
 							};
-						}
-						else {
+						} else {
 							sceneRenderer.setTargetExtent(newSceneExtent);
 						}
 						sceneExtent = newSceneExtent;
@@ -327,12 +475,12 @@ namespace drk::Applications {
 					ImGui::Image(
 						sceneTextureImageDescriptorSet.value(),
 						viewportPanelSize,
-						{ 0, 0 },
+						{0, 0},
 						{
 							viewportPanelSize.x / sceneTextureExtent.width,
 							viewportPanelSize.y / sceneTextureExtent.height
 						}
-						);
+					);
 					ImGui::End();
 
 
@@ -438,8 +586,8 @@ namespace drk::Applications {
 				sceneSystem.updateDraws();
 
 				//Clear frame
-				registry.clear<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>();
-				registry.clear<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>>();
+				registry.clear<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>();
+				registry.clear<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>>();
 
 				//Renders
 				sceneRenderer.render(0, frameState.commandBuffer);
@@ -467,7 +615,7 @@ namespace drk::Applications {
 					.pSignalSemaphores = &frameState.imageRenderedSemaphore,
 				};
 
-				deviceContext.GraphicQueue.submit({ submitInfo }, fence);
+				deviceContext.GraphicQueue.submit({submitInfo}, fence);
 
 
 				vk::Result presentResult;
@@ -495,7 +643,6 @@ namespace drk::Applications {
 	}
 
 
-
 	void Application::OnWindowSizeChanged(uint32_t width, uint32_t height) {
 
 		while (width == 0 || height == 0) {
@@ -507,12 +654,6 @@ namespace drk::Applications {
 			windowExtent.height = height;
 			shouldRecreateSwapchain = true;
 		}
-	}
-
-	void Application::SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-		auto application = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-		//application->flyCamController.OnKeyboardEvent(key, scancode, action, mods);
-		//application->userInterface.OnKeyboardEvent(key, scancode, action, mods);
 	}
 
 	void Application::CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {

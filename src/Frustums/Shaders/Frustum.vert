@@ -1,6 +1,5 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier: enable
-#extension GL_KHR_vulkan_glsl: enable
 
 #include "FrustumDraw.glsl"
 #include "Vertex.glsl"
@@ -47,7 +46,7 @@ void main() {
     switch (inPosition) {
         case (Near | Top | Left): {
             position = frustum.leftTopNear;
-            break;   
+            break;
         }
         case (Near | Top | Right): {
             position = frustum.rightTopNear;
@@ -63,7 +62,7 @@ void main() {
         }
         case (Far | Top | Left): {
             position = frustum.leftTopFar;
-            break;   
+            break;
         }
         case (Far | Top | Right): {
             position = frustum.rightTopFar;

@@ -2,7 +2,7 @@
 #include "../Components/LightPerspective.hpp"
 #include "PointLightSystem.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
-#include "../../Objects/Components/Dirty.hpp"
+#include "../../Common/Components/Dirty.hpp"
 #include "../Components/LightPerspectiveCollection.hpp"
 #include <glm/gtx/quaternion.hpp>
 #include <glm/glm.hpp>
@@ -48,7 +48,7 @@ namespace drk::Lights::Systems {
 			Components::PointLight,
 			Spatials::Components::Spatial<Spatials::Components::Absolute>,
 			Components::LightPerspectiveCollection,
-			Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>
+			Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>
 		>();
 		dirtyPointLightView.each(
 			[&](
@@ -57,34 +57,34 @@ namespace drk::Lights::Systems {
 				Spatials::Components::Spatial<Spatials::Components::Absolute>& spatial,
 				Components::LightPerspectiveCollection& lightPerspectiveCollection
 			) {
-					for (auto lightPerspectiveEntity : lightPerspectiveCollection.lightPerspectives) {
-						auto& lightPerspective = registry.get<Components::LightPerspective>(lightPerspectiveEntity);
-						if (lightPerspective.shadowMapRect.extent.width == 0) {
-							auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({ 1024, 1024 });
-							lightPerspective.shadowMapRect = allocation.scissor;
-						}
-						auto absoluteRotation = glm::toMat4(spatial.rotation);
-						/*lightPerspective.absoluteFront = absoluteRotation * lightPerspective.relativeFront;
-						lightPerspective.absoluteUp = absoluteRotation * lightPerspective.relativeUp;*/
-						lightPerspective.absoluteFront = lightPerspective.relativeFront;
-						lightPerspective.absoluteUp = lightPerspective.relativeUp;
-						lightPerspective.view = glm::lookAt(
-							glm::make_vec3(spatial.position),
-							glm::make_vec3(spatial.position + lightPerspective.absoluteFront),
-							glm::make_vec3(lightPerspective.absoluteUp));
-						lightPerspective.perspective = glm::perspectiveZO(
-							lightPerspective.verticalFov,
-							lightPerspective.aspectRatio,
-							lightPerspective.near,
-							lightPerspective.far
-						);
-						lightPerspective.perspective[1][1] *= -1.0f;
-
-						registry.emplace_or_replace<Graphics::SynchronizationState<Models::LightPerspective>>(
-							lightPerspectiveEntity,
-							static_cast<uint32_t>(engineState.getFrameCount())
-						);
+				for (auto lightPerspectiveEntity: lightPerspectiveCollection.lightPerspectives) {
+					auto& lightPerspective = registry.get<Components::LightPerspective>(lightPerspectiveEntity);
+					if (lightPerspective.shadowMapRect.extent.width == 0) {
+						auto allocation = shadowMappingSystem.shadowMapAllocator.allocate({1024, 1024});
+						lightPerspective.shadowMapRect = allocation.scissor;
 					}
+					auto absoluteRotation = glm::toMat4(spatial.rotation);
+					/*lightPerspective.absoluteFront = absoluteRotation * lightPerspective.relativeFront;
+					lightPerspective.absoluteUp = absoluteRotation * lightPerspective.relativeUp;*/
+					lightPerspective.absoluteFront = lightPerspective.relativeFront;
+					lightPerspective.absoluteUp = lightPerspective.relativeUp;
+					lightPerspective.view = glm::lookAt(
+						glm::make_vec3(spatial.position),
+						glm::make_vec3(spatial.position + lightPerspective.absoluteFront),
+						glm::make_vec3(lightPerspective.absoluteUp));
+					lightPerspective.perspective = glm::perspectiveZO(
+						lightPerspective.verticalFov,
+						lightPerspective.aspectRatio,
+						lightPerspective.near,
+						lightPerspective.far
+					);
+					lightPerspective.perspective[1][1] *= -1.0f;
+
+					registry.emplace_or_replace<Graphics::SynchronizationState<Models::LightPerspective>>(
+						lightPerspectiveEntity,
+						static_cast<uint32_t>(engineState.getFrameCount())
+					);
+				}
 			}
 		);
 	}

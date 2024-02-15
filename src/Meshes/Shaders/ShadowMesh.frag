@@ -1,6 +1,5 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier: enable
-#extension GL_KHR_vulkan_glsl: enable
 
 const float PI = 3.14159265359;
 
@@ -64,13 +63,13 @@ layout(location = 1) flat in StoreItemLocation drawItemLocation;
 
 layout(location = 0) out vec4 outColor;
 
-float linearize_depth(float d,float zNear,float zFar)
+float linearize_depth(float d, float zNear, float zFar)
 {
     return (d - zNear) / (zFar - zNear);
 }
 
 void main() {
-    
+
     ShadowMeshDraw draw = meshDrawBuffer[drawItemLocation.storeIndex].meshDraws[drawItemLocation.itemIndex];
     Mesh mesh = meshBuffer[draw.meshItemLocation.storeIndex].meshes[draw.meshItemLocation.itemIndex];
     Object object = objectBuffer[draw.objectItemLocation.storeIndex].objects[draw.objectItemLocation.itemIndex];
@@ -83,6 +82,6 @@ void main() {
     float d = length((lightPerspectiveSpatial.position).xyz - point.position.xyz);
     d = linearize_depth(d, lightPerspective.near, lightPerspective.far);
 
-	gl_FragDepth = d;
-    
+    gl_FragDepth = d;
+
 }

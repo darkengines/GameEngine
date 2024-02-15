@@ -1,6 +1,5 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier: enable
-#extension GL_KHR_vulkan_glsl: enable
 
 #include "PointDraw.glsl"
 #include "PointVertex.glsl"
@@ -67,7 +66,7 @@ void main() {
 
     vec3 viewDirection = normalize(camera.absolutePosition.xyz - fragment.position.xyz);
 
-    vec3 color = vec3(0,0,0);
+    vec3 color = vec3(0, 0, 0);
     vec4 albedo = material.diffuseColor;
     if (material.hasDiffuseColorTexture) {
         albedo = texture(textures[material.diffuseColorTextureIndex], fragment.texCoord);

@@ -8,7 +8,7 @@
 #include <optional>
 
 namespace drk::Debugging::Renderers {
-	class DebugRenderer: public drk::Renderers::Renderer {
+	class DebugRenderer : public drk::Renderers::Renderer {
 	protected:
 		entt::registry& registry;
 		const Devices::DeviceContext& deviceContext;

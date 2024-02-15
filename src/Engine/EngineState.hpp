@@ -88,7 +88,7 @@ namespace drk::Engine {
 		template<typename TModel, typename ...TComponents>
 		void Store() {
 			auto entities = registry.view<TComponents...>(entt::exclude<Stores::StoreItem<TModel>>);
-			for (const auto entity : entities) {
+			for (const auto entity: entities) {
 				auto storeItem = GetStoreItem<TModel>();
 				registry.emplace<Stores::StoreItem<TModel>>(
 					entity,

@@ -1,8 +1,5 @@
 #include <vulkan/vulkan.hpp>
 #include "EngineState.hpp"
-#include <utility>
-#include <algorithm>
-#include <span>
 #include <chrono>
 
 namespace drk::Engine {
@@ -30,7 +27,12 @@ namespace drk::Engine {
 		frameStates.emplace_back(deviceContext, descriptorSetLayouts, descriptorSetAllocator);
 		frameStates.emplace_back(deviceContext, descriptorSetLayouts, descriptorSetAllocator);
 
-		textureStore = std::make_unique<Stores::TextureStore>(deviceContext, textureDescriptorSet, textureSampler, shadowTextureSampler);
+		textureStore = std::make_unique<Stores::TextureStore>(
+			deviceContext,
+			textureDescriptorSet,
+			textureSampler,
+			shadowTextureSampler
+		);
 	}
 
 	Devices::Texture EngineState::UploadTexture(const Textures::ImageInfo* const imageInfo) {
@@ -112,13 +114,11 @@ namespace drk::Engine {
 	uint32_t EngineState::getFrameCount() const {
 		return frameCount;
 	}
-	double EngineState::getTime() const
-	{
+	double EngineState::getTime() const {
 		auto duration = std::chrono::high_resolution_clock::now() - startedOn;
 		return std::chrono::duration<double>(duration).count();
 	}
-	std::chrono::high_resolution_clock::duration EngineState::getDuration() const
-	{
+	std::chrono::high_resolution_clock::duration EngineState::getDuration() const {
 		auto duration = std::chrono::high_resolution_clock::now() - startedOn;
 		return duration;
 	}

@@ -9,7 +9,7 @@ namespace drk::Frustums::Models {
 			.inputRate = vk::VertexInputRate::eVertex
 		};
 
-		return { bindingDescription };
+		return {bindingDescription};
 	}
 
 	std::vector<vk::VertexInputAttributeDescription> Vertex::getAttributeDescriptions() {

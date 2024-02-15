@@ -3,6 +3,6 @@
 
 namespace drk::Animations::Components {
 	struct MeshAnimation {
-		
+
 	};
 }

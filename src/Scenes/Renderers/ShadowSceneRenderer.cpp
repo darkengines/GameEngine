@@ -1,6 +1,5 @@
 
 #include "ShadowSceneRenderer.hpp"
-#include "../Draws/ShadowSceneDraw.hpp"
 #include "../../Graphics/Graphics.hpp"
 
 namespace drk::Scenes::Renderers {
@@ -10,31 +9,32 @@ namespace drk::Scenes::Renderers {
 		std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshShadowPipeline
 	)
 		: deviceContext(deviceContext), registry(registry),
-		meshShadowPipeline(std::move(meshShadowPipeline)) {}
+		  meshShadowPipeline(std::move(meshShadowPipeline)) {}
 
 	ShadowSceneRenderer::~ShadowSceneRenderer() {
 		destroyFramebuffers();
 		destroyRenderPass();
 	}
 	Pipelines::GraphicsPipeline* ShadowSceneRenderer::getPipeline(std::type_index pipelineTypeIndex) {
-		if (std::type_index(typeid(Meshes::Pipelines::ShadowMeshPipeline)) == pipelineTypeIndex) return meshShadowPipeline.get();
+		if (std::type_index(typeid(Meshes::Pipelines::ShadowMeshPipeline)) == pipelineTypeIndex)
+			return meshShadowPipeline.get();
 		throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
 	}
 	void ShadowSceneRenderer::destroyFramebuffers() {
-		for (const auto& framebuffer : framebuffers) {
+		for (const auto& framebuffer: framebuffers) {
 			deviceContext.device.destroyFramebuffer(framebuffer);
 		}
 		framebuffers.clear();
 	}
 
 	void ShadowSceneRenderer::createFramebuffers() {
-		for (const auto& targetImageView : targetImageViews) {
+		for (const auto& targetImageView: targetImageViews) {
 			std::array<vk::ImageView, 1> attachments{
 				targetImageView
 			};
 			vk::FramebufferCreateInfo framebufferCreateInfo = {
 				.renderPass = renderPass,
-				.attachmentCount = (uint32_t)attachments.size(),
+				.attachmentCount = (uint32_t) attachments.size(),
 				.pAttachments = attachments.data(),
 				.width = targetImageInfo->extent.width,
 				.height = targetImageInfo->extent.height,
@@ -99,11 +99,11 @@ namespace drk::Scenes::Renderers {
 		renderPass = deviceContext.device.createRenderPass(renderPassCreationInfo);
 	}
 	void ShadowSceneRenderer::setTargetImageViews(
-		Devices::ImageInfo targetImageInfo,
-		std::vector<vk::ImageView> targetImageViews
+		Devices::ImageInfo newTargetImageInfo,
+		std::vector<vk::ImageView> newTargetImageViews
 	) {
-		this->targetImageInfo = targetImageInfo;
-		this->targetImageViews = targetImageViews;
+		targetImageInfo = newTargetImageInfo;
+		targetImageViews = newTargetImageViews;
 		meshShadowPipeline->destroyPipeline();
 		destroyFramebuffers();
 		destroyRenderPass();
@@ -113,7 +113,7 @@ namespace drk::Scenes::Renderers {
 		vk::Rect2D scissor;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{ targetImageInfo.extent.width, targetImageInfo.extent.height },
+			{targetImageInfo->extent.width, targetImageInfo->extent.height},
 			viewport,
 			scissor
 		);
@@ -129,7 +129,7 @@ namespace drk::Scenes::Renderers {
 		vk::ClearValue depthClearValue{
 			.depthStencil = {1.0f, 0}
 		};
-		std::array<vk::ClearValue, 1> clearValues{ depthClearValue };
+		std::array<vk::ClearValue, 1> clearValues{depthClearValue};
 		const auto& extent = targetImageInfo.value().extent;
 		vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
 			.renderPass = renderPass,
@@ -139,7 +139,7 @@ namespace drk::Scenes::Renderers {
 				0,
 				{extent.width, extent.height}
 			},
-			.clearValueCount = clearValues.size(),
+			.clearValueCount = static_cast<uint32_t>(clearValues.size()),
 			.pClearValues = clearValues.data(),
 		};
 		commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
@@ -165,8 +165,10 @@ namespace drk::Scenes::Renderers {
 				}
 				if (previousDrawEntity == entt::null ||
 					(previousSceneDraw->indexBufferView.buffer.buffer != sceneDraw.indexBufferView.buffer.buffer)
-					|| (previousSceneDraw->vertexBufferView.buffer.buffer != sceneDraw.vertexBufferView.buffer.buffer)) {
-					operations |= drk::Renderers::RenderOperation::BindIndexBuffer | drk::Renderers::RenderOperation::BindVertexBuffer;
+					||
+					(previousSceneDraw->vertexBufferView.buffer.buffer != sceneDraw.vertexBufferView.buffer.buffer)) {
+					operations |= drk::Renderers::RenderOperation::BindIndexBuffer |
+								  drk::Renderers::RenderOperation::BindVertexBuffer;
 				}
 				if (previousDrawEntity == entt::null ||
 					(previousSceneDraw->lightPerspectiveEntity != sceneDraw.lightPerspectiveEntity)) {
@@ -178,12 +180,10 @@ namespace drk::Scenes::Renderers {
 				}
 				if (previousDrawEntity == entt::null) {
 					doOperations(commandBuffer, operations, sceneDraw, &pCurrentPipeline);
-				}
-				else {
+				} else {
 					if (operations != drk::Renderers::RenderOperation::None) {
 						draw(
 							previousDrawEntity,
-							*previousSceneDraw,
 							commandBuffer,
 							instanceCount,
 							pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
@@ -207,7 +207,6 @@ namespace drk::Scenes::Renderers {
 		if (previousDrawEntity != entt::null) {
 			this->draw(
 				previousDrawEntity,
-				*previousSceneDraw,
 				commandBuffer,
 				instanceCount,
 				pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
@@ -218,7 +217,6 @@ namespace drk::Scenes::Renderers {
 	}
 	void ShadowSceneRenderer::draw(
 		entt::entity previousDrawEntity,
-		const Draws::ShadowSceneDraw& previousSceneDraw,
 		const vk::CommandBuffer& commandBuffer,
 		int instanceCount,
 		int firstInstance,
@@ -239,19 +237,22 @@ namespace drk::Scenes::Renderers {
 		const Draws::ShadowSceneDraw& sceneDraw,
 		Pipelines::GraphicsPipeline const** ppPipeline
 	) {
-		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindPipeline) == drk::Renderers::RenderOperation::BindPipeline) {
+		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindPipeline) ==
+			drk::Renderers::RenderOperation::BindPipeline) {
 			const auto& pipeline = getPipeline(sceneDraw.pipelineTypeIndex);
 			*ppPipeline = pipeline;
 			pipeline->bind(commandBuffer);
 		}
-		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindIndexBuffer) == drk::Renderers::RenderOperation::BindIndexBuffer) {
+		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindIndexBuffer) ==
+			drk::Renderers::RenderOperation::BindIndexBuffer) {
 			commandBuffer.bindIndexBuffer(
 				sceneDraw.indexBufferView.buffer.buffer,
 				0,
 				vk::IndexType::eUint32
 			);
 		}
-		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindVertexBuffer) == drk::Renderers::RenderOperation::BindVertexBuffer) {
+		if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindVertexBuffer) ==
+			drk::Renderers::RenderOperation::BindVertexBuffer) {
 			vk::DeviceSize offset = 0u;
 			commandBuffer.bindVertexBuffers(
 				0,
@@ -260,8 +261,8 @@ namespace drk::Scenes::Renderers {
 				&offset
 			);
 		}
-		if ((sceneRenderOperation & drk::Renderers::RenderOperation::SetScissor) == drk::Renderers::RenderOperation::SetScissor) {
-			vk::DeviceSize offset = 0u;
+		if ((sceneRenderOperation & drk::Renderers::RenderOperation::SetScissor) ==
+			drk::Renderers::RenderOperation::SetScissor) {
 			vk::Viewport viewport{
 				.x = static_cast<float>(sceneDraw.scissor.offset.x),
 				.y = static_cast<float>(sceneDraw.scissor.offset.y),
@@ -270,7 +271,7 @@ namespace drk::Scenes::Renderers {
 				.minDepth = 0.0f,
 				.maxDepth = 1.0f
 			};
-			std::vector<vk::Viewport> viewports{ viewport };
+			std::vector<vk::Viewport> viewports{viewport};
 			commandBuffer.setViewport(0, viewports);
 			commandBuffer.setScissor(0, 1, &sceneDraw.scissor);
 		}
@@ -279,7 +280,10 @@ namespace drk::Scenes::Renderers {
 		deviceContext.device.destroyRenderPass(renderPass);
 	}
 	Devices::Texture
-		ShadowSceneRenderer::BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent) {
+	ShadowSceneRenderer::BuildSceneRenderTargetTexture(
+		const Devices::DeviceContext& deviceContext,
+		vk::Extent3D extent
+	) {
 		vk::ImageCreateInfo imageCreateInfo{
 			.imageType = vk::ImageType::e2D,
 			.format = deviceContext.DepthFormat,
@@ -330,7 +334,7 @@ namespace drk::Scenes::Renderers {
 		vk::Rect2D scissor;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{ extent.width, extent.height },
+			{extent.width, extent.height},
 			viewport,
 			scissor
 		);

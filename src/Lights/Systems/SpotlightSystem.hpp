@@ -18,7 +18,6 @@ namespace drk::Lights::Systems {
 	> {
 	public:
 		SpotlightSystem(
-			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
 			entt::registry& registry
 		);

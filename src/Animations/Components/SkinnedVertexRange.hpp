@@ -1,6 +1,5 @@
 #include "../../Stores/StoreItem.hpp"
 #include "../../Meshes/Vertex.hpp"
-#include "../Models/SkinnedVertex.hpp"
 
 namespace drk::Animations::Components {
 	struct SkinnedVertexRange {

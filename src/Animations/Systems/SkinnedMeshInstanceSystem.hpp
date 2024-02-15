@@ -31,7 +31,7 @@ namespace drk::Animations::Systems {
 			animationResourceManager(animationResourceManager),
 			skinningPipeline(skinningPipeline) {}
 		~SkinnedMeshInstanceSystem() {
-			for (const auto buffer : buffers) {
+			for (const auto buffer: buffers) {
 				Devices::Device::destroyBuffer(deviceContext.Allocator, buffer);
 			}
 		}

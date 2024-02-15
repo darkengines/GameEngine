@@ -9,7 +9,7 @@
 
 namespace drk::Configuration {
 	struct Configuration {
-		Configuration(const nlohmann::json jsonConfiguration) : jsonConfiguration(jsonConfiguration) {};
+		explicit Configuration(const nlohmann::json& jsonConfiguration) : jsonConfiguration(jsonConfiguration) {};
 		nlohmann::json jsonConfiguration;
 	};
 
@@ -26,7 +26,7 @@ namespace drk::Configuration {
 	}
 	static auto AddConfiguration() {
 		return boost::di::make_injector(
-			boost::di::bind<Configuration>.to(loadConfiguration("settings.json"))
+			boost::di::bind < Configuration >.to(loadConfiguration("settings.json"))
 		);
 	}
 }

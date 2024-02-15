@@ -1,3 +1,3 @@
 struct ShadowMeshVertex {
-	vec4 position;
+    vec4 position;
 };

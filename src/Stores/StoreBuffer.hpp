@@ -9,7 +9,7 @@
 namespace drk::Stores {
 	class GenericStoreBuffer {
 	protected:
-		void *const pMappedMemory;
+		void* const pMappedMemory;
 	public:
 		uint32_t nextIndex;
 		uint32_t maxIndexCount;
@@ -17,13 +17,14 @@ namespace drk::Stores {
 		std::queue<uint32_t> availableIndices;
 		uint32_t descriptorArrayElement;
 
-		GenericStoreBuffer(uint32_t maxIndexCount, uint32_t descriptorArrayElement, void *const pMappedMemory)
-			: maxIndexCount(maxIndexCount), descriptorArrayElement(descriptorArrayElement), pMappedMemory(pMappedMemory), count(-1) {
+		GenericStoreBuffer(uint32_t maxIndexCount, uint32_t descriptorArrayElement, void* const pMappedMemory)
+			: maxIndexCount(maxIndexCount), descriptorArrayElement(descriptorArrayElement),
+			  pMappedMemory(pMappedMemory), count(-1) {
 			nextIndex = 0;
 		}
 		~GenericStoreBuffer() = default;
 
-		bool hasAvailableIndex() {
+		bool hasAvailableIndex() const {
 			return nextIndex < maxIndexCount || !availableIndices.empty();
 		}
 
@@ -62,14 +63,15 @@ namespace drk::Stores {
 	template<class T>
 	class StoreBuffer : public GenericStoreBuffer {
 	public:
-		StoreBuffer(uint32_t maxIndexCount, uint32_t descriptorArrayElement, T *const mappedMemory) : GenericStoreBuffer(
+		StoreBuffer(uint32_t maxIndexCount, uint32_t descriptorArrayElement, T* const mappedMemory)
+			: GenericStoreBuffer(
 			maxIndexCount,
 			descriptorArrayElement,
-			reinterpret_cast<void *>(mappedMemory)) {
+			reinterpret_cast<void*>(mappedMemory)) {
 		}
 
-		T *const mappedMemory() {
-			return reinterpret_cast<T *const>(pMappedMemory);
+		T* mappedMemory() {
+			return reinterpret_cast<T* const>(pMappedMemory);
 		};
 	};
 }

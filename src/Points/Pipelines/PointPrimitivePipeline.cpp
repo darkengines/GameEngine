@@ -1,10 +1,6 @@
 #include <vulkan/vulkan.hpp>
-#include <algorithm>
-
 #include "PointPrimitivePipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
-#include "../../Objects/Models/Object.hpp"
-#include "../../Cameras/Components/Camera.hpp"
 #include "../Models/PointVertex.hpp"
 #include "../Models/PointDraw.hpp"
 
@@ -41,7 +37,7 @@ namespace drk::Points::Pipelines {
 
 		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicPipelineCreateInfo);
 		if ((VkResult) result.result != VK_SUCCESS) {
-			throw new std::runtime_error("Failed to create main graphic pipeline.");
+			throw std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		pipeline = result.value;
 	}
@@ -111,8 +107,9 @@ namespace drk::Points::Pipelines {
 		deviceContext.device.destroyPipeline(pipeline);
 	}
 
-	Draws::Components::DrawVertexBufferInfo PointPrimitivePipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
-		return Draws::Components::DrawVertexBufferInfo{ 1, 0, 0 };
+	Draws::Components::DrawVertexBufferInfo
+	PointPrimitivePipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
+		return Draws::Components::DrawVertexBufferInfo{1, 0, 0};
 	}
 
 	vk::PipelineLayout

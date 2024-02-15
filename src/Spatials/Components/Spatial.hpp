@@ -9,13 +9,15 @@ namespace drk::Spatials::Components {
 		Absolute
 	};
 
-	template <typename T>
+	template<typename T>
 	struct Spatial {
 		glm::vec4 position;
 		glm::quat rotation;
 		glm::vec4 scale;
 		glm::mat4 model;
 	};
-	struct Absolute {};
-	struct Relative {};
+	struct Absolute {
+	};
+	struct Relative {
+	};
 }

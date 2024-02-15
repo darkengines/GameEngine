@@ -2,7 +2,6 @@
 #include "SceneSystem.hpp"
 #include "../Draws/SceneDraw.hpp"
 #include "../Draws/ShadowSceneDraw.hpp"
-#include "../../Draws/Systems/DrawSystem.hpp"
 
 namespace drk::Scenes::Systems {
 	SceneSystem::SceneSystem(entt::registry& registry, Engine::EngineState& engineState) :
@@ -25,8 +24,7 @@ namespace drk::Scenes::Systems {
 						return false;
 					if (leftDraw.depth > rightDraw.depth)
 						return true;
-				}
-				else {
+				} else {
 					if (leftDraw.depth > rightDraw.depth)
 						return false;
 					if (leftDraw.depth < rightDraw.depth)
@@ -61,7 +59,9 @@ namespace drk::Scenes::Systems {
 				}
 				draw.drawSystem->updateDraw(sceneDrawEntity, pipelineDrawIndices[draw.pipelineTypeIndex]);
 				if (registry.any_of<Graphics::SynchronizationState<Draws::SceneDraw>>(sceneDrawEntity)) {
-					auto& synchronizationState = registry.get<Graphics::SynchronizationState<Draws::SceneDraw>>(sceneDrawEntity);
+					auto& synchronizationState = registry.get<Graphics::SynchronizationState<Draws::SceneDraw>>(
+						sceneDrawEntity
+					);
 					if (!synchronizationState.Update(engineState.getFrameIndex())) {
 						registry.remove<Graphics::SynchronizationState<Draws::SceneDraw>>(sceneDrawEntity);
 					}
@@ -119,9 +119,14 @@ namespace drk::Scenes::Systems {
 				if (!pipelineDrawIndices.contains(shadowSceneDraw.pipelineTypeIndex)) {
 					pipelineDrawIndices[shadowSceneDraw.pipelineTypeIndex] = 0;
 				}
-				shadowSceneDraw.drawSystem->updateDraw(shadowSceneDrawEntity, pipelineDrawIndices[shadowSceneDraw.pipelineTypeIndex]);
+				shadowSceneDraw.drawSystem->updateDraw(
+					shadowSceneDrawEntity,
+					pipelineDrawIndices[shadowSceneDraw.pipelineTypeIndex]
+				);
 				if (registry.any_of<Graphics::SynchronizationState<Draws::ShadowSceneDraw>>(shadowSceneDrawEntity)) {
-					auto& synchronizationState = registry.get<Graphics::SynchronizationState<Draws::ShadowSceneDraw>>(shadowSceneDrawEntity);
+					auto& synchronizationState = registry.get<Graphics::SynchronizationState<Draws::ShadowSceneDraw>>(
+						shadowSceneDrawEntity
+					);
 					if (!synchronizationState.Update(engineState.getFrameIndex())) {
 						registry.remove<Graphics::SynchronizationState<Draws::ShadowSceneDraw>>(shadowSceneDrawEntity);
 					}

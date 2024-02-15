@@ -46,7 +46,6 @@ namespace drk::Scenes::Renderers {
 		void destroyRenderPass();
 		void draw(
 			entt::entity previousDrawEntity,
-			const Draws::ShadowSceneDraw& previousSceneDraw,
 			const vk::CommandBuffer& commandBuffer,
 			int instanceCount,
 			int firstInstance,

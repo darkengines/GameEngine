@@ -12,14 +12,15 @@ namespace drk::Buffers::Resources {
 		Devices::DeviceContext& deviceContext;
 		std::vector<Devices::Buffer> buffers;
 	public:
-		BufferResourceManager(Devices::DeviceContext& deviceContext): deviceContext(deviceContext) {}
+		BufferResourceManager(Devices::DeviceContext& deviceContext) : deviceContext(deviceContext) {}
 		~BufferResourceManager() {
-			for (const auto buffer : buffers) {
+			for (const auto buffer: buffers) {
 				deviceContext.DestroyBuffer(buffer);
 			}
 		}
 		template<typename TElement>
-		Devices::BufferUploadResult upload(std::vector<std::span<TElement>> sourceBuffer, vk::BufferUsageFlags memoryUsage) {
+		Devices::BufferUploadResult
+		upload(std::vector<std::span<TElement>> sourceBuffer, vk::BufferUsageFlags memoryUsage) {
 			const auto& uploadResult = Devices::Device::uploadBuffers(
 				deviceContext.PhysicalDevice,
 				deviceContext.device,

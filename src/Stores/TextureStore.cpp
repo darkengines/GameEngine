@@ -16,7 +16,7 @@ namespace drk::Stores {
 	}
 
 	std::vector<Devices::Texture>
-		TextureStore::UploadTextures(std::vector<const Textures::ImageInfo*> imageInfos) {
+	TextureStore::UploadTextures(std::vector<const Textures::ImageInfo*> imageInfos) {
 		const auto textureIndexOffset = Textures.size();
 		std::vector<Devices::Texture> uploadedTextures(imageInfos.size());
 		std::vector<vk::DescriptorImageInfo> descriptorImageInfos(imageInfos.size());
@@ -26,7 +26,7 @@ namespace drk::Stores {
 			VmaAllocationCreateInfo stagingAllocationCreationInfo = {
 				.flags = VmaAllocationCreateFlagBits::VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
 				.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
-				.requiredFlags = (VkMemoryPropertyFlags)(vk::MemoryPropertyFlagBits::eHostVisible |
+				.requiredFlags = (VkMemoryPropertyFlags) (vk::MemoryPropertyFlagBits::eHostVisible |
 														  vk::MemoryPropertyFlagBits::eHostCoherent),
 			};
 			const auto imageByteLength = imageInfo->width * imageInfo->height * 4 * sizeof(unsigned char);
@@ -38,7 +38,7 @@ namespace drk::Stores {
 			);
 
 			unsigned char* stagingMemory;
-			Devices::Device::mapBuffer(DeviceContext.Allocator, stagingBuffer, (void**)&stagingMemory);
+			Devices::Device::mapBuffer(DeviceContext.Allocator, stagingBuffer, (void**) &stagingMemory);
 
 			memcpy(stagingMemory, imageInfo->pixels.data(), imageByteLength);
 
@@ -102,8 +102,7 @@ namespace drk::Stores {
 					imageInfo->height,
 					mipLevels
 				);
-			}
-			else {
+			} else {
 				Devices::Device::transitionLayout(
 					commandBuffer,
 					image.image,
@@ -167,9 +166,9 @@ namespace drk::Stores {
 	}
 
 	void TextureStore::registerTextures(Devices::Texture* pTextures, uint32_t textureCount) {
-		const auto textureIndexOffset = Textures.size();
+		const auto textureIndexOffset = static_cast<uint32_t>(Textures.size());
 		std::vector<vk::DescriptorImageInfo> descriptorImageInfos(textureCount);
-		for (auto textureIndex = 0; textureIndex < textureCount; textureIndex++) {
+		for (auto textureIndex = 0u; textureIndex < textureCount; textureIndex++) {
 			auto& texture = pTextures[textureIndex];
 			Textures.push_back(texture);
 			vk::DescriptorImageInfo descriptorImageInfo = {

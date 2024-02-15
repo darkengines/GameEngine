@@ -1,10 +1,6 @@
 #include "MaterialSystem.hpp"
 #include "../../Common/Components/Name.hpp"
-#include "../Components/Material.hpp"
-#include "../Models/Material.hpp"
-#include "../../Graphics/SynchronizationState.hpp"
 #include "../../Textures/Systems/TextureSystem.hpp"
-#include <functional>
 
 namespace drk::Materials::Systems {
 
@@ -70,7 +66,11 @@ namespace drk::Materials::Systems {
 	}
 
 	entt::entity
-		MaterialSystem::copyMaterialEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity) {
+	MaterialSystem::copyMaterialEntity(
+		const entt::registry& source,
+		entt::registry& destination,
+		entt::entity sourceEntity
+	) {
 		const auto& material = source.get<std::shared_ptr<Materials::Components::Material>>(sourceEntity);
 
 		auto newEntity = destination.create();

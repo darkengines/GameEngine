@@ -1,10 +1,6 @@
 #include <vulkan/vulkan.hpp>
-#include <algorithm>
-
 #include "LinePipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
-#include "../../Objects/Models/Object.hpp"
-#include "../../Cameras/Components/Camera.hpp"
 #include "../Models/LineVertex.hpp"
 #include "../Models/LineDraw.hpp"
 
@@ -20,7 +16,7 @@ namespace drk::Lines::Pipelines {
 			descriptorSetLayouts.storeDescriptorSetLayout,
 			descriptorSetLayouts.globalDescriptorSetLayout,
 			descriptorSetLayouts.storeDescriptorSetLayout
-	},
+		},
 		pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
 		engineState(engineState) {
 		createShaderModules();
@@ -40,8 +36,8 @@ namespace drk::Lines::Pipelines {
 	void LinePipeline::createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo) {
 
 		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicPipelineCreateInfo);
-		if ((VkResult)result.result != VK_SUCCESS) {
-			throw new std::runtime_error("Failed to create main graphic pipeline.");
+		if ((VkResult) result.result != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		pipeline = result.value;
 	}
@@ -77,7 +73,7 @@ namespace drk::Lines::Pipelines {
 		pipelineInputAssemblyStateCreateInfo.topology = vk::PrimitiveTopology::eLineList;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{ 1024u, 768u },
+			{1024u, 768u},
 			viewport,
 			scissor
 		);
@@ -110,14 +106,15 @@ namespace drk::Lines::Pipelines {
 		deviceContext.device.waitIdle();
 		deviceContext.device.destroyPipeline(pipeline);
 	}
-	Draws::Components::DrawVertexBufferInfo LinePipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
-		return Draws::Components::DrawVertexBufferInfo{ 2, 0, 0 };
+	Draws::Components::DrawVertexBufferInfo
+	LinePipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
+		return Draws::Components::DrawVertexBufferInfo{2, 0, 0};
 	}
 	vk::PipelineLayout
-		LinePipeline::createPipelineLayout(
-			const Devices::DeviceContext& deviceContext,
-			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
-		) {
+	LinePipeline::createPipelineLayout(
+		const Devices::DeviceContext& deviceContext,
+		const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+	) {
 		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
 			.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
 			.pSetLayouts = descriptorSetLayouts.data(),
@@ -134,9 +131,9 @@ namespace drk::Lines::Pipelines {
 		const auto& drawDescriptorSet = frameState.getUniformStore<Models::LineDraw>().descriptorSet;
 		std::array<vk::DescriptorSet, 4> descriptorSets{
 			engineState.textureDescriptorSet,
-				drawDescriptorSet,
-				frameState.globalDescriptorSet,
-				frameState.storeDescriptorSet
+			drawDescriptorSet,
+			frameState.globalDescriptorSet,
+			frameState.storeDescriptorSet
 		};
 		frameState.commandBuffer.bindDescriptorSets(
 			vk::PipelineBindPoint::eGraphics,

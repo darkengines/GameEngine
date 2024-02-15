@@ -18,9 +18,9 @@ namespace drk::Stores {
 			DeviceContext.DestroyBuffer(buffer);
 		}
 	}
-	StoreBufferAllocator::StoreBufferAllocator(StoreBufferAllocator&& storeBufferAllocator) : DeviceContext(
+	StoreBufferAllocator::StoreBufferAllocator(StoreBufferAllocator&& storeBufferAllocator) noexcept : DeviceContext(
 		storeBufferAllocator.DeviceContext
-	), DescriptorSet(storeBufferAllocator.DescriptorSet), Buffers(std::move(Buffers)) {
+	), DescriptorSet(storeBufferAllocator.DescriptorSet), Buffers(std::move(storeBufferAllocator.Buffers)) {
 		storeBufferAllocator.Buffers.clear();
 	}
 	std::unique_ptr<GenericStoreBuffer> StoreBufferAllocator::allocate(size_t itemByteLength, uint32_t itemCount) {
@@ -41,10 +41,10 @@ namespace drk::Stores {
 		);
 		Buffers.push_back(storageBuffer);
 
-		void *mappedMemory = nullptr;
+		void* mappedMemory = nullptr;
 		Devices::Device::mapBuffer(DeviceContext.Allocator, storageBuffer, &mappedMemory);
 
-		vk::DescriptorBufferInfo descriptorBufferInfo {};
+		vk::DescriptorBufferInfo descriptorBufferInfo{};
 		descriptorBufferInfo.buffer = storageBuffer.buffer;
 		descriptorBufferInfo.offset = 0u;
 		descriptorBufferInfo.range = VK_WHOLE_SIZE;

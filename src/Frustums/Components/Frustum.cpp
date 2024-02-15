@@ -1,5 +1,6 @@
 #include "Frustum.hpp"
 #include "../../GlmExtensions.hpp"
+
 namespace drk::Frustums::Components {
 	Frustum Frustum::createFrustumFromView(
 		const glm::vec4& position,
@@ -22,12 +23,40 @@ namespace drk::Frustums::Components {
 		const auto relativeNearTop = up * nearHalfHeight;
 		const auto relativeNearRight = right * nearHalfWidth;
 
-		Planes::Components::Plane farPlane{ relativeFarCenter, glm::normalize(-front) };
-		Planes::Components::Plane nearPlane{ relativeNearCenter, glm::normalize(front) };
-		Planes::Components::Plane topPlane{ position, glm::normalize(GlmExtensions::cross(right, relativeFarCenter + relativeFarTop)) };
-		Planes::Components::Plane bottomPlane{ position, glm::normalize(GlmExtensions::cross(relativeFarCenter - relativeFarTop, right)) };
-		Planes::Components::Plane leftPlane{ position, glm::normalize(GlmExtensions::cross(relativeFarCenter + relativeFarRight, up)) };
-		Planes::Components::Plane rightPlane{ position, glm::normalize(GlmExtensions::cross(up, relativeFarCenter - relativeFarRight)) };
+		Planes::Components::Plane farPlane{relativeFarCenter, glm::normalize(-front)};
+		Planes::Components::Plane nearPlane{relativeNearCenter, glm::normalize(front)};
+		Planes::Components::Plane topPlane{
+			position,
+			glm::normalize(
+				GlmExtensions::cross(
+					right,
+					relativeFarCenter + relativeFarTop
+				))
+		};
+		Planes::Components::Plane bottomPlane{
+			position,
+			glm::normalize(
+				GlmExtensions::cross(
+					relativeFarCenter - relativeFarTop,
+					right
+				))
+		};
+		Planes::Components::Plane leftPlane{
+			position,
+			glm::normalize(
+				GlmExtensions::cross(
+					relativeFarCenter + relativeFarRight,
+					up
+				))
+		};
+		Planes::Components::Plane rightPlane{
+			position,
+			glm::normalize(
+				GlmExtensions::cross(
+					up,
+					relativeFarCenter - relativeFarRight
+				))
+		};
 
 		auto rightTopFar = relativeFarCenter + relativeFarTop + relativeFarRight;
 		auto leftTopFar = relativeFarCenter + relativeFarTop - relativeFarRight;

@@ -1,6 +1,6 @@
 #include "RelationshipSystem.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
-#include "../../Objects/Components/Relationship.hpp"
+#include "../../Nodes/Components/Node.hpp"
 
 namespace drk::Relationships::Systems {
 

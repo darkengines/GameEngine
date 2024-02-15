@@ -22,11 +22,9 @@ namespace drk::UserInterfaces::Renderers {
 		);
 		~UserInterfaceRenderer();
 
-		void SetExtent(const vk::Extent3D& extent);
 		void render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer);
 		void Present(uint32_t swapchainImageIndex);
 		void SetTargetImageViews(Devices::ImageInfo targetImageInfo, std::vector<vk::ImageView> targetImageViews);
-		std::optional<Devices::Texture> GetSceneRenderTargetTexture() const { return SceneRenderTargetTexture; }
 
 	protected:
 		Devices::DeviceContext& DeviceContext;

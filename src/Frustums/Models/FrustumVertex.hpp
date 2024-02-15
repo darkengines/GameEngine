@@ -1,10 +1,10 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 #include <type_traits>
 
 namespace drk::Frustums::Models {
-	enum class FrustumVertex: uint32_t {
+	enum class FrustumVertex : uint32_t {
 		Near = 1 << 0,
 		Far = 1 << 1,
 		Top = 1 << 2,

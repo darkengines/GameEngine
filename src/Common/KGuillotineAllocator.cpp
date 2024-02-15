@@ -11,13 +11,14 @@ namespace drk {
 	namespace guillotine {
 
 		static bool isEmpty(const vk::Extent2D& extent) { return extent.height <= 0 || extent.width <= 0; };
-		static vk::Extent2D transpose(const vk::Extent2D& extent) { return { extent.height, extent.width }; };
+		static vk::Extent2D transpose(const vk::Extent2D& extent) { return {extent.height, extent.width}; };
 		static vk::Rect2D rectUnion(const vk::Rect2D& left, const vk::Rect2D& right) {
 			auto x1 = std::min(left.offset.x, right.offset.x);
 			auto y1 = std::min(left.offset.y, right.offset.y);
 			auto x2 = std::max(left.offset.x + left.extent.width, right.offset.x + right.extent.width);
 			auto y2 = std::max(left.offset.y + left.extent.height, right.offset.y + right.extent.height);
-			return vk::Rect2D{ {x1, y1}, {x2 - x1, y2 - y1} };
+			return vk::Rect2D{{x1,      y1},
+							  {x2 - x1, y2 - y1}};
 		};
 
 		struct AllocationNode {
@@ -76,15 +77,17 @@ namespace drk {
 			d->size = size;
 			d->options = options;
 
-			d->nodes.push_back(AllocationNode{
-				.prevSibling = AllocationId::null(),
-				.nextSibling = AllocationId::null(),
-				.parent = AllocationId::null(),
-				.orientation = Orientation::Horizontal,
-				.scissor = vk::Rect2D({0, 0}, size),
-				.kind = AllocationNode::Kind::Leaf,
-				.status = AllocationNode::Status::Free,
-							   });
+			d->nodes.push_back(
+				AllocationNode{
+					.prevSibling = AllocationId::null(),
+					.nextSibling = AllocationId::null(),
+					.parent = AllocationId::null(),
+					.orientation = Orientation::Horizontal,
+					.scissor = vk::Rect2D({0, 0}, size),
+					.kind = AllocationNode::Kind::Leaf,
+					.status = AllocationNode::Status::Free,
+				}
+			);
 		}
 
 		Allocator::~Allocator() {
@@ -96,17 +99,17 @@ namespace drk {
 
 		int AllocatorPrivate::computeScore(int xDelta, int yDelta) const {
 			switch (options.method) {
-			case AllocationMethod::PreferLessHorizontalSpace:
-				return xDelta;
-			case AllocationMethod::PreferLessVerticalSpace:
-				return yDelta;
-			default:
-				-1;
+				case AllocationMethod::PreferLessHorizontalSpace:
+					return xDelta;
+				case AllocationMethod::PreferLessVerticalSpace:
+					return yDelta;
+				default:
+					return -1;
 			}
 		}
 
 		std::tuple<AllocationId, bool> AllocatorPrivate::selectFreeNode(const vk::Extent2D& size) const {
-			int bestCandidate = AllocationId::null();
+			AllocationId bestCandidate = AllocationId::null();
 			int bestScore = std::numeric_limits<int>::max();
 			bool bestTransposed = false;
 
@@ -121,7 +124,7 @@ namespace drk {
 				const int yDelta = availableSize.height - size.height;
 				if (xDelta >= 0 && yDelta >= 0) {
 					if (xDelta == 0 && yDelta == 0) {
-						return { nodeId, false };
+						return {nodeId, false};
 					}
 					const int score = computeScore(xDelta, yDelta);
 					if (score < bestScore) {
@@ -136,7 +139,7 @@ namespace drk {
 					const int yDelta = availableSize.height - size.width;
 					if (xDelta >= 0 && yDelta >= 0) {
 						if (xDelta == 0 && yDelta == 0) {
-							return { nodeId, true };
+							return {nodeId, true};
 						}
 						const int score = computeScore(xDelta, yDelta);
 						if (score < bestScore) {
@@ -148,28 +151,32 @@ namespace drk {
 				}
 			}
 
-			return { bestCandidate, bestTransposed };
+			return {bestCandidate, bestTransposed};
 		}
 
 		static Orientation flipOrientation(Orientation orientation) {
 			return orientation == Orientation::Horizontal ? Orientation::Vertical : Orientation::Horizontal;
 		}
 
-		static std::tuple<vk::Rect2D, vk::Rect2D, vk::Rect2D> guillotine(const vk::Rect2D& bounds, const vk::Extent2D& size, Orientation axis) {
+		static std::tuple<vk::Rect2D, vk::Rect2D, vk::Rect2D>
+		guillotine(const vk::Rect2D& bounds, const vk::Extent2D& size, Orientation axis) {
 			const vk::Rect2D allocatedRect(bounds.offset, size);
 
 			vk::Rect2D leftoverRect, splitRect;
 			if (axis == Orientation::Vertical) {
-				leftoverRect = vk::Rect2D{ {bounds.offset.x, (int32_t)(bounds.offset.y + size.height)}, { size.width, bounds.extent.height - size.height} };
-				splitRect = vk::Rect2D{ {(int32_t)(bounds.offset.x + size.width), bounds.offset.y},{bounds.extent.width - size.width,bounds.extent.height} };
-			}
-			else {
-				leftoverRect = vk::Rect2D{ {(int32_t)(bounds.offset.x + size.width),bounds.offset.y}, {bounds.extent.width - size.width,size.height} };
+				leftoverRect = vk::Rect2D{{bounds.offset.x, (int32_t) (bounds.offset.y + size.height)},
+										  {size.width,      bounds.extent.height - size.height}};
+				splitRect = vk::Rect2D{{(int32_t) (bounds.offset.x + size.width), bounds.offset.y},
+									   {bounds.extent.width - size.width,         bounds.extent.height}};
+			} else {
+				leftoverRect = vk::Rect2D{{(int32_t) (bounds.offset.x + size.width), bounds.offset.y},
+										  {bounds.extent.width - size.width,         size.height}};
 
-				splitRect = vk::Rect2D{ {bounds.offset.x,(int32_t)(bounds.offset.y + size.height)},{bounds.extent.width,bounds.extent.height - size.height} };
+				splitRect = vk::Rect2D{{bounds.offset.x,     (int32_t) (bounds.offset.y + size.height)},
+									   {bounds.extent.width, bounds.extent.height - size.height}};
 			}
 
-			return { allocatedRect, leftoverRect, splitRect };
+			return {allocatedRect, leftoverRect, splitRect};
 		}
 
 		Allocation Allocator::allocate(const vk::Extent2D& requestedSize) {
@@ -183,7 +190,8 @@ namespace drk {
 			}
 
 			const vk::Extent2D adjustedSize = transposed ? transpose(requestedSize) : requestedSize;
-			if (d->nodes[selectedId].scissor.extent.width == adjustedSize.width && d->nodes[selectedId].scissor.extent.height == adjustedSize.height) {
+			if (d->nodes[selectedId].scissor.extent.width == adjustedSize.width &&
+				d->nodes[selectedId].scissor.extent.height == adjustedSize.height) {
 				d->nodes[selectedId].status = AllocationNode::Status::Occupied;
 				return Allocation{
 					.scissor = d->nodes[selectedId].scissor,

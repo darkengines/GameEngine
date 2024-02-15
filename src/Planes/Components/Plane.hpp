@@ -9,9 +9,9 @@ namespace drk::Planes::Components {
 		glm::vec4 point;
 		glm::vec4 normal;
 
-		glm::vec4 getClosestPointToOrigin() const;
-		float getDistanceToOrigin() const;
-		float getSignedDistanceToPlan(const glm::vec4& center) const;
+		[[nodiscard]] glm::vec4 getClosestPointToOrigin() const;
+		[[nodiscard]] float getDistanceToOrigin() const;
+		[[nodiscard]] float getSignedDistanceToPlan(const glm::vec4& center) const;
 		operator Models::Plane() const;
 	};
 }

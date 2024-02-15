@@ -1,6 +1,5 @@
 #pragma once
 
-#define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 
 #include <vulkan/vulkan.hpp>
@@ -29,7 +28,7 @@ namespace drk::Devices {
 		static QueueFamilyIndices findQueueFamilies(const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface);
 
 		static SwapChainSupportDetails
-			querySwapChainSupport(const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface);
+		querySwapChainSupport(const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface);
 
 		static vk::SampleCountFlagBits getMaxSampleCount(const vk::PhysicalDevice& device);
 
@@ -138,7 +137,7 @@ namespace drk::Devices {
 			const auto stagingMemoryHeap = properties.memoryHeaps[stagingMemoryTypeIterator->heapIndex];
 			const auto itemSize = sizeof(TBuffer);
 			vk::DeviceSize bufferLength = std::accumulate(
-				buffers.begin(), buffers.end(), 0, [](size_t totalBytes, const auto& buffer) {
+				buffers.begin(), buffers.end(), size_t{0}, [](size_t totalBytes, const auto& buffer) {
 					return totalBytes + buffer.size();
 				}
 			);
@@ -159,7 +158,7 @@ namespace drk::Devices {
 			VmaAllocationCreateInfo stagingAllocationCreationInfo = {
 				.flags = VmaAllocationCreateFlagBits::VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
 				.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
-				.requiredFlags = (VkMemoryPropertyFlags)(vk::MemoryPropertyFlagBits::eHostVisible |
+				.requiredFlags = (VkMemoryPropertyFlags) (vk::MemoryPropertyFlagBits::eHostVisible |
 														  vk::MemoryPropertyFlagBits::eHostCoherent),
 			};
 			auto stagingBuffer = Device::createBuffer(
@@ -171,12 +170,12 @@ namespace drk::Devices {
 			);
 
 			char* mappedStagingBufferMemory;
-			vmaMapMemory(allocator, stagingBuffer.allocation, (void**)&mappedStagingBufferMemory);
+			vmaMapMemory(allocator, stagingBuffer.allocation, (void**) &mappedStagingBufferMemory);
 
 			vk::DeviceSize remainingBufferByteLength = bufferByteLength;
 
 			auto bufferIndex = 0;
-			auto currentBuffer = (char*)buffers[0].data();
+			auto currentBuffer = (char*) buffers[0].data();
 			vk::DeviceSize currentBufferByteLength = buffers[0].size() * itemSize;
 			vk::DeviceSize currentBufferByteOffset = 0;
 			vk::DeviceSize currentBufferRemainingByteLength = currentBufferByteLength;
@@ -194,7 +193,10 @@ namespace drk::Devices {
 						};
 					}
 					const auto stagingBufferByteOffset = stagingBufferByteLength - availableStagingBufferByteLength;
-					const auto writableByteLength = std::min(currentBufferRemainingByteLength, availableStagingBufferByteLength);
+					const auto writableByteLength = std::min(
+						currentBufferRemainingByteLength,
+						availableStagingBufferByteLength
+					);
 					memcpy(
 						mappedStagingBufferMemory + stagingBufferByteOffset,
 						currentBuffer + currentBufferByteOffset,
@@ -205,13 +207,12 @@ namespace drk::Devices {
 					if (currentBufferRemainingByteLength <= 0) {
 						bufferIndex++;
 						if (bufferIndex < bufferCount) {
-							currentBuffer = (char*)buffers[bufferIndex].data();
+							currentBuffer = (char*) buffers[bufferIndex].data();
 							currentBufferByteLength = buffers[bufferIndex].size() * itemSize;
 							currentBufferByteOffset = 0;
 							currentBufferRemainingByteLength = currentBufferByteLength;
 						}
-					}
-					else {
+					} else {
 						currentBufferByteOffset += writableByteLength;
 					}
 				}
@@ -250,11 +251,10 @@ namespace drk::Devices {
 			std::vector<Devices::Buffer>& destinationBuffers,
 			vk::BufferUsageFlags memoryUsage
 		) {
-			const auto sourceBufferViewCount = sourceBufferViews.size();
 			const auto& properties = physicalDevice.getMemoryProperties();
 
-			vk::DeviceSize bufferByteLength = std::accumulate(
-				sourceBufferViews.begin(), sourceBufferViews.end(), 0, [](size_t totalBytes, const auto& bufferView) {
+			size_t bufferByteLength = std::accumulate(
+				sourceBufferViews.begin(), sourceBufferViews.end(), size_t{0}, [](size_t totalBytes, const auto& bufferView) {
 					return totalBytes + bufferView.byteLength;
 				}
 			);
@@ -273,7 +273,7 @@ namespace drk::Devices {
 			VkDeviceSize writtenByteLength = 0;
 			uint32_t bufferViewIndex = 0;
 
-			for (const auto& sourceBufferView : sourceBufferViews) {
+			for (const auto& sourceBufferView: sourceBufferViews) {
 				Device::copyBuffer(
 					device,
 					queue,
@@ -341,13 +341,13 @@ namespace drk::Devices {
 		static void destroySampler(const vk::Device& device, const vk::Sampler& sampler);
 
 		static vk::SurfaceFormatKHR
-			chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
+		chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
 
 		static vk::PresentModeKHR
-			chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes);
+		chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes);
 
 		static vk::Extent2D
-			chooseSwapExtent(vk::Extent2D extent, const vk::SurfaceCapabilitiesKHR& capabilities);
+		chooseSwapExtent(vk::Extent2D extent, const vk::SurfaceCapabilitiesKHR& capabilities);
 
 		static Swapchain createSwapchain(
 			const vk::Device& swapchainImage,

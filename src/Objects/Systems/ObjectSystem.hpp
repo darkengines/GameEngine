@@ -3,23 +3,23 @@
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
 #include "../Models/Object.hpp"
-#include "../Components/Object.hpp"
+#include "../../Nodes/Components/Node.hpp"
 #include "../../Meshes/Models/Mesh.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
 #include "../../Spatials/Models/RelativeSpatial.hpp"
 #include "../../Systems/System.hpp"
 #include "../../Loaders/LoadResult.hpp"
 
-namespace drk::Objects::Systems {
-class ObjectSystem : public drk::Systems::System<
-	Models::Object, 
-	Stores::StoreItem<Spatials::Models::Spatial>,
-	Stores::StoreItem<Spatials::Models::RelativeSpatial>
-> {
+namespace drk::Nodes::Systems {
+	class ObjectSystem : public drk::Systems::System<
+		Models::Object,
+		Stores::StoreItem<Spatials::Models::Spatial>,
+		Stores::StoreItem<Spatials::Models::RelativeSpatial>
+	> {
 	protected:
 		const Devices::DeviceContext& DeviceContext;
 		void update(
-			Models::Object& objectModel, 
+			Models::Object& objectModel,
 			const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem,
 			const Stores::StoreItem<Spatials::Models::RelativeSpatial>& relativeSpatialStoreItem
 		);

@@ -1,6 +1,5 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier: enable
-#extension GL_KHR_vulkan_glsl: enable
 
 #include "PointDraw.glsl"
 #include "PointVertex.glsl"

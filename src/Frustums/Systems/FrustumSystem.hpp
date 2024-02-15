@@ -6,10 +6,9 @@
 #include "../../Draws/Systems/DrawSystem.hpp"
 
 namespace drk::Frustums::Systems {
-	class FrustumSystem: 
-	public 
-	drk::Systems::System<Models::Frustum, Components::Frustum>, 
-	drk::Draws::Systems::DrawSystem {
+	class FrustumSystem :
+		public drk::Systems::System<Models::Frustum, Components::Frustum>,
+		drk::Draws::Systems::DrawSystem {
 	protected:
 		Devices::DeviceContext deviceContext;
 		Devices::BufferView vertexBufferView;

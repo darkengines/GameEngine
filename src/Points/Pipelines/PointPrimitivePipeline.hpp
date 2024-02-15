@@ -14,10 +14,11 @@ namespace drk::Points::Pipelines {
 		);
 		~PointPrimitivePipeline();
 
-		void bind(const vk::CommandBuffer& commandBuffer);
-		void configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configure);
-		Draws::Components::DrawVertexBufferInfo getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const;
-		void destroyPipeline();
+		void bind(const vk::CommandBuffer& commandBuffer) override;
+		void configure(std::function<void(vk::GraphicsPipelineCreateInfo&)> configure) override;
+		[[nodiscard]] Draws::Components::DrawVertexBufferInfo
+		getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const override;
+		void destroyPipeline() override;
 
 	protected:
 		const Devices::DeviceContext& deviceContext;
@@ -37,6 +38,5 @@ namespace drk::Points::Pipelines {
 			const Devices::DeviceContext& deviceContext,
 			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
 		);
-		vk::GraphicsPipelineCreateInfo getDefaultGraphicPipelineCreateInfo();
 	};
 }

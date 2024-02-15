@@ -21,7 +21,7 @@ namespace drk::Stores {
 		);
 
 		~TextureStore() {
-			for (const auto& texture : Textures) {
+			for (const auto& texture: Textures) {
 				DeviceContext.destroyTexture(texture);
 			}
 		}

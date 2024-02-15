@@ -1,5 +1,4 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include "../Loaders/AssimpLoader.hpp"
 #include "../Animations/Systems/AnimationSystem.hpp"
@@ -38,7 +37,7 @@
 namespace drk::Applications {
 	class Application {
 	public:
-		using boost_di_inject__ = boost::di::inject <
+		using boost_di_inject__ = boost::di::inject<
 			const Windows::Window&,
 			const Devices::DeviceContext&,
 			Engine::EngineState&,
@@ -48,7 +47,7 @@ namespace drk::Applications {
 			Meshes::Systems::MeshShadowSystem&,
 			Spatials::Systems::SpatialSystem&,
 			Spatials::Systems::RelativeSpatialSystem&,
-			Objects::Systems::ObjectSystem&,
+			Nodes::Systems::ObjectSystem&,
 			Cameras::Systems::CameraSystem&,
 			Graphics::GlobalSystem&,
 			const Loaders::AssimpLoader&,
@@ -72,7 +71,7 @@ namespace drk::Applications {
 			Animations::Systems::BoneSystem&,
 			Animations::Systems::BoneSpatialSystem&,
 			UserInterfaces::AssetExplorer&
-		> ;
+		>;
 
 		Application(
 			const Windows::Window& window,
@@ -84,7 +83,7 @@ namespace drk::Applications {
 			Meshes::Systems::MeshShadowSystem& meshShadowSystem,
 			Spatials::Systems::SpatialSystem& spatialSystem,
 			Spatials::Systems::RelativeSpatialSystem& relativeSpatialSystem,
-			Objects::Systems::ObjectSystem& objectSystem,
+			Nodes::Systems::ObjectSystem& objectSystem,
 			Cameras::Systems::CameraSystem& cameraSystem,
 			Graphics::GlobalSystem& globalSystem,
 			const Loaders::AssimpLoader& loader,
@@ -123,7 +122,7 @@ namespace drk::Applications {
 		Meshes::Systems::MeshShadowSystem& meshShadowSystem;
 		Spatials::Systems::SpatialSystem& spatialSystem;
 		Spatials::Systems::RelativeSpatialSystem& relativeSpatialSystem;
-		Objects::Systems::ObjectSystem& objectSystem;
+		Nodes::Systems::ObjectSystem& objectSystem;
 		Cameras::Systems::CameraSystem& cameraSystem;
 		Graphics::GlobalSystem& globalSystem;
 		const Loaders::AssimpLoader& loader;
@@ -150,10 +149,7 @@ namespace drk::Applications {
 		UserInterfaces::AssetExplorer& assetExplorer;
 
 		void OnWindowSizeChanged(uint32_t width, uint32_t height);
-		void WaitFences();
 		static void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
-		static void SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-		void RenderEntityTree(entt::entity);
 		void renderProperties(entt::entity entity);
 		void renderStorageBuffers();
 		bool shouldRecreateSwapchain = false;
@@ -163,6 +159,5 @@ namespace drk::Applications {
 		void renderEntities();
 		void renderAnimations();
 		void renderSystemInfos();
-		void renderInspector();
 	};
 }

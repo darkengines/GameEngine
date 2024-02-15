@@ -17,6 +17,7 @@ namespace drk::Textures::Systems {
 			entt::registry& registry
 		);
 		void UploadTextures();
-		static entt::entity copyTextureEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
+		static entt::entity
+		copyTextureEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
 	};
 }

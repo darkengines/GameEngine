@@ -15,7 +15,7 @@ namespace drk::Textures::Systems {
 			const auto imageInfo = registry.get<std::shared_ptr<Textures::ImageInfo>>(
 				imageEntity
 			);
-			if (imageInfo->pixels.size() > 0) {
+			if (!imageInfo->pixels.empty()) {
 				const auto& texture = EngineState.UploadTexture(imageInfo.get());
 				registry.emplace<Devices::Texture>(imageEntity, texture);
 			} else {

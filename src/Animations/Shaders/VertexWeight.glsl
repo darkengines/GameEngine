@@ -1,6 +1,6 @@
 #pragma once
 
 struct VertexWeight {
-	uint vertexIndex;
-	float weight;
+    uint vertexIndex;
+    float weight;
 };

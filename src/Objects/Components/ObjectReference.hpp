@@ -1,7 +1,7 @@
 #pragma once
 #include <entt/entt.hpp>
 
-namespace drk::Objects::Components {
+namespace drk::Nodes::Components {
 	struct ObjectReference {
 		entt::entity objectEntity;
 	};

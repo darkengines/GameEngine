@@ -7,7 +7,7 @@ namespace drk::Engine {
 	) {}
 
 	DescriptorSetLayoutCache::~DescriptorSetLayoutCache() {
-		for (auto& layout : Layouts) {
+		for (auto& layout: Layouts) {
 			deviceContext.device.destroyDescriptorSetLayout(layout.second);
 		}
 	}

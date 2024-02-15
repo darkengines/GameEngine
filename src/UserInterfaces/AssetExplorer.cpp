@@ -1,10 +1,10 @@
 
 #include "AssetExplorer.hpp"
-#include "../Objects/Components/Relationship.hpp"
-#include "../Objects/Components/Object.hpp"
+#include "../Nodes/Components/Node.hpp"
 #include "../Objects/Systems/ObjectSystem.hpp"
 #include "../Spatials/Systems/SpatialSystem.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
+#include "../Common/Components/Name.hpp"
 
 namespace drk::UserInterfaces {
 	AssetExplorer::AssetExplorer(Loaders::AssimpLoader& assimpLoader) :
@@ -14,27 +14,27 @@ namespace drk::UserInterfaces {
 
 	}
 	void AssetExplorer::renderEntities(entt::registry& destinationRegistry) {
-		const auto& relationships = assetRegistry.view<Objects::Components::Relationship>();
+		const auto& relationships = assetRegistry.view<Nodes::Components::Node>();
 		relationships.each(
-			[this, &destinationRegistry](entt::entity entity, Objects::Components::Relationship& relationship) {
+			[this, &destinationRegistry](entt::entity entity, Nodes::Components::Node& relationship) {
 				if (relationship.parent == entt::null) renderEntity(destinationRegistry, entity);
 			}
 		);
 	}
 
 	void AssetExplorer::renderEntity(entt::registry& destinationRegistry, entt::entity entity) {
-		const auto& [relationship, object] = assetRegistry.get<Objects::Components::Relationship, Objects::Components::Object>(
+		const auto& [relationship, nameComponent] = assetRegistry.get<Nodes::Components::Node, Common::Components::Name>(
 			entity
 		);
-		if (relationship.children.size() > 0) {
+		if (!relationship.children.empty()) {
 			auto isOpen = ImGui::TreeNode(
 				(void*) entity,
-				fmt::format("{0}", object.Name).c_str()
+				fmt::format("{0}", nameComponent.name).c_str()
 			);
 			ImGui::SameLine();
 			ImGui::PushID((void*) entity);
 			if (ImGui::Button("Copy##node")) {
-				Objects::Systems::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
+				Nodes::Systems::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
 			}
 			ImGui::PopID();
 			if (isOpen) {
@@ -44,11 +44,11 @@ namespace drk::UserInterfaces {
 				ImGui::TreePop();
 			}
 		} else {
-			ImGui::Text(fmt::format("{0}", object.Name).c_str());
+			ImGui::Text(fmt::format("{0}", nameComponent.name).c_str());
 			ImGui::SameLine();
 			ImGui::PushID((void*) entity);
 			if (ImGui::Button("Copy##leaf")) {
-				Objects::Systems::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
+				Nodes::Systems::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
 			}
 			ImGui::PopID();
 		}
@@ -80,7 +80,7 @@ namespace drk::UserInterfaces {
 						auto result = assimpLoader.Load(entry, assetRegistry);
 						assetLoadResults.emplace_back(std::move(result));
 						std::wcout << entry << std::endl;
-					} catch (std::exception exception) {
+					} catch (const std::exception& exception) {
 						std::cerr << fmt::format(
 							"Failed to load file {0}, see exception bellow:\r\n{1}",
 							entry.path().string(),
@@ -88,7 +88,7 @@ namespace drk::UserInterfaces {
 					}
 				}
 			}
-			assetRegistry.sort<Objects::Components::Relationship>(
+			assetRegistry.sort<Nodes::Components::Node>(
 				[this](const entt::entity left, const entt::entity right) {
 					return Spatials::Systems::SpatialSystem::GetDepth(assetRegistry, left) <
 						   Spatials::Systems::SpatialSystem::GetDepth(assetRegistry, right) || left < right;

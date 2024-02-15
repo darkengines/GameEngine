@@ -3,5 +3,8 @@
 #include "entt/entity/entity.hpp"
 
 namespace drk::Meshes::Components {
-	struct Mesh {};
+	struct Mesh {
+		bool hasTangent;
+		bool hasBitTangent;
+	};
 }

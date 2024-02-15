@@ -2,9 +2,9 @@
 
 #include "../../Stores/Models/StoreItemLocation.hpp"
 
-namespace drk::Objects::Models {
+namespace drk::Nodes::Models {
 	struct Object {
-		 alignas(8) Stores::Models::StoreItemLocation spatialItemLocation;
-		 alignas(8) Stores::Models::StoreItemLocation relativeSpatialItemLocation;
+		alignas(8) Stores::Models::StoreItemLocation spatialItemLocation;
+		alignas(8) Stores::Models::StoreItemLocation relativeSpatialItemLocation;
 	};
 }

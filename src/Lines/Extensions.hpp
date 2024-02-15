@@ -3,6 +3,7 @@
 #include <boost/di.hpp>
 #include "Systems/LineSystem.hpp"
 #include "Pipelines/LinePipeline.hpp"
+
 namespace drk::Lines {
 	auto AddLines() {
 		return boost::di::make_injector(

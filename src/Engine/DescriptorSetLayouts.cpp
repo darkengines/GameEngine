@@ -48,7 +48,7 @@ namespace drk::Engine {
 
 		return descriptorSetLayoutCache.get(descriptorSetLayoutCreateInfo);
 	}
-	
+
 	vk::DescriptorSetLayout
 	DescriptorSetLayouts::CreateTextureDescriptorSetLayout(DescriptorSetLayoutCache& descriptorSetLayoutCache) {
 

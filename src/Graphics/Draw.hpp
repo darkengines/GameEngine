@@ -11,7 +11,7 @@ namespace drk::Graphics {
 		Meshes::Components::MeshBufferView mesh;
 		Stores::Models::StoreItemLocation meshStoreItem;
 		Stores::Models::StoreItemLocation objectLocation;
-		Spatials::Components::Spatial<Spatials::Components::Absolute> spatial;
+		Spatials::Components::Spatial <Spatials::Components::Absolute> spatial;
 		bool hasTransparency;
 	};
 }

@@ -11,7 +11,7 @@
 #include "../../Spatials/Models/Spatial.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
 #include "../Models/FrustumDraw.hpp"
-#include "../../Objects/Components/Dirty.hpp"
+#include "../../Common/Components/Dirty.hpp"
 
 namespace drk::Frustums::Systems {
 	FrustumSystem::FrustumSystem(
@@ -42,42 +42,49 @@ namespace drk::Frustums::Systems {
 		frustumModel.rightBottomFar = frustumComponent.rightBottomFar;
 	}
 	void FrustumSystem::createResources() {
-		glm::vec4 green = { 0.0, 1.0, 0.0, 1.0 };
+		glm::vec4 green = {0.0, 1.0, 0.0, 1.0};
 		std::vector<drk::Frustums::Models::Vertex> frustumVertices{
 			{
 				.position = Models::FrustumVertex::Near | Models::FrustumVertex::Top | Models::FrustumVertex::Left,
 				.diffuseColor = green
-			}, {
+			},
+			{
 				.position = Models::FrustumVertex::Near | Models::FrustumVertex::Top | Models::FrustumVertex::Right,
 				.diffuseColor = green
-			}, {
+			},
+			{
 				.position = Models::FrustumVertex::Near | Models::FrustumVertex::Bottom | Models::FrustumVertex::Left,
 				.diffuseColor = green
-			}, {
+			},
+			{
 				.position = Models::FrustumVertex::Near | Models::FrustumVertex::Bottom | Models::FrustumVertex::Right,
 				.diffuseColor = green
-			}, {
+			},
+			{
 				.position = Models::FrustumVertex::Far | Models::FrustumVertex::Top | Models::FrustumVertex::Left,
 				.diffuseColor = green
-			}, {
+			},
+			{
 				.position = Models::FrustumVertex::Far | Models::FrustumVertex::Top | Models::FrustumVertex::Right,
 				.diffuseColor = green
-			}, {
+			},
+			{
 				.position = Models::FrustumVertex::Far | Models::FrustumVertex::Bottom | Models::FrustumVertex::Left,
 				.diffuseColor = green
-			}, {
+			},
+			{
 				.position = Models::FrustumVertex::Far | Models::FrustumVertex::Bottom | Models::FrustumVertex::Right,
 				.diffuseColor = green
 			}
 		};
-		std::vector<uint32_t> frustumIndices{ 0, 1, 1, 3, 3, 2, 2, 0, 4, 5, 5, 7, 7, 6, 6, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
+		std::vector<uint32_t> frustumIndices{0, 1, 1, 3, 3, 2, 2, 0, 4, 5, 5, 7, 7, 6, 6, 4, 0, 4, 1, 5, 2, 6, 3, 7};
 		auto vertexUploadResult = Devices::Device::uploadBuffers<Models::Vertex>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{ frustumVertices },
+			{frustumVertices},
 			vk::BufferUsageFlagBits::eVertexBuffer
 		);
 
@@ -87,7 +94,7 @@ namespace drk::Frustums::Systems {
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{ frustumIndices },
+			{frustumIndices},
 			vk::BufferUsageFlagBits::eIndexBuffer
 		);
 
@@ -112,8 +119,7 @@ namespace drk::Frustums::Systems {
 		frustumItemLocation.pItem->spatialStoreItemLocation = spatial.frameStoreItems[frameIndex];
 		frustumItemLocation.pItem->cameraStoreItemLocation = cameraStoreItem.frameStoreItems[frameIndex];
 	}
-	void FrustumSystem::processDirty()
-	{
+	void FrustumSystem::processDirty() {
 
 	}
 	void FrustumSystem::emitDraws() {
@@ -122,9 +128,10 @@ namespace drk::Frustums::Systems {
 			Components::Frustum
 		>(entt::exclude<Components::HasDraw>);
 
-		frustumEntities.each([&](
-			entt::entity frustumEntity,
-			const Components::Frustum& frustum
+		frustumEntities.each(
+			[&](
+				entt::entity frustumEntity,
+				const Components::Frustum& frustum
 			) {
 				Scenes::Draws::SceneDraw draw = {
 					.drawSystem = this,
@@ -142,9 +149,12 @@ namespace drk::Frustums::Systems {
 				auto entity = registry.create();
 				registry.emplace_or_replace<Scenes::Draws::SceneDraw>(entity, std::move(draw));
 				registry.emplace_or_replace<Components::Draw>(entity, std::move(Draw));
-				registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(entity, engineState.getFrameCount());
+				registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
+					entity,
+					engineState.getFrameCount());
 
 				registry.emplace<Components::HasDraw>(frustumEntity);
-			});
+			}
+		);
 	}
 }

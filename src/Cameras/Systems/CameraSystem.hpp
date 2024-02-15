@@ -7,7 +7,7 @@
 #include "../../Systems/System.hpp"
 
 namespace drk::Cameras::Systems {
-class CameraSystem : public drk::Systems::System<Models::Camera, Components::Camera>{
+	class CameraSystem : public drk::Systems::System<Models::Camera, Components::Camera> {
 	protected:
 		const Devices::DeviceContext& deviceContext;
 	public:
@@ -16,7 +16,7 @@ class CameraSystem : public drk::Systems::System<Models::Camera, Components::Cam
 			Engine::EngineState& engineState,
 			entt::registry& registry
 		);
-		void update(Models::Camera &cameraModel, const Components::Camera &camera);
+		void update(Models::Camera& cameraModel, const Components::Camera& camera);
 		void processDirtyItems();
 
 		entt::entity createCamera(

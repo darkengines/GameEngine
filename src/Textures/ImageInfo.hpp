@@ -21,9 +21,9 @@ namespace drk::Textures {
 		fromFile(const std::string& name, const std::string& filePath, TextureType type);
 
 		static std::unique_ptr<ImageInfo>
-		fromMemory(const std::string& name, const std::span<unsigned char> memory, TextureType type);
+		fromMemory(const std::string& name, const std::span<unsigned char>& memory, TextureType type);
 
 		static std::unordered_map<TextureType, vk::Format> TextureTypeFormatMap;
-		uint32_t mipLevels() const;
+		[[nodiscard]] uint32_t mipLevels() const;
 	};
 }

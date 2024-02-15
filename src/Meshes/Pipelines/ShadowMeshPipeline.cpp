@@ -15,9 +15,9 @@ namespace drk::Meshes::Pipelines {
 			descriptorSetLayouts.storeDescriptorSetLayout,
 			descriptorSetLayouts.globalDescriptorSetLayout,
 			descriptorSetLayouts.storeDescriptorSetLayout,
-	},
-	pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
-	engineState(engineState) {
+		},
+		pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
+		engineState(engineState) {
 		createShaderModules();
 	}
 
@@ -35,13 +35,14 @@ namespace drk::Meshes::Pipelines {
 	void ShadowMeshPipeline::createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo) {
 
 		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicPipelineCreateInfo);
-		if ((VkResult)result.result != VK_SUCCESS) {
+		if ((VkResult) result.result != VK_SUCCESS) {
 			throw new std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		pipeline = result.value;
 	}
 
-	Draws::Components::DrawVertexBufferInfo ShadowMeshPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
+	Draws::Components::DrawVertexBufferInfo
+	ShadowMeshPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
 		const auto& meshDraw = registry.get<Components::ShadowMeshDraw>(drawEntity);
 		Draws::Components::DrawVertexBufferInfo bufferInfo{
 			static_cast<uint32_t>(meshDraw.meshResource->indices.size()),
@@ -81,7 +82,7 @@ namespace drk::Meshes::Pipelines {
 		);
 		const auto& pipelineInputAssemblyStateCreateInfo = Graphics::Graphics::DefaultPipelineInputAssemblyStateCreateInfo();
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{ 1024u, 768u },
+			{1024u, 768u},
 			viewport,
 			scissor
 		);
@@ -94,7 +95,7 @@ namespace drk::Meshes::Pipelines {
 		);
 		const auto& pipelineDepthStencilStateCreateInfo = Graphics::Graphics::DefaultPipelineDepthStencilStateCreateInfo();
 
-		std::vector<vk::DynamicState> dynamicStates{ vk::DynamicState::eScissor, vk::DynamicState::eViewport };
+		std::vector<vk::DynamicState> dynamicStates{vk::DynamicState::eScissor, vk::DynamicState::eViewport};
 
 		vk::PipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{
 			.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
@@ -123,10 +124,10 @@ namespace drk::Meshes::Pipelines {
 	}
 
 	vk::PipelineLayout
-		ShadowMeshPipeline::createPipelineLayout(
-			const Devices::DeviceContext& deviceContext,
-			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
-		) {
+	ShadowMeshPipeline::createPipelineLayout(
+		const Devices::DeviceContext& deviceContext,
+		const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+	) {
 		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
 			.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
 			.pSetLayouts = descriptorSetLayouts.data(),

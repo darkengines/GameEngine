@@ -7,7 +7,6 @@
 #include "../Components/BoneInstanceWeightBufferView.hpp"
 #include "../Components/SkinnedVertexRangeBufferView.hpp"
 #include "../Components/SkinnedBufferView.hpp"
-#include "../Components/VertexWeightBufferView.hpp"
 #include "../../Engine/EngineState.hpp"
 #include "../../Resources/ResourceManager.hpp"
 #include "../../Engine/DescriptorSetAllocator.hpp"
@@ -33,17 +32,20 @@ namespace drk::Animations::Resources {
 			Engine::DescriptorSetAllocator& descriptorSetAllocator,
 			vk::DescriptorSetLayout& vertexBufferDescriptorSetLayout
 		);
-		static vk::DescriptorSetLayout createVertexBufferDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
+		static vk::DescriptorSetLayout
+		createVertexBufferDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
 		static vk::DescriptorSet createVertexBufferDescriptorSet(
 			Engine::DescriptorSetAllocator& descriptorSetAllocator,
 			vk::DescriptorSetLayout& vertexBufferDescriptorSetLayout
 		);
-		static vk::DescriptorSetLayout createVertexWeightDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
+		static vk::DescriptorSetLayout
+		createVertexWeightDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
 		static vk::DescriptorSet createVertexWeightDescriptorSet(
 			Engine::DescriptorSetAllocator& descriptorSetAllocator,
 			vk::DescriptorSetLayout& vertexWeightDescriptorSetLayout
 		);
-		static vk::DescriptorSetLayout createSkinnedVertexRangeDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
+		static vk::DescriptorSetLayout
+		createSkinnedVertexRangeDescriptorSetLayout(Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache);
 		static vk::DescriptorSet createSkinnedVertexRangeDescriptorSet(
 			Engine::DescriptorSetAllocator& descriptorSetAllocator,
 			vk::DescriptorSetLayout& skinnedVertexRangeDescriptorSetLayout
@@ -64,6 +66,7 @@ namespace drk::Animations::Resources {
 			Engine::DescriptorSetAllocator& descriptorSetAllocator,
 			Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache
 		);
+
 		template<typename TState>
 		std::vector<std::pair<Components::SkinnedBufferView, TState>> createSkinnedMesh(
 			const std::vector<TState>& states,
@@ -103,7 +106,7 @@ namespace drk::Animations::Resources {
 
 			uint32_t writeCount = 0;
 
-			for (auto frameIndex = 0; frameIndex < configuration.frameCount; frameIndex++) {
+			for (auto frameIndex = 0u; frameIndex < configuration.frameCount; frameIndex++) {
 				std::vector<Devices::BufferView> destinationBufferViews(skinnedBufferViews.size());
 				std::vector<Devices::Buffer> destinationBuffers;
 				Devices::Device::duplicateBufferViews(
@@ -115,10 +118,12 @@ namespace drk::Animations::Resources {
 					vertexBufferViews,
 					destinationBufferViews,
 					destinationBuffers,
-					vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst
+					vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer |
+					vk::BufferUsageFlagBits::eTransferDst
 				);
 
-				for (uint32_t skinnedBufferViewIndex = 0; skinnedBufferViewIndex < skinnedBufferViews.size(); skinnedBufferViewIndex++) {
+				for (uint32_t skinnedBufferViewIndex = 0;
+					 skinnedBufferViewIndex < skinnedBufferViews.size(); skinnedBufferViewIndex++) {
 					skinnedBufferViews[skinnedBufferViewIndex].first.frameSkinnedBufferViews[frameIndex] = destinationBufferViews[skinnedBufferViewIndex];
 				}
 
@@ -126,7 +131,8 @@ namespace drk::Animations::Resources {
 					skinnedBufferViews.begin(),
 					skinnedBufferViews.end(),
 					[frameIndex](const auto& left, const auto& right) {
-						return left.first.frameSkinnedBufferViews[frameIndex].buffer.buffer < right.first.frameSkinnedBufferViews[frameIndex].buffer.buffer;
+						return left.first.frameSkinnedBufferViews[frameIndex].buffer.buffer <
+							   right.first.frameSkinnedBufferViews[frameIndex].buffer.buffer;
 					}
 				);
 
@@ -134,8 +140,9 @@ namespace drk::Animations::Resources {
 				std::vector<vk::DescriptorBufferInfo> descriptorBufferInfos;
 				writeCount = 0;
 
-				for (auto& skinnedBufferView : skinnedBufferViews) {
-					if (previousBuffer == nullptr || skinnedBufferView.first.frameSkinnedBufferViews[frameIndex].buffer.buffer != *previousBuffer) {
+				for (auto& skinnedBufferView: skinnedBufferViews) {
+					if (previousBuffer == nullptr ||
+						skinnedBufferView.first.frameSkinnedBufferViews[frameIndex].buffer.buffer != *previousBuffer) {
 						vk::DescriptorBufferInfo descriptorBufferInfo{
 							.buffer = skinnedBufferView.first.frameSkinnedBufferViews[frameIndex].buffer.buffer,
 							.offset = 0u,
@@ -144,7 +151,8 @@ namespace drk::Animations::Resources {
 						descriptorBufferInfos.push_back(descriptorBufferInfo);
 						if (previousBuffer != nullptr) writeCount++;
 					}
-					skinnedBufferView.first.frameSkinnedBufferArrayElements[frameIndex] = skinnedVertexBufferDescriptorSetArrayElementOffset + writeCount;
+					skinnedBufferView.first.frameSkinnedBufferArrayElements[frameIndex] =
+						skinnedVertexBufferDescriptorSetArrayElementOffset + writeCount;
 					previousBuffer = &skinnedBufferView.first.frameSkinnedBufferViews[frameIndex].buffer.buffer;
 				}
 				vk::WriteDescriptorSet writeDescriptorSet{
@@ -158,10 +166,13 @@ namespace drk::Animations::Resources {
 					.pTexelBufferView = VK_NULL_HANDLE
 				};
 				deviceContext.device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
-				buffers.insert(buffers.end(), std::make_move_iterator(destinationBuffers.begin()), std::make_move_iterator(destinationBuffers.end()));
+				buffers.insert(
+					buffers.end(),
+					std::make_move_iterator(destinationBuffers.begin()),
+					std::make_move_iterator(destinationBuffers.end()));
 			}
 
-			for (auto& frameResource : frameResources) {
+			for (auto& frameResource: frameResources) {
 				frameResource.skinnedVertexBufferDescriptorSetArrayElementOffset += writeCount + 1;
 			}
 
@@ -178,7 +189,7 @@ namespace drk::Animations::Resources {
 			vk::Buffer* previousBuffer = nullptr;
 			writeCount = 0;
 
-			for (auto& skinnedBufferView : skinnedBufferViews) {
+			for (auto& skinnedBufferView: skinnedBufferViews) {
 				if (previousBuffer == nullptr || skinnedBufferView.first.bufferView.buffer.buffer != *previousBuffer) {
 					vk::DescriptorBufferInfo descriptorBufferInfo{
 						.buffer = skinnedBufferView.first.bufferView.buffer.buffer,
@@ -186,7 +197,7 @@ namespace drk::Animations::Resources {
 						.range = VK_WHOLE_SIZE
 					};
 					descriptorBufferInfos.push_back(descriptorBufferInfo);
-					if(previousBuffer != nullptr) writeCount++;
+					if (previousBuffer != nullptr) writeCount++;
 				}
 				skinnedBufferView.first.bufferArrayElement = vertexBufferDescriptorSetArrayElementOffset + writeCount;
 				previousBuffer = &skinnedBufferView.first.bufferView.buffer.buffer;

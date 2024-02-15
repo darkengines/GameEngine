@@ -1,5 +1,6 @@
 #pragma once
 #include "../../Stores/Models/StoreItemLocation.hpp"
+
 namespace drk::Animations::Models {
 	struct BoneInstanceWeight {
 		Stores::Models::StoreItemLocation boneInstanceStoreItemLocation;

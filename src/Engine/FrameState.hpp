@@ -52,14 +52,14 @@ namespace drk::Engine {
 			const DescriptorSetLayouts& descriptorSetLayouts,
 			DescriptorSetAllocator& descriptorSetAllocator
 		);
-		FrameState(FrameState&& frameState);
+		FrameState(FrameState&& frameState) noexcept;
 		~FrameState();
 
 		template<typename T>
 		Stores::StoreItemLocation<T> AddStoreItem() {
 			auto typeIndex = std::type_index(typeid(T));
 			auto keyValuePair = Stores.find(typeIndex);
-			Stores::Store<T>* store = nullptr;
+			Stores::Store<T>* store;
 			if (keyValuePair == Stores.end()) {
 				auto pStore = std::make_unique<Stores::Store<T>>(storeBufferAllocator);
 				store = pStore.get();
@@ -75,48 +75,10 @@ namespace drk::Engine {
 		}
 
 		template<typename TModel>
-		Stores::Store<TModel>* GetStore() {
-			auto typeIndex = std::type_index(typeid(TModel));
-			auto keyValuePair = Stores.find(typeIndex);
-			Stores::Store<TModel>* store = nullptr;
-			if (keyValuePair == Stores.end()) {
-				auto pStore = std::make_unique<Stores::Store<TModel>>(storeBufferAllocator);
-				store = pStore.get();
-				Stores.emplace(
-					typeIndex,
-					std::move(pStore)
-				);
-			} else {
-				store = reinterpret_cast<Stores::Store<TModel>*>(keyValuePair->second.get());
-			}
-			return store;
-		}
-
-		template<typename TModel>
-		Stores::StoreItemLocation<TModel> AddUniformStoreItem() {
-			auto typeIndex = std::type_index(typeid(TModel));
-			auto keyValuePair = UniformStores.find(typeIndex);
-			Stores::Store<TModel>* store = nullptr;
-			if (keyValuePair == UniformStores.end()) {
-				auto descriptorSet = descriptorSetAllocator.allocateDescriptorSets({descriptorSetLayouts.storeDescriptorSetLayout})[0];
-				auto pStore = std::make_unique<Stores::UniformStore<TModel>>(deviceContext, descriptorSet);
-				store = pStore.get();
-				UniformStores.emplace(
-					typeIndex,
-					std::move(pStore)
-				);
-			} else {
-				store = reinterpret_cast<Stores::UniformStore<TModel>*>(keyValuePair->second.get());
-			}
-			auto location = store->AddItem();
-			return location;
-		}
-
-		template<typename TModel>
 		Stores::UniformStore<TModel>& getUniformStore() {
 			auto typeIndex = std::type_index(typeid(TModel));
 			auto keyValuePair = UniformStores.find(typeIndex);
-			Stores::UniformStore<TModel>* store = nullptr;
+			Stores::UniformStore<TModel>* store;
 			if (keyValuePair == UniformStores.end()) {
 				auto descriptorSet = descriptorSetAllocator.allocateDescriptorSets({descriptorSetLayouts.storeDescriptorSetLayout})[0];
 				auto pStore = std::make_unique<Stores::UniformStore<TModel>>(deviceContext, descriptorSet);

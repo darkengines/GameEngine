@@ -9,7 +9,7 @@ namespace drk::Engine {
 	public:
 		DescriptorSetLayoutCache(const Devices::DeviceContext& deviceContext);
 		~DescriptorSetLayoutCache();
-		vk::DescriptorSetLayout get(const vk::DescriptorSetLayoutCreateInfo &descriptorSetLayoutCreateInfo);
+		vk::DescriptorSetLayout get(const vk::DescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo);
 	protected:
 		const Devices::DeviceContext& deviceContext;
 		std::unordered_map<vk::DescriptorSetLayoutCreateInfo, vk::DescriptorSetLayout, DescriptorSetLayoutCreateInfoEqualityComparer, DescriptorSetLayoutCreateInfoEqualityComparer> Layouts;

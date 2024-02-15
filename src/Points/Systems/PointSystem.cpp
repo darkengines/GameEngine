@@ -36,14 +36,14 @@ namespace drk::Points::Systems {
 		};
 		vk::DeviceSize vertexOffset = 0;
 		vk::DeviceSize indexOffset = 0;
-		std::vector<Models::PointVertex> pointVertices{ pointVertex };
+		std::vector<Models::PointVertex> pointVertices{pointVertex};
 		auto vertexResult = Devices::Device::uploadBuffers<Models::PointVertex>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{ pointVertices },
+			{pointVertices},
 			vk::BufferUsageFlagBits::eVertexBuffer
 		);
 		auto vertexBuffer = vertexResult.buffer;
@@ -52,14 +52,14 @@ namespace drk::Points::Systems {
 			.byteOffset = vertexOffset,
 			.byteLength = sizeof(Points::Models::PointVertex)
 		};
-		std::vector<unsigned int> pointIndices{ 0u };
+		std::vector<unsigned int> pointIndices{0u};
 		auto indexResult = Devices::Device::uploadBuffers<unsigned int>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{ pointIndices },
+			{pointIndices},
 			vk::BufferUsageFlagBits::eIndexBuffer
 		);
 		auto indexBuffer = indexResult.buffer;
@@ -83,9 +83,9 @@ namespace drk::Points::Systems {
 	void PointSystem::emitDraws() {
 		auto pointEntities = registry.view<
 			Stores::StoreItem<Models::Point>,
-			Components::Point, 
+			Components::Point,
 			Spatials::Components::Spatial<Spatials::Components::Absolute>,
-			Stores::StoreItem<Objects::Models::Object>
+			Stores::StoreItem<Nodes::Models::Object>
 		>(entt::exclude<Models::PointDraw>);
 
 		auto cameraEntity = engineState.cameraEntity;
@@ -97,30 +97,30 @@ namespace drk::Points::Systems {
 				auto& point,
 				auto& spatial,
 				auto& objectStoreItem
-				) {
-					const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[engineState.getFrameIndex()];
-					const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
-					const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(point.materialEntity);
+			) {
+				const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[engineState.getFrameIndex()];
+				const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
+				const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(point.materialEntity);
 
-					Scenes::Draws::SceneDraw draw = {
-						.drawSystem = this,
-						.pipelineTypeIndex = std::type_index(typeid(Pipelines::PointPrimitivePipeline)),
-						.indexBufferView = pointIndexBufferView,
-						.vertexBufferView = pointVertexBufferView,
-						.hasTransparency = material->hasTransparency,
-						.depth = glm::distance(camera.absolutePosition, spatial.position)
-					};
-					Models::PointDraw pointDraw = {
-						.pointItemLocation = pointStoreItemLocation,
-						.objectItemLocation = objectStoreItemLocation
-					};
+				Scenes::Draws::SceneDraw draw = {
+					.drawSystem = this,
+					.pipelineTypeIndex = std::type_index(typeid(Pipelines::PointPrimitivePipeline)),
+					.indexBufferView = pointIndexBufferView,
+					.vertexBufferView = pointVertexBufferView,
+					.hasTransparency = material->hasTransparency,
+					.depth = glm::distance(camera.absolutePosition, spatial.position)
+				};
+				Models::PointDraw pointDraw = {
+					.pointItemLocation = pointStoreItemLocation,
+					.objectItemLocation = objectStoreItemLocation
+				};
 
-					//auto entity = registry.create();
-					registry.emplace<Scenes::Draws::SceneDraw>(pointEntity, draw);
-					registry.emplace<Models::PointDraw>(pointEntity, pointDraw);
-					registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
-						pointEntity,
-						engineState.getFrameCount());
+				//auto entity = registry.create();
+				registry.emplace<Scenes::Draws::SceneDraw>(pointEntity, draw);
+				registry.emplace<Models::PointDraw>(pointEntity, pointDraw);
+				registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
+					pointEntity,
+					engineState.getFrameCount());
 			}
 		);
 	}

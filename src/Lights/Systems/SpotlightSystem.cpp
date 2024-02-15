@@ -1,14 +1,7 @@
-#include "../Components/LightPerspective.hpp"
 #include "SpotlightSystem.hpp"
-#include "../../Spatials/Components/Spatial.hpp"
-#include "../../Objects/Components/Dirty.hpp"
-#include <glm/gtx/quaternion.hpp>
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
 
 namespace drk::Lights::Systems {
 	SpotlightSystem::SpotlightSystem(
-		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
 		entt::registry& registry
 	) : System(engineState, registry) {}

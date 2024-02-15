@@ -22,7 +22,7 @@ namespace drk::Engine {
 		globalUniformBuffer(createGlobalUniformBuffer(deviceContext, globalDescriptorSet, &Global)) {
 	}
 
-	FrameState::FrameState(FrameState&& frameState)
+	FrameState::FrameState(FrameState&& frameState) noexcept
 		: deviceContext(frameState.deviceContext),
 		  descriptorSetLayouts(frameState.descriptorSetLayouts),
 		  descriptorSetAllocator(frameState.descriptorSetAllocator),

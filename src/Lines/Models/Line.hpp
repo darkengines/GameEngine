@@ -8,6 +8,6 @@
 
 namespace drk::Lines::Models {
 	struct Line {
-		 Stores::Models::StoreItemLocation materialItemLocation;
+		Stores::Models::StoreItemLocation materialItemLocation;
 	};
 }

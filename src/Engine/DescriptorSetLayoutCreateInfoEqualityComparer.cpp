@@ -7,7 +7,8 @@
 
 namespace drk::Engine {
 
-	size_t DescriptorSetLayoutCreateInfoEqualityComparer::operator()(const vk::DescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const {
+	size_t
+	DescriptorSetLayoutCreateInfoEqualityComparer::operator()(const vk::DescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const {
 		auto hasher = std::hash<size_t>();
 		size_t hash = hasher(descriptorSetLayoutCreateInfo.bindingCount);
 		hash = std::reduce(

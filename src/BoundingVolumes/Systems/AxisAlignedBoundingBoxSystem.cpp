@@ -18,7 +18,7 @@ namespace drk::BoundingVolumes::Systems {
 	) : System<
 		Models::AxisAlignedBoundingBox,
 		Components::AxisAlignedBoundingBox,
-		Objects::Components::ObjectReference,
+		Nodes::Components::ObjectReference,
 		Meshes::Components::MeshReference
 	>(engineState, registry), deviceContext(deviceContext) {
 		createResources();
@@ -26,7 +26,7 @@ namespace drk::BoundingVolumes::Systems {
 	void AxisAlignedBoundingBoxSystem::update(
 		Models::AxisAlignedBoundingBox& axisAlignedBoundingBoxModel,
 		const Components::AxisAlignedBoundingBox& axisAlignedBoundingBox,
-		const Objects::Components::ObjectReference& objectReference,
+		const Nodes::Components::ObjectReference& objectReference,
 		const Meshes::Components::MeshReference& meshReference
 	) {
 		axisAlignedBoundingBoxModel.center = axisAlignedBoundingBox.absoluteCenter;
@@ -48,42 +48,49 @@ namespace drk::BoundingVolumes::Systems {
 	}
 
 	void AxisAlignedBoundingBoxSystem::createResources() {
-		glm::vec4 green = { 0.0, 1.0, 0.0, 1.0 };
+		glm::vec4 green = {0.0, 1.0, 0.0, 1.0};
 		std::vector<drk::BoundingVolumes::Models::Vertex> cubeVertices{
 			{
-				.position = { 1.0, 1.0, 1.0, 1.0 },
+				.position = {1.0, 1.0, 1.0, 1.0},
 				.diffuseColor = green
-			}, {
-				.position = { -1.0, 1.0, 1.0, 1.0 },
+			},
+			{
+				.position = {-1.0, 1.0, 1.0, 1.0},
 				.diffuseColor = green
-			}, {
-				.position = { -1.0, 1.0, -1.0, 1.0 },
+			},
+			{
+				.position = {-1.0, 1.0, -1.0, 1.0},
 				.diffuseColor = green
-			}, {
-				.position = { 1.0, 1.0, -1.0, 1.0 },
+			},
+			{
+				.position = {1.0, 1.0, -1.0, 1.0},
 				.diffuseColor = green
-			}, {
-				.position = { 1.0, -1.0, 1.0, 1.0 },
+			},
+			{
+				.position = {1.0, -1.0, 1.0, 1.0},
 				.diffuseColor = green
-			}, {
-				.position = { -1.0, -1.0, 1.0, 1.0 },
+			},
+			{
+				.position = {-1.0, -1.0, 1.0, 1.0},
 				.diffuseColor = green
-			}, {
-				.position = { -1.0, -1.0, -1.0, 1.0 },
+			},
+			{
+				.position = {-1.0, -1.0, -1.0, 1.0},
 				.diffuseColor = green
-			}, {
-				.position = { 1.0, -1.0, -1.0, 1.0 },
+			},
+			{
+				.position = {1.0, -1.0, -1.0, 1.0},
 				.diffuseColor = green
 			}
 		};
-		std::vector<uint32_t> cubeIndices{ 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
+		std::vector<uint32_t> cubeIndices{0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7};
 		auto vertexUploadResult = Devices::Device::uploadBuffers<drk::BoundingVolumes::Models::Vertex>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{ cubeVertices },
+			{cubeVertices},
 			vk::BufferUsageFlagBits::eVertexBuffer
 		);
 
@@ -93,7 +100,7 @@ namespace drk::BoundingVolumes::Systems {
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{ cubeIndices },
+			{cubeIndices},
 			vk::BufferUsageFlagBits::eIndexBuffer
 		);
 
@@ -107,34 +114,42 @@ namespace drk::BoundingVolumes::Systems {
 	void AxisAlignedBoundingBoxSystem::processDirty() {
 		auto view = registry.view<
 			Components::AxisAlignedBoundingBox,
-			Objects::Components::ObjectReference,
+			Nodes::Components::ObjectReference,
 			Meshes::Components::MeshReference,
-			Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>
+			Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>
 		>();
-		view.each([this](
-			entt::entity entity,
-			Components::AxisAlignedBoundingBox& axisAlignedBoundingBox,
-			const Objects::Components::ObjectReference& objectReference,
-			const Meshes::Components::MeshReference& meshReference
+		view.each(
+			[this](
+				entt::entity entity,
+				Components::AxisAlignedBoundingBox& axisAlignedBoundingBox,
+				const Nodes::Components::ObjectReference& objectReference,
+				const Meshes::Components::MeshReference& meshReference
 			) {
-				auto spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(objectReference.objectEntity);
+				auto spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(
+					objectReference.objectEntity
+				);
 				axisAlignedBoundingBox.inplaceTransform(spatial.model);
-				registry.emplace_or_replace<Graphics::SynchronizationState<Models::AxisAlignedBoundingBox>>(entity, engineState.getFrameCount());
-			});
+				registry.emplace_or_replace<Graphics::SynchronizationState<Models::AxisAlignedBoundingBox>>(
+					entity,
+					engineState.getFrameCount());
+			}
+		);
 	}
 
 	void AxisAlignedBoundingBoxSystem::emitDraws() {
 		const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
 		auto objectMeshEntities = registry.view<
-			Objects::Components::ObjectReference,
+			Nodes::Components::ObjectReference,
 			Meshes::Components::MeshReference,
 			Meshes::Components::Mesh
 		>(entt::exclude<Components::HasDraw>);
 
-		objectMeshEntities.each([&](
-			entt::entity objectMeshEntity,
-			const Objects::Components::ObjectReference& objectReference,
-			const Meshes::Components::MeshReference& meshReference
+		objectMeshEntities.each(
+			[&](
+				entt::entity objectMeshEntity,
+				const Nodes::Components::ObjectReference& objectReference,
+				const Meshes::Components::MeshReference& meshReference,
+				const Meshes::Components::Mesh& mesh
 			) {
 				Scenes::Draws::SceneDraw draw = {
 					.drawSystem = this,
@@ -151,9 +166,12 @@ namespace drk::BoundingVolumes::Systems {
 				auto entity = registry.create();
 				registry.emplace_or_replace<Scenes::Draws::SceneDraw>(entity, std::move(draw));
 				registry.emplace_or_replace<Components::Draw>(entity, std::move(Draw));
-				registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(entity, engineState.getFrameCount());
+				registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
+					entity,
+					engineState.getFrameCount());
 
 				registry.emplace<Components::HasDraw>(objectMeshEntity);
-			});
+			}
+		);
 	}
 }

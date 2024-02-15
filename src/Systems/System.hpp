@@ -20,20 +20,25 @@ namespace drk::Systems {
 		uint32_t getItemCount() { return itemCount; }
 		void store() {
 			auto entities = registry.view<TComponents...>(entt::exclude<Stores::StoreItem<TModel>>);
-			for (const auto entity : entities) {
+			for (const auto entity: entities) {
 				auto storeItem = engineState.GetStoreItem<TModel>();
 				registry.emplace<Stores::StoreItem<TModel>>(
 					entity,
 					storeItem
 				);
-				registry.emplace_or_replace<Graphics::SynchronizationState<TModel>>(entity, engineState.getFrameCount());
+				registry.emplace_or_replace<Graphics::SynchronizationState<TModel>>(
+					entity,
+					engineState.getFrameCount());
 				itemCount++;
 			}
 		}
 		void updateStore() {
-			std::function<void(TModel& model, const TComponents& ...)> updater = [this](TModel& model, const TComponents&... components) {
+			std::function<void(TModel& model, const TComponents& ...)> updater = [this](
+				TModel& model,
+				const TComponents& ... components
+			) {
 				this->update(model, components...);
-				};
+			};
 			Graphics::update<TModel, TComponents...>(
 				registry,
 				engineState.getFrameIndex(),

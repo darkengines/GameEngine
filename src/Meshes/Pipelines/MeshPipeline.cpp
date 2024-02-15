@@ -36,17 +36,18 @@ namespace drk::Meshes::Pipelines {
 
 		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicPipelineCreateInfo);
 		if ((VkResult) result.result != VK_SUCCESS) {
-			throw new std::runtime_error("Failed to create main graphic pipeline.");
+			throw std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		pipeline = result.value;
 	}
 
-	Draws::Components::DrawVertexBufferInfo MeshPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
+	Draws::Components::DrawVertexBufferInfo
+	MeshPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
 		auto meshDraw = registry.get<Components::MeshDraw>(drawEntity);
 		Draws::Components::DrawVertexBufferInfo bufferInfo{
 			static_cast<uint32_t>(meshDraw.meshResource->indices.size()),
-				static_cast<uint32_t>(meshDraw.meshBufferView.IndexBufferView.byteOffset / sizeof(VertexIndex)),
-				static_cast<int32_t>(meshDraw.meshBufferView.VertexBufferView.byteOffset / sizeof(Vertex))
+			static_cast<uint32_t>(meshDraw.meshBufferView.IndexBufferView.byteOffset / sizeof(VertexIndex)),
+			static_cast<int32_t>(meshDraw.meshBufferView.VertexBufferView.byteOffset / sizeof(Vertex))
 		};
 		return bufferInfo;
 	}

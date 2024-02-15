@@ -31,7 +31,7 @@ namespace drk::Textures {
 	std::unique_ptr<ImageInfo>
 	ImageInfo::fromMemory(
 		const std::string& name,
-		const std::span<unsigned char> memory,
+		const std::span<unsigned char>& memory,
 		TextureType type
 	) {
 		auto texture = std::make_unique<ImageInfo>(

@@ -6,7 +6,6 @@
 #include "../../Spatials/Components/Spatial.hpp"
 #include "../Components/LineDraw.hpp"
 #include "../Models/LineDraw.hpp"
-#include "../Models/LineVertex.hpp"
 #include "../../Scenes/Draws/SceneDraw.hpp"
 #include "../Pipelines/LinePipeline.hpp"
 #include <typeindex>
@@ -29,7 +28,7 @@ namespace drk::Lines::Systems {
 		model.materialItemLocation = materialModel.frameStoreItems[engineState.getFrameIndex()];
 	}
 	void LineSystem::createResources() {
-		std::string lineMeshName = "Line";
+		std::string lineMeshName;
 		Models::LineVertex lineOriginVertex{
 			.position = glm::vec4(0.0, 0.0, 0.0, 1.0),
 			.diffuseColor = glm::vec4(0.0, 1.0, 0.0, 1.0),
@@ -42,14 +41,14 @@ namespace drk::Lines::Systems {
 		};
 		vk::DeviceSize vertexOffset = 0;
 		vk::DeviceSize indexOffset = 0;
-		std::vector<Models::LineVertex> lineVertices{ lineOriginVertex, lineEndVertex };
+		std::vector<Models::LineVertex> lineVertices{lineOriginVertex, lineEndVertex};
 		auto vertexResult = Devices::Device::uploadBuffers<Models::LineVertex>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{ lineVertices },
+			{lineVertices},
 			vk::BufferUsageFlagBits::eVertexBuffer
 		);
 		auto vertexBuffer = vertexResult.buffer;
@@ -58,14 +57,14 @@ namespace drk::Lines::Systems {
 			.byteOffset = vertexOffset,
 			.byteLength = sizeof(Lines::Models::LineVertex) * lineVertices.size()
 		};
-		std::vector<unsigned int> lineIndices{ 0u, 1u };
+		std::vector<unsigned int> lineIndices{0u, 1u};
 		auto indexResult = Devices::Device::uploadBuffers<unsigned int>(
 			deviceContext.PhysicalDevice,
 			deviceContext.device,
 			deviceContext.GraphicQueue,
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
-			{ lineIndices },
+			{lineIndices},
 			vk::BufferUsageFlagBits::eIndexBuffer
 		);
 		auto indexBuffer = indexResult.buffer;
@@ -92,9 +91,9 @@ namespace drk::Lines::Systems {
 	void LineSystem::emitDraws() {
 		auto lineEntities = registry.view<
 			Stores::StoreItem<Models::Line>,
-			Components::Line, 
+			Components::Line,
 			Spatials::Components::Spatial<Spatials::Components::Absolute>,
-			Stores::StoreItem<Objects::Models::Object>>(entt::exclude<Models::LineDraw>);
+			Stores::StoreItem<Nodes::Models::Object>>(entt::exclude<Models::LineDraw>);
 		auto hasEntities = lineEntities.begin() != lineEntities.end();
 		if (hasEntities) {
 			auto cameraEntity = engineState.cameraEntity;
@@ -106,31 +105,31 @@ namespace drk::Lines::Systems {
 					auto& line,
 					auto& spatial,
 					auto& objectStoreItem
-					) {
-						const auto& lineStoreItemLocation = lineStoreItem.frameStoreItems[engineState.getFrameIndex()];
-						const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
-						const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(line.materialEntity);
+				) {
+					const auto& lineStoreItemLocation = lineStoreItem.frameStoreItems[engineState.getFrameIndex()];
+					const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
+					const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(line.materialEntity);
 
-						Scenes::Draws::SceneDraw draw = {
-							.drawSystem = this,
-							.pipelineTypeIndex = std::type_index(typeid(Pipelines::LinePipeline)),
-							.indexBufferView = lineIndexBufferView,
-							.vertexBufferView = lineVertexBufferView,
-							.hasTransparency = material->hasTransparency,
-							.depth = glm::distance(camera.absolutePosition, spatial.position)
-						};
-						Models::LineDraw lineDraw = {
-							.lineItemLocation = lineStoreItemLocation,
-							.objectItemLocation = objectStoreItemLocation
-						};
+					Scenes::Draws::SceneDraw draw = {
+						.drawSystem = this,
+						.pipelineTypeIndex = std::type_index(typeid(Pipelines::LinePipeline)),
+						.indexBufferView = lineIndexBufferView,
+						.vertexBufferView = lineVertexBufferView,
+						.hasTransparency = material->hasTransparency,
+						.depth = glm::distance(camera.absolutePosition, spatial.position)
+					};
+					Models::LineDraw lineDraw = {
+						.lineItemLocation = lineStoreItemLocation,
+						.objectItemLocation = objectStoreItemLocation
+					};
 
-						//auto entity = registry.create();
-						registry.emplace<Scenes::Draws::SceneDraw>(lineEntity, draw);
-						registry.emplace<Models::LineDraw>(lineEntity, lineDraw);
-						registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
-							lineEntity,
-							engineState.getFrameCount()
-						);
+					//auto entity = registry.create();
+					registry.emplace<Scenes::Draws::SceneDraw>(lineEntity, draw);
+					registry.emplace<Models::LineDraw>(lineEntity, lineDraw);
+					registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
+						lineEntity,
+						engineState.getFrameCount()
+					);
 				}
 			);
 		}

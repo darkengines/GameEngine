@@ -3,8 +3,6 @@
 
 #include "FrustumPipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
-#include "../../Objects/Models/Object.hpp"
-#include "../../Cameras/Components/Camera.hpp"
 #include "../Models/Vertex.hpp"
 #include "../Models/FrustumDraw.hpp"
 #include "../../Draws/Models/Draw.hpp"
@@ -21,7 +19,7 @@ namespace drk::Frustums::Pipelines {
 			descriptorSetLayouts.storeDescriptorSetLayout,
 			descriptorSetLayouts.globalDescriptorSetLayout,
 			descriptorSetLayouts.storeDescriptorSetLayout
-	},
+		},
 		pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
 		engineState(engineState) {
 		createShaderModules();
@@ -41,7 +39,7 @@ namespace drk::Frustums::Pipelines {
 	void FrustumPipeline::createPipeline(const vk::GraphicsPipelineCreateInfo& graphicPipelineCreateInfo) {
 
 		auto result = deviceContext.device.createGraphicsPipeline(VK_NULL_HANDLE, graphicPipelineCreateInfo);
-		if ((VkResult)result.result != VK_SUCCESS) {
+		if ((VkResult) result.result != VK_SUCCESS) {
 			throw new std::runtime_error("Failed to create main graphic pipeline.");
 		}
 		pipeline = result.value;
@@ -78,7 +76,7 @@ namespace drk::Frustums::Pipelines {
 		pipelineInputAssemblyStateCreateInfo.topology = vk::PrimitiveTopology::eLineList;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{ 1024u, 768u },
+			{1024u, 768u},
 			viewport,
 			scissor
 		);
@@ -111,14 +109,15 @@ namespace drk::Frustums::Pipelines {
 		deviceContext.device.waitIdle();
 		deviceContext.device.destroyPipeline(pipeline);
 	}
-	Draws::Components::DrawVertexBufferInfo FrustumPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
-		return Draws::Components::DrawVertexBufferInfo{ 24, 0, 0 };
+	Draws::Components::DrawVertexBufferInfo
+	FrustumPipeline::getBufferInfo(const entt::registry& registry, entt::entity drawEntity) const {
+		return Draws::Components::DrawVertexBufferInfo{24, 0, 0};
 	}
 	vk::PipelineLayout
-		FrustumPipeline::createPipelineLayout(
-			const Devices::DeviceContext& deviceContext,
-			const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
-		) {
+	FrustumPipeline::createPipelineLayout(
+		const Devices::DeviceContext& deviceContext,
+		const std::array<vk::DescriptorSetLayout, 4>& descriptorSetLayouts
+	) {
 		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
 			.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
 			.pSetLayouts = descriptorSetLayouts.data(),

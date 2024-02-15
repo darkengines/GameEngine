@@ -8,8 +8,8 @@ namespace drk::Engine {
 
 	class DescriptorSetAllocator {
 	public:
-		DescriptorSetAllocator(const Devices::DeviceContext& deviceContext);
-		DescriptorSetAllocator(DescriptorSetAllocator&& descriptorSetAllocator);
+		explicit DescriptorSetAllocator(const Devices::DeviceContext& deviceContext);
+		DescriptorSetAllocator(DescriptorSetAllocator&& descriptorSetAllocator) noexcept ;
 		~DescriptorSetAllocator();
 
 		std::vector<vk::DescriptorSet>

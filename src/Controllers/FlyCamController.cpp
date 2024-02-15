@@ -2,13 +2,11 @@
 #include "../Cameras/Components/Camera.hpp"
 #include "../Spatials/Components/Spatial.hpp"
 #include "../GlmExtensions.hpp"
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include <glm/gtx/quaternion.hpp>
 #include "../Graphics/SynchronizationState.hpp"
 #include "../Spatials/Models/Spatial.hpp"
-#include "../Objects/Components/Dirty.hpp"
+#include "../Common/Components/Dirty.hpp"
 #include <imgui.h>
 
 namespace drk::Controllers {
@@ -60,7 +58,7 @@ namespace drk::Controllers {
 	}
 
 	void FlyCamController::OnCursorPositionEvent(double xpos, double ypos) {
-		glm::vec2 mousePosition{ xpos, ypos };
+		glm::vec2 mousePosition{xpos, ypos};
 		if (LastMousePosition.has_value()) {
 			MousePositionDelta = (mousePosition - *LastMousePosition) * 0.0005f;
 		}
@@ -123,7 +121,9 @@ namespace drk::Controllers {
 		}
 		if (hasUpdate) {
 			Registry.emplace_or_replace<Graphics::SynchronizationState<Spatials::Models::Spatial>>(CameraEntity, 2u);
-			Registry.emplace_or_replace<Objects::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>(CameraEntity);
+			Registry.emplace_or_replace<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>(
+				CameraEntity
+			);
 		}
 	}
 }

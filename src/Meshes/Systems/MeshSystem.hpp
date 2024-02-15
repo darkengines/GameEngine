@@ -22,10 +22,10 @@
 #include "../../Materials/Components/MaterialReference.hpp"
 
 namespace drk::Meshes::Systems {
-	class MeshSystem : 
-		public Draws::Systems::DrawSystem, 
+	class MeshSystem :
+		public Draws::Systems::DrawSystem,
 		public drk::Systems::System<
-			Models::Mesh, 
+			Models::Mesh,
 			Materials::Components::MaterialReference
 		> {
 	protected:
@@ -35,7 +35,7 @@ namespace drk::Meshes::Systems {
 		Resources::MeshResourceManager& meshResourceManager;
 	public:
 		void update(
-			Models::Mesh& model, 
+			Models::Mesh& model,
 			const Materials::Components::MaterialReference&
 		) override;
 	protected:
@@ -51,12 +51,12 @@ namespace drk::Meshes::Systems {
 		~MeshSystem();
 		void onCameraChanged(entt::entity cameraEntity);
 		void uploadMeshes();
-		void emitDraws();
+		void emitDraws() override;
 		void doOperations(MeshSystemOperation operations);
-		void updateDraw(entt::entity drawEntity, int drawIndex);
+		void updateDraw(entt::entity drawEntity, int drawIndex) override;
 		Draws::Components::DrawVertexBufferInfo getVertexBufferInfo(entt::entity drawEntity);
 		static entt::entity
-			copyMeshEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
+		copyMeshEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
 		void processDirtyDraws();
 	};
 }

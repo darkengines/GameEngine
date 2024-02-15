@@ -3,7 +3,7 @@
 #include "../../Systems/System.hpp"
 #include "../Models/AxisAlignedBoundingBox.hpp"
 #include "../Components/AxisAlignedBoundingBox.hpp"
-#include "../../Objects/Components/Dirty.hpp"
+#include "../../Common/Components/Dirty.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
 #include "../../Draws/Systems/DrawSystem.hpp"
 #include "../../Objects/Components/ObjectReference.hpp"
@@ -15,7 +15,7 @@ namespace drk::BoundingVolumes::Systems {
 		public drk::Systems::System<
 			Models::AxisAlignedBoundingBox,
 			Components::AxisAlignedBoundingBox,
-			Objects::Components::ObjectReference,
+			Nodes::Components::ObjectReference,
 			Meshes::Components::MeshReference
 		> {
 	public:
@@ -28,7 +28,7 @@ namespace drk::BoundingVolumes::Systems {
 		void update(
 			Models::AxisAlignedBoundingBox& axisAlignedBoundingBoxModel,
 			const Components::AxisAlignedBoundingBox& axisAlignedBoundingBox,
-			const Objects::Components::ObjectReference& objectReference,
+			const Nodes::Components::ObjectReference& objectReference,
 			const Meshes::Components::MeshReference& meshReference
 		) override;
 		void createResources();
@@ -41,7 +41,7 @@ namespace drk::BoundingVolumes::Systems {
 		Devices::BufferView vertexBufferView;
 		Devices::BufferView indexBufferView;
 
-		// Hérité via DrawSystem
+		// Hï¿½ritï¿½ via DrawSystem
 		void updateDraw(entt::entity drawEntity, int drawIndex) override;
 	};
 }

@@ -3,9 +3,8 @@
 #include <vector>
 #include <entt/entt.hpp>
 
-namespace drk::Objects::Components {
-	struct ObjectMeshCollection
-	{
+namespace drk::Nodes::Components {
+	struct ObjectMeshCollection {
 		std::vector<entt::entity> objectMeshes;
 	};
 }

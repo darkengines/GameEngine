@@ -1,6 +1,6 @@
 #define BOOST_DI_CFG_DIAGNOSTICS_LEVEL 2
 #include <vulkan/vulkan.hpp>
-#include "implemantations.hpp"
+#include "implementations.hpp"
 #include "Devices/Device.hpp"
 #include "Windows/Window.hpp"
 #include "Windows/Extensions.hpp"
@@ -33,8 +33,21 @@
 #include "BoundingVolumes/Extensions.hpp"
 #include "Frustums/Extensions.hpp"
 #include "Animations/Extensions.hpp"
+#include "FreeList/FreeList.hpp"
 
 int main(int argc, char** argv) {
+
+	drk::FreeList freeList = drk::FreeList::create(1024);
+	auto a512 = freeList.allocate(512);
+	auto a256 = freeList.allocate(256);
+	auto b256 = freeList.allocate(256);
+	drk::FreeBlock aFreeBlock = {0, 64};
+	drk::FreeBlock bFreeBlock = {128, 64};
+	drk::FreeBlock cFreeBlock = {64, 64};
+	freeList.free(aFreeBlock);
+	freeList.free(bFreeBlock);
+	freeList.free(cFreeBlock);
+	freeList.allocate(150);
 
 	auto currentPath = std::filesystem::current_path();
 
@@ -48,7 +61,7 @@ int main(int argc, char** argv) {
 		drk::Loaders::AddLoaders(),
 		drk::Materials::AddMaterials(),
 		drk::Meshes::AddMeshes(),
-		drk::Objects::AddObjects(),
+		drk::Nodes::AddObjects(),
 		drk::Relationships::AddRelationships(),
 		drk::Spatials::AddSpatials(),
 		drk::Textures::AddTextures(),
