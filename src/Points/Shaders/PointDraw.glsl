@@ -2,5 +2,5 @@
 
 struct PointDraw {
     StoreItemLocation pointItemLocation;
-    StoreItemLocation objectItemLocation;
+    StoreItemLocation nodeItemLocation;
 };

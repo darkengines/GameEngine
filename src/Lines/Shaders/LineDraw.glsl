@@ -2,5 +2,5 @@
 
 struct LineDraw {
     StoreItemLocation lineItemLocation;
-    StoreItemLocation objectItemLocation;
+    StoreItemLocation nodeItemLocation;
 };

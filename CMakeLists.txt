@@ -308,7 +308,7 @@ file(
     src/Meshes/Pipelines/ShadowMeshPipeline.cpp
     src/Meshes/Systems/MeshShadowSystem.cpp
     src/Meshes/Systems/MeshSystem.cpp
-    src/Objects/Systems/ObjectSystem.cpp
+    src/Nodes/Systems/NodeSystem.cpp
     src/Planes/Components/Plane.cpp
     src/Planes/Systems/PlaneSystem.cpp
     src/Points/Models/PointVertex.cpp

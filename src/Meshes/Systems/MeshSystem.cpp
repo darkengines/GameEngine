@@ -91,13 +91,13 @@ namespace drk::Meshes::Systems {
 		const auto& [meshDraw, meshReference, objectReference] = registry.get<
 			Components::MeshDraw,
 			Components::MeshReference,
-			Nodes::Components::ObjectReference
+			Nodes::Components::NodeReference
 		>(drawEntity);
 		auto& frameState = engineState.getCurrentFrameState();
 		//todo: optimization - fetch uniform store in parent scope and give as argument
 		auto& drawStore = frameState.getUniformStore<Models::MeshDraw>();
 		auto& meshStoreItem = registry.get<Stores::StoreItem<Models::Mesh>>(meshReference.meshEntity);
-		auto& objectStoreItem = registry.get<Stores::StoreItem<Nodes::Models::Object>>(objectReference.objectEntity);
+		auto& objectStoreItem = registry.get<Stores::StoreItem<Nodes::Models::Node>>(objectReference.nodeEntity);
 		auto& cameraStoreItem = registry.get<Stores::StoreItem<Cameras::Models::Camera>>(engineState.cameraEntity);
 		const auto& meshItemLocation = drawStore.get(drawIndex);
 		auto frameIndex = engineState.getFrameIndex();
@@ -111,7 +111,7 @@ namespace drk::Meshes::Systems {
 			Stores::StoreItem<Cameras::Models::Camera>
 		>(engineState.cameraEntity);
 		auto objectMeshEntities = registry.view<
-			Nodes::Components::ObjectReference,
+			Nodes::Components::NodeReference,
 			Meshes::Components::MeshReference,
 			Meshes::Components::Mesh
 		>(entt::exclude<Components::MeshDraw>);
@@ -120,7 +120,7 @@ namespace drk::Meshes::Systems {
 		objectMeshEntities.each(
 			[&](
 				entt::entity objectMeshEntity,
-				const Nodes::Components::ObjectReference& objectReference,
+				const Nodes::Components::NodeReference& objectReference,
 				const Meshes::Components::MeshReference& meshReference,
 				const Meshes::Components::Mesh& mesh
 			) {
@@ -130,7 +130,7 @@ namespace drk::Meshes::Systems {
 					Materials::Components::MaterialReference
 				>(meshReference.meshEntity);
 				const auto& spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(
-					objectReference.objectEntity
+					objectReference.nodeEntity
 				);
 				auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(materialReference.materialEntity);
 				auto animationVertexBufferViewPtr = registry.try_get<Animations::Components::SkinnedBufferView>(
@@ -170,19 +170,19 @@ namespace drk::Meshes::Systems {
 		)) {
 			auto camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
 			auto view = registry.view<
-				Nodes::Components::ObjectReference,
+				Nodes::Components::NodeReference,
 				Components::MeshDraw,
 				Scenes::Draws::SceneDraw
 			>();
 			view.each(
 				[&](
 					entt::entity objectMeshEntity,
-					const Nodes::Components::ObjectReference& objectReference,
+					const Nodes::Components::NodeReference& objectReference,
 					const Components::MeshDraw& meshDraw,
 					Scenes::Draws::SceneDraw& sceneDraw
 				) {
 					const auto& spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(
-						objectReference.objectEntity
+						objectReference.nodeEntity
 					);
 					sceneDraw.depth = glm::distance(camera.absolutePosition, spatial.position);
 					registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(

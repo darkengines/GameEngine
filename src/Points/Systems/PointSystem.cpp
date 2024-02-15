@@ -1,6 +1,6 @@
 
 #include "PointSystem.hpp"
-#include "../../Objects/Models/Object.hpp"
+#include "../../Nodes/Models/Node.hpp"
 #include "../../Materials/Models/Material.hpp"
 #include "../../Cameras/Components/Camera.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
@@ -85,7 +85,7 @@ namespace drk::Points::Systems {
 			Stores::StoreItem<Models::Point>,
 			Components::Point,
 			Spatials::Components::Spatial<Spatials::Components::Absolute>,
-			Stores::StoreItem<Nodes::Models::Object>
+			Stores::StoreItem<Nodes::Models::Node>
 		>(entt::exclude<Models::PointDraw>);
 
 		auto cameraEntity = engineState.cameraEntity;

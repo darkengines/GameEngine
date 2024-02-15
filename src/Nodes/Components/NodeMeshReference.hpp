@@ -1,7 +1,7 @@
-#include <entt/entt.hpp>
+#include "entt/entt.hpp"
 
 namespace drk::Nodes::Components {
-	struct ObjectMeshReference {
+	struct NodeMeshReference {
 		entt::entity meshInstanceEntity;
 	};
 }

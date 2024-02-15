@@ -4,7 +4,7 @@
 #include "../../Common/Components/Name.hpp"
 #include "../../Common/Components/Dirty.hpp"
 #include "../../Nodes/Components/Node.hpp"
-#include "../../Objects/Components/ObjectMeshCollection.hpp"
+#include "../../Nodes/Components/NodeMeshCollection.hpp"
 #include <algorithm>
 #include "glm/gtx/quaternion.hpp"
 #include "entt/entt.hpp"
@@ -102,11 +102,11 @@ namespace drk::Spatials::Systems {
 				entt::entity entity,
 				const Nodes::Components::Node& relationship
 			) {
-				const Nodes::Components::ObjectMeshCollection* objectMeshCollection = registry.try_get<Nodes::Components::ObjectMeshCollection>(
+				const Nodes::Components::NodeMeshCollection* objectMeshCollection = registry.try_get<Nodes::Components::NodeMeshCollection>(
 					entity
 				);
 				if (objectMeshCollection != nullptr) {
-					for (entt::entity objectMeshEntity: objectMeshCollection->objectMeshes) {
+					for (entt::entity objectMeshEntity: objectMeshCollection->nodeMeshes) {
 						registry.emplace_or_replace<Common::Components::Dirty<Components::Spatial<Components::Relative>>>(
 							objectMeshEntity
 						);

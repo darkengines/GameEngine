@@ -10,7 +10,7 @@ namespace drk::Meshes::Components {
 		std::shared_ptr<MeshResource> meshResource;
 		MeshBufferView meshBufferView;
 		entt::entity meshEntity;
-		entt::entity objectEntity;
+		entt::entity nodeEntity;
 		entt::entity cameraEntity;
 		entt::entity lightPerspectiveEntity;
 		entt::entity lightPerspectiveSpatialEntity;

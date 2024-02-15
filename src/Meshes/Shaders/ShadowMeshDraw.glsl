@@ -2,7 +2,7 @@
 
 struct ShadowMeshDraw {
     StoreItemLocation meshItemLocation;
-    StoreItemLocation objectItemLocation;
+    StoreItemLocation nodeItemLocation;
     StoreItemLocation cameraItemLocation;
     StoreItemLocation lightPerspectiveItemLocation;
     StoreItemLocation lightPerspectiveSpatialItemLocation;

@@ -22,10 +22,10 @@
 #include "../Materials/Components/MaterialReference.hpp"
 #include "../Meshes/Components/Mesh.hpp"
 #include "../Nodes/Components/Node.hpp"
-#include "../Objects/Components/ObjectReference.hpp"
+#include "../Nodes/Components/NodeReference.hpp"
 #include "../Meshes/Components/MeshReference.hpp"
-#include "../Objects/Components/ObjectMeshCollection.hpp"
-#include "../Objects/Components/ObjectMeshReference.hpp"
+#include "../Nodes/Components/NodeMeshCollection.hpp"
+#include "../Nodes/Components/NodeMeshReference.hpp"
 #include "AssimpLoader.hpp"
 #include <algorithm>
 #include <assimp/postprocess.h>
@@ -251,30 +251,30 @@ namespace drk::Loaders {
 		}
 	}
 	void AssimpLoader::postProcessSkinnedMeshes(entt::registry& registry) {
-		registry.sort<Nodes::Components::ObjectMeshReference>(
+		registry.sort<Nodes::Components::NodeMeshReference>(
 			[](
-				const Nodes::Components::ObjectMeshReference& left,
-				const Nodes::Components::ObjectMeshReference& right
+				const Nodes::Components::NodeMeshReference& left,
+				const Nodes::Components::NodeMeshReference& right
 			) {
 				return left.meshInstanceEntity < right.meshInstanceEntity;
 			}
 		);
 		auto meshBoneInstances = registry.view<
-			Nodes::Components::ObjectReference,
+			Nodes::Components::NodeReference,
 			Animations::Components::RootBoneInstanceReference,
 			Animations::Components::BoneReference,
-			Nodes::Components::ObjectMeshReference
+			Nodes::Components::NodeMeshReference
 		>(entt::exclude<PostProcessed>);
-		meshBoneInstances.use<Nodes::Components::ObjectMeshReference>();
+		meshBoneInstances.use<Nodes::Components::NodeMeshReference>();
 		std::vector<std::pair<entt::entity, std::vector<entt::entity>>> skinnedMeshInstances;
 		entt::entity previousMeshInstanceEntity = entt::null;
 		meshBoneInstances.each(
 			[&previousMeshInstanceEntity, &skinnedMeshInstances, &registry](
 				entt::entity objectMeshEntity,
-				const Nodes::Components::ObjectReference& objectReference,
+				const Nodes::Components::NodeReference& objectReference,
 				const Animations::Components::RootBoneInstanceReference& rootBoneInstanceReference,
 				const Animations::Components::BoneReference& boneReference,
-				const Nodes::Components::ObjectMeshReference& objectMeshReference
+				const Nodes::Components::NodeMeshReference& objectMeshReference
 			) {
 				if (previousMeshInstanceEntity != objectMeshReference.meshInstanceEntity) {
 					skinnedMeshInstances.emplace_back(
@@ -292,7 +292,7 @@ namespace drk::Loaders {
 			std::vector<Animations::Components::VertexWeightInstance> instanceSkinnedVertices;
 			for (const auto& instance: skinnedMeshInstance.second) {
 				const auto& [objectReference, rootBoneInstanceReference, boneReference] = registry.get<
-					Nodes::Components::ObjectReference,
+					Nodes::Components::NodeReference,
 					Animations::Components::RootBoneInstanceReference,
 					Animations::Components::BoneReference
 				>(instance);
@@ -305,7 +305,7 @@ namespace drk::Loaders {
 					instanceSkinnedVertices.emplace_back(
 						vertexWeight.vertexIndex,
 						vertexWeight.weight,
-						objectReference.objectEntity,
+						objectReference.nodeEntity,
 						boneReference.boneEntity
 					);
 					vertexWeightIndex++;
@@ -979,7 +979,7 @@ namespace drk::Loaders {
 		auto nodeAnimationEntityEntry = aiNodeNameNodeAnimationMap.find(assimpNode->mName.C_Str());
 		if (nodeAnimationEntityEntry != aiNodeNameNodeAnimationMap.end()) {
 			auto nodeAnimationEntity = nodeAnimationEntityEntry->second;
-			registry.emplace<Nodes::Components::ObjectReference>(nodeAnimationEntity, entity);
+			registry.emplace<Nodes::Components::NodeReference>(nodeAnimationEntity, entity);
 		}
 
 		auto boneEntityEntry = aiBonePtrBoneEntityMap.find(assimpNode->mName.C_Str());
@@ -989,7 +989,7 @@ namespace drk::Loaders {
 			auto boneInstanceEntity = registry.create();
 			for (auto meshBoneEntity: meshBoneCollection.meshBoneEntities) {
 				auto meshBoneInstanceEntity = registry.create();
-				registry.emplace<Nodes::Components::ObjectReference>(meshBoneInstanceEntity, entity);
+				registry.emplace<Nodes::Components::NodeReference>(meshBoneInstanceEntity, entity);
 				registry.emplace<Animations::Components::BoneReference>(meshBoneInstanceEntity, meshBoneEntity);
 				registry.emplace<Animations::Components::RootBoneInstanceReference>(
 					meshBoneInstanceEntity,
@@ -997,7 +997,7 @@ namespace drk::Loaders {
 				);
 				const auto& meshReference = registry.get<Meshes::Components::MeshReference>(meshBoneEntity);
 				auto& map = meshEntityInstanceEntityMap.top();
-				registry.emplace<Nodes::Components::ObjectMeshReference>(
+				registry.emplace<Nodes::Components::NodeMeshReference>(
 					meshBoneInstanceEntity,
 					map[meshReference.meshEntity]
 				);
@@ -1010,14 +1010,14 @@ namespace drk::Loaders {
 			rootBoneInstanceEntity = entt::null;
 		}
 		if (assimpNode->mNumMeshes) {
-			Nodes::Components::ObjectMeshCollection objectMeshCollection;
+			Nodes::Components::NodeMeshCollection objectMeshCollection;
 			for (auto meshIndex = 0u; meshIndex < assimpNode->mNumMeshes; meshIndex++) {
 				auto& aiMesh = assimpNode->mMeshes[meshIndex];
 				auto meshEntity = loadResult.meshIdEntityMap[assimpNode->mMeshes[meshIndex]];
 				auto objectMeshEntity = registry.create();
 				auto& map = meshEntityInstanceEntityMap.top();
 				map[meshEntity] = objectMeshEntity;
-				registry.emplace<Nodes::Components::ObjectReference>(objectMeshEntity, entity);
+				registry.emplace<Nodes::Components::NodeReference>(objectMeshEntity, entity);
 				registry.emplace<Meshes::Components::MeshReference>(objectMeshEntity, meshEntity);
 				registry.emplace<Meshes::Components::Mesh>(objectMeshEntity);
 
@@ -1033,9 +1033,9 @@ namespace drk::Loaders {
 				auto boneCollection = registry.try_get<Animations::Components::BoneCollection>(meshEntity);
 				if (boneCollection != nullptr) registry.emplace<Animations::Components::Skinned>(objectMeshEntity);
 
-				objectMeshCollection.objectMeshes.push_back(objectMeshEntity);
+				objectMeshCollection.nodeMeshes.push_back(objectMeshEntity);
 			}
-			registry.emplace<Nodes::Components::ObjectMeshCollection>(entity, std::move(objectMeshCollection));
+			registry.emplace<Nodes::Components::NodeMeshCollection>(entity, std::move(objectMeshCollection));
 		}
 
 		if (shouldEmplaceSpatial)

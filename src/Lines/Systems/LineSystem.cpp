@@ -1,6 +1,6 @@
 
 #include "LineSystem.hpp"
-#include "../../Objects/Models/Object.hpp"
+#include "../../Nodes/Models/Node.hpp"
 #include "../../Materials/Models/Material.hpp"
 #include "../../Cameras/Components/Camera.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
@@ -93,7 +93,7 @@ namespace drk::Lines::Systems {
 			Stores::StoreItem<Models::Line>,
 			Components::Line,
 			Spatials::Components::Spatial<Spatials::Components::Absolute>,
-			Stores::StoreItem<Nodes::Models::Object>>(entt::exclude<Models::LineDraw>);
+			Stores::StoreItem<Nodes::Models::Node>>(entt::exclude<Models::LineDraw>);
 		auto hasEntities = lineEntities.begin() != lineEntities.end();
 		if (hasEntities) {
 			auto cameraEntity = engineState.cameraEntity;

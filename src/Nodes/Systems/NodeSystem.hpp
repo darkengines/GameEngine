@@ -2,8 +2,8 @@
 
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
-#include "../Models/Object.hpp"
-#include "../../Nodes/Components/Node.hpp"
+#include "../Models/Node.hpp"
+#include "../Components/Node.hpp"
 #include "../../Meshes/Models/Mesh.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
 #include "../../Spatials/Models/RelativeSpatial.hpp"
@@ -11,21 +11,21 @@
 #include "../../Loaders/LoadResult.hpp"
 
 namespace drk::Nodes::Systems {
-	class ObjectSystem : public drk::Systems::System<
-		Models::Object,
+	class NodeSystem : public drk::Systems::System<
+		Models::Node,
 		Stores::StoreItem<Spatials::Models::Spatial>,
 		Stores::StoreItem<Spatials::Models::RelativeSpatial>
 	> {
 	protected:
 		const Devices::DeviceContext& DeviceContext;
 		void update(
-			Models::Object& objectModel,
+			Models::Node& objectModel,
 			const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem,
 			const Stores::StoreItem<Spatials::Models::RelativeSpatial>& relativeSpatialStoreItem
 		);
 
 	public:
-		ObjectSystem(
+		NodeSystem(
 			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
 			entt::registry& registry

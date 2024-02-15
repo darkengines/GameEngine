@@ -1,6 +1,6 @@
 #include "../../Graphics/Shaders/StoreItemLocation.glsl"
 
-struct Object {
+struct Node {
     StoreItemLocation spatialItemLocation;
     StoreItemLocation relativeSpatialItemLocation;
 };

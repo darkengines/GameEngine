@@ -2,6 +2,6 @@
 
 struct MeshDraw {
     StoreItemLocation meshItemLocation;
-    StoreItemLocation objectItemLocation;
+    StoreItemLocation nodeItemLocation;
     StoreItemLocation cameraItemLocation;
 };

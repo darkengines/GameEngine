@@ -1,7 +1,7 @@
 
 #include "AssetExplorer.hpp"
 #include "../Nodes/Components/Node.hpp"
-#include "../Objects/Systems/ObjectSystem.hpp"
+#include "../Nodes/Systems/NodeSystem.hpp"
 #include "../Spatials/Systems/SpatialSystem.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
 #include "../Common/Components/Name.hpp"
@@ -34,7 +34,7 @@ namespace drk::UserInterfaces {
 			ImGui::SameLine();
 			ImGui::PushID((void*) entity);
 			if (ImGui::Button("Copy##node")) {
-				Nodes::Systems::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
+				Nodes::Systems::NodeSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
 			}
 			ImGui::PopID();
 			if (isOpen) {
@@ -48,7 +48,7 @@ namespace drk::UserInterfaces {
 			ImGui::SameLine();
 			ImGui::PushID((void*) entity);
 			if (ImGui::Button("Copy##leaf")) {
-				Nodes::Systems::ObjectSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
+				Nodes::Systems::NodeSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
 			}
 			ImGui::PopID();
 		}

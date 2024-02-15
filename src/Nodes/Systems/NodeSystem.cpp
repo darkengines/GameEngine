@@ -1,18 +1,18 @@
-#include "ObjectSystem.hpp"
+#include "NodeSystem.hpp"
 #include "../../Meshes/Systems/MeshSystem.hpp"
 #include "../../Common/Components/Name.hpp"
 
 namespace drk::Nodes {
 
-	Systems::ObjectSystem::ObjectSystem(
+	Systems::NodeSystem::NodeSystem(
 		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
 		entt::registry& registry
 	)
 		: System(engineState, registry), DeviceContext(deviceContext) {}
 
-	void Systems::ObjectSystem::update(
-		Models::Object& objectModel,
+	void Systems::NodeSystem::update(
+		Models::Node& objectModel,
 		const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem,
 		const Stores::StoreItem<Spatials::Models::RelativeSpatial>& relativeSpatialStoreItem
 	) {
@@ -24,7 +24,7 @@ namespace drk::Nodes {
 		objectModel.relativeSpatialItemLocation.itemIndex = relativeSpatialItemLocation.index;
 	}
 	entt::entity
-	Systems::ObjectSystem::copyObjectEntity(
+	Systems::NodeSystem::copyObjectEntity(
 		const entt::registry& source,
 		entt::registry& destination,
 		entt::entity sourceEntity,
@@ -32,7 +32,7 @@ namespace drk::Nodes {
 		entt::entity previousSibling
 	) {
 		const auto& sourceNameComponent = source.get<Common::Components::Name>(sourceEntity);
-		auto objectMeshes = source.view<Components::ObjectReference, Meshes::Components::MeshReference>();
+		auto objectMeshes = source.view<Components::NodeReference, Meshes::Components::MeshReference>();
 		auto sourceSpatial = source.try_get<Spatials::Components::Spatial<Spatials::Components::Relative>>(sourceEntity);
 		auto sourceRelationship = source.try_get<Components::Node>(sourceEntity);
 
@@ -46,10 +46,10 @@ namespace drk::Nodes {
 		objectMeshes.each(
 			[&](
 				entt::entity sourceObjectMeshEntity,
-				const Nodes::Components::ObjectReference& objectReference,
+				const Nodes::Components::NodeReference& objectReference,
 				const Meshes::Components::MeshReference& meshReference
 			) {
-				if (objectReference.objectEntity == sourceEntity) {
+				if (objectReference.nodeEntity == sourceEntity) {
 					auto destinationObjectMeshEntity = destination.create();
 					auto destinationMeshEntity = Meshes::Systems::MeshSystem::copyMeshEntity(
 						source,
@@ -57,7 +57,7 @@ namespace drk::Nodes {
 						meshReference.meshEntity
 					);
 
-					destination.emplace<Nodes::Components::ObjectReference>(
+					destination.emplace<Nodes::Components::NodeReference>(
 						destinationObjectMeshEntity,
 						destinationObjectMeshEntity
 					);

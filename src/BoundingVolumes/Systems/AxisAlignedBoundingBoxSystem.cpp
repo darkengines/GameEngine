@@ -3,7 +3,7 @@
 #include "../../Cameras/Components/Camera.hpp"
 #include "../../Cameras/Models/Camera.hpp"
 #include "../Components/Draw.hpp"
-#include "../../Objects/Models/Object.hpp"
+#include "../../Nodes/Models/Node.hpp"
 #include "../Pipelines/BoundingVolumePipeline.hpp"
 #include "../../Scenes/Draws/SceneDraw.hpp"
 #include "../Components/HasDraw.hpp"
@@ -18,7 +18,7 @@ namespace drk::BoundingVolumes::Systems {
 	) : System<
 		Models::AxisAlignedBoundingBox,
 		Components::AxisAlignedBoundingBox,
-		Nodes::Components::ObjectReference,
+		Nodes::Components::NodeReference,
 		Meshes::Components::MeshReference
 	>(engineState, registry), deviceContext(deviceContext) {
 		createResources();
@@ -26,7 +26,7 @@ namespace drk::BoundingVolumes::Systems {
 	void AxisAlignedBoundingBoxSystem::update(
 		Models::AxisAlignedBoundingBox& axisAlignedBoundingBoxModel,
 		const Components::AxisAlignedBoundingBox& axisAlignedBoundingBox,
-		const Nodes::Components::ObjectReference& objectReference,
+		const Nodes::Components::NodeReference& objectReference,
 		const Meshes::Components::MeshReference& meshReference
 	) {
 		axisAlignedBoundingBoxModel.center = axisAlignedBoundingBox.absoluteCenter;
@@ -114,7 +114,7 @@ namespace drk::BoundingVolumes::Systems {
 	void AxisAlignedBoundingBoxSystem::processDirty() {
 		auto view = registry.view<
 			Components::AxisAlignedBoundingBox,
-			Nodes::Components::ObjectReference,
+			Nodes::Components::NodeReference,
 			Meshes::Components::MeshReference,
 			Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>
 		>();
@@ -122,11 +122,11 @@ namespace drk::BoundingVolumes::Systems {
 			[this](
 				entt::entity entity,
 				Components::AxisAlignedBoundingBox& axisAlignedBoundingBox,
-				const Nodes::Components::ObjectReference& objectReference,
+				const Nodes::Components::NodeReference& objectReference,
 				const Meshes::Components::MeshReference& meshReference
 			) {
 				auto spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(
-					objectReference.objectEntity
+					objectReference.nodeEntity
 				);
 				axisAlignedBoundingBox.inplaceTransform(spatial.model);
 				registry.emplace_or_replace<Graphics::SynchronizationState<Models::AxisAlignedBoundingBox>>(
@@ -139,7 +139,7 @@ namespace drk::BoundingVolumes::Systems {
 	void AxisAlignedBoundingBoxSystem::emitDraws() {
 		const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
 		auto objectMeshEntities = registry.view<
-			Nodes::Components::ObjectReference,
+			Nodes::Components::NodeReference,
 			Meshes::Components::MeshReference,
 			Meshes::Components::Mesh
 		>(entt::exclude<Components::HasDraw>);
@@ -147,7 +147,7 @@ namespace drk::BoundingVolumes::Systems {
 		objectMeshEntities.each(
 			[&](
 				entt::entity objectMeshEntity,
-				const Nodes::Components::ObjectReference& objectReference,
+				const Nodes::Components::NodeReference& objectReference,
 				const Meshes::Components::MeshReference& meshReference,
 				const Meshes::Components::Mesh& mesh
 			) {

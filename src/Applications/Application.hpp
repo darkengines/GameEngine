@@ -16,7 +16,7 @@
 #include "../Materials/Systems/MaterialSystem.hpp"
 #include "../Spatials/Systems/SpatialSystem.hpp"
 #include "../Spatials/Systems/RelativeSpatialSystem.hpp"
-#include "../Objects/Systems/ObjectSystem.hpp"
+#include "../Nodes/Systems/NodeSystem.hpp"
 #include "../Cameras/Systems/CameraSystem.hpp"
 #include "../Graphics/GlobalSystem.hpp"
 #include "../Controllers/FlyCamController.hpp"
@@ -47,7 +47,7 @@ namespace drk::Applications {
 			Meshes::Systems::MeshShadowSystem&,
 			Spatials::Systems::SpatialSystem&,
 			Spatials::Systems::RelativeSpatialSystem&,
-			Nodes::Systems::ObjectSystem&,
+			Nodes::Systems::NodeSystem&,
 			Cameras::Systems::CameraSystem&,
 			Graphics::GlobalSystem&,
 			const Loaders::AssimpLoader&,
@@ -83,7 +83,7 @@ namespace drk::Applications {
 			Meshes::Systems::MeshShadowSystem& meshShadowSystem,
 			Spatials::Systems::SpatialSystem& spatialSystem,
 			Spatials::Systems::RelativeSpatialSystem& relativeSpatialSystem,
-			Nodes::Systems::ObjectSystem& objectSystem,
+			Nodes::Systems::NodeSystem& objectSystem,
 			Cameras::Systems::CameraSystem& cameraSystem,
 			Graphics::GlobalSystem& globalSystem,
 			const Loaders::AssimpLoader& loader,
@@ -122,7 +122,7 @@ namespace drk::Applications {
 		Meshes::Systems::MeshShadowSystem& meshShadowSystem;
 		Spatials::Systems::SpatialSystem& spatialSystem;
 		Spatials::Systems::RelativeSpatialSystem& relativeSpatialSystem;
-		Nodes::Systems::ObjectSystem& objectSystem;
+		Nodes::Systems::NodeSystem& objectSystem;
 		Cameras::Systems::CameraSystem& cameraSystem;
 		Graphics::GlobalSystem& globalSystem;
 		const Loaders::AssimpLoader& loader;

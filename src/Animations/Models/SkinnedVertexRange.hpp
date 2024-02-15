@@ -1,6 +1,6 @@
 #pragma once
 #include "../../Stores/StoreItem.hpp"
-#include "../../Objects/Models/Object.hpp"
+#include "../../Nodes/Models/Node.hpp"
 #include "../Models/VertexWeight.hpp"
 #include "../Models/Bone.hpp"
 

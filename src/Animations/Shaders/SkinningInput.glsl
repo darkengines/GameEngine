@@ -1,7 +1,7 @@
 #include "../../Graphics/Shaders/StoreItemLocation.glsl"
 
 struct SkinningInput {
-    StoreItemLocation objectItemLocation;
+    StoreItemLocation NodeItemLocation;
     StoreItemLocation vertexItemLocation;
     StoreItemLocation skinnedVertexItemLocation;
     StoreItemLocation vertexWeightItemLocation;

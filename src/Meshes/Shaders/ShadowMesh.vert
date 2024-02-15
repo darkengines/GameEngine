@@ -9,7 +9,7 @@
 #include "../../Graphics/Shaders/Global.glsl"
 #include "../../Materials/shaders/Material.glsl"
 #include "../../Spatials/shaders/Spatial.glsl"
-#include "../../Objects/shaders/Object.glsl"
+#include "../../Nodes/shaders/Node.glsl"
 #include "../../Cameras/shaders/Camera.glsl"
 #include "../../Lights/Shaders/PointLight.glsl"
 #include "../../Lights/Shaders/DirectionalLight.glsl"
@@ -31,9 +31,9 @@ layout (set = 3, binding = 0) readonly buffer meshLayout {
 layout (set = 3, binding = 0) readonly buffer spatialLayout {
     Spatial[] spatials;
 } spatialBuffer[];
-layout (set = 3, binding = 0) readonly buffer objectLayout {
-    Object[] objects;
-} objectBuffer[];
+layout (set = 3, binding = 0) readonly buffer nodeLayout {
+    Node[] nodes;
+} nodeBuffer[];
 layout (set = 3, binding = 0) readonly buffer cameraLayout {
     Camera[] cameras;
 } cameraBuffer[];
@@ -64,9 +64,9 @@ void main() {
     uint drawItemIndex = gl_InstanceIndex % 131072u;
     ShadowMeshDraw draw = meshDrawBuffer[meshDrawBufferIndex].meshDraws[drawItemIndex];
     Mesh mesh = meshBuffer[draw.meshItemLocation.storeIndex].meshes[draw.meshItemLocation.itemIndex];
-    Object object = objectBuffer[draw.objectItemLocation.storeIndex].objects[draw.objectItemLocation.itemIndex];
+    Node node = nodeBuffer[draw.nodeItemLocation.storeIndex].nodes[draw.nodeItemLocation.itemIndex];
     Material material = materialBuffer[mesh.materialItemLocation.storeIndex].materials[mesh.materialItemLocation.itemIndex];
-    Spatial spatial = spatialBuffer[object.spatialItemLocation.storeIndex].spatials[object.spatialItemLocation.itemIndex];
+    Spatial spatial = spatialBuffer[node.spatialItemLocation.storeIndex].spatials[node.spatialItemLocation.itemIndex];
     Camera camera = cameraBuffer[draw.cameraItemLocation.storeIndex].cameras[draw.cameraItemLocation.itemIndex];
     LightPerspective lightPerspective = lightPerspectiveBuffer[draw.lightPerspectiveItemLocation.storeIndex].lightPerspectives[draw.lightPerspectiveItemLocation.itemIndex];
     Spatial lightPerspectiveSpatial = spatialBuffer[draw.lightPerspectiveSpatialItemLocation.storeIndex].spatials[draw.lightPerspectiveSpatialItemLocation.itemIndex];

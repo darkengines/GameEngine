@@ -9,10 +9,10 @@
 #include "../../Lights/Models/PointLight.hpp"
 #include "../../Lights/Models/Spotlight.hpp"
 #include "../../Common/Components/Dirty.hpp"
-#include "../../Objects/Components/ObjectReference.hpp"
+#include "../../Nodes/Components/NodeReference.hpp"
 #include "../../Meshes/Components/MeshReference.hpp"
 #include "../../Materials/Components/MaterialReference.hpp"
-#include "../../Objects/Models/Object.hpp"
+#include "../../Nodes/Models/Node.hpp"
 #include "../../Scenes/Draws/ShadowSceneDraw.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
 #include "../../Stores/Models/StoreItemLocation.hpp"
@@ -41,7 +41,7 @@ namespace drk::Meshes::Systems {
 		const auto& meshItemLocation = drawStore.get(drawIndex);
 
 		auto& meshStoreItem = registry.get<Stores::StoreItem<Models::Mesh>>(meshDraw.meshEntity);
-		auto& objectStoreItem = registry.get<Stores::StoreItem<Nodes::Models::Object>>(meshDraw.objectEntity);
+		auto& objectStoreItem = registry.get<Stores::StoreItem<Nodes::Models::Node>>(meshDraw.nodeEntity);
 		auto& cameraStoreItem = registry.get<Stores::StoreItem<Cameras::Models::Camera>>(engineState.cameraEntity);
 		auto& lightPerspectiveStoreItem = registry.get<Stores::StoreItem<Lights::Models::LightPerspective>>(meshDraw.lightPerspectiveEntity);
 		auto& spatialLightPerspectiveStoreItem = registry.get<Stores::StoreItem<Spatials::Models::Spatial>>(meshDraw.lightPerspectiveSpatialEntity);
@@ -61,7 +61,7 @@ namespace drk::Meshes::Systems {
 		>(engineState.cameraEntity);
 		const auto& cameraStoreItemLocation = cameraStoreItem.frameStoreItems[engineState.getFrameIndex()];
 		auto objectMeshEntities = registry.view<
-			Nodes::Components::ObjectReference,
+			Nodes::Components::NodeReference,
 			Meshes::Components::MeshReference,
 			Meshes::Components::Mesh
 		>(entt::exclude<Components::HasShadowDraw>);
@@ -81,7 +81,7 @@ namespace drk::Meshes::Systems {
 		objectMeshEntities.each(
 			[&](
 				entt::entity objectMeshEntity,
-				const Nodes::Components::ObjectReference& objectReference,
+				const Nodes::Components::NodeReference& objectReference,
 				const Meshes::Components::MeshReference& meshReference,
 				const Meshes::Components::Mesh& mesh
 			) {
@@ -92,7 +92,7 @@ namespace drk::Meshes::Systems {
 				>(meshReference.meshEntity);
 				const auto& spatial = registry.get<
 					Spatials::Components::Spatial<Spatials::Components::Absolute>
-				>(objectReference.objectEntity);
+				>(objectReference.nodeEntity);
 				const auto& pMaterial = registry.get<std::shared_ptr<Materials::Components::Material>>(materialReference.materialEntity);
 				auto currentFrameIndex = engineState.getFrameIndex();
 				pointLightView.each(
@@ -115,7 +115,7 @@ namespace drk::Meshes::Systems {
 								*pMaterial,
 								meshBufferView,
 								pMeshResource,
-								objectReference.objectEntity,
+								objectReference.nodeEntity,
 								meshReference.meshEntity,
 								engineState.cameraEntity,
 								pointLightEntity
@@ -140,7 +140,7 @@ namespace drk::Meshes::Systems {
 							*pMaterial,
 							meshBufferView,
 							pMeshResource,
-							objectReference.objectEntity,
+							objectReference.nodeEntity,
 							meshReference.meshEntity,
 							engineState.cameraEntity,
 							directionalLightEntity
@@ -165,7 +165,7 @@ namespace drk::Meshes::Systems {
 							*pMaterial,
 							meshBufferView,
 							pMeshResource,
-							objectReference.objectEntity,
+							objectReference.nodeEntity,
 							meshReference.meshEntity,
 							engineState.cameraEntity,
 							spotlightEntity
@@ -188,7 +188,7 @@ namespace drk::Meshes::Systems {
 		const Materials::Components::Material& material,
 		const Meshes::Components::MeshBufferView& meshBufferView,
 		std::shared_ptr<Meshes::Components::MeshResource> pMeshResource,
-		entt::entity objectEntity,
+		entt::entity nodeEntity,
 		entt::entity meshEntity,
 		entt::entity cameraEntity,
 		entt::entity lightPerspectiveSpatialEntity
@@ -213,7 +213,7 @@ namespace drk::Meshes::Systems {
 			.meshResource = pMeshResource,
 			.meshBufferView = {meshBufferView.IndexBufferView, *bufferView},
 			.meshEntity = meshEntity,
-			.objectEntity = objectEntity,
+			.nodeEntity = nodeEntity,
 			.cameraEntity = cameraEntity,
 			.lightPerspectiveEntity = lightPerspectiveEntity,
 			.lightPerspectiveSpatialEntity = lightPerspectiveSpatialEntity

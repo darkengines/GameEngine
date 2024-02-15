@@ -23,7 +23,7 @@ namespace drk::Applications {
 		Meshes::Systems::MeshShadowSystem& meshShadowSystem,
 		Spatials::Systems::SpatialSystem& spatialSystem,
 		Spatials::Systems::RelativeSpatialSystem& relativeSpatialSystem,
-		Nodes::Systems::ObjectSystem& objectSystem,
+		Nodes::Systems::NodeSystem& objectSystem,
 		Cameras::Systems::CameraSystem& cameraSystem,
 		Graphics::GlobalSystem& globalSystem,
 		const Loaders::AssimpLoader& loader,

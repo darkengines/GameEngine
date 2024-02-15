@@ -19,7 +19,7 @@
 #include "Loaders/Extensions.hpp"
 #include "Materials/Extensions.hpp"
 #include "Meshes/Extensions.hpp"
-#include "Objects/Extensions.hpp"
+#include "Nodes/Extensions.hpp"
 #include "Relationships/Extensions.hpp"
 #include "Textures/Extensions.hpp"
 #include "Spatials/Extensions.hpp"

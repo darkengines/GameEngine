@@ -7,7 +7,7 @@
 #include "../Components/SkinnedMeshInstance.hpp"
 #include "../Components/RootBoneInstanceReference.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
-#include "../../Objects/Models/Object.hpp"
+#include "../../Nodes/Models/Node.hpp"
 #include "../../Stores/Models/StoreItemLocation.hpp"
 #include "../Models/Bone.hpp"
 
@@ -25,7 +25,7 @@
 #include <vector>
 
 #include <glm/glm.hpp>
-#include "../../Objects/Components/ObjectReference.hpp"
+#include "../../Nodes/Components/NodeReference.hpp"
 #include "../../Meshes/Components/MeshReference.hpp"
 #include "../Components/AnimationState.hpp"
 #include "../../Meshes/Components/Mesh.hpp"
@@ -38,7 +38,7 @@
 #include "../../Engine/DescriptorSetLayoutCache.hpp"
 #include "../Components/Bone.hpp"
 #include "../Pipelines/SkinningPipeline.hpp"
-#include "../../Objects/Components/ObjectMeshReference.hpp"
+#include "../../Nodes/Components/NodeMeshReference.hpp"
 
 namespace drk::Animations::Systems {
 	class AnimationSystem {
@@ -73,7 +73,7 @@ namespace drk::Animations::Systems {
 		}
 		void storeMeshes() {
 			auto view = registry.view<
-				Nodes::Components::ObjectReference,
+				Nodes::Components::NodeReference,
 				Meshes::Components::MeshReference,
 				Animations::Components::Skinned
 			>(entt::exclude<Components::SkinnedBufferView>);
@@ -82,7 +82,7 @@ namespace drk::Animations::Systems {
 			view.each(
 				[&](
 					entt::entity objectMeshEntity,
-					const Nodes::Components::ObjectReference& objectReference,
+					const Nodes::Components::NodeReference& objectReference,
 					const Meshes::Components::MeshReference& meshReference
 				) {
 					const auto& meshBufferView = registry.get<
@@ -136,7 +136,7 @@ namespace drk::Animations::Systems {
 								Objects::Components::ObjectReference
 							>(vertexWeightInstance.boneInstanceEntity);*/
 							const auto& [boneInstanceStoreItem, boneSpatialStoreItem] = registry.get<
-								Stores::StoreItem<Nodes::Models::Object>,
+								Stores::StoreItem<Nodes::Models::Node>,
 								Stores::StoreItem<Models::BoneSpatial>
 							>(vertexWeightInstance.boneInstanceEntity);
 							const auto& spatial = registry.get<
@@ -271,7 +271,7 @@ namespace drk::Animations::Systems {
 
 		void updateAnimations() {
 			auto skinnedObjectMeshView = registry.view<
-				Nodes::Components::ObjectReference,
+				Nodes::Components::NodeReference,
 				Animations::Components::AnimationReference,
 				Animations::Components::AnimationState,
 				Animations::Components::NodeAnimation
@@ -279,7 +279,7 @@ namespace drk::Animations::Systems {
 			skinnedObjectMeshView.each(
 				[this](
 					entt::entity objectMeshEntity,
-					const Nodes::Components::ObjectReference& objectReference,
+					const Nodes::Components::NodeReference& objectReference,
 					const Animations::Components::AnimationReference& animationReference,
 					Animations::Components::AnimationState& animationState,
 					const Animations::Components::NodeAnimation& nodeAnimation
@@ -288,7 +288,7 @@ namespace drk::Animations::Systems {
 						animationReference.animationEntity
 					);
 					auto& nodeSpatial = registry.get_or_emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(
-						objectReference.objectEntity
+						objectReference.nodeEntity
 					);
 
 					auto position = glm::make_vec3(nodeSpatial.position);
@@ -301,7 +301,7 @@ namespace drk::Animations::Systems {
 					nodeSpatial.rotation = rotation;
 					nodeSpatial.scale = glm::vec4(scaling, 0);
 
-					Spatials::Systems::SpatialSystem::makeDirty(registry, objectReference.objectEntity);
+					Spatials::Systems::SpatialSystem::makeDirty(registry, objectReference.nodeEntity);
 				}
 			);
 		}

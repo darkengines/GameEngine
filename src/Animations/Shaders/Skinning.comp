@@ -6,7 +6,7 @@
 #include "./Bone.glsl"
 #include "../../Graphics/Shaders/StoreItemLocation.glsl"
 #include "../../Spatials/shaders/Spatial.glsl"
-#include "../../Objects/shaders/Object.glsl"
+#include "../../Nodes/shaders/Node.glsl"
 #include "../../Meshes/shaders/Vertex.glsl"
 
 
@@ -33,9 +33,9 @@ layout (set = 3, binding = 0, std430) buffer skinnedVertexLayout {
 layout (set = 4, binding = 0) readonly buffer spatialLayout {
     Spatial[] spatials;
 } spatialBuffer[];
-layout (set = 4, binding = 0) readonly buffer objectLayout {
-    Object[] objects;
-} objectBuffer[];
+layout (set = 4, binding = 0) readonly buffer nodeLayout {
+    Node[] nodes;
+} nodeBuffer[];
 layout (set = 4, binding = 0) readonly buffer boneLayout {
     Bone[] bones;
 } boneBuffer[];
@@ -48,7 +48,7 @@ void main() {
 
     BoneInstanceWeight boneInstanceWeight = boneInstanceWeightBuffer[skinnedVertexRange.vertexWeightBufferIndex].boneInstanceWeights[skinnedVertexRange.vertexWeightBufferItemOffset + skinnedVertexRange.vertexWeightIndex];
     Bone bone = boneBuffer[boneInstanceWeight.boneStoreItemLocation.storeIndex].bones[boneInstanceWeight.boneStoreItemLocation.itemIndex];
-    Object object = objectBuffer[boneInstanceWeight.boneInstanceStoreItemLocation.storeIndex].objects[boneInstanceWeight.boneInstanceStoreItemLocation.itemIndex];
+    Node node = nodeBuffer[boneInstanceWeight.boneInstanceStoreItemLocation.storeIndex].nodes[boneInstanceWeight.boneInstanceStoreItemLocation.itemIndex];
     Spatial spatial = spatialBuffer[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.storeIndex].spatials[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.itemIndex];
 
     vec4 position = boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.position;
@@ -59,7 +59,7 @@ void main() {
     for (uint boneInstanceWeightIndex = 1; boneInstanceWeightIndex < skinnedVertexRange.vertexWeightCount; boneInstanceWeightIndex++) {
         BoneInstanceWeight boneInstanceWeight = boneInstanceWeightBuffer[skinnedVertexRange.vertexWeightBufferIndex].boneInstanceWeights[skinnedVertexRange.vertexWeightBufferItemOffset + skinnedVertexRange.vertexWeightIndex + boneInstanceWeightIndex];
         Bone bone = boneBuffer[boneInstanceWeight.boneStoreItemLocation.storeIndex].bones[boneInstanceWeight.boneStoreItemLocation.itemIndex];
-        Object object = objectBuffer[boneInstanceWeight.boneInstanceStoreItemLocation.storeIndex].objects[boneInstanceWeight.boneInstanceStoreItemLocation.itemIndex];
+        Node node = nodeBuffer[boneInstanceWeight.boneInstanceStoreItemLocation.storeIndex].nodes[boneInstanceWeight.boneInstanceStoreItemLocation.itemIndex];
         Spatial spatial = spatialBuffer[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.storeIndex].spatials[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.itemIndex];
 
         position += boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.position;

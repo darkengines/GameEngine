@@ -11,7 +11,7 @@ const float PI = 3.14159265359;
 #include "../../Graphics/Shaders/Global.glsl"
 #include "../../Materials/shaders/Material.glsl"
 #include "../../Spatials/shaders/Spatial.glsl"
-#include "../../Objects/shaders/Object.glsl"
+#include "../../Nodes/shaders/Node.glsl"
 #include "../../Cameras/shaders/Camera.glsl"
 #include "../../Lights/Shaders/Light.glsl"
 #include "../../Lights/Shaders/PointLight.glsl"
@@ -36,9 +36,9 @@ layout (set = 3, binding = 0) readonly buffer meshLayout {
 layout (set = 3, binding = 0) readonly buffer spatialLayout {
     Spatial[] spatials;
 } spatialBuffer[];
-layout (set = 3, binding = 0) readonly buffer objectLayout {
-    Object[] objects;
-} objectBuffer[];
+layout (set = 3, binding = 0) readonly buffer nodeLayout {
+    Node[] nodes;
+} nodeBuffer[];
 layout (set = 3, binding = 0) readonly buffer cameraLayout {
     Camera[] cameras;
 } cameraBuffer[];
@@ -63,53 +63,53 @@ layout(location = 10) flat in StoreItemLocation drawItemLocation;
 
 layout(location = 0) out vec4 outColor;
 
-float sampleCube(vec3 lightToObject, PointLight pointLight, out LightPerspective lightPerspective) {
-    vec3 lightToObjectMagnitude = abs(lightToObject);
+float sampleCube(vec3 lightToNode, PointLight pointLight, out LightPerspective lightPerspective) {
+    vec3 lightToNodeMagnitude = abs(lightToNode);
     vec4 shadowMapRect;
     vec2 shadowMapUv;
 
-    if (lightToObjectMagnitude.x > lightToObjectMagnitude.y && lightToObjectMagnitude.x > lightToObjectMagnitude.z) {
-        if (lightToObject.x < 0) {
+    if (lightToNodeMagnitude.x > lightToNodeMagnitude.y && lightToNodeMagnitude.x > lightToNodeMagnitude.z) {
+        if (lightToNode.x < 0) {
             lightPerspective = lightPerspectiveBuffer[pointLight.leftLightPerspectiveStoreItemLocation.storeIndex]
             .lightPerspectives[pointLight.leftLightPerspectiveStoreItemLocation.itemIndex];
             shadowMapRect = lightPerspective.shadowMapRect;
-            shadowMapUv.x = ((-lightToObject.z / lightToObjectMagnitude.x) + 1) * 0.5f;
-            shadowMapUv.y = ((-lightToObject.y / lightToObjectMagnitude.x) + 1) * 0.5f;
+            shadowMapUv.x = ((-lightToNode.z / lightToNodeMagnitude.x) + 1) * 0.5f;
+            shadowMapUv.y = ((-lightToNode.y / lightToNodeMagnitude.x) + 1) * 0.5f;
         } else {
             lightPerspective = lightPerspectiveBuffer[pointLight.rightLightPerspectiveStoreItemLocation.storeIndex]
             .lightPerspectives[pointLight.rightLightPerspectiveStoreItemLocation.itemIndex];
             shadowMapRect = lightPerspective.shadowMapRect;
-            shadowMapUv.x = ((lightToObject.z / lightToObjectMagnitude.x) + 1) * 0.5f;
-            shadowMapUv.y = ((-lightToObject.y / lightToObjectMagnitude.x) + 1) * 0.5f;
+            shadowMapUv.x = ((lightToNode.z / lightToNodeMagnitude.x) + 1) * 0.5f;
+            shadowMapUv.y = ((-lightToNode.y / lightToNodeMagnitude.x) + 1) * 0.5f;
         }
     } else {
-        if (lightToObjectMagnitude.y > lightToObjectMagnitude.z) {
-            if (lightToObject.y < 0) {
+        if (lightToNodeMagnitude.y > lightToNodeMagnitude.z) {
+            if (lightToNode.y < 0) {
                 lightPerspective = lightPerspectiveBuffer[pointLight.downLightPerspectiveStoreItemLocation.storeIndex]
                 .lightPerspectives[pointLight.downLightPerspectiveStoreItemLocation.itemIndex];
                 shadowMapRect = lightPerspective.shadowMapRect;
-                shadowMapUv.x = ((-lightToObject.x / lightToObjectMagnitude.y) + 1) * 0.5f;
-                shadowMapUv.y = ((-lightToObject.z / lightToObjectMagnitude.y) + 1) * 0.5f;
+                shadowMapUv.x = ((-lightToNode.x / lightToNodeMagnitude.y) + 1) * 0.5f;
+                shadowMapUv.y = ((-lightToNode.z / lightToNodeMagnitude.y) + 1) * 0.5f;
             } else {
                 lightPerspective = lightPerspectiveBuffer[pointLight.topLightPerspectiveStoreItemLocation.storeIndex]
                 .lightPerspectives[pointLight.topLightPerspectiveStoreItemLocation.itemIndex];
                 shadowMapRect = lightPerspective.shadowMapRect;
-                shadowMapUv.x = ((-lightToObject.x / lightToObjectMagnitude.y) + 1) * 0.5f;
-                shadowMapUv.y = ((lightToObject.z / lightToObjectMagnitude.y) + 1) * 0.5f;
+                shadowMapUv.x = ((-lightToNode.x / lightToNodeMagnitude.y) + 1) * 0.5f;
+                shadowMapUv.y = ((lightToNode.z / lightToNodeMagnitude.y) + 1) * 0.5f;
             }
         } else {
-            if (lightToObject.z < 0) {
+            if (lightToNode.z < 0) {
                 lightPerspective = lightPerspectiveBuffer[pointLight.backLightPerspectiveStoreItemLocation.storeIndex]
                 .lightPerspectives[pointLight.backLightPerspectiveStoreItemLocation.itemIndex];
                 shadowMapRect = lightPerspective.shadowMapRect;
-                shadowMapUv.x = ((lightToObject.x / lightToObjectMagnitude.z) + 1) * 0.5f;
-                shadowMapUv.y = ((-lightToObject.y / lightToObjectMagnitude.z) + 1) * 0.5f;
+                shadowMapUv.x = ((lightToNode.x / lightToNodeMagnitude.z) + 1) * 0.5f;
+                shadowMapUv.y = ((-lightToNode.y / lightToNodeMagnitude.z) + 1) * 0.5f;
             } else {
                 lightPerspective = lightPerspectiveBuffer[pointLight.frontLightPerspectiveStoreItemLocation.storeIndex]
                 .lightPerspectives[pointLight.frontLightPerspectiveStoreItemLocation.itemIndex];
                 shadowMapRect = lightPerspective.shadowMapRect;
-                shadowMapUv.x = ((-lightToObject.x / lightToObjectMagnitude.z) + 1) * 0.5f;
-                shadowMapUv.y = ((-lightToObject.y / lightToObjectMagnitude.z) + 1) * 0.5f;
+                shadowMapUv.x = ((-lightToNode.x / lightToNodeMagnitude.z) + 1) * 0.5f;
+                shadowMapUv.y = ((-lightToNode.y / lightToNodeMagnitude.z) + 1) * 0.5f;
             }
         }
     }
@@ -133,16 +133,16 @@ float delinearize_depth(float d, float zNear, float zFar)
     return d * (zFar - zNear) + zNear;
 }
 
-float samplePointLightShadow(vec3 lightToObject, PointLight pointLight, float diskRadius, vec3 normal, vec3 lightDirection) {
+float samplePointLightShadow(vec3 lightToNode, PointLight pointLight, float diskRadius, vec3 normal, vec3 lightDirection) {
     float shadow = 0.0;
     int samples  = 20;
-    float d = length(lightToObject);
+    float d = length(lightToNode);
     float closestDepth;
     LightPerspective lightPerspective;
     for (int i = 0; i < samples; ++i)
     {
         float bias = max(0.1 * (1.0 - dot(point.normal.xyz, normalize(lightDirection + sampleOffsetDirections[i] * diskRadius))), 0.5);
-        float closestDepth = sampleCube(lightToObject + sampleOffsetDirections[i] * diskRadius, pointLight, lightPerspective);
+        float closestDepth = sampleCube(lightToNode + sampleOffsetDirections[i] * diskRadius, pointLight, lightPerspective);
         closestDepth = delinearize_depth(closestDepth, lightPerspective.near, lightPerspective.far);
 
         if (d - bias > closestDepth)
@@ -154,7 +154,7 @@ float samplePointLightShadow(vec3 lightToObject, PointLight pointLight, float di
 }
 
 float sampleSpotlightShadow(
-vec3 lightToObject,
+vec3 lightToNode,
 Spotlight spotlight,
 float diskRadius,
 LightPerspective lightPerspective
@@ -163,8 +163,8 @@ LightPerspective lightPerspective
     int samples  = 20;
     float uDenominator = cos(PI/2.0f - spotlight.outerConeAngle);
     float vDenominator = sin(spotlight.outerConeAngle);
-    vec3 lightDirection = normalize(lightToObject);
-    float fragmentLightDistance = length(lightToObject);
+    vec3 lightDirection = normalize(lightToNode);
+    float fragmentLightDistance = length(lightToNode);
 
     for (int i = 0; i < samples; ++i)
     {
@@ -193,9 +193,9 @@ void main() {
 
     MeshDraw draw = meshDrawBuffer[drawItemLocation.storeIndex].meshDraws[drawItemLocation.itemIndex];
     Mesh mesh = meshBuffer[draw.meshItemLocation.storeIndex].meshes[draw.meshItemLocation.itemIndex];
-    Object object = objectBuffer[draw.objectItemLocation.storeIndex].objects[draw.objectItemLocation.itemIndex];
+    Node node = nodeBuffer[draw.nodeItemLocation.storeIndex].nodes[draw.nodeItemLocation.itemIndex];
     Material material = materialBuffer[mesh.materialItemLocation.storeIndex].materials[mesh.materialItemLocation.itemIndex];
-    Spatial spatial = spatialBuffer[object.spatialItemLocation.storeIndex].spatials[object.spatialItemLocation.itemIndex];
+    Spatial spatial = spatialBuffer[node.spatialItemLocation.storeIndex].spatials[node.spatialItemLocation.itemIndex];
     Camera camera = cameraBuffer[draw.cameraItemLocation.storeIndex].cameras[draw.cameraItemLocation.itemIndex];
 
     vec4 normal = point.normal;
@@ -231,8 +231,8 @@ void main() {
         vec3 lightDirection = normalize(lightPosition - point.position.xyz);
         float attenuation = 1.0 / (pointLight.constantAttenuation + pointLight.linearAttenuation * fragmentLightDistance + pointLight.quadraticAttenuation * fragmentLightDistance * fragmentLightDistance);
 
-        vec3 lightToObject = point.position.xyz - lightPosition;
-        float shadow = samplePointLightShadow(lightToObject, pointLight, 0.01, normal.xyz, lightDirection);
+        vec3 lightToNode = point.position.xyz - lightPosition;
+        float shadow = samplePointLightShadow(lightToNode, pointLight, 0.01, normal.xyz, lightDirection);
         float shadowFactor = 1.0f - shadow;
 
         color += computeColor(
@@ -273,8 +273,8 @@ void main() {
 
         vec3 lightPosition = spotlightSpatial.position.xyz;
         vec3 lightOrientation = normalize(lightPerspective.absoluteFront).xyz;
-        vec3 lightToObject = lightPosition - point.position.xyz;
-        vec3 lightDirection = normalize(lightToObject);
+        vec3 lightToNode = lightPosition - point.position.xyz;
+        vec3 lightDirection = normalize(lightToNode);
 
         float orientationDotDirection = -dot(lightOrientation, lightDirection);
         if (orientationDotDirection > cos(spotlight.outerConeAngle)) {
@@ -287,7 +287,7 @@ void main() {
             attenuation *= 1.0 / (spotlight.constantAttenuation + spotlight.linearAttenuation * fragmentLightDistance + spotlight.quadraticAttenuation * fragmentLightDistance * fragmentLightDistance);
 
             float shadow = sampleSpotlightShadow(
-            lightToObject,
+            lightToNode,
             spotlight,
             0.001,
             lightPerspective
