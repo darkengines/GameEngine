@@ -101,7 +101,9 @@ namespace drk::Meshes::Systems {
 		auto& cameraStoreItem = registry.get<Stores::StoreItem<Cameras::Models::Camera>>(engineState.cameraEntity);
 		const auto& meshItemLocation = drawStore.get(drawIndex);
 		auto frameIndex = engineState.getFrameIndex();
+		meshItemLocation.pItem->meshItemLocation = meshStoreItem.frameStoreItems[frameIndex];
 		meshItemLocation.pItem->objectItemLocation = objectStoreItem.frameStoreItems[frameIndex];
+		meshItemLocation.pItem->cameraItemLocation = cameraStoreItem.frameStoreItems[frameIndex];
 	}
 	void MeshSystem::emitDraws() {
 		const auto& [camera, cameraStoreItem] = registry.get<

@@ -4,10 +4,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include "../../Spatials/Components/Spatial.hpp"
 #include "../../Nodes/Components/Node.hpp"
-#include "../../Nodes/Components/Node.hpp"
-#include "../../Graphics/SynchronizationState.hpp"
 #include "../../Frustums/Components/Frustum.hpp"
-#include "../Models/Camera.hpp"
 #include "../../Common/Components/Name.hpp"
 
 namespace drk::Cameras::Systems {

@@ -193,8 +193,6 @@ namespace drk::Applications {
 		//			registry.emplace<Objects::Object>(lineEntity, std::move(lineObject));
 		//		}
 
-		auto t0 = std::chrono::high_resolution_clock::now();
-
 		while (!glfwWindowShouldClose(window.GetWindow())) {
 			glfwPollEvents();
 
