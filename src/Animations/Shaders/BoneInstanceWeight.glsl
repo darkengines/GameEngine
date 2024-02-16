@@ -3,6 +3,6 @@
 struct BoneInstanceWeight {
     StoreItemLocation boneInstanceStoreItemLocation;
     StoreItemLocation boneInstanceSpatialStoreItemLocation;
-    StoreItemLocation boneStoreItemLocation;
+    StoreItemLocation boneMeshStoreItemLocation;
     float weight;
 };

@@ -1,11 +1,9 @@
 #pragma once
 #include <vector>
-#include <glm/glm.hpp>
-#include "../../Spatials/Components/Spatial.hpp"
-#include "./VertexWeight.hpp"
+#include <entt/entt.hpp>
 
 namespace drk::Animations::Components {
 	struct Bone {
-		Spatials::Components::Spatial<Spatials::Components::Relative> spatialOffset;
+		std::vector<entt::entity> boneMeshEntities;
 	};
 }

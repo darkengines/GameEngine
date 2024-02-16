@@ -44,7 +44,7 @@ namespace drk::Applications {
 		Lights::Systems::SpotlightSystem& spotlightSystem,
 		Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
 		Animations::Systems::AnimationSystem& animationSystem,
-		Animations::Systems::BoneSystem& boneSystem,
+		Animations::Systems::BoneMeshSystem& boneSystem,
 		Animations::Systems::BoneSpatialSystem& boneSpatialSystem,
 		UserInterfaces::AssetExplorer& assetExplorer
 	)

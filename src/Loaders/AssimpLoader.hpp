@@ -67,7 +67,7 @@ namespace drk::Loaders {
 			int depth = 0
 		) const;
 
-		static void postProcessSkinnedMeshes(entt::registry& registry);
+		static void postProcessSkinnedMeshes(entt::registry& skinnedNodeMeshEntity);
 		static glm::vec3& toVector(const aiVector3D& aiVector);
 		[[maybe_unused]] static glm::vec4 toVector4(const aiVector3D& aiVector, float w);
 		static std::unordered_map<aiTextureType, Textures::TextureType> TextureTypeMap;

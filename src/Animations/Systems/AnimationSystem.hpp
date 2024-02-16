@@ -9,14 +9,13 @@
 #include "../../Spatials/Models/Spatial.hpp"
 #include "../../Nodes/Models/Node.hpp"
 #include "../../Stores/Models/StoreItemLocation.hpp"
-#include "../Models/Bone.hpp"
+#include "../Models/BoneMesh.hpp"
 
 #include "../../Spatials/Systems/SpatialSystem.hpp"
 #include "../Components/Animation.hpp"
 #include "../Components/BoneCollection.hpp"
 #include "../Components/Skinned.hpp"
 #include "../Components/NodeAnimation.hpp"
-#include "../Components/BoneReference.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
 #include "../Components/AnimationReference.hpp"
 #include "../Resources/AnimationResourceManager.hpp"
@@ -132,9 +131,6 @@ namespace drk::Animations::Systems {
 						skinnedMeshInstance.skinnedVertices.end(),
 						boneInstanceWeights.data(),
 						[&](const Components::VertexWeightInstance& vertexWeightInstance) {
-							/*auto boneInstanceNodeReference = registry.get<
-								Objects::Components::ObjectReference
-							>(vertexWeightInstance.boneInstanceEntity);*/
 							const auto& [boneInstanceStoreItem, boneSpatialStoreItem] = registry.get<
 								Stores::StoreItem<Nodes::Models::Node>,
 								Stores::StoreItem<Models::BoneSpatial>
@@ -143,12 +139,12 @@ namespace drk::Animations::Systems {
 								Spatials::Components::Spatial<Spatials::Components::Relative>
 							>(vertexWeightInstance.boneInstanceEntity);
 							auto boneStoreItem = registry.get<
-								Stores::StoreItem<Models::Bone>
+								Stores::StoreItem<Models::BoneMesh>
 							>(vertexWeightInstance.boneEntity);
 							return Models::BoneInstanceWeight{
 								.boneInstanceStoreItemLocation = boneInstanceStoreItem.frameStoreItems[frameIndex],
 								.boneInstanceSpatialStoreItemLocation = boneSpatialStoreItem.frameStoreItems[frameIndex],
-								.boneStoreItemLocation = boneStoreItem.frameStoreItems[frameIndex],
+								.boneMeshStoreItemLocation = boneStoreItem.frameStoreItems[frameIndex],
 								.weight = vertexWeightInstance.weight
 							};
 						}

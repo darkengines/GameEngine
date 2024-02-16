@@ -41,7 +41,7 @@ file(
     H:/GameEngine/src/Animations/Components/VertexWeight.hpp
     H:/GameEngine/src/Animations/Components/VertexWeightInstance.hpp
     H:/GameEngine/src/Animations/Models/AnimationBehavior.hpp
-    H:/GameEngine/src/Animations/Models/Bone.hpp
+    H:/GameEngine/src/Animations/Models/BoneMesh.hpp
     H:/GameEngine/src/Animations/Models/BoneInstanceWeight.hpp
     H:/GameEngine/src/Animations/Models/BoneSpatial.hpp
     H:/GameEngine/src/Animations/Models/SkinnedVertexRange.hpp
@@ -52,7 +52,7 @@ file(
     H:/GameEngine/src/Animations/Resources/AnimationResourceManager.hpp
     H:/GameEngine/src/Animations/Systems/AnimationSystem.hpp
     H:/GameEngine/src/Animations/Systems/BoneSpatialSystem.hpp
-    H:/GameEngine/src/Animations/Systems/BoneSystem.hpp
+    H:/GameEngine/src/Animations/Systems/BoneMeshSystem.hpp
     H:/GameEngine/src/Animations/Systems/SkinnedMeshInstanceSystem.hpp
     H:/GameEngine/src/Animations/Systems/VertexWeightSystem.hpp
     H:/GameEngine/src/Applications/Application.hpp
@@ -257,7 +257,7 @@ file(
     H:/GameEngine/src/Animations/Resources/AnimationResourceManager.cpp
     H:/GameEngine/src/Animations/Systems/AnimationSystem.cpp
     H:/GameEngine/src/Animations/Systems/BoneSpatialSystem.cpp
-    H:/GameEngine/src/Animations/Systems/BoneSystem.cpp
+    H:/GameEngine/src/Animations/Systems/BoneMeshSystem.cpp
     H:/GameEngine/src/Animations/Systems/VertexWeightSystem.cpp
     H:/GameEngine/src/Applications/Application.cpp
     H:/GameEngine/src/Applications/Application.UserInterface.cpp
@@ -370,7 +370,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES})
+add_executable(drk ${HEADERS} ${SOURCES} src/Animations/Components/BoneMesh.hpp src/Animations/Components/NodeBoneMesh.hpp)
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 

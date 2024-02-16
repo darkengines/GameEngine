@@ -5,7 +5,7 @@
 #include "../../Spatials/Components/Spatial.hpp"
 
 namespace drk::Animations::Models {
-	struct Bone {
+	struct BoneMesh {
 		Spatials::Components::Spatial <Spatials::Components::Relative> spatialOffset;
 	};
 }

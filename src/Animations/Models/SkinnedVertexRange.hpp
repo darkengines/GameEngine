@@ -2,7 +2,7 @@
 #include "../../Stores/StoreItem.hpp"
 #include "../../Nodes/Models/Node.hpp"
 #include "../Models/VertexWeight.hpp"
-#include "../Models/Bone.hpp"
+#include "../Models/BoneMesh.hpp"
 
 namespace drk::Animations::Models {
 	struct SkinnedVertexRange {

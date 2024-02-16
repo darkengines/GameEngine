@@ -1,10 +1,10 @@
 #include "../Animations/Components/Animation.hpp"
+#include "../Animations/Components/NodeBoneMesh.hpp"
 #include "../Animations/Components/MeshBoneCollection.hpp"
 #include "../Animations/Components/RootBoneInstanceReference.hpp"
 #include "../Animations/Components/Skinned.hpp"
 #include "../Animations/Components/BoneCollection.hpp"
 #include "../Animations/Components/AnimationReference.hpp"
-#include "../Animations/Components/BoneReference.hpp"
 #include "../Animations/Components/VertexWeightInstance.hpp"
 #include "../Animations/Components/SkinnedMeshInstance.hpp"
 #include "../Animations/Components/AnimationState.hpp"
@@ -27,6 +27,8 @@
 #include "../Nodes/Components/NodeMeshCollection.hpp"
 #include "../Nodes/Components/NodeMeshReference.hpp"
 #include "AssimpLoader.hpp"
+#include "../Spatials/Components/Spatial.hpp"
+#include "../Animations/Components/BoneMesh.hpp"
 #include <algorithm>
 #include <assimp/postprocess.h>
 #include <glm/ext.hpp>
@@ -251,39 +253,30 @@ namespace drk::Loaders {
 		}
 	}
 	void AssimpLoader::postProcessSkinnedMeshes(entt::registry& registry) {
-		registry.sort<Nodes::Components::NodeMeshReference>(
+		registry.sort<Animations::Components::NodeBoneNodeMesh>(
 			[](
-				const Nodes::Components::NodeMeshReference& left,
-				const Nodes::Components::NodeMeshReference& right
+				const Animations::Components::NodeBoneNodeMesh& left,
+				const Animations::Components::NodeBoneNodeMesh& right
 			) {
-				return left.meshInstanceEntity < right.meshInstanceEntity;
+				return left.nodeMeshEntity < right.nodeMeshEntity;
 			}
 		);
-		auto meshBoneInstances = registry.view<
-			Nodes::Components::NodeReference,
-			Animations::Components::RootBoneInstanceReference,
-			Animations::Components::BoneReference,
-			Nodes::Components::NodeMeshReference
-		>(entt::exclude<PostProcessed>);
-		meshBoneInstances.use<Nodes::Components::NodeMeshReference>();
+		auto skinnedNodeMeshes = registry.view<Animations::Components::NodeBoneNodeMesh>(entt::exclude<PostProcessed>);
 		std::vector<std::pair<entt::entity, std::vector<entt::entity>>> skinnedMeshInstances;
 		entt::entity previousMeshInstanceEntity = entt::null;
-		meshBoneInstances.each(
+		skinnedNodeMeshes.each(
 			[&previousMeshInstanceEntity, &skinnedMeshInstances, &registry](
-				entt::entity objectMeshEntity,
-				const Nodes::Components::NodeReference& objectReference,
-				const Animations::Components::RootBoneInstanceReference& rootBoneInstanceReference,
-				const Animations::Components::BoneReference& boneReference,
-				const Nodes::Components::NodeMeshReference& objectMeshReference
+				entt::entity skinnedNodeMeshEntity,
+				Animations::Components::NodeBoneNodeMesh& nodeBoneNodeMesh
 			) {
-				if (previousMeshInstanceEntity != objectMeshReference.meshInstanceEntity) {
+				if (previousMeshInstanceEntity != nodeBoneNodeMesh.nodeMeshEntity) {
 					skinnedMeshInstances.emplace_back(
-						objectMeshReference.meshInstanceEntity,
+						nodeBoneNodeMesh.nodeMeshEntity,
 						std::vector<entt::entity>());
 				}
-				skinnedMeshInstances.back().second.emplace_back(objectMeshEntity);
-				previousMeshInstanceEntity = objectMeshReference.meshInstanceEntity;
-				registry.emplace<PostProcessed>(objectMeshEntity);
+				skinnedMeshInstances.back().second.emplace_back(skinnedNodeMeshEntity);
+				previousMeshInstanceEntity = nodeBoneNodeMesh.nodeMeshEntity;
+				registry.emplace<PostProcessed>(skinnedNodeMeshEntity);
 			}
 		);
 
@@ -291,22 +284,15 @@ namespace drk::Loaders {
 			const auto& meshReference = registry.get<Meshes::Components::MeshReference>(skinnedMeshInstance.first);
 			std::vector<Animations::Components::VertexWeightInstance> instanceSkinnedVertices;
 			for (const auto& instance: skinnedMeshInstance.second) {
-				const auto& [objectReference, rootBoneInstanceReference, boneReference] = registry.get<
-					Nodes::Components::NodeReference,
-					Animations::Components::RootBoneInstanceReference,
-					Animations::Components::BoneReference
-				>(instance);
-				const auto& [bone, vertexWeights] = registry.get<
-					Animations::Components::Bone,
-					std::vector<Animations::Components::VertexWeight>
-				>(boneReference.boneEntity);
+				const auto& nodeBoneNodeMesh = registry.get<Animations::Components::NodeBoneNodeMesh>(instance);
+				const auto& boneMesh = registry.get<Animations::Components::BoneMesh>(nodeBoneNodeMesh.boneMeshEntity);
 				uint32_t vertexWeightIndex = 0;
-				for (const auto& vertexWeight: vertexWeights) {
+				for (const auto& vertexWeight: boneMesh.vertexWeights) {
 					instanceSkinnedVertices.emplace_back(
 						vertexWeight.vertexIndex,
 						vertexWeight.weight,
-						objectReference.nodeEntity,
-						boneReference.boneEntity
+						nodeBoneNodeMesh.nodeBoneEntity,
+						nodeBoneNodeMesh.boneMeshEntity
 					);
 					vertexWeightIndex++;
 				}
@@ -371,13 +357,13 @@ namespace drk::Loaders {
 						aiBonePtrBoneEntityMap[aiBone] = boneEntity;
 						aiBoneNodeNameBoneEntityMap[aiBone->mName.C_Str()] = boneEntity;
 						registry.emplace<Common::Components::Name>(boneEntity, aiBone->mName.C_Str());
-						registry.emplace<Animations::Components::MeshBoneCollection>(
+						registry.emplace<Animations::Components::Bone>(
 							boneEntity,
 							std::vector<entt::entity>{}
 						);
 					}
 
-					entt::entity meshBoneEntity = registry.create();
+					entt::entity boneMeshEntity = registry.create();
 
 					aiVector3D aiScale, aiPosition;
 					aiQuaternion aiRotation;
@@ -401,22 +387,22 @@ namespace drk::Loaders {
 						localModel,
 					};
 
-					Animations::Components::Bone bone{
-						.spatialOffset = std::move(boneSpatial)
-					};
-					registry.emplace<Animations::Components::Bone>(meshBoneEntity, bone);
 					std::vector<Animations::Components::VertexWeight> weights(aiBone->mNumWeights);
 					memcpy(
 						weights.data(),
 						(Animations::Components::VertexWeight*) aiBone->mWeights,
 						aiBone->mNumWeights * sizeof(Animations::Components::VertexWeight));
-					registry.emplace<std::vector<Animations::Components::VertexWeight>>(
-						meshBoneEntity,
-						std::move(weights));
-					registry.emplace<Meshes::Components::MeshReference>(meshBoneEntity, meshEntity);
-					registry.emplace<Animations::Components::BoneReference>(meshBoneEntity, boneEntity);
-					auto& meshBoneCollection = registry.get<Animations::Components::MeshBoneCollection>(boneEntity);
-					meshBoneCollection.meshBoneEntities.push_back(meshBoneEntity);
+
+					Animations::Components::BoneMesh boneMesh{
+						.boneEntity = boneEntity,
+						.skinnedMeshEntity = meshEntity,
+						.offset = std::move(boneSpatial),
+						.vertexWeights = std::move(weights)
+					};
+					registry.emplace<Animations::Components::BoneMesh>(boneMeshEntity, boneMesh);
+
+					auto& bone = registry.get<Animations::Components::Bone>(boneEntity);
+					bone.boneMeshEntities.push_back(boneMeshEntity);
 
 					boneEntities[boneIndex] = boneEntity;
 					boneIndex++;
@@ -747,7 +733,8 @@ namespace drk::Loaders {
 				};
 
 				registry.emplace<Lights::Components::PointLight>(entity, pointLight);
-				registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity, lightSpatial);
+				registry.emplace<Spatials::Components::Spatial<
+					Spatials::Components::Relative >>(entity, lightSpatial);
 				registry.emplace<Lights::Components::LightPerspectiveCollection>(entity, lightPerspectiveCollection);
 
 				loadResult.pointLights.emplace_back(pointLight);
@@ -773,7 +760,8 @@ namespace drk::Loaders {
 					.position = {aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z, 1},
 				};
 
-				registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity, lightSpatial);
+				registry.emplace<Spatials::Components::Spatial<
+					Spatials::Components::Relative >>(entity, lightSpatial);
 				registry.emplace<Lights::Components::DirectionalLight>(entity, directionalLight);
 				registry.emplace<Lights::Components::LightPerspective>(entity, lightPerspective);
 
@@ -801,7 +789,8 @@ namespace drk::Loaders {
 				};
 
 				registry.emplace<Lights::Components::Spotlight>(entity, spotlight);
-				registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity, lightSpatial);
+				registry.emplace<Spatials::Components::Spatial<
+					Spatials::Components::Relative >>(entity, lightSpatial);
 				registry.emplace<Lights::Components::LightPerspective>(entity, lightPerspective);
 				loadResult.spotlights.emplace_back(spotlight);
 			}
@@ -933,23 +922,26 @@ namespace drk::Loaders {
 			entity = std::get<0>(light->second);
 			auto lightType = std::get<1>(light->second);
 			if (lightType == aiLightSourceType::aiLightSource_DIRECTIONAL) {
-				auto& directionalLightSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(
-					entity
-				);
+				auto& directionalLightSpatial =
+					registry.get<Spatials::Components::Spatial<Spatials::Components::Relative >>(
+						entity
+					);
 				directionalLightSpatial.rotation = spatial.rotation;
 				directionalLightSpatial.position += glm::vec4(glm::vec3(spatial.position), 0.0f);
 			} else if (lightType == aiLightSourceType::aiLightSource_POINT) {
 				auto& pointLight = registry.get<Lights::Components::PointLight>(entity);
-				auto& pointLightSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(
-					entity
-				);
+				auto& pointLightSpatial =
+					registry.get<Spatials::Components::Spatial<Spatials::Components::Relative >>(
+						entity
+					);
 				pointLightSpatial.rotation = spatial.rotation;
 				pointLightSpatial.position += glm::vec4(glm::vec3(spatial.position), 0.0f);
 			} else if (lightType == aiLightSourceType::aiLightSource_SPOT) {
 				auto& spotlight = registry.get<Lights::Components::Spotlight>(entity);
-				auto& spotlightSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(
-					entity
-				);
+				auto& spotlightSpatial =
+					registry.get<Spatials::Components::Spatial<Spatials::Components::Relative >>(
+						entity
+					);
 				spotlightSpatial.rotation = spatial.rotation;
 				spotlightSpatial.position += glm::vec4(glm::vec3(spatial.position), 0.0f);
 			}
@@ -985,21 +977,19 @@ namespace drk::Loaders {
 		auto boneEntityEntry = aiBonePtrBoneEntityMap.find(assimpNode->mName.C_Str());
 		if (boneEntityEntry != aiBonePtrBoneEntityMap.end()) {
 			auto boneEntity = boneEntityEntry->second;
-			const auto& meshBoneCollection = registry.get<Animations::Components::MeshBoneCollection>(boneEntity);
+			const auto& bone = registry.get<Animations::Components::Bone>(boneEntity);
 			auto boneInstanceEntity = registry.create();
-			for (auto meshBoneEntity: meshBoneCollection.meshBoneEntities) {
-				auto meshBoneInstanceEntity = registry.create();
-				registry.emplace<Nodes::Components::NodeReference>(meshBoneInstanceEntity, entity);
-				registry.emplace<Animations::Components::BoneReference>(meshBoneInstanceEntity, meshBoneEntity);
-				registry.emplace<Animations::Components::RootBoneInstanceReference>(
-					meshBoneInstanceEntity,
-					rootBoneInstanceEntity
-				);
-				const auto& meshReference = registry.get<Meshes::Components::MeshReference>(meshBoneEntity);
+			for (auto boneMeshEntity: bone.boneMeshEntities) {
+				auto nodeBoneMeshEntity = registry.create();
+				const auto& boneMesh = registry.get<Animations::Components::BoneMesh>(boneMeshEntity);
 				auto& map = meshEntityInstanceEntityMap.top();
-				registry.emplace<Nodes::Components::NodeMeshReference>(
-					meshBoneInstanceEntity,
-					map[meshReference.meshEntity]
+				auto& nodeMeshEntity = map[boneMesh.skinnedMeshEntity];
+				registry.emplace<Animations::Components::NodeBoneNodeMesh>(
+					nodeBoneMeshEntity,
+					entity,
+					rootBoneInstanceEntity,
+					nodeMeshEntity,
+					boneMeshEntity
 				);
 			}
 			registry.emplace<Animations::Components::RootBoneInstanceReference>(entity, rootBoneInstanceEntity);
@@ -1039,7 +1029,7 @@ namespace drk::Loaders {
 		}
 
 		if (shouldEmplaceSpatial)
-			registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(
+			registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative >>(
 				entity,
 				spatial
 			);

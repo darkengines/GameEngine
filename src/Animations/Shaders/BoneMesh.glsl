@@ -1,5 +1,5 @@
 #include "../../Spatials/Shaders/Spatial.glsl"
 
-struct Bone {
+struct BoneMesh {
     Spatial spatialOffset;
 };

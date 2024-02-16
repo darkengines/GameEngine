@@ -3,7 +3,7 @@
 
 #include "./SkinnedVertexRange.glsl"
 #include "./BoneInstanceWeight.glsl"
-#include "./Bone.glsl"
+#include "./BoneMesh.glsl"
 #include "../../Graphics/Shaders/StoreItemLocation.glsl"
 #include "../../Spatials/shaders/Spatial.glsl"
 #include "../../Nodes/shaders/Node.glsl"
@@ -36,9 +36,9 @@ layout (set = 4, binding = 0) readonly buffer spatialLayout {
 layout (set = 4, binding = 0) readonly buffer nodeLayout {
     Node[] nodes;
 } nodeBuffer[];
-layout (set = 4, binding = 0) readonly buffer boneLayout {
-    Bone[] bones;
-} boneBuffer[];
+layout (set = 4, binding = 0) readonly buffer boneMeshLayout {
+    BoneMesh[] boneMeshes;
+} boneMeshBuffer[];
 
 void main() {
     uint index = gl_GlobalInvocationID.x;
@@ -47,25 +47,25 @@ void main() {
     Vertex inputVertex = vertexBuffer[skinnedVertexRange.vertexBufferIndex].vertices[skinnedVertexRange.vertexBufferItemOffset + skinnedVertexRange.vertexIndex];
 
     BoneInstanceWeight boneInstanceWeight = boneInstanceWeightBuffer[skinnedVertexRange.vertexWeightBufferIndex].boneInstanceWeights[skinnedVertexRange.vertexWeightBufferItemOffset + skinnedVertexRange.vertexWeightIndex];
-    Bone bone = boneBuffer[boneInstanceWeight.boneStoreItemLocation.storeIndex].bones[boneInstanceWeight.boneStoreItemLocation.itemIndex];
+    BoneMesh boneMesh = boneMeshBuffer[boneInstanceWeight.boneMeshStoreItemLocation.storeIndex].boneMeshes[boneInstanceWeight.boneMeshStoreItemLocation.itemIndex];
     Node node = nodeBuffer[boneInstanceWeight.boneInstanceStoreItemLocation.storeIndex].nodes[boneInstanceWeight.boneInstanceStoreItemLocation.itemIndex];
     Spatial spatial = spatialBuffer[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.storeIndex].spatials[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.itemIndex];
 
-    vec4 position = boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.position;
-    vec4 normal = boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.normal;
-    vec4 tangent = boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.tangent;
-    vec4 bitangent = boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.bitangent;
+    vec4 position = boneInstanceWeight.weight * spatial.model * boneMesh.spatialOffset.model * inputVertex.position;
+    vec4 normal = boneInstanceWeight.weight * spatial.model * boneMesh.spatialOffset.model * inputVertex.normal;
+    vec4 tangent = boneInstanceWeight.weight * spatial.model * boneMesh.spatialOffset.model * inputVertex.tangent;
+    vec4 bitangent = boneInstanceWeight.weight * spatial.model * boneMesh.spatialOffset.model * inputVertex.bitangent;
 
     for (uint boneInstanceWeightIndex = 1; boneInstanceWeightIndex < skinnedVertexRange.vertexWeightCount; boneInstanceWeightIndex++) {
         BoneInstanceWeight boneInstanceWeight = boneInstanceWeightBuffer[skinnedVertexRange.vertexWeightBufferIndex].boneInstanceWeights[skinnedVertexRange.vertexWeightBufferItemOffset + skinnedVertexRange.vertexWeightIndex + boneInstanceWeightIndex];
-        Bone bone = boneBuffer[boneInstanceWeight.boneStoreItemLocation.storeIndex].bones[boneInstanceWeight.boneStoreItemLocation.itemIndex];
+        BoneMesh boneMesh = boneMeshBuffer[boneInstanceWeight.boneMeshStoreItemLocation.storeIndex].boneMeshes[boneInstanceWeight.boneMeshStoreItemLocation.itemIndex];
         Node node = nodeBuffer[boneInstanceWeight.boneInstanceStoreItemLocation.storeIndex].nodes[boneInstanceWeight.boneInstanceStoreItemLocation.itemIndex];
         Spatial spatial = spatialBuffer[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.storeIndex].spatials[boneInstanceWeight.boneInstanceSpatialStoreItemLocation.itemIndex];
 
-        position += boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.position;
-        normal += boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.normal;
-        tangent += boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.tangent;
-        bitangent += boneInstanceWeight.weight * spatial.model * bone.spatialOffset.model * inputVertex.bitangent;
+        position += boneInstanceWeight.weight * spatial.model * boneMesh.spatialOffset.model * inputVertex.position;
+        normal += boneInstanceWeight.weight * spatial.model * boneMesh.spatialOffset.model * inputVertex.normal;
+        tangent += boneInstanceWeight.weight * spatial.model * boneMesh.spatialOffset.model * inputVertex.tangent;
+        bitangent += boneInstanceWeight.weight * spatial.model * boneMesh.spatialOffset.model * inputVertex.bitangent;
     }
 
     skinnedVertexBuffer[skinnedVertexRange.skinnedVertexBufferIndex].vertices[skinnedVertexRange.skinnedVertexBufferItemOffset + skinnedVertexRange.skinnedVertexIndex].position = position;

@@ -30,7 +30,7 @@
 #include "../Meshes/Systems/MeshShadowSystem.hpp"
 #include "../BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.hpp"
 #include "../Frustums/Systems/FrustumSystem.hpp"
-#include "../Animations/Systems/BoneSystem.hpp"
+#include "../Animations/Systems/BoneMeshSystem.hpp"
 #include "../Animations/Systems/BoneSpatialSystem.hpp"
 #include <memory>
 
@@ -68,7 +68,7 @@ namespace drk::Applications {
 			Lights::Systems::SpotlightSystem&,
 			Lights::Systems::LightPerspectiveSystem&,
 			Animations::Systems::AnimationSystem&,
-			Animations::Systems::BoneSystem&,
+			Animations::Systems::BoneMeshSystem&,
 			Animations::Systems::BoneSpatialSystem&,
 			UserInterfaces::AssetExplorer&
 		>;
@@ -104,7 +104,7 @@ namespace drk::Applications {
 			Lights::Systems::SpotlightSystem& spotlightSystem,
 			Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
 			Animations::Systems::AnimationSystem& animationSystem,
-			Animations::Systems::BoneSystem& boneSystem,
+			Animations::Systems::BoneMeshSystem& boneSystem,
 			Animations::Systems::BoneSpatialSystem& boneSpatialSystem,
 			UserInterfaces::AssetExplorer& assetExplorer
 		);
@@ -143,7 +143,7 @@ namespace drk::Applications {
 		Lights::Systems::SpotlightSystem& spotlightSystem;
 		Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem;
 		Animations::Systems::AnimationSystem& animationSystem;
-		Animations::Systems::BoneSystem& boneSystem;
+		Animations::Systems::BoneMeshSystem& boneSystem;
 		Animations::Systems::BoneSpatialSystem& boneSpatialSystem;
 		entt::entity selectedEntity = entt::null;
 		UserInterfaces::AssetExplorer& assetExplorer;
