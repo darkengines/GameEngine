@@ -1,11 +1,8 @@
 #include "SpatialSystem.hpp"
 #include "../Models/RelativeSpatial.hpp"
-#include "../../Nodes/Components/Node.hpp"
 #include "../../Common/Components/Name.hpp"
 #include "../../Common/Components/Dirty.hpp"
-#include "../../Nodes/Components/Node.hpp"
 #include "../../Nodes/Components/NodeMeshCollection.hpp"
-#include <algorithm>
 #include "glm/gtx/quaternion.hpp"
 #include "entt/entt.hpp"
 #include <string>

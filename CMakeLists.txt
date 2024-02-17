@@ -82,6 +82,7 @@ file(
 	src/Common/Components/MultiBufferView.hpp
 	src/Common/Components/Name.hpp
 	src/Configuration/Extensions.hpp
+	src/Configuration/Configuration.hpp
 	src/Controllers/Extensions.hpp
 	src/Controllers/FlyCamController.hpp
 	src/Debugging/Components/DebugDraw.hpp
@@ -268,6 +269,7 @@ file(
 	src/Common/Common.cpp
 	src/Common/IndexGenerator.cpp
 	src/Common/KGuillotineAllocator.cpp
+	src/Configuration/Configuration.cpp
 	src/Controllers/FlyCamController.cpp
 	src/Debugging/Renderers/DebugRenderer.cpp
 	src/Devices/Device.cpp
@@ -369,7 +371,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES} src/Animations/Components/BoneMesh.hpp src/Animations/Components/NodeBoneMesh.hpp src/Nodes/Components/NodeMesh.hpp src/Nodes/Components/NodeMesh.hpp)
+add_executable(drk ${HEADERS} ${SOURCES})
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 

@@ -3,7 +3,6 @@
 #include "Device.hpp"
 #include <vector>
 #include <stdexcept>
-#include <iostream>
 
 
 namespace drk::Devices {

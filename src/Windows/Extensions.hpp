@@ -5,7 +5,7 @@
 #include "Window.hpp"
 #include <memory>
 #include <nameof.hpp>
-#include "../Configuration/Extensions.hpp"
+#include "../Configuration/Configuration.hpp"
 #include "WindowConfiguration.hpp"
 #include <nlohmann/json.hpp>
 

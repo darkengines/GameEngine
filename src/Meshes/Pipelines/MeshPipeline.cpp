@@ -1,5 +1,4 @@
 #include <vulkan/vulkan.hpp>
-#include <algorithm>
 #include "MeshPipeline.hpp"
 #include "../../Graphics/Graphics.hpp"
 #include "../Components/MeshDraw.hpp"

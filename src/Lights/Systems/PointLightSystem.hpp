@@ -31,5 +31,6 @@ namespace drk::Lights::Systems {
 			const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem
 		) override;
 		void processDirtyItems();
+		entt::entity createPointLight();
 	};
 }

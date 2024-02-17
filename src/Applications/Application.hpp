@@ -32,6 +32,7 @@
 #include "../Frustums/Systems/FrustumSystem.hpp"
 #include "../Animations/Systems/BoneMeshSystem.hpp"
 #include "../Animations/Systems/BoneSpatialSystem.hpp"
+#include <boost/di.hpp>
 #include <memory>
 
 namespace drk::Applications {

@@ -2,7 +2,7 @@
 
 #include "Buffer.hpp"
 #include "Texture.hpp"
-#include "../Configuration/Extensions.hpp"
+#include "../Configuration/Configuration.hpp"
 #include "../Windows/Window.hpp"
 #include <vulkan/vulkan.hpp>
 #include <vk_mem_alloc.h>

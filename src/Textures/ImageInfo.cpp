@@ -1,6 +1,5 @@
 #include <stb_image.h>
 #include "ImageInfo.hpp"
-#include <memory>
 #include <cmath>
 #include <string>
 

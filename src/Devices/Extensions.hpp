@@ -2,7 +2,7 @@
 
 #include <boost/di.hpp>
 #include "DeviceContext.hpp"
-#include "../Configuration/Extensions.hpp"
+#include "../Configuration/Configuration.hpp"
 #include "Device.hpp"
 #include "VulkanInstanceConfiguration.hpp"
 #include "../Windows/Window.hpp"

@@ -3,7 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include "WindowConfiguration.hpp"
-#include "../Configuration/Extensions.hpp"
+#include "../Configuration/Configuration.hpp"
 #include <nlohmann/json.hpp>
 #include <nameof.hpp>
 #include <vulkan/vulkan.hpp>

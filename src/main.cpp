@@ -1,17 +1,11 @@
 #define BOOST_DI_CFG_DIAGNOSTICS_LEVEL 2
-#include <vulkan/vulkan.hpp>
 #include "implementations.hpp"
-#include "Devices/Device.hpp"
-#include "Windows/Window.hpp"
 #include "Windows/Extensions.hpp"
 #include "Graphics/Graphics.hpp"
-#include <GLFW/glfw3.h>
 #include "Applications/Application.hpp"
 #include "Configuration/Extensions.hpp"
 #include <nlohmann/json.hpp>
-#include "Windows/Window.hpp"
 #include "Devices/Extensions.hpp"
-#include "Devices/DeviceContext.hpp"
 #include "Graphics/Extentions.hpp"
 #include "Applications/Extentions.hpp"
 #include "Cameras/Extensions.hpp"
@@ -25,7 +19,6 @@
 #include "Spatials/Extensions.hpp"
 #include "Controllers/Extensions.hpp"
 #include "UserInterfaces/Extensions.hpp"
-#include "Draws/Extentions.hpp"
 #include "Stores/Extensions.hpp"
 #include "Scenes/Extensions.hpp"
 #include "Points/Extensions.hpp"

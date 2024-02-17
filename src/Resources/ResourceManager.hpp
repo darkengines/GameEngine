@@ -1,5 +1,5 @@
 #pragma once
-#include "../Configuration/Extensions.hpp"
+#include "../Configuration/Configuration.hpp"
 #include "./Configuration/ResourcesConfiguration.hpp"
 
 namespace drk::Resources {

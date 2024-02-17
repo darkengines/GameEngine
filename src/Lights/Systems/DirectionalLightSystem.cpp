@@ -1,10 +1,4 @@
 #include "DirectionalLightSystem.hpp"
-#include "../../Spatials/Components/Spatial.hpp"
-#include "../../Common/Components/Dirty.hpp"
-#include "../Components/LightPerspective.hpp"
-#include <glm/gtx/quaternion.hpp>
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
 
 namespace drk::Lights::Systems {
 	DirectionalLightSystem::DirectionalLightSystem(
