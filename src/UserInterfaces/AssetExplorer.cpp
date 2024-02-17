@@ -34,7 +34,7 @@ namespace drk::UserInterfaces {
 			ImGui::SameLine();
 			ImGui::PushID((void*) entity);
 			if (ImGui::Button("Copy##node")) {
-				Nodes::Systems::NodeSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
+				Nodes::Systems::NodeSystem::copyNodeEntity(assetRegistry, destinationRegistry, entity);
 			}
 			ImGui::PopID();
 			if (isOpen) {
@@ -48,7 +48,7 @@ namespace drk::UserInterfaces {
 			ImGui::SameLine();
 			ImGui::PushID((void*) entity);
 			if (ImGui::Button("Copy##leaf")) {
-				Nodes::Systems::NodeSystem::copyObjectEntity(assetRegistry, destinationRegistry, entity);
+				Nodes::Systems::NodeSystem::copyNodeEntity(assetRegistry, destinationRegistry, entity);
 			}
 			ImGui::PopID();
 		}

@@ -20,9 +20,6 @@ namespace drk::Loaders {
 		LoadResult(const LoadResult& x) = delete;
 		LoadResult& operator=(const LoadResult& other) = delete;
 
-		std::vector<std::shared_ptr<Meshes::Components::MeshResource>> meshes;
-		std::vector<std::shared_ptr<Materials::Components::Material>> materials;
-		std::vector<std::shared_ptr<Textures::ImageInfo>> images;
 		std::vector<Lights::Components::PointLight> pointLights;
 		std::vector<Lights::Components::DirectionalLight> directionalLights;
 		std::vector<Lights::Components::Spotlight> spotlights;

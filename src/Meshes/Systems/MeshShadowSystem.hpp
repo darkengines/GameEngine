@@ -30,7 +30,7 @@ namespace drk::Meshes::Systems {
 			const Spatials::Components::Spatial<Spatials::Components::Absolute>& spatial,
 			const Materials::Components::Material& material,
 			const Meshes::Components::MeshBufferView& meshBufferView,
-			std::shared_ptr<Meshes::Components::MeshResource> pMeshResource,
+			const Meshes::Components::MeshResource& meshResource,
 			entt::entity nodeEntity,
 			entt::entity meshEntity,
 			entt::entity cameraEntity,

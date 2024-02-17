@@ -5,55 +5,49 @@
 #include <string>
 
 namespace drk::Textures {
-	std::unique_ptr<ImageInfo>
-	ImageInfo::fromFile(const std::string& name, const std::string& filePath, TextureType type) {
-		auto texture = std::make_unique<ImageInfo>(
-			ImageInfo{
-				type,
-				0u,
-				0u,
-				0u,
-				std::vector<unsigned char>{}
-			}
-		);
+	ImageInfo ImageInfo::fromFile(const std::string& name, const std::string& filePath, TextureType type) {
+		ImageInfo imageInfo{
+			type,
+			0u,
+			0u,
+			0u,
+			std::vector<unsigned char>{}
+		};
 		auto pixels = stbi_load(
 			filePath.c_str(),
-			(int*) &texture->width,
-			(int*) &texture->height,
-			(int*) &texture->depth,
+			(int*) &imageInfo.width,
+			(int*) &imageInfo.height,
+			(int*) &imageInfo.depth,
 			4u
 		);
-		texture->pixels.assign(pixels, pixels + texture->width * texture->height * 4u * sizeof(unsigned char));
+		imageInfo.pixels.assign(pixels, pixels + imageInfo.width * imageInfo.height * 4u * sizeof(unsigned char));
 		free(pixels);
-		return texture;
+		return imageInfo;
 	}
 
-	std::unique_ptr<ImageInfo>
-	ImageInfo::fromMemory(
+	ImageInfo ImageInfo::fromMemory(
 		const std::string& name,
 		const std::span<unsigned char>& memory,
 		TextureType type
 	) {
-		auto texture = std::make_unique<ImageInfo>(
-			ImageInfo{
-				type,
-				0u,
-				0u,
-				0u,
-				std::vector<unsigned char>{}
-			}
-		);
+		ImageInfo imageInfo{
+			type,
+			0u,
+			0u,
+			0u,
+			std::vector<unsigned char>{}
+		};
 		auto pixels = stbi_load_from_memory(
 			memory.data(),
 			(int) memory.size(),
-			(int*) &texture->width,
-			(int*) &texture->height,
-			(int*) &texture->depth,
+			(int*) &imageInfo.width,
+			(int*) &imageInfo.height,
+			(int*) &imageInfo.depth,
 			4
 		);
-		texture->pixels.assign(pixels, pixels + texture->width * texture->height * 4u * sizeof(unsigned char));
+		imageInfo.pixels.assign(pixels, pixels + imageInfo.width * imageInfo.height * 4u * sizeof(unsigned char));
 		free(pixels);
-		return texture;
+		return imageInfo;
 	}
 
 	std::unordered_map<TextureType, vk::Format> ImageInfo::TextureTypeFormatMap{

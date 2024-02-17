@@ -12,19 +12,19 @@ namespace drk::Materials::Systems {
 
 	void MaterialSystem::update(
 		Models::Material& storedMaterial,
-		const std::shared_ptr<Materials::Components::Material>& material
+		const Materials::Components::Material& material
 	) {
-		storedMaterial.baseColor = material->baseColor;
-		storedMaterial.ambientColor = material->ambientColor;
-		storedMaterial.diffuseColor = material->diffuseColor;
-		storedMaterial.specularColor = material->specularColor;
+		storedMaterial.baseColor = material.baseColor;
+		storedMaterial.ambientColor = material.ambientColor;
+		storedMaterial.diffuseColor = material.diffuseColor;
+		storedMaterial.specularColor = material.specularColor;
 
-		auto hasBaseColorTexture = material->baseColorTexture != entt::null;
-		auto hasAmbientColorTexture = material->ambientColorTexture != entt::null;
-		auto hasDiffuseColorTexture = material->diffuseColorTexture != entt::null;
-		auto hasSpecularColorTexture = material->specularColorTexture != entt::null;
-		auto hasNormalMap = material->normalMap != entt::null;
-		auto hasMetallicRoughnessMap = material->metallicRoughnessTexture != entt::null;
+		auto hasBaseColorTexture = material.baseColorTexture != entt::null;
+		auto hasAmbientColorTexture = material.ambientColorTexture != entt::null;
+		auto hasDiffuseColorTexture = material.diffuseColorTexture != entt::null;
+		auto hasSpecularColorTexture = material.specularColorTexture != entt::null;
+		auto hasNormalMap = material.normalMap != entt::null;
+		auto hasMetallicRoughnessMap = material.metallicRoughnessTexture != entt::null;
 
 		storedMaterial.hasBaseColorTexture = hasBaseColorTexture;
 		storedMaterial.hasAmbientColorTexture = hasAmbientColorTexture;
@@ -35,32 +35,32 @@ namespace drk::Materials::Systems {
 
 		if (hasBaseColorTexture) {
 			storedMaterial.baseColorTextureIndex = registry.get<Devices::Texture>(
-				material->baseColorTexture
+				material.baseColorTexture
 			).index;
 		}
 		if (hasAmbientColorTexture) {
 			storedMaterial.ambientColorTextureIndex = registry.get<Devices::Texture>(
-				material->ambientColorTexture
+				material.ambientColorTexture
 			).index;
 		}
 		if (hasDiffuseColorTexture) {
 			storedMaterial.diffuseColorTextureIndex = registry.get<Devices::Texture>(
-				material->diffuseColorTexture
+				material.diffuseColorTexture
 			).index;
 		}
 		if (hasSpecularColorTexture) {
 			storedMaterial.specularColorTextureIndex = registry.get<Devices::Texture>(
-				material->specularColorTexture
+				material.specularColorTexture
 			).index;
 		}
 		if (hasNormalMap) {
 			storedMaterial.normalMapIndex = registry.get<Devices::Texture>(
-				material->normalMap
+				material.normalMap
 			).index;
 		}
 		if (hasMetallicRoughnessMap) {
 			storedMaterial.metallicRoughnessTextureIndex = registry.get<Devices::Texture>(
-				material->metallicRoughnessTexture
+				material.metallicRoughnessTexture
 			).index;
 		}
 	}
@@ -71,52 +71,51 @@ namespace drk::Materials::Systems {
 		entt::registry& destination,
 		entt::entity sourceEntity
 	) {
-		const auto& material = source.get<std::shared_ptr<Materials::Components::Material>>(sourceEntity);
+		const auto& material = source.get<Materials::Components::Material>(sourceEntity);
 
 		auto newEntity = destination.create();
 		Components::Material newMaterial{
-			.source = material->source,
-			.baseColor = material->baseColor,
-			.ambientColor = material->ambientColor,
-			.diffuseColor = material->diffuseColor,
-			.specularColor = material->specularColor,
+			.source = material.source,
+			.baseColor = material.baseColor,
+			.ambientColor = material.ambientColor,
+			.diffuseColor = material.diffuseColor,
+			.specularColor = material.specularColor,
 
 			.baseColorTexture = Textures::Systems::TextureSystem::copyTextureEntity(
 				source,
 				destination,
-				material->baseColorTexture
+				material.baseColorTexture
 			),
 			.ambientColorTexture = Textures::Systems::TextureSystem::copyTextureEntity(
 				source,
 				destination,
-				material->ambientColorTexture
+				material.ambientColorTexture
 			),
 			.diffuseColorTexture = Textures::Systems::TextureSystem::copyTextureEntity(
 				source,
 				destination,
-				material->diffuseColorTexture
+				material.diffuseColorTexture
 			),
 			.specularColorTexture = Textures::Systems::TextureSystem::copyTextureEntity(
 				source,
 				destination,
-				material->specularColorTexture
+				material.specularColorTexture
 			),
-			.normalMap = Textures::Systems::TextureSystem::copyTextureEntity(source, destination, material->normalMap),
+			.normalMap = Textures::Systems::TextureSystem::copyTextureEntity(source, destination, material.normalMap),
 			.metallicRoughnessTexture = Textures::Systems::TextureSystem::copyTextureEntity(
 				source,
 				destination,
-				material->metallicRoughnessTexture
+				material.metallicRoughnessTexture
 			),
 
-			.hasTransparency = material->hasTransparency
+			.hasTransparency = material.hasTransparency
 		};
 		auto name = source.get<Common::Components::Name>(sourceEntity);
 		destination.emplace<Common::Components::Name>(newEntity, name);
-		destination.emplace<std::shared_ptr<Materials::Components::Material>>(
+		destination.emplace<Materials::Components::Material>(
 			newEntity,
-			std::make_shared<Materials::Components::Material>(
-				newMaterial
-			));
+			newMaterial
+		);
 
 		return newEntity;
 	}

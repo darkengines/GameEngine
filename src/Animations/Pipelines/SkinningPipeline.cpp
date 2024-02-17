@@ -11,7 +11,7 @@ namespace drk::Animations::Pipelines {
 		Animations::Resources::AnimationResourceManager& animationResourceManager,
 		Engine::DescriptorSetLayouts& descriptorSetLayouts
 	) : deviceContext(deviceContext),
-		animationResourceManager(animationResourceManager),
+		engineState(engineState),
 		descriptorSetLayouts{
 			animationResourceManager.skinnedVertexRangeDescriptorSetLayout,
 			animationResourceManager.vertexWeightDescriptorSetLayout,
@@ -20,7 +20,7 @@ namespace drk::Animations::Pipelines {
 			descriptorSetLayouts.storeDescriptorSetLayout,
 		},
 		pipelineLayout(createPipelineLayout(deviceContext, this->descriptorSetLayouts)),
-		engineState(engineState) {
+		animationResourceManager(animationResourceManager) {
 		createShaderModules();
 		configure([](auto& config) {});
 	}

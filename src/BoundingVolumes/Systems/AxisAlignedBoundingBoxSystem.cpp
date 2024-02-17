@@ -18,16 +18,14 @@ namespace drk::BoundingVolumes::Systems {
 	) : System<
 		Models::AxisAlignedBoundingBox,
 		Components::AxisAlignedBoundingBox,
-		Nodes::Components::NodeReference,
-		Meshes::Components::MeshReference
+		Nodes::Components::NodeMesh
 	>(engineState, registry), deviceContext(deviceContext) {
 		createResources();
 	}
 	void AxisAlignedBoundingBoxSystem::update(
 		Models::AxisAlignedBoundingBox& axisAlignedBoundingBoxModel,
 		const Components::AxisAlignedBoundingBox& axisAlignedBoundingBox,
-		const Nodes::Components::NodeReference& objectReference,
-		const Meshes::Components::MeshReference& meshReference
+		const Nodes::Components::NodeMesh& nodeMesh
 	) {
 		axisAlignedBoundingBoxModel.center = axisAlignedBoundingBox.absoluteCenter;
 		axisAlignedBoundingBoxModel.extent = axisAlignedBoundingBox.absoluteExtent;
@@ -114,19 +112,17 @@ namespace drk::BoundingVolumes::Systems {
 	void AxisAlignedBoundingBoxSystem::processDirty() {
 		auto view = registry.view<
 			Components::AxisAlignedBoundingBox,
-			Nodes::Components::NodeReference,
-			Meshes::Components::MeshReference,
+			Nodes::Components::NodeMesh,
 			Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>
 		>();
 		view.each(
 			[this](
 				entt::entity entity,
 				Components::AxisAlignedBoundingBox& axisAlignedBoundingBox,
-				const Nodes::Components::NodeReference& objectReference,
-				const Meshes::Components::MeshReference& meshReference
+				const Nodes::Components::NodeMesh& nodeMesh
 			) {
 				auto spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(
-					objectReference.nodeEntity
+					nodeMesh.nodeEntity
 				);
 				axisAlignedBoundingBox.inplaceTransform(spatial.model);
 				registry.emplace_or_replace<Graphics::SynchronizationState<Models::AxisAlignedBoundingBox>>(
@@ -139,16 +135,14 @@ namespace drk::BoundingVolumes::Systems {
 	void AxisAlignedBoundingBoxSystem::emitDraws() {
 		const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
 		auto objectMeshEntities = registry.view<
-			Nodes::Components::NodeReference,
-			Meshes::Components::MeshReference,
+			Nodes::Components::NodeMesh,
 			Meshes::Components::Mesh
 		>(entt::exclude<Components::HasDraw>);
 
 		objectMeshEntities.each(
 			[&](
 				entt::entity objectMeshEntity,
-				const Nodes::Components::NodeReference& objectReference,
-				const Meshes::Components::MeshReference& meshReference,
+				Nodes::Components::NodeMesh nodeMesh,
 				const Meshes::Components::Mesh& mesh
 			) {
 				Scenes::Draws::SceneDraw draw = {

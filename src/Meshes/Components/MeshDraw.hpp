@@ -7,7 +7,7 @@
 
 namespace drk::Meshes::Components {
 	struct MeshDraw {
-		std::shared_ptr<MeshResource> meshResource;
+		uint32_t indexCount;
 		MeshBufferView meshBufferView;
 	};
 }

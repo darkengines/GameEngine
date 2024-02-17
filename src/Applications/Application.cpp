@@ -80,8 +80,8 @@ namespace drk::Applications {
 		  animationSystem(animationSystem),
 		  boneSystem(boneSystem),
 		  boneSpatialSystem(boneSpatialSystem),
-		  windowExtent(window.GetExtent()),
-		  assetExplorer(assetExplorer) {
+		  assetExplorer(assetExplorer),
+		  windowExtent(window.GetExtent()) {
 		//ImGui::GetIO().IniFilename = NULL;
 		const auto& glfwWindow = window.GetWindow();
 		glfwSetCursorPosCallback(glfwWindow, CursorPosCallback);

@@ -18,8 +18,10 @@ namespace drk::Stores {
 		uint32_t descriptorArrayElement;
 
 		GenericStoreBuffer(uint32_t maxIndexCount, uint32_t descriptorArrayElement, void* const pMappedMemory)
-			: maxIndexCount(maxIndexCount), descriptorArrayElement(descriptorArrayElement),
-			  pMappedMemory(pMappedMemory), count(-1) {
+			: pMappedMemory(pMappedMemory),
+			  maxIndexCount(maxIndexCount),
+			  count(-1),
+			  descriptorArrayElement(descriptorArrayElement) {
 			nextIndex = 0;
 		}
 		~GenericStoreBuffer() = default;

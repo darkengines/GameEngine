@@ -64,8 +64,6 @@ namespace drk::Devices {
 	QueueFamilyIndices
 	Device::findQueueFamilies(const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface) {
 		QueueFamilyIndices indices = {};
-
-		uint32_t queueFamilyCount = 0;
 		auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
 		int i = 0;

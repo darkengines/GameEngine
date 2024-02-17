@@ -10,13 +10,13 @@ namespace drk::Textures::Systems {
 		: DeviceContext(deviceContext), EngineState(engineState), registry(registry) {}
 
 	void TextureSystem::UploadTextures() {
-		auto imageEntities = registry.view<std::shared_ptr<Textures::ImageInfo>>(entt::exclude<Devices::Texture>);
+		auto imageEntities = registry.view<Textures::ImageInfo>(entt::exclude<Devices::Texture>);
 		for (const auto& imageEntity: imageEntities) {
-			const auto imageInfo = registry.get<std::shared_ptr<Textures::ImageInfo>>(
+			const auto imageInfo = registry.get<Textures::ImageInfo>(
 				imageEntity
 			);
-			if (!imageInfo->pixels.empty()) {
-				const auto& texture = EngineState.UploadTexture(imageInfo.get());
+			if (!imageInfo.pixels.empty()) {
+				const auto& texture = EngineState.UploadTexture(imageInfo);
 				registry.emplace<Devices::Texture>(imageEntity, texture);
 			} else {
 				//TODO: apply default texture

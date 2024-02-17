@@ -30,7 +30,7 @@ namespace drk::Nodes::Systems {
 			Engine::EngineState& engineState,
 			entt::registry& registry
 		);
-		static entt::entity copyObjectEntity(
+		static entt::entity copyNodeEntity(
 			const entt::registry& source,
 			entt::registry& destination,
 			entt::entity sourceEntity,

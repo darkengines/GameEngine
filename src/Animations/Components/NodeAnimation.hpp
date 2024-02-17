@@ -9,6 +9,8 @@
 
 namespace drk::Animations::Components {
 	struct NodeAnimation {
+		entt::entity nodeEntity;
+		entt::entity animationEntity;
 		AnimationBehavior preState;
 		AnimationBehavior postState;
 		std::vector<VectorKey> positionKeys;

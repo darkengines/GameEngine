@@ -7,11 +7,11 @@
 #include "../../Systems/System.hpp"
 
 namespace drk::Materials::Systems {
-	class MaterialSystem : public drk::Systems::System<Models::Material, std::shared_ptr<Components::Material>> {
+	class MaterialSystem : public drk::Systems::System<Models::Material, Components::Material> {
 	protected:
 		const Devices::DeviceContext& deviceContext;
 	public:
-		void update(Models::Material& model, const std::shared_ptr<Components::Material>& components);
+		void update(Models::Material& model, const Components::Material& components);
 	public:
 		MaterialSystem(
 			const drk::Devices::DeviceContext& deviceContext,

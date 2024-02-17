@@ -17,15 +17,13 @@
 #include "../Components/Skinned.hpp"
 #include "../Components/NodeAnimation.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
-#include "../Components/AnimationReference.hpp"
 #include "../Resources/AnimationResourceManager.hpp"
 #include <entt/entt.hpp>
 #include <utility>
 #include <vector>
 
 #include <glm/glm.hpp>
-#include "../../Nodes/Components/NodeReference.hpp"
-#include "../../Meshes/Components/MeshReference.hpp"
+#include "../../Nodes/Components/NodeMesh.hpp"
 #include "../Components/AnimationState.hpp"
 #include "../../Meshes/Components/Mesh.hpp"
 #include "../../Meshes/Components/MeshBufferView.hpp"
@@ -37,7 +35,6 @@
 #include "../../Engine/DescriptorSetLayoutCache.hpp"
 #include "../Components/Bone.hpp"
 #include "../Pipelines/SkinningPipeline.hpp"
-#include "../../Nodes/Components/NodeMeshReference.hpp"
 
 namespace drk::Animations::Systems {
 	class AnimationSystem {
@@ -72,8 +69,7 @@ namespace drk::Animations::Systems {
 		}
 		void storeMeshes() {
 			auto view = registry.view<
-				Nodes::Components::NodeReference,
-				Meshes::Components::MeshReference,
+				Nodes::Components::NodeMesh,
 				Animations::Components::Skinned
 			>(entt::exclude<Components::SkinnedBufferView>);
 			std::vector<Devices::BufferView> vertexBufferViews;
@@ -81,12 +77,11 @@ namespace drk::Animations::Systems {
 			view.each(
 				[&](
 					entt::entity objectMeshEntity,
-					const Nodes::Components::NodeReference& objectReference,
-					const Meshes::Components::MeshReference& meshReference
+					const Nodes::Components::NodeMesh& nodeMesh
 				) {
 					const auto& meshBufferView = registry.get<
 						Meshes::Components::MeshBufferView
-					>(meshReference.meshEntity);
+					>(nodeMesh.meshEntity);
 					vertexBufferViews.emplace_back(meshBufferView.VertexBufferView);
 					entities.emplace_back(objectMeshEntity);
 				}
@@ -105,7 +100,7 @@ namespace drk::Animations::Systems {
 		void createSkinnedMeshInstanceResources(uint32_t frameIndex) {
 			auto skinnedMeshInstances = registry.view<
 				Components::SkinnedMeshInstance,
-				Meshes::Components::MeshReference,
+				Nodes::Components::NodeMesh,
 				Components::SkinnedBufferView
 			>(entt::exclude<Components::BoneInstanceWeightBufferView>);
 
@@ -118,10 +113,10 @@ namespace drk::Animations::Systems {
 				[&](
 					entt::entity entity,
 					const Components::SkinnedMeshInstance& skinnedMeshInstance,
-					const Meshes::Components::MeshReference& meshReference,
+					const Nodes::Components::NodeMesh& nodeMesh,
 					const Components::SkinnedBufferView& skinnedBufferView
 				) {
-					const auto& meshBufferView = registry.get<Meshes::Components::MeshBufferView>(meshReference.meshEntity);
+					const auto& meshBufferView = registry.get<Meshes::Components::MeshBufferView>(nodeMesh.meshEntity);
 					vertexBufferViews.emplace_back(meshBufferView.VertexBufferView);
 
 					entities.emplace_back(entity);
@@ -177,7 +172,7 @@ namespace drk::Animations::Systems {
 
 				auto skinnedWeightedMeshInstances = registry.view<
 					Components::SkinnedMeshInstance,
-					Meshes::Components::MeshReference,
+					Nodes::Components::NodeMesh,
 					Components::SkinnedBufferView,
 					Components::BoneInstanceWeightBufferView
 				>(entt::exclude<Components::SkinnedVertexRangeBufferView>);
@@ -186,11 +181,11 @@ namespace drk::Animations::Systems {
 					[&](
 						entt::entity entity,
 						const Components::SkinnedMeshInstance& skinnedMeshInstance,
-						const Meshes::Components::MeshReference& meshReference,
+						const Nodes::Components::NodeMesh& nodeMesh,
 						const Components::SkinnedBufferView& skinnedBufferView,
 						const Components::BoneInstanceWeightBufferView& boneInstanceWeightBufferView
 					) {
-						const auto& meshBufferView = registry.get<Meshes::Components::MeshBufferView>(meshReference.meshEntity);
+						const auto& meshBufferView = registry.get<Meshes::Components::MeshBufferView>(nodeMesh.meshEntity);
 						vertexBufferViews.emplace_back(meshBufferView.VertexBufferView);
 
 						std::vector<Models::SkinnedVertexRange> skinnedVertexRanges(skinnedMeshInstance.skinnedVertexRanges.size());
@@ -267,24 +262,20 @@ namespace drk::Animations::Systems {
 
 		void updateAnimations() {
 			auto skinnedObjectMeshView = registry.view<
-				Nodes::Components::NodeReference,
-				Animations::Components::AnimationReference,
 				Animations::Components::AnimationState,
 				Animations::Components::NodeAnimation
 			>();
 			skinnedObjectMeshView.each(
 				[this](
 					entt::entity objectMeshEntity,
-					const Nodes::Components::NodeReference& objectReference,
-					const Animations::Components::AnimationReference& animationReference,
 					Animations::Components::AnimationState& animationState,
 					const Animations::Components::NodeAnimation& nodeAnimation
 				) {
 					const Components::Animation& animation = registry.get<Animations::Components::Animation>(
-						animationReference.animationEntity
+						nodeAnimation.animationEntity
 					);
 					auto& nodeSpatial = registry.get_or_emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(
-						objectReference.nodeEntity
+						nodeAnimation.nodeEntity
 					);
 
 					auto position = glm::make_vec3(nodeSpatial.position);
@@ -297,7 +288,7 @@ namespace drk::Animations::Systems {
 					nodeSpatial.rotation = rotation;
 					nodeSpatial.scale = glm::vec4(scaling, 0);
 
-					Spatials::Systems::SpatialSystem::makeDirty(registry, objectReference.nodeEntity);
+					Spatials::Systems::SpatialSystem::makeDirty(registry, nodeAnimation.nodeEntity);
 				}
 			);
 		}

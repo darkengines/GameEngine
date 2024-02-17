@@ -251,10 +251,11 @@ namespace drk::Devices {
 			std::vector<Devices::Buffer>& destinationBuffers,
 			vk::BufferUsageFlags memoryUsage
 		) {
-			const auto& properties = physicalDevice.getMemoryProperties();
-
 			size_t bufferByteLength = std::accumulate(
-				sourceBufferViews.begin(), sourceBufferViews.end(), size_t{0}, [](size_t totalBytes, const auto& bufferView) {
+				sourceBufferViews.begin(),
+				sourceBufferViews.end(),
+				size_t{0},
+				[](size_t totalBytes, const auto& bufferView) {
 					return totalBytes + bufferView.byteLength;
 				}
 			);

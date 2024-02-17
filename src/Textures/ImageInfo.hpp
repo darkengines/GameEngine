@@ -17,11 +17,9 @@ namespace drk::Textures {
 		uint32_t depth;
 		std::vector<unsigned char> pixels;
 
-		static std::unique_ptr<ImageInfo>
-		fromFile(const std::string& name, const std::string& filePath, TextureType type);
+		static ImageInfo fromFile(const std::string& name, const std::string& filePath, TextureType type);
 
-		static std::unique_ptr<ImageInfo>
-		fromMemory(const std::string& name, const std::span<unsigned char>& memory, TextureType type);
+		static ImageInfo fromMemory(const std::string& name, const std::span<unsigned char>& memory, TextureType type);
 
 		static std::unordered_map<TextureType, vk::Format> TextureTypeFormatMap;
 		[[nodiscard]] uint32_t mipLevels() const;

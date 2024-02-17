@@ -4,7 +4,6 @@
 #include "../Animations/Components/RootBoneInstanceReference.hpp"
 #include "../Animations/Components/Skinned.hpp"
 #include "../Animations/Components/BoneCollection.hpp"
-#include "../Animations/Components/AnimationReference.hpp"
 #include "../Animations/Components/VertexWeightInstance.hpp"
 #include "../Animations/Components/SkinnedMeshInstance.hpp"
 #include "../Animations/Components/AnimationState.hpp"
@@ -22,10 +21,8 @@
 #include "../Materials/Components/MaterialReference.hpp"
 #include "../Meshes/Components/Mesh.hpp"
 #include "../Nodes/Components/Node.hpp"
-#include "../Nodes/Components/NodeReference.hpp"
-#include "../Meshes/Components/MeshReference.hpp"
+#include "../Nodes/Components/NodeMesh.hpp"
 #include "../Nodes/Components/NodeMeshCollection.hpp"
-#include "../Nodes/Components/NodeMeshReference.hpp"
 #include "AssimpLoader.hpp"
 #include "../Spatials/Components/Spatial.hpp"
 #include "../Animations/Components/BoneMesh.hpp"
@@ -64,8 +61,6 @@ namespace drk::Loaders {
 		std::span<aiSkeleton*> aiSkeletons(aiScene->mSkeletons, aiScene->mNumSkeletons);
 
 		LoadResult loadResult;
-		loadResult.meshes.resize(aiMeshes.size());
-		loadResult.materials.resize(aiMaterials.size());
 
 		const auto workingDirectoryPath = scenePath.parent_path();
 		loadMaterials(aiMaterials, aiTextures, workingDirectoryPath, loadResult, registry);
@@ -142,36 +137,39 @@ namespace drk::Loaders {
 						std::string texturePath(aiTexturePath.C_Str());
 						texturePath = replaceAll(texturePath, "%20", " ");
 						auto texturePathPair = textureNameMap.find(texturePath);
-						std::unique_ptr<Textures::ImageInfo> image;
+						Textures::ImageInfo image;
 						if (texturePathPair == textureNameMap.end()) {
 							if (texturePath[0] == '*') {
 								int textureIndex = 0;
 								sscanf_s(texturePath.c_str(), "*%d", &textureIndex);
 								auto aiTexture = aiTextures[textureIndex];
 								std::span<unsigned char> data((unsigned char*) aiTexture->pcData, aiTexture->mWidth);
-								image = Textures::ImageInfo::fromMemory(
-									std::string(texturePath),
-									data,
-									textureTypePair.second
+								image = std::move(
+									Textures::ImageInfo::fromMemory(
+										std::string(texturePath),
+										data,
+										textureTypePair.second
+									)
 								);
 							} else {
 								auto textureFileSystemPath = workingDirectoryPath.make_preferred() /
 															 std::filesystem::path(texturePath).make_preferred().relative_path();
-								image = Textures::ImageInfo::fromFile(
-									textureFileSystemPath.string(),
-									textureFileSystemPath.string(),
-									textureTypePair.second
+								image = std::move(
+									Textures::ImageInfo::fromFile(
+										textureFileSystemPath.string(),
+										textureFileSystemPath.string(),
+										textureTypePair.second
+									)
 								);
 							}
-							if (image->pixels.size() > 0) {
+							if (image.pixels.size() > 0) {
 								auto textureEntity = registry.create();
 								registry.emplace<Common::Components::Name>(
 									textureEntity,
 									std::filesystem::path(texturePath).filename().string());
-								registry.emplace<std::shared_ptr<Textures::ImageInfo>>(textureEntity, std::move(image));
+								registry.emplace<Textures::ImageInfo>(textureEntity, std::move(image));
 								textureNameMap[texturePath] = textureEntity;
 								textureTypeMap[textureTypePair.second] = textureEntity;
-								loadResult.images.push_back(std::move(image));
 							}
 							aiTextureIndex++;
 						} else {
@@ -222,14 +220,14 @@ namespace drk::Loaders {
 			auto materialEntity = registry.create();
 
 			auto hasTransparency =
-				baseColorTexture != entt::null &&
-				registry.get<std::shared_ptr<Textures::ImageInfo>>(baseColorTexture)->depth > 3
-				|| ambientColorTexture != entt::null &&
-				   registry.get<std::shared_ptr<Textures::ImageInfo>>(ambientColorTexture)->depth > 3
-				|| diffuseColorTexture != entt::null &&
-				   registry.get<std::shared_ptr<Textures::ImageInfo>>(diffuseColorTexture)->depth > 3
-				|| hasAmbientColor && ambientColor.a < 1
-				|| hasDiffuseColor && diffuseColor.a < 1;
+				(baseColorTexture != entt::null &&
+				 registry.get<Textures::ImageInfo>(baseColorTexture).depth > 3)
+				|| (ambientColorTexture != entt::null &&
+					registry.get<Textures::ImageInfo>(ambientColorTexture).depth > 3)
+				|| (diffuseColorTexture != entt::null &&
+					registry.get<Textures::ImageInfo>(diffuseColorTexture).depth > 3)
+				|| (hasAmbientColor && ambientColor.a < 1)
+				|| (hasDiffuseColor && diffuseColor.a < 1);
 
 			Materials::Components::Material material = {
 				.baseColor = glm::vec4(ambientColor.r, ambientColor.g, ambientColor.b, ambientColor.a),
@@ -245,10 +243,8 @@ namespace drk::Loaders {
 				.hasTransparency = hasTransparency
 			};
 
-			auto materialPtr = std::make_shared<Materials::Components::Material>(material);
-			registry.emplace<std::shared_ptr<Materials::Components::Material>>(materialEntity, materialPtr);
+			registry.emplace<Materials::Components::Material>(materialEntity, material);
 			registry.emplace<Common::Components::Name>(materialEntity, materialName);
-			loadResult.materials[aiMaterialIndex] = materialPtr;
 			loadResult.materialIdEntityMap[aiMaterialIndex] = materialEntity;
 		}
 	}
@@ -281,7 +277,7 @@ namespace drk::Loaders {
 		);
 
 		for (const auto& skinnedMeshInstance: skinnedMeshInstances) {
-			const auto& meshReference = registry.get<Meshes::Components::MeshReference>(skinnedMeshInstance.first);
+			const auto& nodeMesh = registry.get<Nodes::Components::NodeMesh>(skinnedMeshInstance.first);
 			std::vector<Animations::Components::VertexWeightInstance> instanceSkinnedVertices;
 			for (const auto& instance: skinnedMeshInstance.second) {
 				const auto& nodeBoneNodeMesh = registry.get<Animations::Components::NodeBoneNodeMesh>(instance);
@@ -462,7 +458,6 @@ namespace drk::Loaders {
 				}
 			}
 			std::string meshName = aiMesh->mName.C_Str();
-			auto meshMaterial = loadResult.materials[aiMesh->mMaterialIndex];
 			auto materialEntity = loadResult.materialIdEntityMap[aiMesh->mMaterialIndex];
 			Meshes::Components::MeshResource mesh = {
 				.vertices = vertices,
@@ -470,19 +465,17 @@ namespace drk::Loaders {
 				.hasTangent = hasTangentsAndBitangents,
 				.hasBitTangent = hasTangentsAndBitangents
 			};
-			auto meshPtr = std::make_shared<Meshes::Components::MeshResource>(mesh);
 			auto axisAlignedBoundingBox = BoundingVolumes::Components::AxisAlignedBoundingBox::fromMinMax(
 				glm::vec4(AssimpLoader::toVector(aiMesh->mAABB.mMin), 1.0f),
 				glm::vec4(AssimpLoader::toVector(aiMesh->mAABB.mMax), 1.0f)
 			);
 
 			registry.emplace<Common::Components::Name>(meshEntity, meshName);
-			registry.emplace<std::shared_ptr<Meshes::Components::MeshResource>>(meshEntity, meshPtr);
+			registry.emplace<Meshes::Components::MeshResource>(meshEntity, std::move(mesh));
 			registry.emplace<Materials::Components::MaterialReference>(meshEntity, materialEntity);
 			registry.emplace<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity, axisAlignedBoundingBox);
 
 			loadResult.meshIdEntityMap[aiMeshIndex] = meshEntity;
-			loadResult.meshes[aiMeshIndex] = meshPtr;
 		}
 	}
 
@@ -526,6 +519,7 @@ namespace drk::Loaders {
 					std::span<aiQuatKey> aiRotationKeys(aiChannel->mRotationKeys, aiChannel->mNumRotationKeys);
 
 					Animations::Components::NodeAnimation nodeAnimation{
+						.animationEntity = animationEntity,
 						.preState = animationBehaviorMap[aiChannel->mPreState],
 						.postState = animationBehaviorMap[aiChannel->mPostState],
 					};
@@ -589,7 +583,6 @@ namespace drk::Loaders {
 					);
 					entt::entity nodeAnimationEntity = registry.create();
 					registry.emplace<Animations::Components::NodeAnimation>(nodeAnimationEntity, nodeAnimation);
-					registry.emplace<Animations::Components::AnimationReference>(nodeAnimationEntity, animationEntity);
 					registry.emplace<Animations::Components::AnimationState>(nodeAnimationEntity, 0.0);
 					nodeNameAnimationMap[aiChannel->mNodeName.C_Str()] = nodeAnimationEntity;
 					return nodeAnimation;
@@ -939,7 +932,7 @@ namespace drk::Loaders {
 			} else if (lightType == aiLightSourceType::aiLightSource_SPOT) {
 				auto& spotlight = registry.get<Lights::Components::Spotlight>(entity);
 				auto& spotlightSpatial =
-					registry.get<Spatials::Components::Spatial<Spatials::Components::Relative >>(
+					registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(
 						entity
 					);
 				spotlightSpatial.rotation = spatial.rotation;
@@ -956,13 +949,6 @@ namespace drk::Loaders {
 			auto rotationMatrix = glm::toMat4(spatial.rotation);
 			auto scalingMatrix = glm::scale(glm::identity<glm::mat4>(), glm::vec3(spatial.scale));
 			spatial.model = translationMatrix * rotationMatrix * scalingMatrix;
-			auto inverse = glm::inverse(spatial.model);
-			auto inverseUp = inverse * camera.relativeUp;
-			auto inverseFront = inverse * camera.relativeFront;
-			auto up = spatial.model * camera.relativeUp;
-			auto front = spatial.model * camera.relativeFront;
-
-			auto x = 0;
 		}
 
 		if (entity == entt::null) entity = registry.create();
@@ -970,8 +956,8 @@ namespace drk::Loaders {
 
 		auto nodeAnimationEntityEntry = aiNodeNameNodeAnimationMap.find(assimpNode->mName.C_Str());
 		if (nodeAnimationEntityEntry != aiNodeNameNodeAnimationMap.end()) {
-			auto nodeAnimationEntity = nodeAnimationEntityEntry->second;
-			registry.emplace<Nodes::Components::NodeReference>(nodeAnimationEntity, entity);
+			auto& nodeAnimation = registry.get<Animations::Components::NodeAnimation>(nodeAnimationEntityEntry->second);
+			nodeAnimation.nodeEntity = entity;
 		}
 
 		auto boneEntityEntry = aiBonePtrBoneEntityMap.find(assimpNode->mName.C_Str());
@@ -983,14 +969,16 @@ namespace drk::Loaders {
 				auto nodeBoneMeshEntity = registry.create();
 				const auto& boneMesh = registry.get<Animations::Components::BoneMesh>(boneMeshEntity);
 				auto& map = meshEntityInstanceEntityMap.top();
-				auto& nodeMeshEntity = map[boneMesh.skinnedMeshEntity];
-				registry.emplace<Animations::Components::NodeBoneNodeMesh>(
-					nodeBoneMeshEntity,
-					entity,
-					rootBoneInstanceEntity,
-					nodeMeshEntity,
-					boneMeshEntity
-				);
+				if (map.contains(boneMesh.skinnedMeshEntity)) {
+					auto nodeMeshEntity = map[boneMesh.skinnedMeshEntity];
+					registry.emplace<Animations::Components::NodeBoneNodeMesh>(
+						nodeBoneMeshEntity,
+						entity,
+						rootBoneInstanceEntity,
+						nodeMeshEntity,
+						boneMeshEntity
+					);
+				}
 			}
 			registry.emplace<Animations::Components::RootBoneInstanceReference>(entity, rootBoneInstanceEntity);
 			if (rootBoneInstanceEntity == entt::null) {
@@ -1007,8 +995,7 @@ namespace drk::Loaders {
 				auto objectMeshEntity = registry.create();
 				auto& map = meshEntityInstanceEntityMap.top();
 				map[meshEntity] = objectMeshEntity;
-				registry.emplace<Nodes::Components::NodeReference>(objectMeshEntity, entity);
-				registry.emplace<Meshes::Components::MeshReference>(objectMeshEntity, meshEntity);
+				registry.emplace<Nodes::Components::NodeMesh>(objectMeshEntity, entity, meshEntity);
 				registry.emplace<Meshes::Components::Mesh>(objectMeshEntity);
 
 				auto meshAABB = registry.get<BoundingVolumes::Components::AxisAlignedBoundingBox>(meshEntity);

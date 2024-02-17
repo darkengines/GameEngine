@@ -8,36 +8,36 @@ namespace drk::Animations::Resources {
 		Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache
 	) : ResourceManager(configuration),
 		deviceContext(deviceContext),
+		vertexBufferDescriptorSetArrayElementOffset(0),
+		skinnedVertexBufferDescriptorSetArrayElementOffset(0),
+		vertexWeightDescriptorSetArrayElementOffset(0),
+		skinnedVertexRangeDescriptorSetArrayElementOffset(0),
 		descriptorSetAllocator(descriptorSetAllocator),
 		descriptorSetLayoutCache(descriptorSetLayoutCache),
 		vertexBufferDescriptorSetLayout(createVertexBufferDescriptorSetLayout(this->descriptorSetLayoutCache)),
-		vertexBufferDescriptorSet(
-			createVertexBufferDescriptorSet(
-				this->descriptorSetAllocator,
-				this->vertexBufferDescriptorSetLayout
-			)),
 		skinnedVertexBufferDescriptorSetLayout(createVertexBufferDescriptorSetLayout(this->descriptorSetLayoutCache)),
-		skinnedVertexBufferDescriptorSet(
-			createVertexBufferDescriptorSet(
-				this->descriptorSetAllocator,
-				this->vertexBufferDescriptorSetLayout
-			)),
 		vertexWeightDescriptorSetLayout(createVertexWeightDescriptorSetLayout(this->descriptorSetLayoutCache)),
+		skinnedVertexRangeDescriptorSetLayout(createSkinnedVertexRangeDescriptorSetLayout(this->descriptorSetLayoutCache)),
 		vertexWeightDescriptorSet(
 			createVertexWeightDescriptorSet(
 				this->descriptorSetAllocator,
 				this->vertexWeightDescriptorSetLayout
 			)),
-		skinnedVertexRangeDescriptorSetLayout(createSkinnedVertexRangeDescriptorSetLayout(this->descriptorSetLayoutCache)),
+		vertexBufferDescriptorSet(
+			createVertexBufferDescriptorSet(
+				this->descriptorSetAllocator,
+				this->vertexBufferDescriptorSetLayout
+			)),
+		skinnedVertexBufferDescriptorSet(
+			createVertexBufferDescriptorSet(
+				this->descriptorSetAllocator,
+				this->vertexBufferDescriptorSetLayout
+			)),
 		skinnedVertexRangeDescriptorSet(
 			createSkinnedVertexRangeDescriptorSet(
 				this->descriptorSetAllocator,
 				this->skinnedVertexRangeDescriptorSetLayout
 			)),
-		vertexBufferDescriptorSetArrayElementOffset(0),
-		skinnedVertexBufferDescriptorSetArrayElementOffset(0),
-		vertexWeightDescriptorSetArrayElementOffset(0),
-		skinnedVertexRangeDescriptorSetArrayElementOffset(0),
 		frameResources(
 			createFrameResources(
 				this->configuration,

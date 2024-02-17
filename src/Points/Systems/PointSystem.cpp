@@ -100,14 +100,14 @@ namespace drk::Points::Systems {
 			) {
 				const auto& pointStoreItemLocation = pointStoreItem.frameStoreItems[engineState.getFrameIndex()];
 				const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
-				const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(point.materialEntity);
+				const auto& material = registry.get<Materials::Components::Material>(point.materialEntity);
 
 				Scenes::Draws::SceneDraw draw = {
 					.drawSystem = this,
 					.pipelineTypeIndex = std::type_index(typeid(Pipelines::PointPrimitivePipeline)),
 					.indexBufferView = pointIndexBufferView,
 					.vertexBufferView = pointVertexBufferView,
-					.hasTransparency = material->hasTransparency,
+					.hasTransparency = material.hasTransparency,
 					.depth = glm::distance(camera.absolutePosition, spatial.position)
 				};
 				Models::PointDraw pointDraw = {

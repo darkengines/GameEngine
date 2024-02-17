@@ -6,8 +6,7 @@
 #include "../../Common/Components/Dirty.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
 #include "../../Draws/Systems/DrawSystem.hpp"
-#include "../../Nodes/Components/NodeReference.hpp"
-#include "../../Meshes/Components/MeshReference.hpp"
+#include "../../Nodes/Components/NodeMesh.hpp"
 
 namespace drk::BoundingVolumes::Systems {
 	class AxisAlignedBoundingBoxSystem :
@@ -15,8 +14,7 @@ namespace drk::BoundingVolumes::Systems {
 		public drk::Systems::System<
 			Models::AxisAlignedBoundingBox,
 			Components::AxisAlignedBoundingBox,
-			Nodes::Components::NodeReference,
-			Meshes::Components::MeshReference
+			Nodes::Components::NodeMesh
 		> {
 	public:
 		AxisAlignedBoundingBoxSystem(
@@ -28,8 +26,7 @@ namespace drk::BoundingVolumes::Systems {
 		void update(
 			Models::AxisAlignedBoundingBox& axisAlignedBoundingBoxModel,
 			const Components::AxisAlignedBoundingBox& axisAlignedBoundingBox,
-			const Nodes::Components::NodeReference& objectReference,
-			const Meshes::Components::MeshReference& meshReference
+			const Nodes::Components::NodeMesh& nodeMesh
 		) override;
 		void createResources();
 		void processDirty();

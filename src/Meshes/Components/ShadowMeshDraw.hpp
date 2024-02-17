@@ -7,7 +7,7 @@
 
 namespace drk::Meshes::Components {
 	struct ShadowMeshDraw {
-		std::shared_ptr<MeshResource> meshResource;
+		uint32_t indexCount;
 		MeshBufferView meshBufferView;
 		entt::entity meshEntity;
 		entt::entity nodeEntity;

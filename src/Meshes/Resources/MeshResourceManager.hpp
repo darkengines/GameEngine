@@ -12,19 +12,19 @@ namespace drk::Meshes::Resources {
 		MeshResourceManager(Buffers::Resources::BufferResourceManager& bufferResourceManager) : bufferResourceManager(
 			bufferResourceManager
 		) {}
-		MeshUploadResult uploadMeshes(const std::vector<std::shared_ptr<Components::MeshResource>>& meshInfos) {
+		MeshUploadResult uploadMeshes(const std::vector<Components::MeshResource*>& meshInfos) {
 			std::vector<std::span<Vertex>> vertices(meshInfos.size());
 			std::vector<std::span<VertexIndex>> indices(meshInfos.size());
 			std::transform(
 				meshInfos.begin(),
 				meshInfos.end(),
 				vertices.data(),
-				[](std::shared_ptr<Components::MeshResource> mesh) {
+				[](Components::MeshResource* mesh) {
 					return std::span{mesh->vertices.data(), mesh->vertices.size()};
 				}
 			);
 			std::transform(
-				meshInfos.begin(), meshInfos.end(), indices.data(), [](std::shared_ptr<Components::MeshResource> mesh) {
+				meshInfos.begin(), meshInfos.end(), indices.data(), [](Components::MeshResource* mesh) {
 					return std::span{mesh->indices.data(), mesh->indices.size()};
 				}
 			);

@@ -23,8 +23,9 @@ namespace drk::Stores {
 		}
 
 		GenericStore(GenericStore&& genericStore) :
-			storeAllocator(genericStore.storeAllocator), stores(std::move(genericStore.stores)),
-			ItemPerBuffer(genericStore.ItemPerBuffer) {
+			storeAllocator(genericStore.storeAllocator),
+			ItemPerBuffer(genericStore.ItemPerBuffer),
+			stores(std::move(genericStore.stores)) {
 		}
 		virtual ~GenericStore() {};
 		GenericStoreItemLocation get(uint32_t index) {

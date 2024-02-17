@@ -35,9 +35,9 @@ namespace drk::Engine {
 		if (!currentPool.has_value()) {
 			//TODO: make descriptorCount configurable
 			std::vector<vk::DescriptorPoolSize> poolSizes{
-				{vk::DescriptorType::eStorageBuffer, 2048},
+				{vk::DescriptorType::eStorageBuffer,        2048},
 				{vk::DescriptorType::eCombinedImageSampler, 2048},
-				{vk::DescriptorType::eUniformBuffer, 2048},
+				{vk::DescriptorType::eUniformBuffer,        2048},
 			};
 			vk::DescriptorPoolCreateInfo descriptorPoolCreationInfo = {
 				.flags = vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind,

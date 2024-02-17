@@ -108,14 +108,14 @@ namespace drk::Lines::Systems {
 				) {
 					const auto& lineStoreItemLocation = lineStoreItem.frameStoreItems[engineState.getFrameIndex()];
 					const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
-					const auto& material = registry.get<std::shared_ptr<Materials::Components::Material>>(line.materialEntity);
+					const auto& material = registry.get<Materials::Components::Material>(line.materialEntity);
 
 					Scenes::Draws::SceneDraw draw = {
 						.drawSystem = this,
 						.pipelineTypeIndex = std::type_index(typeid(Pipelines::LinePipeline)),
 						.indexBufferView = lineIndexBufferView,
 						.vertexBufferView = lineVertexBufferView,
-						.hasTransparency = material->hasTransparency,
+						.hasTransparency = material.hasTransparency,
 						.depth = glm::distance(camera.absolutePosition, spatial.position)
 					};
 					Models::LineDraw lineDraw = {

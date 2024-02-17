@@ -12,19 +12,19 @@ namespace drk::Nodes {
 		: System(engineState, registry), DeviceContext(deviceContext) {}
 
 	void Systems::NodeSystem::update(
-		Models::Node& objectModel,
+		Models::Node& nodeModel,
 		const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem,
 		const Stores::StoreItem<Spatials::Models::RelativeSpatial>& relativeSpatialStoreItem
 	) {
 		const auto& spatialItemLocation = spatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
-		objectModel.spatialItemLocation.storeIndex = spatialItemLocation.pStore->descriptorArrayElement;
-		objectModel.spatialItemLocation.itemIndex = spatialItemLocation.index;
+		nodeModel.spatialItemLocation.storeIndex = spatialItemLocation.pStore->descriptorArrayElement;
+		nodeModel.spatialItemLocation.itemIndex = spatialItemLocation.index;
 		const auto& relativeSpatialItemLocation = relativeSpatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
-		objectModel.relativeSpatialItemLocation.storeIndex = relativeSpatialItemLocation.pStore->descriptorArrayElement;
-		objectModel.relativeSpatialItemLocation.itemIndex = relativeSpatialItemLocation.index;
+		nodeModel.relativeSpatialItemLocation.storeIndex = relativeSpatialItemLocation.pStore->descriptorArrayElement;
+		nodeModel.relativeSpatialItemLocation.itemIndex = relativeSpatialItemLocation.index;
 	}
 	entt::entity
-	Systems::NodeSystem::copyObjectEntity(
+	Systems::NodeSystem::copyNodeEntity(
 		const entt::registry& source,
 		entt::registry& destination,
 		entt::entity sourceEntity,
@@ -32,37 +32,33 @@ namespace drk::Nodes {
 		entt::entity previousSibling
 	) {
 		const auto& sourceNameComponent = source.get<Common::Components::Name>(sourceEntity);
-		auto objectMeshes = source.view<Components::NodeReference, Meshes::Components::MeshReference>();
+		auto nodeMeshes = source.view<Components::NodeMesh>();
 		auto sourceSpatial = source.try_get<Spatials::Components::Spatial<Spatials::Components::Relative>>(sourceEntity);
 		auto sourceRelationship = source.try_get<Components::Node>(sourceEntity);
 
 		auto destinationEntity = destination.create();
-		Common::Components::Name destinationObject{
+		Common::Components::Name destinationNode{
 			.name = sourceNameComponent.name
 		};
-		destination.emplace<Common::Components::Name>(destinationEntity, destinationObject);
+		destination.emplace<Common::Components::Name>(destinationEntity, destinationNode);
 
 
-		objectMeshes.each(
+		nodeMeshes.each(
 			[&](
-				entt::entity sourceObjectMeshEntity,
-				const Nodes::Components::NodeReference& objectReference,
-				const Meshes::Components::MeshReference& meshReference
+				entt::entity sourceNodeMeshEntity,
+				const Components::NodeMesh& nodeMesh
 			) {
-				if (objectReference.nodeEntity == sourceEntity) {
-					auto destinationObjectMeshEntity = destination.create();
+				if (nodeMesh.nodeEntity == sourceEntity) {
+					auto destinationNodeMeshEntity = destination.create();
 					auto destinationMeshEntity = Meshes::Systems::MeshSystem::copyMeshEntity(
 						source,
 						destination,
-						meshReference.meshEntity
+						nodeMesh.meshEntity
 					);
 
-					destination.emplace<Nodes::Components::NodeReference>(
-						destinationObjectMeshEntity,
-						destinationObjectMeshEntity
-					);
-					destination.emplace<Meshes::Components::MeshReference>(
-						destinationObjectMeshEntity,
+					destination.emplace<Nodes::Components::NodeMesh>(
+						destinationNodeMeshEntity,
+						destinationEntity,
 						destinationMeshEntity
 					);
 				}
@@ -83,7 +79,7 @@ namespace drk::Nodes {
 			};
 
 			for (const auto& sourceChild: sourceRelationship->children) {
-				const auto& destinationChild = copyObjectEntity(source, destination, sourceChild, destinationEntity);
+				const auto& destinationChild = copyNodeEntity(source, destination, sourceChild, destinationEntity);
 				destinationRelationship.children.emplace_back(std::move(destinationChild));
 			}
 			destination.emplace<Components::Node>(destinationEntity, std::move(destinationRelationship));

@@ -1,8 +1,9 @@
 #pragma once
-#include "entt/entt.hpp"
+#include <entt/entt.hpp>
 
 namespace drk::Nodes::Components {
-	struct NodeReference {
+	struct NodeMesh {
 		entt::entity nodeEntity;
+		entt::entity meshEntity;
 	};
 }

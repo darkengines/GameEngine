@@ -20,7 +20,10 @@ namespace drk::Spatials::Systems {
 			entt::registry& registry
 		) : System(engineState, registry), deviceContext(deviceContext) {}
 
-		void update(Models::RelativeSpatial& spatialModel, const Components::Spatial<Components::Relative>& spatial) override {
+		void update(
+			Models::RelativeSpatial& spatialModel,
+			const Components::Spatial<Components::Relative>& spatial
+		) override {
 			spatialModel.position = spatial.position;
 			spatialModel.rotation = spatial.rotation;
 			spatialModel.scale = spatial.scale;

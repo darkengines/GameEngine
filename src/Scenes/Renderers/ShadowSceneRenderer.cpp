@@ -8,7 +8,8 @@ namespace drk::Scenes::Renderers {
 		entt::registry& registry,
 		std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshShadowPipeline
 	)
-		: deviceContext(deviceContext), registry(registry),
+		: registry(registry),
+		  deviceContext(deviceContext),
 		  meshShadowPipeline(std::move(meshShadowPipeline)) {}
 
 	ShadowSceneRenderer::~ShadowSceneRenderer() {

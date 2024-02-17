@@ -13,7 +13,7 @@ namespace drk::Configuration {
 		nlohmann::json jsonConfiguration;
 	};
 
-	static std::shared_ptr<Configuration> loadConfiguration(const std::filesystem::path& inputConfigurationPath) {
+	std::shared_ptr<Configuration> loadConfiguration(const std::filesystem::path& inputConfigurationPath) {
 		std::ifstream inputConfigurationStream(inputConfigurationPath);
 		std::string inputConfiguration;
 		inputConfigurationStream.seekg(0, std::ios_base::end);
@@ -24,7 +24,7 @@ namespace drk::Configuration {
 		nlohmann::json jsonConfiguration = nlohmann::json::parse(inputConfiguration);
 		return std::make_shared<Configuration>(jsonConfiguration);
 	}
-	static auto AddConfiguration() {
+	auto AddConfiguration() {
 		return boost::di::make_injector(
 			boost::di::bind < Configuration >.to(loadConfiguration("settings.json"))
 		);

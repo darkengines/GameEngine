@@ -18,7 +18,7 @@ namespace drk::Stores {
 			DeviceContext.DestroyBuffer(buffer);
 		}
 	}
-	StoreBufferAllocator::StoreBufferAllocator(StoreBufferAllocator&& storeBufferAllocator) noexcept : DeviceContext(
+	StoreBufferAllocator::StoreBufferAllocator(StoreBufferAllocator&& storeBufferAllocator) noexcept: DeviceContext(
 		storeBufferAllocator.DeviceContext
 	), DescriptorSet(storeBufferAllocator.DescriptorSet), Buffers(std::move(storeBufferAllocator.Buffers)) {
 		storeBufferAllocator.Buffers.clear();

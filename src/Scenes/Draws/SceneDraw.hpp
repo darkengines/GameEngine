@@ -7,6 +7,7 @@
 
 namespace drk::Scenes::Draws {
 	struct SceneDraw {
+		entt::entity nodeEntity;
 		drk::Draws::Systems::DrawSystem* drawSystem;
 		std::type_index pipelineTypeIndex;
 		Devices::BufferView indexBufferView;

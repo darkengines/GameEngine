@@ -35,8 +35,8 @@ namespace drk::Engine {
 		);
 	}
 
-	Devices::Texture EngineState::UploadTexture(const Textures::ImageInfo* const imageInfo) {
-		return textureStore->UploadTextures({imageInfo})[0];
+	Devices::Texture EngineState::UploadTexture(const Textures::ImageInfo& imageInfo) {
+		return textureStore->UploadTextures({&imageInfo})[0];
 	}
 
 	std::vector<Devices::Texture> EngineState::UploadTextures(std::vector<const Textures::ImageInfo*> imageInfos) {

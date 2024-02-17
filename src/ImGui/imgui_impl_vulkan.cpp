@@ -710,7 +710,7 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
 	// If you use VK_DYNAMIC_STATE_VIEWPORT or VK_DYNAMIC_STATE_SCISSOR you are responsible for setting the values before rendering.
 	// In theory we should aim to backup/restore those values but I am not sure this is possible.
 	// We perform a call to vkCmdSetScissor() to set back a full viewport which is likely to fix things for 99% users but technically this is not perfect. (See github #4644)
-	VkRect2D scissor = {{0, 0},
+	VkRect2D scissor = {{0,                   0},
 						{(uint32_t) fb_width, (uint32_t) fb_height}};
 	vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 }
@@ -1255,7 +1255,7 @@ bool ImGui_ImplVulkan_LoadFunctions(
 
 bool ImGui_ImplVulkan_Init(ImGui_ImplVulkan_InitInfo* info) {
 	IM_ASSERT(g_FunctionsLoaded &&
-			  "Need to call ImGui_ImplVulkan_LoadFunctions() if IMGUI_IMPL_VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
+				  "Need to call ImGui_ImplVulkan_LoadFunctions() if IMGUI_IMPL_VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
 
 	if (info->UseDynamicRendering) {
 #ifdef IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING
@@ -1459,7 +1459,7 @@ VkSurfaceFormatKHR ImGui_ImplVulkanH_SelectSurfaceFormat(
 	VkColorSpaceKHR request_color_space
 ) {
 	IM_ASSERT(g_FunctionsLoaded &&
-			  "Need to call ImGui_ImplVulkan_LoadFunctions() if IMGUI_IMPL_VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
+				  "Need to call ImGui_ImplVulkan_LoadFunctions() if IMGUI_IMPL_VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
 	IM_ASSERT(request_formats != nullptr);
 	IM_ASSERT(request_formats_count > 0);
 
@@ -1504,7 +1504,7 @@ VkPresentModeKHR ImGui_ImplVulkanH_SelectPresentMode(
 	int request_modes_count
 ) {
 	IM_ASSERT(g_FunctionsLoaded &&
-			  "Need to call ImGui_ImplVulkan_LoadFunctions() if IMGUI_IMPL_VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
+				  "Need to call ImGui_ImplVulkan_LoadFunctions() if IMGUI_IMPL_VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
 	IM_ASSERT(request_modes != nullptr);
 	IM_ASSERT(request_modes_count > 0);
 
@@ -1781,7 +1781,7 @@ void ImGui_ImplVulkanH_CreateOrResizeWindow(
 	uint32_t min_image_count
 ) {
 	IM_ASSERT(g_FunctionsLoaded &&
-			  "Need to call ImGui_ImplVulkan_LoadFunctions() if IMGUI_IMPL_VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
+				  "Need to call ImGui_ImplVulkan_LoadFunctions() if IMGUI_IMPL_VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
 	(void) instance;
 	ImGui_ImplVulkanH_CreateWindowSwapChain(physical_device, device, wd, allocator, width, height, min_image_count);
 	//ImGui_ImplVulkan_CreatePipeline(device, allocator, VK_NULL_HANDLE, wd->RenderPass, VK_SAMPLE_COUNT_1_BIT, &wd->Pipeline, g_VulkanInitInfo.Subpass);

@@ -68,7 +68,7 @@ namespace drk::Engine {
 		FrameState& getCurrentFrameState() const;
 		void incrementFrameIndex();
 
-		Devices::Texture UploadTexture(const Textures::ImageInfo* const imageInfo);
+		Devices::Texture UploadTexture(const Textures::ImageInfo& imageInfo);
 		std::vector<Devices::Texture> UploadTextures(std::vector<const Textures::ImageInfo*> imageInfos);
 
 		template<typename T>
