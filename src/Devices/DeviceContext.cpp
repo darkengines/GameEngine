@@ -134,9 +134,10 @@ namespace drk::Devices {
 		vk::MemoryPropertyFlags properties,
 		vk::BufferUsageFlags usage,
 		const VmaAllocationCreateInfo& allocationCreationInfo,
-		vk::DeviceSize size
+		vk::DeviceSize size,
+		const char* name
 	) const {
-		return Device::createBuffer(Allocator, properties, usage, allocationCreationInfo, size);
+		return Device::createBuffer(Allocator, properties, usage, allocationCreationInfo, size, name);
 	}
 
 	void DeviceContext::DestroyBuffer(const Buffer& buffer) const {

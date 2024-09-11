@@ -77,9 +77,10 @@ void main() {
     fragment.color = inColor;
     fragment.texCoord = inTexCoord;
 
-    vec4 T = vec4(normalize(mat3(spatial.model) * inTangent.xyz), 0);
-    vec4 N = vec4(normalize(mat3(spatial.model) * inNormal.xyz), 0);
-    vec4 B = vec4(normalize(mat3(spatial.model) * inBitangent.xyz), 0);
+    mat3 model = mat3(spatial.model);
+    vec4 T = vec4(normalize(model * inTangent.xyz), 0);
+    vec4 N = vec4(normalize(model * inNormal.xyz), 0);
+    vec4 B = vec4(normalize(model * inBitangent.xyz), 0);
 
     fragment.tangent = T;
     fragment.bitangent = B;

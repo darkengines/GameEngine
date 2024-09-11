@@ -371,7 +371,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARIES}
 )
 
-add_executable(drk ${HEADERS} ${SOURCES})
+add_executable(drk ${HEADERS} ${SOURCES} src/Applications/ApplicationState.hpp)
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 
@@ -385,6 +385,7 @@ find_package(stb REQUIRED)
 find_package(fmt REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(nameof REQUIRED)
+find_package(imguizmo CONFIG REQUIRED)
 
 target_include_directories(drk SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS})
 target_include_directories(drk SYSTEM PUBLIC ${stb_INCLUDE_DIRS})
@@ -402,3 +403,4 @@ target_link_libraries(drk PRIVATE assimp::assimp)
 target_link_libraries(drk PRIVATE imgui)
 target_link_libraries(drk PRIVATE fmt::fmt-header-only)
 target_link_libraries(drk PRIVATE nlohmann_json)
+target_link_libraries(drk PRIVATE imguizmo::imguizmo)

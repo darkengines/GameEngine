@@ -1,0 +1,21 @@
+# clang-format configuration for Greenbone C code
+#
+# Minimum required clang-format version: 6.0
+
+---
+
+BasedOnStyle: Google
+UseTab: 'true'
+IndentWidth: 4
+TabWidth: 4
+BreakBeforeBraces: Attach
+AlignAfterOpenBracket : BlockIndent
+AllowShortIfStatementsOnASingleLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+IndentCaseLabels: false
+AccessModifierOffset: -4
+ColumnLimit: 180
+BinPackArguments: false
+BinPackParameters: false
+PenaltyBreakBeforeFirstCallParameter: 0
+PenaltyReturnTypeOnItsOwnLine: 1000

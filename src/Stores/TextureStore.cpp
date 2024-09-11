@@ -34,7 +34,8 @@ namespace drk::Stores {
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 				vk::BufferUsageFlagBits::eTransferSrc,
 				stagingAllocationCreationInfo,
-				imageByteLength
+				imageByteLength, 
+				fmt::format("Staging {0}.ImageBuffer", typeid(TextureStore).name()).c_str()
 			);
 
 			unsigned char* stagingMemory;

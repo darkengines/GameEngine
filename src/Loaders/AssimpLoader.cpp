@@ -45,9 +45,9 @@ namespace drk::Loaders {
 			aiProcess_FindInstances
 			| aiProcess_GenBoundingBoxes
 			| aiProcess_Triangulate
-			| aiProcess_FindInstances
-			| aiProcess_GenNormals
+			| aiProcess_FindInstances | aiProcess_GenNormals
 			| aiProcess_JoinIdenticalVertices
+			| aiProcess_CalcTangentSpace
 			| aiProcess_OptimizeMeshes
 			| aiProcess_PopulateArmatureData
 		);
@@ -186,6 +186,8 @@ namespace drk::Loaders {
 			const auto& specularColorTexturePair = textureTypeMap.find(Textures::TextureType::SpecularColor);
 			const auto& normalMapPair = textureTypeMap.find(Textures::TextureType::NormalMap);
 			const auto& metallicRoughnessPair = textureTypeMap.find(Textures::TextureType::RoughnessMetalnessMap);
+			const auto& metallicPair = textureTypeMap.find(Textures::TextureType::RoughnessMap);
+			const auto& roughnessPair = textureTypeMap.find(Textures::TextureType::MetalnessMap);
 
 			entt::entity baseColorTexture =
 				baseColorTexturePair != textureTypeMap.end()
@@ -210,6 +212,8 @@ namespace drk::Loaders {
 				metallicRoughnessPair != textureTypeMap.end()
 				? metallicRoughnessPair->second
 				: entt::null;
+			entt::entity metallicTexture = metallicPair != textureTypeMap.end() ? metallicPair->second : entt::null;
+			entt::entity roughnessTexture = roughnessPair != textureTypeMap.end() ? roughnessPair->second : entt::null;
 
 			aiColor4D ambientColor, diffuseColor, specularColor;
 			auto hasAmbientColor = aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_AMBIENT, &ambientColor) == AI_SUCCESS;
@@ -240,6 +244,8 @@ namespace drk::Loaders {
 				.specularColorTexture = specularColorTexture,
 				.normalMap = normalMap,
 				.metallicRoughnessTexture = metallicRoughnessTexture,
+				.metallicTexture = metallicTexture,
+				.roughnessTexture = roughnessTexture,
 				.hasTransparency = hasTransparency
 			};
 
@@ -1079,7 +1085,7 @@ namespace drk::Loaders {
 		{aiTextureType::aiTextureType_REFLECTION,        Textures::TextureType::ReflectionMap},
 		{aiTextureType::aiTextureType_SHININESS,         Textures::TextureType::ShininessMap},
 		{aiTextureType::aiTextureType_SPECULAR,          Textures::TextureType::SpecularColor},
-		{aiTextureType::aiTextureType_UNKNOWN,           Textures::TextureType::RoughnessMetalnessMap}
+		{aiTextureType::aiTextureType_UNKNOWN,			 Textures::TextureType::RoughnessMetalnessMap},
 	};
 
 	std::unordered_map<aiAnimBehaviour, Animations::Components::AnimationBehavior> AssimpLoader::animationBehaviorMap = {

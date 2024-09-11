@@ -1,7 +1,9 @@
+#define VULKAN_HPP_TYPESAFE_CONVERSION
 #define VMA_IMPLEMENTATION
+#define VMA_STATS_STRING_ENABLED 1
+#define VMA_VULKAN_VERSION 1003000 // Vulkan 1.3
 #include <vk_mem_alloc.h>
 
-#define VMA_VULKAN_VERSION 1003000 // Vulkan 1.3
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image.h>

@@ -24,6 +24,11 @@ namespace drk::Graphics {
 		GlobalSynchronizationState.Reset();
 	}
 
+	void GlobalSystem::setRenderStyle(uint32_t style) {
+		renderStyle = style;
+		GlobalSynchronizationState.Reset();
+	}
+
 	void GlobalSystem::update() {
 		if (GlobalSynchronizationState.ShouldUpdate(EngineState.getFrameIndex())) {
 			const auto& camera = Registry.get<Stores::StoreItem<Cameras::Models::Camera>>(CameraEntity);
@@ -38,6 +43,8 @@ namespace drk::Graphics {
 				.storeIndex = frameStoreItem.pStore->descriptorArrayElement,
 				.itemIndex = frameStoreItem.index
 			};
+
+			global.renderStyle = renderStyle;
 
 			global.cameraItemIndex = cameraItemLocation.itemIndex;
 			global.cameraStoreIndex = cameraItemLocation.storeIndex;
@@ -68,7 +75,6 @@ namespace drk::Graphics {
 				break;
 			}
 			global.spotlightCount = spotlightSystem.getItemCount();
-
 			*frameState.Global = global;
 
 			GlobalSynchronizationState.Update(frameIndex);

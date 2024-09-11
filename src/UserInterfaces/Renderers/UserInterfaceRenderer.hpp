@@ -2,7 +2,7 @@
 #pragma once
 
 #include "vulkan/vulkan.hpp"
-
+#include <imgui.h>
 #include "../../Renderers/Renderer.hpp"
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Devices/Swapchain.hpp"
@@ -31,7 +31,6 @@ namespace drk::UserInterfaces::Renderers {
 		Engine::EngineState& EngineState;
 
 		vk::RenderPass MainRenderPass;
-		vk::DescriptorPool ImGuiDescriptorPool;
 
 		std::vector<vk::ImageView> targetImageViews;
 		std::optional<Devices::ImageInfo> targetImageInfo;
@@ -40,8 +39,6 @@ namespace drk::UserInterfaces::Renderers {
 		std::optional<Devices::Texture> MainFramebufferTexture;
 		std::optional<Devices::Texture> MainFramebufferDepthTexture;
 
-		bool isImGuiInitialized = false;
-
 		void DestroyMainFramebufferResources();
 		void DestroyMainFramebuffer();
 		void CreateMainRenderPass();
@@ -49,6 +46,6 @@ namespace drk::UserInterfaces::Renderers {
 		void CreateMainFramebuffers();
 		void SetupImgui();
 		void RecreateRenderPass();
-		void CreateImguiResources();
+		bool imGuiInitialized;
 	};
 }

@@ -10,6 +10,8 @@ struct Material {
     bool hasSpecularColorTexture;
     bool hasNormalMap;
     bool hasMetallicRoughnessTexture;
+	bool hasMetallicTexture;
+	bool hasRoughnessTexture;
 
     uint baseColorTextureIndex;
     uint ambientColorTextureIndex;
@@ -17,4 +19,6 @@ struct Material {
     uint specularColorTextureIndex;
     uint normalMapIndex;
     uint metallicRoughnessTextureIndex;
+	uint metallicTextureIndex;
+	uint roughnessTextureIndex;
 };

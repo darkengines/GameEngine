@@ -98,7 +98,8 @@ namespace drk::Engine {
 			vk::MemoryPropertyFlagBits::eHostVisible,
 			vk::BufferUsageFlagBits::eUniformBuffer,
 			allocationCreationInfo,
-			byteLength
+			byteLength,
+			fmt::format("{0}.UniformBuffer", typeid(FrameState).name()).c_str()
 		);
 
 		Devices::Device::mapBuffer(deviceContext.Allocator, uniformBuffer, (void**) global);

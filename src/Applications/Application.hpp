@@ -32,6 +32,7 @@
 #include "../Frustums/Systems/FrustumSystem.hpp"
 #include "../Animations/Systems/BoneMeshSystem.hpp"
 #include "../Animations/Systems/BoneSpatialSystem.hpp"
+#include "ApplicationState.hpp"
 #include <boost/di.hpp>
 #include <memory>
 
@@ -40,8 +41,8 @@ namespace drk::Applications {
 	public:
 		using boost_di_inject__ = boost::di::inject<
 			const Windows::Window&,
-			const Devices::DeviceContext&,
 			Engine::EngineState&,
+			const Devices::DeviceContext&,
 			Textures::Systems::TextureSystem&,
 			Materials::Systems::MaterialSystem&,
 			Meshes::Systems::MeshSystem&,
@@ -76,8 +77,8 @@ namespace drk::Applications {
 
 		Application(
 			const Windows::Window& window,
-			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
+			const Devices::DeviceContext& deviceContext,
 			Textures::Systems::TextureSystem& textureSystem,
 			Materials::Systems::MaterialSystem& materialSystem,
 			Meshes::Systems::MeshSystem& meshSystem,
@@ -109,14 +110,13 @@ namespace drk::Applications {
 			Animations::Systems::BoneSpatialSystem& boneSpatialSystem,
 			UserInterfaces::AssetExplorer& assetExplorer
 		);
-		~Application();
 
 		void run();
 
 	protected:
 		const Windows::Window& window;
-		const Devices::DeviceContext& deviceContext;
 		Engine::EngineState& engineState;
+		const Devices::DeviceContext& deviceContext;
 		Textures::Systems::TextureSystem& textureSystem;
 		Materials::Systems::MaterialSystem& materialSystem;
 		Meshes::Systems::MeshSystem& meshSystem;
@@ -148,6 +148,7 @@ namespace drk::Applications {
 		Animations::Systems::BoneSpatialSystem& boneSpatialSystem;
 		entt::entity selectedEntity = entt::null;
 		UserInterfaces::AssetExplorer& assetExplorer;
+		ApplicationState applicationState;
 
 		void OnWindowSizeChanged(uint32_t width, uint32_t height);
 		static void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
@@ -160,5 +161,6 @@ namespace drk::Applications {
 		void renderEntities();
 		void renderAnimations();
 		void renderSystemInfos();
+		void renderGui(ApplicationState& applicationState);
 	};
 }

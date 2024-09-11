@@ -17,8 +17,9 @@ namespace drk::Frustums::Systems {
 	FrustumSystem::FrustumSystem(
 		Engine::EngineState& engineState,
 		entt::registry& registry,
-		Devices::DeviceContext& deviceContext
-	) : System<Models::Frustum, Components::Frustum>(engineState, registry), deviceContext(deviceContext) {
+		const Devices::DeviceContext& deviceContext
+	) : System<Models::Frustum, Components::Frustum>(engineState, registry),
+		deviceContext(deviceContext) {
 		createResources();
 	}
 	FrustumSystem::~FrustumSystem() {
@@ -85,7 +86,8 @@ namespace drk::Frustums::Systems {
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
 			{frustumVertices},
-			vk::BufferUsageFlagBits::eVertexBuffer
+			vk::BufferUsageFlagBits::eVertexBuffer,
+			fmt::format("{0}.VertexBuffer", typeid(FrustumSystem).name()).c_str()
 		);
 
 		auto indexUploadResult = Devices::Device::uploadBuffers<uint32_t>(
@@ -95,7 +97,7 @@ namespace drk::Frustums::Systems {
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
 			{frustumIndices},
-			vk::BufferUsageFlagBits::eIndexBuffer
+			vk::BufferUsageFlagBits::eIndexBuffer, fmt::format("{0}.IndexBuffer", typeid(FrustumSystem).name()).c_str()
 		);
 
 		vertexBufferView = vertexUploadResult.bufferViews[0];

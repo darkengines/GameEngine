@@ -16,11 +16,13 @@
 #include "../../Lights/Systems/ShadowMappingSystem.hpp"
 #include "../../BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp"
 #include "../../Frustums/Pipelines/FrustumPipeline.hpp"
+#include <imgui.h>
 
 
 namespace drk::Scenes::Renderers {
 	class SceneRenderer : public drk::Renderers::Renderer {
 	protected:
+		Engine::EngineState& engineState;
 		entt::registry& registry;
 		const Devices::DeviceContext& deviceContext;
 		std::optional<Devices::Texture> colorTexture;
@@ -37,8 +39,10 @@ namespace drk::Scenes::Renderers {
 		Lights::Systems::ShadowMappingSystem& shadowMappingSystem;
 		vk::RenderPass renderPass;
 		std::unordered_map<std::type_index, Pipelines::GraphicsPipeline*> pipelines;
+		ImGuiContext* imGuiContextPtr;
 	public:
 		SceneRenderer(
+			Engine::EngineState& engineState,
 			const Devices::DeviceContext& deviceContext,
 			entt::registry& registry,
 			std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,

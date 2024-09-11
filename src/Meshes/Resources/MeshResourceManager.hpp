@@ -31,11 +31,12 @@ namespace drk::Meshes::Resources {
 			auto vertexBufferUploadResult = bufferResourceManager.upload(
 				vertices,
 				vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer |
-				vk::BufferUsageFlagBits::eTransferSrc
+				vk::BufferUsageFlagBits::eTransferSrc,
+				fmt::format("{0}.Vertex", typeid(MeshResourceManager).name()).c_str()
 			);
 			auto indexBufferUploadResult = bufferResourceManager.upload(
 				indices,
-				vk::BufferUsageFlagBits::eIndexBuffer
+				vk::BufferUsageFlagBits::eIndexBuffer, fmt::format("{0}.Index", typeid(MeshResourceManager).name()).c_str()
 			);
 
 			MeshUploadResult result = {

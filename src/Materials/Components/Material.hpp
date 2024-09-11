@@ -21,6 +21,8 @@ namespace drk::Materials::Components {
 		entt::entity specularColorTexture = entt::null;
 		entt::entity normalMap = entt::null;
 		entt::entity metallicRoughnessTexture = entt::null;
+		entt::entity metallicTexture = entt::null;
+		entt::entity roughnessTexture = entt::null;
 
 		bool hasTransparency;
 	};

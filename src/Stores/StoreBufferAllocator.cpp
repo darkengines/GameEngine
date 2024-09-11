@@ -37,7 +37,8 @@ namespace drk::Stores {
 			vk::MemoryPropertyFlagBits::eHostVisible,
 			vk::BufferUsageFlagBits::eStorageBuffer,
 			allocationCreationInfo,
-			byteLength
+			byteLength,
+			fmt::format("{0}.StorageBuffer", typeid(StoreBufferAllocator).name()).c_str()
 		);
 		Buffers.push_back(storageBuffer);
 

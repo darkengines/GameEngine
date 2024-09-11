@@ -14,6 +14,7 @@
 #include "../Components/VertexWeight.hpp"
 #include "./AnimationFrameResource.hpp"
 #include <vector>
+#include <fmt/format.h>
 #include <utility>
 
 namespace drk::Animations::Resources {
@@ -67,6 +68,8 @@ namespace drk::Animations::Resources {
 			Engine::DescriptorSetLayoutCache& descriptorSetLayoutCache
 		);
 
+		~AnimationResourceManager();
+
 		template<typename TState>
 		std::vector<std::pair<Components::SkinnedBufferView, TState>> createSkinnedMesh(
 			const std::vector<TState>& states,
@@ -118,8 +121,8 @@ namespace drk::Animations::Resources {
 					vertexBufferViews,
 					destinationBufferViews,
 					destinationBuffers,
-					vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer |
-					vk::BufferUsageFlagBits::eTransferDst
+					vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+					fmt::format("{0}.VertexBuffer", typeid(AnimationResourceManager).name()).c_str()
 				);
 
 				for (uint32_t skinnedBufferViewIndex = 0;
@@ -230,7 +233,7 @@ namespace drk::Animations::Resources {
 				deviceContext.CommandPool,
 				deviceContext.Allocator,
 				sourceBoneInstanceWeightSpans,
-				vk::BufferUsageFlagBits::eStorageBuffer
+				vk::BufferUsageFlagBits::eStorageBuffer, ""
 			);
 
 			buffers.push_back(bufferUploadResult.buffer);
@@ -280,7 +283,7 @@ namespace drk::Animations::Resources {
 				deviceContext.CommandPool,
 				deviceContext.Allocator,
 				sourceSkinnedVertexRangeSpans,
-				vk::BufferUsageFlagBits::eStorageBuffer
+				vk::BufferUsageFlagBits::eStorageBuffer, fmt::format("{0}.VertexRangeBuffer", typeid(AnimationResourceManager).name()).c_str()
 			);
 
 			buffers.push_back(bufferUploadResult.buffer);

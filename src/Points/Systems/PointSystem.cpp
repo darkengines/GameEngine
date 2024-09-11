@@ -44,7 +44,8 @@ namespace drk::Points::Systems {
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
 			{pointVertices},
-			vk::BufferUsageFlagBits::eVertexBuffer
+			vk::BufferUsageFlagBits::eVertexBuffer, 
+			fmt::format("{0}.VertexBuffer", typeid(PointSystem).name()).c_str()
 		);
 		auto vertexBuffer = vertexResult.buffer;
 		pointVertexBufferView = {
@@ -60,7 +61,7 @@ namespace drk::Points::Systems {
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
 			{pointIndices},
-			vk::BufferUsageFlagBits::eIndexBuffer
+			vk::BufferUsageFlagBits::eIndexBuffer, fmt::format("{0}.IndexBuffer", typeid(PointSystem).name()).c_str()
 		);
 		auto indexBuffer = indexResult.buffer;
 		pointIndexBufferView = {

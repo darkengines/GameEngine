@@ -1,76 +1,98 @@
-float DistributionGGX(vec3 N, vec3 H, float roughness)
-{
-    float a = roughness * roughness;
-    float a2 = a * a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH * NdotH;
+// GGX Normal Distribution Function
+float computeDistributionGGX(vec3 normal, vec3 halfVector, float roughness) {
+	float alpha = roughness * roughness;
+	float alphaSquared = alpha * alpha;
+	float nDotH = max(dot(normal, halfVector), 0.0);
+	float nDotHSquared = nDotH * nDotH;
 
-    float num = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
+	float numerator = alphaSquared;
+	float denominator = (nDotHSquared * (alphaSquared - 1.0) + 1.0);
+	denominator = PI * denominator * denominator;
 
-    return num / denom;
+	return numerator / denominator;
 }
 
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
-    float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;
+// Schlick-GGX Geometry Function (Single)
+float computeGeometrySchlickGGX(float nDotV, float roughness) {
+	float k = pow(roughness + 1.0, 2.0) / 8.0;
 
-    float num = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
+	float numerator = nDotV;
+	float denominator = nDotV * (1.0 - k) + k;
 
-    return num / denom;
-}
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
-{
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
+	return numerator / denominator;
 }
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
-{
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+// Smith's Geometry Function
+float computeGeometrySmith(vec3 normal, vec3 viewDir, vec3 lightDir, float roughness) {
+	float nDotV = max(dot(normal, viewDir), 0.0);
+	float nDotL = max(dot(normal, lightDir), 0.0);
+	float ggx2 = computeGeometrySchlickGGX(nDotV, roughness);
+	float ggx1 = computeGeometrySchlickGGX(nDotL, roughness);
+
+	return ggx1 * ggx2;
 }
 
-vec3 computeColor(
-vec3 albedo,
-float roughness,
-float metallic,
-vec3 normal,
-vec3 lightColor,
-vec3 lightDirection,
-float attenuation,
-vec3 viewDirection
-) {
-    vec3 radiance = attenuation * lightColor.rgb;
+// Fresnel-Schlick Approximation
+vec3 computeFresnelSchlick(float cosTheta, vec3 f0) { return f0 + (1.0 - f0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0); }
 
-    //float diffusion = max(-dot(normal.xyz, lightDirection), 0);
-    //vec3 reflectedLightDirection = normalize(reflect(lightDirection, normal.xyz));
-    //float reflection = max(-dot(viewDirection, reflectedLightDirection), 0) * specularStrength;
+// Compute the final color using the Metallic workflow
+vec3 computeMetallicColor(vec3 albedo, float roughness, float metallic, vec3 normal, vec3 lightColor, vec3 lightDir, float attenuation, vec3 viewDir) {
+	vec3 radiance = attenuation * lightColor;
+	vec3 halfVector = normalize(lightDir + viewDir);
 
-    vec3 halfWay = normalize(lightDirection + viewDirection);
+	// Reflectance at normal incidence
+	vec3 f0 = vec3(0.04);
+	f0 = mix(f0, albedo, metallic);
 
-    vec3 F0 = vec3(0.04);
-    F0 = mix(F0, albedo.xyz, metallic);
-    vec3 F = fresnelSchlick(max(dot(halfWay, viewDirection), 0.0), F0);
+	// Fresnel-Schlick approximation for specular reflectance
+	vec3 fresnel = computeFresnelSchlick(max(dot(halfVector, viewDir), 0.0), f0);
 
-    float NDF = DistributionGGX(normal.xyz, halfWay, roughness);
-    float G = GeometrySmith(normal.xyz, viewDirection, lightDirection, roughness);
-    vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * max(dot(normal.xyz, viewDirection), 0.0) * max(dot(normal.xyz, lightDirection), 0.0) + 0.0001;
-    vec3 specular = numerator / denominator;
+	// Geometry and Normal Distribution Function
+	float ndf = computeDistributionGGX(normal, halfVector, roughness);
+	float geometry = computeGeometrySmith(normal, viewDir, lightDir, roughness);
 
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
+	// Specular component
+	vec3 specular = (ndf * geometry * fresnel) / max(4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, lightDir), 0.0), 0.001);
 
-    kD *= 1.0 - metallic;
+	// Energy conservation
+	vec3 ks = fresnel;
+	vec3 kd = vec3(1.0) - ks;
+	kd *= 1.0 - metallic;
 
+	// Diffuse and final color
+	float nDotL = max(dot(normal, lightDir), 0.0);
+	vec3 diffuse = kd * albedo / PI;
 
-    float NdotL = max(dot(normal.xyz, lightDirection), 0.0);
-    return (kD * albedo.rgb / PI + specular) * radiance * NdotL;
+	// Final color mix
+	return (diffuse + specular) * radiance * nDotL;
+}
+
+// Compute the final color using the Specular workflow
+vec3 computeSpecularColor(vec3 albedo, float roughness, vec3 specularColor, vec3 normal, vec3 lightColor, vec3 lightDir, float attenuation, vec3 viewDir) {
+	vec3 radiance = attenuation * lightColor;
+	vec3 halfVector = normalize(lightDir + viewDir);
+
+	// Reflectance at normal incidence
+	vec3 f0 = specularColor;
+
+	// Fresnel-Schlick approximation for specular reflectance
+	vec3 fresnel = computeFresnelSchlick(max(dot(halfVector, viewDir), 0.0), f0);
+
+	// Geometry and Normal Distribution Function
+	float ndf = computeDistributionGGX(normal, halfVector, roughness);
+	float geometry = computeGeometrySmith(normal, viewDir, lightDir, roughness);
+
+	// Specular component
+	vec3 specular = (ndf * geometry * fresnel) / max(4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, lightDir), 0.0), 0.001);
+
+	// Energy conservation
+	vec3 ks = fresnel;
+	vec3 kd = vec3(1.0) - ks;
+
+	// Diffuse and final color
+	float nDotL = max(dot(normal, lightDir), 0.0);
+	vec3 diffuse = kd * albedo / PI;
+
+	// Final color mix
+	return (diffuse + specular) * radiance * nDotL;
 }

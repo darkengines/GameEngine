@@ -13,6 +13,6 @@ namespace drk::Engine::Models {
 		uint32_t directionalLightCount;
 		uint32_t spotlightArrayIndex;
 		uint32_t spotlightCount;
-
+		uint32_t renderStyle;
 	};
 }

@@ -15,6 +15,8 @@ namespace drk::Materials::Models {
 		uint32_t hasSpecularColorTexture;
 		uint32_t hasNormalMap;
 		uint32_t hasMetallicRoughnessMap;
+		uint32_t hasMetallicMap;
+		uint32_t hasRoughnessMap;
 
 		uint32_t baseColorTextureIndex;
 		uint32_t ambientColorTextureIndex;
@@ -22,5 +24,7 @@ namespace drk::Materials::Models {
 		uint32_t specularColorTextureIndex;
 		uint32_t normalMapIndex;
 		uint32_t metallicRoughnessTextureIndex;
+		uint32_t metallicTextureIndex;
+		uint32_t roughnessTextureIndex;
 	};
 }

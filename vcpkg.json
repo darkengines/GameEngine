@@ -12,6 +12,7 @@
 		"bext-di",
 		"nlohmann-json",
 		"nameof",
-		"boost-signals2"
+		"boost-signals2",
+		"imguizmo"
 	]
 }

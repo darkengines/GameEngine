@@ -6,9 +6,8 @@ namespace drk::UserInterfaces::Renderers {
 	UserInterfaceRenderer::UserInterfaceRenderer(
 		Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState
-	) : DeviceContext(deviceContext), EngineState(engineState) {}
+	) : DeviceContext(deviceContext), EngineState(engineState), imGuiInitialized(false) {}
 	UserInterfaceRenderer::~UserInterfaceRenderer() {
-		DeviceContext.device.destroyDescriptorPool(ImGuiDescriptorPool);
 		ImGui_ImplVulkan_Shutdown();
 		DestroyMainFramebuffer();
 		DeviceContext.device.destroyRenderPass(MainRenderPass);
@@ -124,10 +123,6 @@ namespace drk::UserInterfaces::Renderers {
 
 	void UserInterfaceRenderer::RecreateRenderPass() {
 		DeviceContext.device.waitIdle();
-		if (isImGuiInitialized) {
-			//ImGui_ImplVulkan_Shutdown();
-			//isImGuiInitialized = false;
-		}
 		DestroyMainFramebuffer();
 		if (MainRenderPass) DeviceContext.device.destroyRenderPass(MainRenderPass);
 		if (SceneRenderTargetTexture.has_value()) DeviceContext.destroyTexture(SceneRenderTargetTexture.value());
@@ -136,7 +131,8 @@ namespace drk::UserInterfaces::Renderers {
 		CreateMainFramebufferResources();
 		CreateMainRenderPass();
 		CreateMainFramebuffers();
-		if (!isImGuiInitialized) SetupImgui();
+
+		SetupImgui();
 	}
 
 	void UserInterfaceRenderer::CreateMainFramebufferResources() {
@@ -233,52 +229,23 @@ namespace drk::UserInterfaces::Renderers {
 			MainFramebuffers.push_back(framebuffer);
 		}
 	}
-	void UserInterfaceRenderer::CreateImguiResources() {
-		vk::DescriptorPoolSize poolSizes[] =
-			{
-				{vk::DescriptorType::eSampler,              1000},
-				{vk::DescriptorType::eCombinedImageSampler, 1000},
-				{vk::DescriptorType::eSampledImage,         1000},
-				{vk::DescriptorType::eStorageImage,         1000},
-				{vk::DescriptorType::eUniformTexelBuffer,   1000},
-				{vk::DescriptorType::eStorageTexelBuffer,   1000},
-				{vk::DescriptorType::eUniformBuffer,        1000},
-				{vk::DescriptorType::eStorageBuffer,        1000},
-				{vk::DescriptorType::eUniformBufferDynamic, 1000},
-				{vk::DescriptorType::eStorageBufferDynamic, 1000},
-				{vk::DescriptorType::eInputAttachment,      1000}
-			};
-
-		vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
-			.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-			.maxSets = 1000u,
-			.poolSizeCount = (uint32_t) std::size(poolSizes),
-			.pPoolSizes = poolSizes,
-		};
-
-		ImGuiDescriptorPool = DeviceContext.device.createDescriptorPool(descriptorPoolCreateInfo);
-	}
 	void UserInterfaceRenderer::SetupImgui() {
-		if (!isImGuiInitialized) {
-			CreateImguiResources();
-		}
-
+		if (imGuiInitialized) return;
 		ImGui_ImplVulkan_InitInfo infos{
 			.Instance = DeviceContext.Instance,
 			.PhysicalDevice = DeviceContext.PhysicalDevice,
 			.Device = DeviceContext.device,
 			.QueueFamily = 0,
 			.Queue = DeviceContext.GraphicQueue,
-			.DescriptorPool = ImGuiDescriptorPool,
+			.DescriptorPool = EngineState.imGuiDescriptorPool,
 			.RenderPass = static_cast<VkRenderPass>(MainRenderPass),
 			.MinImageCount = 2,
 			.ImageCount = 2,
 			//TODO: Use configurable sample count
 			.MSAASamples = VK_SAMPLE_COUNT_8_BIT,
 		};
-
 		ImGui_ImplVulkan_Init(&infos);
-		isImGuiInitialized = true;
+		imGuiInitialized = true;
 	}
 
 	void UserInterfaceRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) {

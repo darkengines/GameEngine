@@ -51,6 +51,7 @@ namespace drk::Engine {
 		std::unique_ptr<Stores::TextureStore> textureStore;
 		Common::IndexGenerator<uint32_t> IndexGenerator;
 		entt::entity cameraEntity = entt::null;
+		vk::DescriptorPool imGuiDescriptorPool;
 
 		EngineState(
 			const Devices::DeviceContext& deviceContext,
@@ -98,6 +99,30 @@ namespace drk::Engine {
 			}
 		}
 		vk::Sampler GetDefaultTextureSampler() const;
+		void CreateImguiResources() {
+			vk::DescriptorPoolSize poolSizes[] =
+				{
+					{vk::DescriptorType::eSampler,              1000},
+					{vk::DescriptorType::eCombinedImageSampler, 1000},
+					{vk::DescriptorType::eSampledImage,         1000},
+					{vk::DescriptorType::eStorageImage,         1000},
+					{vk::DescriptorType::eUniformTexelBuffer,   1000},
+					{vk::DescriptorType::eStorageTexelBuffer,   1000},
+					{vk::DescriptorType::eUniformBuffer,        1000},
+					{vk::DescriptorType::eStorageBuffer,        1000},
+					{vk::DescriptorType::eUniformBufferDynamic, 1000},
+					{vk::DescriptorType::eStorageBufferDynamic, 1000},
+					{vk::DescriptorType::eInputAttachment,      1000}
+				};
 
+			vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
+				.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+				.maxSets = 1000u,
+				.poolSizeCount = (uint32_t) std::size(poolSizes),
+				.pPoolSizes = poolSizes,
+			};
+
+			imGuiDescriptorPool = deviceContext.device.createDescriptorPool(descriptorPoolCreateInfo);
+		}
 	};
 }

@@ -25,6 +25,8 @@ namespace drk::Materials::Systems {
 		auto hasSpecularColorTexture = material.specularColorTexture != entt::null;
 		auto hasNormalMap = material.normalMap != entt::null;
 		auto hasMetallicRoughnessMap = material.metallicRoughnessTexture != entt::null;
+		auto hasMetallicMap = material.metallicTexture != entt::null;
+		auto hasRoughnessMap = material.roughnessTexture != entt::null;
 
 		storedMaterial.hasBaseColorTexture = hasBaseColorTexture;
 		storedMaterial.hasAmbientColorTexture = hasAmbientColorTexture;
@@ -32,6 +34,8 @@ namespace drk::Materials::Systems {
 		storedMaterial.hasSpecularColorTexture = hasSpecularColorTexture;
 		storedMaterial.hasNormalMap = hasNormalMap;
 		storedMaterial.hasMetallicRoughnessMap = hasMetallicRoughnessMap;
+		storedMaterial.hasMetallicMap = hasMetallicMap;
+		storedMaterial.hasRoughnessMap = hasRoughnessMap;
 
 		if (hasBaseColorTexture) {
 			storedMaterial.baseColorTextureIndex = registry.get<Devices::Texture>(
@@ -62,6 +66,12 @@ namespace drk::Materials::Systems {
 			storedMaterial.metallicRoughnessTextureIndex = registry.get<Devices::Texture>(
 				material.metallicRoughnessTexture
 			).index;
+		}
+		if (hasMetallicMap) {
+			storedMaterial.metallicTextureIndex = registry.get<Devices::Texture>(material.metallicTexture).index;
+		}
+		if (hasRoughnessMap) {
+			storedMaterial.roughnessTextureIndex = registry.get<Devices::Texture>(material.roughnessTexture).index;
 		}
 	}
 
@@ -107,6 +117,8 @@ namespace drk::Materials::Systems {
 				destination,
 				material.metallicRoughnessTexture
 			),
+			.metallicTexture = Textures::Systems::TextureSystem::copyTextureEntity(source, destination, material.metallicTexture),
+			.roughnessTexture = Textures::Systems::TextureSystem::copyTextureEntity(source, destination, material.roughnessTexture),
 
 			.hasTransparency = material.hasTransparency
 		};

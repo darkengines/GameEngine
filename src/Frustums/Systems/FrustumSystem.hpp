@@ -10,14 +10,14 @@ namespace drk::Frustums::Systems {
 		public drk::Systems::System<Models::Frustum, Components::Frustum>,
 		drk::Draws::Systems::DrawSystem {
 	protected:
-		Devices::DeviceContext deviceContext;
+		const Devices::DeviceContext& deviceContext;
 		Devices::BufferView vertexBufferView;
 		Devices::BufferView indexBufferView;
 	public:
 		FrustumSystem(
 			Engine::EngineState& engineState,
 			entt::registry& registry,
-			Devices::DeviceContext& deviceContext
+			const Devices::DeviceContext& deviceContext
 		);
 		~FrustumSystem();
 		void update(Models::Frustum& frustumModel, const Components::Frustum& frustumComponent) override;

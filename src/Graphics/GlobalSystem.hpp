@@ -24,6 +24,7 @@ namespace drk::Graphics {
 		uint32_t directionalLightBufferIndex;
 		uint32_t spotlightCount;
 		uint32_t spotlightBufferIndex;
+		uint32_t renderStyle;
 	public:
 		boost::signals2::signal<void(entt::entity)> cameraChanged;
 		SynchronizationState<Engine::Models::Global> GlobalSynchronizationState;
@@ -38,5 +39,6 @@ namespace drk::Graphics {
 		void setCamera(entt::entity cameraEntity);
 
 		void update();
+		void setRenderStyle(uint32_t style);
 	};
 }

@@ -195,6 +195,20 @@ void main() {
     Mesh mesh = meshBuffer[draw.meshItemLocation.storeIndex].meshes[draw.meshItemLocation.itemIndex];
     Node node = nodeBuffer[draw.nodeItemLocation.storeIndex].nodes[draw.nodeItemLocation.itemIndex];
     Material material = materialBuffer[mesh.materialItemLocation.storeIndex].materials[mesh.materialItemLocation.itemIndex];
+
+    if (globalBuffer.global.renderStyle == uv_style) {
+        outColor = vec4(point.texCoord.x, point.texCoord.y, 0, 1);
+        return;
+    }
+
+    if (globalBuffer.global.renderStyle == material_style) {
+        float r = mesh.materialItemLocation.itemIndex & 0x0000011;
+        float g = mesh.materialItemLocation.itemIndex & 0x0001100;
+        float b = mesh.materialItemLocation.itemIndex & 0x0110000;
+        float a = 1.0;
+        outColor = vec4(r, g, b, a);
+        return;
+    }
     Spatial spatial = spatialBuffer[node.spatialItemLocation.storeIndex].spatials[node.spatialItemLocation.itemIndex];
     Camera camera = cameraBuffer[draw.cameraItemLocation.storeIndex].cameras[draw.cameraItemLocation.itemIndex];
 
@@ -204,13 +218,25 @@ void main() {
         normal = vec4(normalize(mat3(point.TBN) * normalMap.xyz), 0);
     }
 
+    if (globalBuffer.global.renderStyle == normal_style) {
+        outColor = normal;
+        outColor.a = 1.0f;
+        return;
+    }
+
     float roughness = 0.0;
     float metallic = 0.0;
 
     if (material.hasMetallicRoughnessTexture) {
         vec4 metallicRoughnessMap = vec4(texture(textures[material.metallicRoughnessTextureIndex], point.texCoord).xyz, 0);
         roughness = metallicRoughnessMap.g;
-        metallic = metallicRoughnessMap.r;
+        metallic = metallicRoughnessMap.b;
+    }
+    if (material.hasMetallicTexture) {
+        metallic = texture(textures[material.metallicTextureIndex], point.texCoord).b;
+    }
+    if (material.hasRoughnessTexture) {
+        roughness = texture(textures[material.roughnessTextureIndex], point.texCoord).g;
     }
 
     vec3 viewDirection = normalize(camera.absolutePosition.xyz - point.position.xyz);
@@ -219,6 +245,11 @@ void main() {
     vec4 albedo = material.diffuseColor;
     if (material.hasDiffuseColorTexture) {
         albedo = texture(textures[material.diffuseColorTextureIndex], point.texCoord);
+    }
+
+    if (globalBuffer.global.renderStyle == albedo_style) {
+        outColor = albedo;
+        return;
     }
 
     for (uint pointLightIndex = 0;pointLightIndex < globalBuffer.global.pointLightCount; pointLightIndex++) {
@@ -235,7 +266,7 @@ void main() {
         float shadow = samplePointLightShadow(lightToNode, pointLight, 0.01, normal.xyz, lightDirection);
         float shadowFactor = 1.0f - shadow;
 
-        color += computeColor(
+        color += computeMetallicColor(
         albedo.rgb,
         roughness,
         metallic,
@@ -257,7 +288,7 @@ void main() {
         //vec4 shadowMap = texture(textures[0], lightPointPosition.xy * 0.5 + 0.5);
 
         vec3 lightOrientation = normalize(lightPerspective.absoluteFront).xyz;
-        color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, -lightOrientation.xyz, 1, viewDirection.xyz);
+        color += computeMetallicColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, -lightOrientation.xyz, 1, viewDirection.xyz);
         //float shadowFactor = 1;
 
         //if (lightPointPosition.z > shadowMap.r) {
@@ -295,7 +326,7 @@ void main() {
 
             float shadowFactor = 1.0f - shadow;
 
-            color += computeColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz) * shadowFactor;
+            color += computeMetallicColor(albedo.rgb, roughness, metallic, normal.xyz, light.diffuseColor.rgb, lightDirection.xyz, attenuation, viewDirection.xyz) * shadowFactor;
         }
     }
 

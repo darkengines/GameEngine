@@ -30,7 +30,7 @@ namespace drk::Devices {
 			vk::MemoryPropertyFlags properties,
 			vk::BufferUsageFlags usage,
 			const VmaAllocationCreateInfo& allocationCreationInfo,
-			vk::DeviceSize size
+			vk::DeviceSize size, const char* name
 		) const;
 		void DestroyBuffer(const Buffer& buffer) const;
 

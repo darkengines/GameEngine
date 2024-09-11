@@ -14,7 +14,7 @@ namespace drk::BoundingVolumes::Systems {
 	AxisAlignedBoundingBoxSystem::AxisAlignedBoundingBoxSystem(
 		Engine::EngineState& engineState,
 		entt::registry& registry,
-		Devices::DeviceContext& deviceContext
+		const Devices::DeviceContext& deviceContext
 	) : System<
 		Models::AxisAlignedBoundingBox,
 		Components::AxisAlignedBoundingBox,
@@ -89,7 +89,7 @@ namespace drk::BoundingVolumes::Systems {
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
 			{cubeVertices},
-			vk::BufferUsageFlagBits::eVertexBuffer
+			vk::BufferUsageFlagBits::eVertexBuffer, "AxisAlignedBoundingBox.Resources.Vertices"
 		);
 
 		auto indexUploadResult = Devices::Device::uploadBuffers<uint32_t>(
@@ -99,7 +99,7 @@ namespace drk::BoundingVolumes::Systems {
 			deviceContext.CommandPool,
 			deviceContext.Allocator,
 			{cubeIndices},
-			vk::BufferUsageFlagBits::eIndexBuffer
+			vk::BufferUsageFlagBits::eIndexBuffer, "AxisAlignedBoundingBox.Resources.Indices"
 		);
 
 		vertexBufferView = vertexUploadResult.bufferViews[0];

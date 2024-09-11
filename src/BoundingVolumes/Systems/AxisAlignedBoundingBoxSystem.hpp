@@ -19,8 +19,8 @@ namespace drk::BoundingVolumes::Systems {
 	public:
 		AxisAlignedBoundingBoxSystem(
 			Engine::EngineState& engineState,
-			entt::registry& registry,
-			Devices::DeviceContext& deviceContext
+			entt::registry& registry, 
+			const Devices::DeviceContext& deviceContext
 		);
 		~AxisAlignedBoundingBoxSystem();
 		void update(
@@ -34,7 +34,7 @@ namespace drk::BoundingVolumes::Systems {
 		void emitDraws() override;
 
 	protected:
-		Devices::DeviceContext deviceContext;
+		const Devices::DeviceContext& deviceContext;
 		Devices::BufferView vertexBufferView;
 		Devices::BufferView indexBufferView;
 
