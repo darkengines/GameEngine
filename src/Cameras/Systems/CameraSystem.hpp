@@ -5,9 +5,17 @@
 #include "../Components/Camera.hpp"
 #include "../Models/Camera.hpp"
 #include "../../Systems/System.hpp"
+#include "../../Stores/Models/StoreItemLocation.hpp"
+#include "../../Spatials/Models/Spatial.hpp"
+#include "../../Spatials/Models/RelativeSpatial.hpp"
 
 namespace drk::Cameras::Systems {
-	class CameraSystem : public drk::Systems::System<Models::Camera, Components::Camera> {
+	class CameraSystem : public drk::Systems::System<
+		Models::Camera, 
+		Components::Camera, 
+		Stores::StoreItem<Spatials::Models::RelativeSpatial>, 
+		Stores::StoreItem<Spatials::Models::Spatial>
+	> {
 	protected:
 		const Devices::DeviceContext& deviceContext;
 	public:
@@ -16,7 +24,12 @@ namespace drk::Cameras::Systems {
 			Engine::EngineState& engineState,
 			entt::registry& registry
 		);
-		void update(Models::Camera& cameraModel, const Components::Camera& camera);
+		void update(
+			Models::Camera& cameraModel, 
+			const Components::Camera& camera,
+			const Stores::StoreItem<Spatials::Models::RelativeSpatial>& relativeSpatialStoreItem,
+			const Stores::StoreItem<Spatials::Models::Spatial>& absoluteSpatialStoreItem
+		);
 		void processDirtyItems();
 
 		entt::entity createCamera(

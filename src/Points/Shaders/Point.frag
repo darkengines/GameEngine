@@ -48,6 +48,7 @@ void main() {
     Material material = materialBuffer[point.materialItemLocation.storeIndex].materials[point.materialItemLocation.itemIndex];
     Spatial spatial = spatialBuffer[node.spatialItemLocation.storeIndex].spatials[node.spatialItemLocation.itemIndex];
     Camera camera = cameraBuffer[globalBuffer.global.cameraStoreIndex].cameras[globalBuffer.global.cameraItemIndex];
+    Spatial cameraAbsoluteSpatial = spatialBuffer[camera.spatialItemLocation.storeIndex].spatials[camera.spatialItemLocation.itemIndex];
 
     vec4 normal = fragment.normal;
     if (material.hasNormalMap) {
@@ -64,7 +65,7 @@ void main() {
         metallic = metallicRoughnessMap.r;
     }
 
-    vec3 viewDirection = normalize(camera.position.xyz - fragment.position.xyz);
+    vec3 viewDirection = normalize(cameraAbsoluteSpatial.position.xyz - fragment.position.xyz);
 
     vec3 color = vec3(0, 0, 0);
     vec4 albedo = material.diffuseColor;

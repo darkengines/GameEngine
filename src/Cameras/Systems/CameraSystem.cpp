@@ -15,7 +15,15 @@ namespace drk::Cameras::Systems {
 CameraSystem::CameraSystem(const Devices::DeviceContext& deviceContext, Engine::EngineState& engineState, entt::registry& registry)
 	: System(engineState, registry), deviceContext(deviceContext) {}
 
-void CameraSystem::update(Models::Camera& cameraModel, const Components::Camera& camera) {
+void CameraSystem::
+	update(
+		Models::Camera& cameraModel, 
+		const Components::Camera& camera, 
+		const Stores::StoreItem<Spatials::Models::RelativeSpatial>& relativeSpatialStoreItem, 
+		const Stores::StoreItem<Spatials::Models::Spatial>& absoluteSpatialStoreItem
+	) {
+	cameraModel.relativeSpatialItemLocation = relativeSpatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
+	cameraModel.spatialItemLocation = absoluteSpatialStoreItem.frameStoreItems[engineState.getFrameIndex()];
 	cameraModel.perspective = camera.perspective;
 	cameraModel.view = camera.view;
 	cameraModel.position = glm::vec4(camera.position, 1.f);

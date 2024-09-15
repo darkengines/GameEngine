@@ -218,6 +218,7 @@ void main() {
     }
     Spatial spatial = spatialBuffer[node.spatialItemLocation.storeIndex].spatials[node.spatialItemLocation.itemIndex];
     Camera camera = cameraBuffer[draw.cameraItemLocation.storeIndex].cameras[draw.cameraItemLocation.itemIndex];
+    Spatial cameraAbsoluteSpatial = spatialBuffer[camera.spatialItemLocation.storeIndex].spatials[camera.spatialItemLocation.itemIndex];
 
     vec4 normal = point.normal;
     if (material.hasNormalMap) {
@@ -246,7 +247,7 @@ void main() {
         roughness = texture(textures[material.roughnessTextureIndex], point.texCoord).g;
     }
 
-    vec3 viewDirection = normalize(camera.position.xyz - point.position.xyz);
+    vec3 viewDirection = normalize(cameraAbsoluteSpatial.position.xyz - point.position.xyz);
 
     vec3 color = vec3(0, 0, 0);
     vec4 albedo = material.diffuseColor;
