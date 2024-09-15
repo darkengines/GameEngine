@@ -1,6 +1,7 @@
 #pragma once
 #include <GLFW/glfw3.h>
 #include "../Loaders/AssimpLoader.hpp"
+#include "../UserInterfaces/UserInterface.hpp"
 #include "../Animations/Systems/AnimationSystem.hpp"
 #include "../Devices/DeviceContext.hpp"
 #include "../Lights/Systems/LightSystem.hpp"
@@ -20,7 +21,6 @@
 #include "../Cameras/Systems/CameraSystem.hpp"
 #include "../Graphics/GlobalSystem.hpp"
 #include "../Controllers/FlyCamController.hpp"
-#include "../UserInterfaces/UserInterface.hpp"
 #include "../Scenes/Renderers/SceneRenderer.hpp"
 #include "../UserInterfaces/Renderers/UserInterfaceRenderer.hpp"
 #include "../Scenes/Systems/SceneSystem.hpp"
@@ -112,6 +112,7 @@ namespace drk::Applications {
 		);
 
 		void run();
+		ApplicationState applicationState;
 
 	protected:
 		const Windows::Window& window;
@@ -148,7 +149,6 @@ namespace drk::Applications {
 		Animations::Systems::BoneSpatialSystem& boneSpatialSystem;
 		entt::entity selectedEntity = entt::null;
 		UserInterfaces::AssetExplorer& assetExplorer;
-		ApplicationState applicationState;
 
 		void OnWindowSizeChanged(uint32_t width, uint32_t height);
 		static void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);

@@ -27,6 +27,7 @@ namespace drk::Meshes::Systems {
 			entt::entity lightPerspectiveEntity,
 			const Lights::Components::LightPerspective& perspective,
 			const Cameras::Components::Camera& camera,
+			const Spatials::Components::Spatial<Spatials::Components::Absolute>& cameraSpatial,
 			const Spatials::Components::Spatial<Spatials::Components::Absolute>& spatial,
 			const Materials::Components::Material& material,
 			const Meshes::Components::MeshBufferView& meshBufferView,

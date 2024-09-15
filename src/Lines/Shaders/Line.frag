@@ -64,7 +64,7 @@ void main() {
         metallic = metallicRoughnessMap.r;
     }
 
-    vec3 viewDirection = normalize(camera.absolutePosition.xyz - fragment.position.xyz);
+    vec3 viewDirection = normalize(camera.position.xyz - fragment.position.xyz);
 
     vec3 color = vec3(0, 0, 0);
     vec4 albedo = material.diffuseColor;

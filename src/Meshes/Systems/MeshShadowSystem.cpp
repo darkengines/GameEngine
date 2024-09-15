@@ -49,9 +49,10 @@ namespace drk::Meshes::Systems {
 	}
 
 	void MeshShadowSystem::emitDraws() {
-		const auto& [camera, cameraStoreItem] = registry.get<
+		const auto& [camera, cameraStoreItem, cameraSpatial] = registry.get<
 			Cameras::Components::Camera,
-			Stores::StoreItem<Cameras::Models::Camera>
+			Stores::StoreItem<Cameras::Models::Camera>,
+			Spatials::Components::Spatial<Spatials::Components::Absolute>
 		>(engineState.cameraEntity);
 		const auto& cameraStoreItemLocation = cameraStoreItem.frameStoreItems[engineState.getFrameIndex()];
 		auto objectMeshEntities = registry.view<
@@ -103,6 +104,7 @@ namespace drk::Meshes::Systems {
 								lightPerspectiveEntity,
 								lightPerspective,
 								camera,
+								cameraSpatial,
 								spatial,
 								material,
 								meshBufferView,
@@ -128,6 +130,7 @@ namespace drk::Meshes::Systems {
 							directionalLightEntity,
 							lightPerspective,
 							camera,
+							cameraSpatial,
 							spatial,
 							material,
 							meshBufferView,
@@ -153,6 +156,7 @@ namespace drk::Meshes::Systems {
 							spotlightEntity,
 							lightPerspective,
 							camera,
+							cameraSpatial,
 							spatial,
 							material,
 							meshBufferView,
@@ -176,6 +180,7 @@ namespace drk::Meshes::Systems {
 		entt::entity lightPerspectiveEntity,
 		const Lights::Components::LightPerspective& perspective,
 		const Cameras::Components::Camera& camera,
+		const Spatials::Components::Spatial<Spatials::Components::Absolute>& cameraSpatial,
 		const Spatials::Components::Spatial<Spatials::Components::Absolute>& spatial,
 		const Materials::Components::Material& material,
 		const Meshes::Components::MeshBufferView& meshBufferView,
@@ -200,7 +205,7 @@ namespace drk::Meshes::Systems {
 			.scissor = perspective.shadowMapRect,
 			.lightPerspectiveEntity = lightPerspectiveEntity,
 			.hasTransparency = material.hasTransparency,
-			.depth = glm::distance(camera.absolutePosition, spatial.position),
+			.depth = glm::distance(cameraSpatial.position, spatial.position),
 		};
 		Components::ShadowMeshDraw meshDraw = {
 			.indexCount = static_cast<uint32_t>(meshResource.indices.size()),

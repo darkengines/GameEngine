@@ -165,7 +165,7 @@ void Application::renderGui(ApplicationState& applicationState) {
 						globalSystem.setRenderStyle(1 << 2);
 					}
 					if (ImGui::MenuItem("Albedo")) {
-						globalSystem.setRenderStyle(1 << 0);
+						globalSystem.setRenderStyle(1 << 1);
 					}
 					if (ImGui::MenuItem("PBR")) {
 						globalSystem.setRenderStyle(0);
@@ -196,7 +196,7 @@ void Application::renderGui(ApplicationState& applicationState) {
 				(ImTextureID)applicationState.sceneTextureImageDescriptorSet.value(),
 				{static_cast<float>(applicationState.actualExtent.width), static_cast<float>(applicationState.actualExtent.height)},
 				{0.0f, 0.0f},
-				{1.0f, 1.0f}
+				{(float)applicationState.actualExtent.width / applicationState.sceneExtent.width, (float)applicationState.actualExtent.height / applicationState.sceneExtent.height}
 			);
 		}
 
@@ -222,12 +222,10 @@ void Application::renderGui(ApplicationState& applicationState) {
 	ImGui::EndFrame();
 }
 void Application::run() {
-	spatialSystem.AddSpatialSystem(registry);
 	ImGui::FileBrowser fileBrowser;
-	std::vector<Loaders::LoadResult> loadResults;
 
 	auto defaultCamera =
-		cameraSystem.createCamera({0.0f, 0.0f, 0.0f, 1.0f}, glm::vec4{1.0f, 0.0f, 0.0f, 0.0f}, glm::vec4{0.0f, 1.0f, 0.0f, 0.0f}, glm::radians(65.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
+		cameraSystem.createCamera({0.0f, 0.0f, 0.0f, 1.0f}, glm::vec4{0.0f, 0.0f, -1.0f, 0.0f}, glm::vec4{0.0f, 1.0f, 0.0f, 0.0f}, glm::radians(65.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
 
 	flyCamController.Attach(defaultCamera);
 	globalSystem.setCamera(defaultCamera);
@@ -300,10 +298,13 @@ void Application::run() {
 
 	auto windowExtent = window.GetExtent();
 
-	ApplicationState applicationState;
+	applicationState.currentTime = std::chrono::high_resolution_clock::now();
+
 	while (!glfwWindowShouldClose(window.GetWindow())) {
 		glfwPollEvents();
-
+		auto newTime = std::chrono::high_resolution_clock::now();
+		applicationState.frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - applicationState.currentTime).count();
+		applicationState.currentTime = newTime;
 		userInterface.HandleKeyboardEvents();
 		if (userInterface.IsExplorationMode()) {
 			flyCamController.HandleKeyboardEvents();
@@ -355,7 +356,6 @@ void Application::run() {
 				} else {
 					sceneRenderer.setTargetExtent(applicationState.actualExtent);
 				}
-				applicationState.sceneExtent = applicationState.actualExtent;
 			}
 
 			//				ImGuizmo::SetDrawlist();
@@ -383,7 +383,7 @@ void Application::run() {
 			// animationSystem.mamadou();
 
 			// Alterations
-			flyCamController.Step();
+			flyCamController.Step(applicationState.frameTime);
 
 			// Change propagations
 			animationSystem.updateAnimations();

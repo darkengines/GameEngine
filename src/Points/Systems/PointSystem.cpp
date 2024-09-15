@@ -90,7 +90,7 @@ namespace drk::Points::Systems {
 		>(entt::exclude<Models::PointDraw>);
 
 		auto cameraEntity = engineState.cameraEntity;
-		auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
+		const auto& [camera, cameraSpatial] = registry.get<Cameras::Components::Camera, Spatials::Components::Spatial<Spatials::Components::Absolute>>(cameraEntity);
 		pointEntities.each(
 			[&](
 				entt::entity pointEntity,
@@ -109,7 +109,7 @@ namespace drk::Points::Systems {
 					.indexBufferView = pointIndexBufferView,
 					.vertexBufferView = pointVertexBufferView,
 					.hasTransparency = material.hasTransparency,
-					.depth = glm::distance(camera.absolutePosition, spatial.position)
+					.depth = glm::distance(cameraSpatial.position, spatial.position)
 				};
 				Models::PointDraw pointDraw = {
 					.pointItemLocation = pointStoreItemLocation,

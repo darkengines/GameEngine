@@ -41,15 +41,27 @@ void LineSystem::createResources() {
 	vk::DeviceSize indexOffset = 0;
 	std::vector<Models::LineVertex> lineVertices{lineOriginVertex, lineEndVertex};
 	auto vertexResult = Devices::Device::uploadBuffers<Models::LineVertex>(
-		deviceContext.PhysicalDevice, deviceContext.device, deviceContext.GraphicQueue, deviceContext.CommandPool, deviceContext.Allocator, {lineVertices},
-		vk::BufferUsageFlagBits::eVertexBuffer, fmt::format("{0}.VertexBuffer", typeid(LineSystem).name()).c_str()
+		deviceContext.PhysicalDevice,
+		deviceContext.device,
+		deviceContext.GraphicQueue,
+		deviceContext.CommandPool,
+		deviceContext.Allocator,
+		{lineVertices},
+		vk::BufferUsageFlagBits::eVertexBuffer,
+		fmt::format("{0}.VertexBuffer", typeid(LineSystem).name()).c_str()
 	);
 	auto vertexBuffer = vertexResult.buffer;
 	lineVertexBufferView = {.buffer = vertexBuffer, .byteOffset = (size_t)vertexOffset, .byteLength = sizeof(Lines::Models::LineVertex) * lineVertices.size()};
 	std::vector<unsigned int> lineIndices{0u, 1u};
 	auto indexResult = Devices::Device::uploadBuffers<unsigned int>(
-		deviceContext.PhysicalDevice, deviceContext.device, deviceContext.GraphicQueue, deviceContext.CommandPool, deviceContext.Allocator, {lineIndices},
-		vk::BufferUsageFlagBits::eIndexBuffer, fmt::format("{0}.IndexBuffer", typeid(LineSystem).name()).c_str()
+		deviceContext.PhysicalDevice,
+		deviceContext.device,
+		deviceContext.GraphicQueue,
+		deviceContext.CommandPool,
+		deviceContext.Allocator,
+		{lineIndices},
+		vk::BufferUsageFlagBits::eIndexBuffer,
+		fmt::format("{0}.IndexBuffer", typeid(LineSystem).name()).c_str()
 	);
 	auto indexBuffer = indexResult.buffer;
 	lineIndexBufferView = {.buffer = indexBuffer, .byteOffset = (size_t)indexOffset, .byteLength = sizeof(uint32_t) * lineIndices.size()};
@@ -68,12 +80,14 @@ void LineSystem::updateDraw(entt::entity drawEntity, int drawIndex) {
 void LineSystem::updateShadowDraw(entt::entity shadowDrawEntity, int drawIndex) {}
 void LineSystem::emitDraws() {
 	auto lineEntities = registry.view<
-		Stores::StoreItem<Models::Line>, Components::Line, Spatials::Components::Spatial<Spatials::Components::Absolute>,
+		Stores::StoreItem<Models::Line>,
+		Components::Line,
+		Spatials::Components::Spatial<Spatials::Components::Absolute>,
 		Stores::StoreItem<Nodes::Models::Node>>(entt::exclude<Models::LineDraw>);
 	auto hasEntities = lineEntities.begin() != lineEntities.end();
 	if (hasEntities) {
 		auto cameraEntity = engineState.cameraEntity;
-		auto camera = registry.get<Cameras::Components::Camera>(cameraEntity);
+		const auto& [camera, cameraSpatial] = registry.get<Cameras::Components::Camera, Spatials::Components::Spatial<Spatials::Components::Absolute>>(cameraEntity);
 		lineEntities.each([&](entt::entity lineEntity, auto& lineStoreItem, auto& line, auto& spatial, auto& objectStoreItem) {
 			const auto& lineStoreItemLocation = lineStoreItem.frameStoreItems[engineState.getFrameIndex()];
 			const auto& objectStoreItemLocation = objectStoreItem.frameStoreItems[engineState.getFrameIndex()];
@@ -85,7 +99,7 @@ void LineSystem::emitDraws() {
 				.indexBufferView = lineIndexBufferView,
 				.vertexBufferView = lineVertexBufferView,
 				.hasTransparency = material.hasTransparency,
-				.depth = glm::distance(camera.absolutePosition, spatial.position)
+				.depth = glm::distance(cameraSpatial.position, spatial.position)
 			};
 			Models::LineDraw lineDraw = {.lineItemLocation = lineStoreItemLocation, .objectItemLocation = objectStoreItemLocation};
 

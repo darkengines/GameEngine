@@ -1,5 +1,5 @@
-#include "Application.hpp"
 #include "../Spatials/Components/SpatialEditor.hpp"
+#include "Application.hpp"
 #include "../Cameras/Editors/CameraEditor.hpp"
 #include <entt/entt.hpp>
 #include <imgui.h>
@@ -53,8 +53,9 @@ namespace drk::Applications {
 				auto spatialComponentTypeId = entt::type_id<Spatials::Components::Spatial<Spatials::Components::Relative>>();
 				auto cameraComponentTypeId = entt::type_id<Cameras::Components::Camera>();
 				if (typeInfo == spatialComponentTypeId) {
-					auto& spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity);
-					if (Spatials::Components::SpatialEditor::Spatial(spatial)) {
+					auto& relativeSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity);
+					const auto& absoluteSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(entity);
+					if (Spatials::Components::SpatialEditor::Spatial(relativeSpatial, absoluteSpatial)) {
 						Spatials::Systems::SpatialSystem::makeDirty(registry, entity);
 					}
 				}
@@ -91,7 +92,8 @@ namespace drk::Applications {
 
 	void Application::renderSystemInfos() {
 		ImGui::Begin("System");
-		ImGui::Text(fmt::format("{:d}", engineState.getDuration().count()).c_str());
+		ImGui::Text(fmt::format("FPS: {:f}", 1.0f / applicationState.frameTime).c_str());
+		ImGui::Text(fmt::format("frame time: {0}", applicationState.frameTime).c_str());
 		ImGui::End();
 	};
 

@@ -29,10 +29,13 @@ namespace drk::UserInterfaces {
 					glm::vec<2, double> cursorPosition;
 					glfwGetCursorPos(window.GetWindow(), &cursorPosition.x, &cursorPosition.y);
 					flyCamController.LastMousePosition = cursorPosition;
+					flyCamController.MousePosition = cursorPosition;
 				} else {
 					isVisible = true;
 					//cursorMode = ImGuiMouseCursor_Arrow;
 					cursorMode = GLFW_CURSOR_NORMAL;
+					flyCamController.LastMousePosition = std::nullopt;
+					flyCamController.MousePosition = std::nullopt;
 				}
 				//ImGui::SetMouseCursor(cursorMode);
 				glfwFocusWindow(window.GetWindow());

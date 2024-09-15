@@ -189,6 +189,17 @@ LightPerspective lightPerspective
     return shadow;
 }
 
+vec3 hashFloatToRgb(float value) {
+    // Create pseudo-random values using sin() and fract() functions.
+    // Multiplying by large constants helps in generating randomness.
+    float x = fract(sin(value * 12.9898) * 43758.5453);
+    float y = fract(sin(value * 78.233) * 43758.5453);
+    float z = fract(sin(value * 93.233) * 43758.5453);
+
+    // Construct an RGB color from the random values
+    return vec3(x, y, z);
+}
+
 void main() {
 
     MeshDraw draw = meshDrawBuffer[drawItemLocation.storeIndex].meshDraws[drawItemLocation.itemIndex];
@@ -202,11 +213,7 @@ void main() {
     }
 
     if (globalBuffer.global.renderStyle == material_style) {
-        float r = mesh.materialItemLocation.itemIndex & 0x0000011;
-        float g = mesh.materialItemLocation.itemIndex & 0x0001100;
-        float b = mesh.materialItemLocation.itemIndex & 0x0110000;
-        float a = 1.0;
-        outColor = vec4(r, g, b, a);
+        outColor = vec4(hashFloatToRgb(drawItemLocation.itemIndex), 1.f);
         return;
     }
     Spatial spatial = spatialBuffer[node.spatialItemLocation.storeIndex].spatials[node.spatialItemLocation.itemIndex];
@@ -239,7 +246,7 @@ void main() {
         roughness = texture(textures[material.roughnessTextureIndex], point.texCoord).g;
     }
 
-    vec3 viewDirection = normalize(camera.absolutePosition.xyz - point.position.xyz);
+    vec3 viewDirection = normalize(camera.position.xyz - point.position.xyz);
 
     vec3 color = vec3(0, 0, 0);
     vec4 albedo = material.diffuseColor;

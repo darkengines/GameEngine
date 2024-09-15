@@ -11,6 +11,7 @@
 #include "../../Materials/Systems/MaterialSystem.hpp"
 #include "../../Common/Components/Dirty.hpp"
 #include "../../Lights/Components/LightPerspectiveCollection.hpp"
+#include "../../Spatials/Components/Spatial.hpp"
 
 namespace drk::Meshes::Systems {
 
@@ -95,9 +96,10 @@ namespace drk::Meshes::Systems {
 		meshItemLocation.pItem->cameraItemLocation = cameraStoreItem.frameStoreItems[frameIndex];
 	}
 	void MeshSystem::emitDraws() {
-		const auto& [camera, cameraStoreItem] = registry.get<
+		const auto& [camera, cameraStoreItem, cameraSpatial] = registry.get<
 			Cameras::Components::Camera,
-			Stores::StoreItem<Cameras::Models::Camera>
+			Stores::StoreItem<Cameras::Models::Camera>, 
+			Spatials::Components::Spatial<Spatials::Components::Absolute>
 		>(engineState.cameraEntity);
 		auto nodeMeshEntities = registry.view<
 			Nodes::Components::NodeMesh,
@@ -134,7 +136,7 @@ namespace drk::Meshes::Systems {
 					.indexBufferView = meshBufferView.IndexBufferView,
 					.vertexBufferView = *bufferView,
 					.hasTransparency = material.hasTransparency,
-					.depth = glm::distance(camera.absolutePosition, spatial.position),
+					.depth = glm::distance(cameraSpatial.position, spatial.position),
 				};
 				Components::MeshDraw meshDraw = {
 					.indexCount = static_cast<uint32_t>(meshResource.indices.size()),
@@ -156,7 +158,7 @@ namespace drk::Meshes::Systems {
 		if (registry.any_of<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>(
 			engineState.cameraEntity
 		)) {
-			auto camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
+			const auto& [camera, cameraSpatial] = registry.get<Cameras::Components::Camera, Spatials::Components::Spatial<Spatials::Components::Absolute>>(engineState.cameraEntity);
 			auto view = registry.view<
 				Components::MeshDraw,
 				Scenes::Draws::SceneDraw
@@ -170,7 +172,7 @@ namespace drk::Meshes::Systems {
 					const auto& spatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(
 						sceneDraw.nodeEntity
 					);
-					sceneDraw.depth = glm::distance(camera.absolutePosition, spatial.position);
+				sceneDraw.depth = glm::distance(cameraSpatial.position, spatial.position);
 					registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
 						objectMeshEntity,
 						engineState.getFrameCount());

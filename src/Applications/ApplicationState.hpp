@@ -13,5 +13,7 @@ namespace drk::Applications {
 		vk::Extent3D actualExtent;
 		std::vector<Loaders::LoadResult> loadResults;
 		ImGui::FileBrowser fileBrowser;
+		float frameTime;
+		std::chrono::time_point<std::chrono::steady_clock> currentTime;
 	};
 }

@@ -1,35 +1,36 @@
 #define BOOST_DI_CFG_DIAGNOSTICS_LEVEL 2
-#include "implementations.hpp"
-#include "Windows/Extensions.hpp"
-#include "Graphics/Graphics.hpp"
-#include "Applications/Application.hpp"
-#include "Configuration/Extensions.hpp"
 #include <nlohmann/json.hpp>
-#include "Devices/Extensions.hpp"
-#include "Graphics/Extentions.hpp"
+
+#include "Animations/Extensions.hpp"
+#include "Applications/Application.hpp"
 #include "Applications/Extentions.hpp"
+#include "BoundingVolumes/Extensions.hpp"
 #include "Cameras/Extensions.hpp"
+#include "Configuration/Extensions.hpp"
+#include "Controllers/Extensions.hpp"
+#include "Devices/Extensions.hpp"
+#include "FreeList/FreeList.hpp"
+#include "Frustums/Extensions.hpp"
+#include "Graphics/Extentions.hpp"
+#include "Graphics/Graphics.hpp"
 #include "Lights/Extensions.hpp"
+#include "Lines/Extensions.hpp"
 #include "Loaders/Extensions.hpp"
 #include "Materials/Extensions.hpp"
 #include "Meshes/Extensions.hpp"
 #include "Nodes/Extensions.hpp"
-#include "Relationships/Extensions.hpp"
-#include "Textures/Extensions.hpp"
-#include "Spatials/Extensions.hpp"
-#include "Controllers/Extensions.hpp"
-#include "UserInterfaces/Extensions.hpp"
-#include "Stores/Extensions.hpp"
-#include "Scenes/Extensions.hpp"
 #include "Points/Extensions.hpp"
-#include "Lines/Extensions.hpp"
-#include "BoundingVolumes/Extensions.hpp"
-#include "Frustums/Extensions.hpp"
-#include "Animations/Extensions.hpp"
-#include "FreeList/FreeList.hpp"
+#include "Relationships/Extensions.hpp"
+#include "Scenes/Extensions.hpp"
+#include "Spatials/Extensions.hpp"
+#include "Stores/Extensions.hpp"
+#include "Textures/Extensions.hpp"
+#include "UserInterfaces/Extensions.hpp"
+#include "Windows/Extensions.hpp"
+#include "implementations.hpp"
+#include "Spatials/Systems/SpatialSystem.hpp"
 
 int main(int argc, char** argv) {
-
 	drk::FreeList freeList = drk::FreeList::create(1024);
 	auto a512 = freeList.allocate(512);
 	auto a256 = freeList.allocate(256);
@@ -43,6 +44,7 @@ int main(int argc, char** argv) {
 	freeList.allocate(150);
 
 	auto currentPath = std::filesystem::current_path();
+	auto modelPath = argv[1];
 
 	auto injector = boost::di::make_injector(
 		drk::Configuration::AddConfiguration(),
@@ -69,7 +71,17 @@ int main(int argc, char** argv) {
 		boost::di::bind<entt::registry>.to<entt::registry>(),
 		drk::Applications::AddApplications()
 	);
+
 	auto& app = injector.create<drk::Applications::Application&>();
+	auto& loader = injector.create<drk::Loaders::AssimpLoader&>();
+	auto& registry = injector.create<entt::registry&>();
+	auto& spatialSystem = injector.create<drk::Spatials::Systems::SpatialSystem&>();
+
+	spatialSystem.AddSpatialSystem(registry);
+
+	auto loadResult = loader.Load(modelPath, registry);
+	app.applicationState.loadResults.emplace_back(std::move(loadResult));
+
 	app.run();
 
 	return 0;
