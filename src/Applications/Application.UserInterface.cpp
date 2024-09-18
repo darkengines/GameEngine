@@ -1,6 +1,7 @@
 #include "../Spatials/Components/SpatialEditor.hpp"
 #include "Application.hpp"
 #include "../Cameras/Editors/CameraEditor.hpp"
+#include "../Lights/Editors/LightEditor.hpp"
 #include <entt/entt.hpp>
 #include <imgui.h>
 #include "../Common/Components/Name.hpp"
@@ -49,15 +50,24 @@ namespace drk::Applications {
 			if (auto& storage = curr.second; storage.contains(entity)) {
 				auto typeInfo = storage.type();
 				auto component = storage.find(entity);
-				ImGui::Text(typeInfo.name().data());
 				auto spatialComponentTypeId = entt::type_id<Spatials::Components::Spatial<Spatials::Components::Relative>>();
 				auto cameraComponentTypeId = entt::type_id<Cameras::Components::Camera>();
+				auto lightComponentTypeId = entt::type_id<Lights::Components::Light>();
+				ImGui::SeparatorText(typeInfo.name().data());
+				if (typeInfo == lightComponentTypeId) {
+					auto& light = registry.get<Lights::Components::Light>(entity);
+					if (Lights::Editors::LightEditor::Light(light)) {
+						registry.emplace_or_replace<Graphics::SynchronizationState<Lights::Models::Light>>(entity, engineState.getFrameCount());
+					}
+					continue;
+				}
 				if (typeInfo == spatialComponentTypeId) {
 					auto& relativeSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity);
 					const auto& absoluteSpatial = registry.get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(entity);
 					if (Spatials::Components::SpatialEditor::Spatial(relativeSpatial, absoluteSpatial)) {
 						Spatials::Systems::SpatialSystem::makeDirty(registry, entity);
 					}
+					continue;
 				}
 				if (typeInfo == cameraComponentTypeId) {
 					auto previousCamera = engineState.cameraEntity;
@@ -66,6 +76,7 @@ namespace drk::Applications {
 							flyCamController.Attach(entity);
 						}
 					}
+					continue;
 				}
 			}
 		}

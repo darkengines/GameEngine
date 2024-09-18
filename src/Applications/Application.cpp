@@ -8,6 +8,7 @@
 #include <chrono>
 #include <entt/entt.hpp>
 #include <stack>
+#include <taskflow/taskflow.hpp>
 
 #include "../Common/Components/Name.hpp"
 #include "../GlmExtensions.hpp"
@@ -98,8 +99,89 @@ Application::Application(
 	auto io = ImGui::GetIO();
 	glfwMakeContextCurrent(glfwWindow);
 }
+void Application::taskflow() {
+	const auto& frameState = engineState.getCurrentFrameState();
+	auto taskflow = tf::Taskflow("Application");
+
+	// Resources to GPU
+	auto textureUploadTask = taskflow.emplace([&]() { textureSystem.UploadTextures(); }).name("TextureUploads");
+	auto meshUploadTask = taskflow.emplace([&]() { meshSystem.uploadMeshes(); }).name("MeshUploads");
+
+	auto animationMeshStorageTask = taskflow.emplace([&]() { animationSystem.storeMeshes(); }).name("AnimationMeshStorages");
+	animationMeshStorageTask.succeed(meshUploadTask);
+
+	auto controllerStepTask = taskflow.emplace([&]() { flyCamController.Step(applicationState.frameTime); }).name("ControllerSteps");
+	auto animationUpdateTask = taskflow.emplace([&]() { animationSystem.updateAnimations(); }).name("AnimationUpdates");
+	auto spatialPropagationTask = taskflow.emplace([&]() { spatialSystem.PropagateChanges(); }).name("SpatialPropagation");
+	auto cameraDirtyTask = taskflow.emplace([&]() { cameraSystem.processDirtyItems(); }).name("CameraDirty");
+	auto lightPerspectiveDirtyTask = taskflow.emplace([&]() { lightPerspectiveSystem.processDirtyItems(); }).name("LightPerspectiveDirty");
+	auto directionalLightDirtyTask = taskflow.emplace([&]() { directionalLightSystem.processDirtyItems(); }).name("DirectionalLightDirty");
+	auto pointLightDirtyTask = taskflow.emplace([&]() { pointLightSystem.processDirtyItems(); }).name("PointLightDirty");
+	auto spotlighDirtyTask = taskflow.emplace([&]() { spotlightSystem.processDirtyItems(); }).name("SpotlightDirty");
+	auto axisAlignedBoundingBoxDirtyTask = taskflow.emplace([&]() { axisAlignedBoundingBoxSystem.processDirty(); }).name("AxisAlignedBoundingBoxDirty");
+	auto meshDrawDirtyTask = taskflow.emplace([&]() { meshSystem.processDirtyDraws(); }).name("MeshDrawDirty");
+
+	// Resources to GPU
+	auto materialStorageTask = taskflow.emplace([&]() { materialSystem.store(); }).name("MaterialStorage");
+	auto meshStorageTask = taskflow.emplace([&]() { meshSystem.store(); }).name("MeshStorage");
+	auto pointStorageTask = taskflow.emplace([&]() { pointSystem.store(); }).name("PointStorage");
+	auto lineStorageTask = taskflow.emplace([&]() { lineSystem.store(); }).name("LineStorage");
+	auto spatialStorageTask = taskflow.emplace([&]() { spatialSystem.store(); }).name("SpatialStorage");
+	auto relativeSpatialStorageTask = taskflow.emplace([&]() { relativeSpatialSystem.store(); }).name("RelativeSpatialStorage");
+	auto objectStorageTask = taskflow.emplace([&]() { objectSystem.store(); }).name("ObjectStorage");
+	auto cameraStorageTask = taskflow.emplace([&]() { cameraSystem.store(); }).name("CameraStorage");
+	auto lightStorageTask = taskflow.emplace([&]() { lightSystem.store(); }).name("LightStorage");
+	auto lightPerspectiveStorageTask = taskflow.emplace([&]() { lightPerspectiveSystem.store(); }).name("LightPerspectiveStorage");
+	auto pointLightStorageTask = taskflow.emplace([&]() { pointLightSystem.store(); }).name("PointLightStorage");
+	auto directionalLightStorageTask = taskflow.emplace([&]() { directionalLightSystem.store(); }).name("DirectionalLightStorage");
+	auto spotlightStorageTask = taskflow.emplace([&]() { spotlightSystem.store(); }).name("SpotlightStorage");
+	auto axisAlignedBoundingBoxStorageTask = taskflow.emplace([&]() { axisAlignedBoundingBoxSystem.store(); }).name("AxisAlignedBoundingBoxStorage");
+	auto frustumStorageTask = taskflow.emplace([&]() { frustumSystem.store(); }).name("FrustumStorage");
+	auto boneStorageTask = taskflow.emplace([&]() { boneSystem.store(); }).name("BoneStorage");
+
+	// Store updates to GPU
+	auto materialStoreUpdateTask = taskflow.emplace([&]() { materialSystem.store(); }).name("MaterialStoreUpdate");
+	auto meshStoreUpdateTask = taskflow.emplace([&]() { meshSystem.store(); }).name("MeshStoreUpdate");
+	auto pointStoreUpdateTask = taskflow.emplace([&]() { pointSystem.store(); }).name("PointStoreUpdate");
+	auto lineStoreUpdateTask = taskflow.emplace([&]() { lineSystem.store(); }).name("LineStoreUpdate");
+	auto spatialStoreUpdateTask = taskflow.emplace([&]() { spatialSystem.store(); }).name("SpatialStoreUpdate");
+	auto relativeSpatialStoreUpdateTask = taskflow.emplace([&]() { relativeSpatialSystem.store(); }).name("RelativeSpatialStoreUpdate");
+	auto objectStoreUpdateTask = taskflow.emplace([&]() { objectSystem.store(); }).name("ObjectStoreUpdate");
+	auto cameraStoreUpdateTask = taskflow.emplace([&]() { cameraSystem.store(); }).name("CameraStoreUpdate");
+	auto lightStoreUpdateTask = taskflow.emplace([&]() { lightSystem.store(); }).name("LightStoreUpdate");
+	auto lightPerspectiveStoreUpdateTask = taskflow.emplace([&]() { lightPerspectiveSystem.store(); }).name("LightPerspectiveStoreUpdate");
+	auto pointLightStoreUpdateTask = taskflow.emplace([&]() { pointLightSystem.store(); }).name("PointLightStoreUpdate");
+	auto directionalLightStoreUpdateTask = taskflow.emplace([&]() { directionalLightSystem.store(); }).name("DirectionalLightStoreUpdate");
+	auto spotlightStoreUpdateTask = taskflow.emplace([&]() { spotlightSystem.store(); }).name("SpotlightStoreUpdate");
+	auto axisAlignedBoundingBoxStoreUpdateTask = taskflow.emplace([&]() { axisAlignedBoundingBoxSystem.store(); }).name("AxisAlignedBoundingBoxStoreUpdate");
+	auto frustumStoreUpdateTask = taskflow.emplace([&]() { frustumSystem.store(); }).name("FrustumStoreUpdate");
+	auto boneStoreUpdateTask = taskflow.emplace([&]() { boneSystem.store(); }).name("BoneStoreUpdate");
+
+	auto boneSpatialPropagationTask = taskflow.emplace([&]() { boneSpatialSystem.propagateChanges(); }).name("BoneSpatialPropagation");
+	auto boneSpatialStorageTask = taskflow.emplace([&]() { boneSpatialSystem.store(); }).name("BoneSpatialStorage");
+	auto boneSpatialStoreUpdateTask = taskflow.emplace([&]() { boneSpatialSystem.updateStore(); }).name("BoneSpatialStoreUpdate");
+
+	auto skinnedMeshInstanceResourceCreationTask =
+		taskflow.emplace([&]() { animationSystem.createSkinnedMeshInstanceResources(engineState.getFrameIndex()); }).name("SkinnedMeshInstanceResourceCreation");
+	auto skinUpdateTask = taskflow.emplace([&]() { animationSystem.updateSkins(frameState.commandBuffer); }).name("SkinUpdates");
+
+	// Emit draws
+	auto meshDrawsTask = taskflow.emplace([&]() { meshSystem.emitDraws(); }).name("MeshDraws");
+	auto meshShadowDrawsTask = taskflow.emplace([&]() { meshShadowSystem.emitDraws(); }).name("MeshShadowDraws");
+	auto pointDrawsTask = taskflow.emplace([&]() { pointSystem.emitDraws(); }).name("PointDraws");
+	auto lineDrawsTask = taskflow.emplace([&]() { lineSystem.emitDraws(); }).name("LineDraws");
+	auto axisAlignedBoundingBoxDrawsTask = taskflow.emplace([&]() { axisAlignedBoundingBoxSystem.emitDraws(); }).name("AxisAlignedBoundingBoxDraws");
+	auto frustumDrawsTask = taskflow.emplace([&]() { frustumSystem.emitDraws(); }).name("FrustumDraws");
+
+	// Stores draws to GPU
+
+	auto shadowDrawUpdateTask = taskflow.emplace([&]() { sceneSystem.updateShadowDraws(); }).name("ShadowDrawUpdate");
+	auto drawUpdateTask = taskflow.emplace([&]() { sceneSystem.updateDraws(); }).name("DrawUpdate");
+
+	tf::Executor executor;
+	executor.run(taskflow);
+}
 void Application::renderGui(ApplicationState& applicationState) {
-	auto isDemoWindowOpen = false;
 	auto io = ImGui::GetIO();
 	io.MouseDrawCursor = false;
 	io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
@@ -117,12 +199,6 @@ void Application::renderGui(ApplicationState& applicationState) {
 	if (true || userInterface.IsVisible()) {
 		auto open = true;
 
-		if (shouldRecreateSwapchain) {
-			graphics.RecreateSwapchain(windowExtent);
-			const auto swapchain = graphics.GetSwapchain();
-			userInterfaceRenderer.SetTargetImageViews({.extent = swapchain.extent, .format = swapchain.imageFormat}, swapchain.imageViews);
-			shouldRecreateSwapchain = false;
-		}
 		ImGui::DockSpaceOverViewport();
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
@@ -176,13 +252,13 @@ void Application::renderGui(ApplicationState& applicationState) {
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("About")) {
-				isDemoWindowOpen = ImGui::MenuItem("Show demo window", "ctrl + d");
+				applicationState.isDemoWindowOpen = ImGui::MenuItem("Show demo window", "ctrl + d");
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
 		}
-		if (isDemoWindowOpen)
-			ImGui::ShowDemoWindow(&isDemoWindowOpen);
+		if (applicationState.isDemoWindowOpen)
+			ImGui::ShowDemoWindow(&applicationState.isDemoWindowOpen);
 		auto windowExtent = window.GetExtent();
 		ImGui::SetNextWindowSize(
 			ImVec2(static_cast<float>(windowExtent.width), static_cast<float>(windowExtent.height) - ImGui::GetTextLineHeightWithSpacing()), ImGuiCond_FirstUseEver
@@ -224,8 +300,9 @@ void Application::renderGui(ApplicationState& applicationState) {
 void Application::run() {
 	ImGui::FileBrowser fileBrowser;
 
-	auto defaultCamera =
-		cameraSystem.createCamera({0.0f, 0.0f, 0.0f, 1.0f}, glm::vec4{0.0f, 0.0f, -1.0f, 0.0f}, glm::vec4{0.0f, 1.0f, 0.0f, 0.0f}, glm::radians(65.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
+	auto defaultCamera = cameraSystem.createCamera(
+		{0.0f, 0.0f, 0.0f, 1.0f}, glm::vec4{0.0f, 0.0f, -1.0f, 0.0f}, glm::vec4{0.0f, 1.0f, 0.0f, 0.0f}, glm::radians(65.0f), 16.0f / 9.0f, 0.1f, 1000.0f
+	);
 
 	flyCamController.Attach(defaultCamera);
 	globalSystem.setCamera(defaultCamera);
@@ -318,198 +395,189 @@ void Application::run() {
 
 		const auto& frameState = engineState.getCurrentFrameState();
 		const auto& fence = frameState.fence;
-
 		const auto& waitForFenceResult = deviceContext.device.waitForFences(1, &fence, VK_TRUE, UINT64_MAX);
-		auto swapchainImageAcquisitionResult = graphics.AcuireSwapchainImageIndex();
+		const auto& resetFenceResult = deviceContext.device.resetFences(1, &fence);
+		auto swapchainImageAcquisitionResult = graphics.AcquireSwapchainImageIndex();
+
 		if (shouldRecreateSwapchain || swapchainImageAcquisitionResult.result == vk::Result::eSuboptimalKHR ||
 			swapchainImageAcquisitionResult.result == vk::Result::eErrorOutOfDateKHR) {
 			RecreateSwapchain(windowExtent);
-		} else {
-			const auto& resetFenceResult = deviceContext.device.resetFences(1, &fence);
+			swapchainImageAcquisitionResult = graphics.AcquireSwapchainImageIndex();
+		}
 
-			frameState.commandBuffer.reset();
-			vk::CommandBufferBeginInfo commandBufferBeginInfo = {};
-			const auto& result = frameState.commandBuffer.begin(&commandBufferBeginInfo);
-
-			if (applicationState.sceneExtent.width != applicationState.actualExtent.width || applicationState.sceneExtent.height != applicationState.actualExtent.height) {
-				if (applicationState.sceneExtent.width < applicationState.actualExtent.width || applicationState.sceneExtent.height < applicationState.actualExtent.height) {
-					deviceContext.device.waitIdle();
-					if (applicationState.sceneTextureImageDescriptorSet.has_value())
-						ImGui_ImplVulkan_RemoveTexture(applicationState.sceneTextureImageDescriptorSet.value());
-					if (sceneTexture.has_value())
-						deviceContext.destroyTexture(sceneTexture.value());
-					sceneTexture = Scenes::Renderers::SceneRenderer::BuildSceneRenderTargetTexture(
-						deviceContext, {applicationState.actualExtent.width, applicationState.actualExtent.height, 1}
-					);
-					applicationState.sceneTextureImageDescriptorSet = (vk::DescriptorSet)ImGui_ImplVulkan_AddTexture(
-						(VkSampler)engineState.GetDefaultTextureSampler(), (VkImageView)sceneTexture->imageView, static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal)
-					);
-
-					sceneRenderer.setTargetImageViews(
-						{
-							applicationState.actualExtent,
-							vk::Format::eR8G8B8A8Srgb,
-						},
-						{sceneTexture->imageView}
-					);
-					applicationState.sceneExtent = vk::Extent3D{applicationState.actualExtent.width, applicationState.actualExtent.height, 1};
-				} else {
-					sceneRenderer.setTargetExtent(applicationState.actualExtent);
-				}
-			}
-
-			//				ImGuizmo::SetDrawlist();
-			//				float windowWidth = (float) viewportPanelSize.x;
-			//				float windowHeight = (float) viewportPanelSize.y;
-			//				auto viewport = ImGui::GetWindowViewport();
-			//				ImGuizmo::SetRect(viewport->WorkPos.x, viewport->WorkPos.y, viewport->Size.x, viewport->Size.y);
-			//
-			//				const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
-			//				auto perspective = camera.perspective;
-			//				perspective[1][1] *= -1.0f;
-			//				ImGuizmo::DrawGrid(
-			//					glm::value_ptr(camera.view),
-			//					glm::value_ptr(perspective),
-			//					glm::value_ptr(glm::identity<glm::mat4>()),
-			//					100.f
-			//				);
-
-			globalSystem.GlobalSynchronizationState.Reset();
-			// Resources to GPU
-			textureSystem.UploadTextures();
-			meshSystem.uploadMeshes();
-			animationSystem.storeMeshes();
-			// animationSystem.uploadVertexWeights();
-			// animationSystem.mamadou();
-
-			// Alterations
-			flyCamController.Step(applicationState.frameTime);
-
-			// Change propagations
-			animationSystem.updateAnimations();
-			spatialSystem.PropagateChanges();
-			cameraSystem.processDirtyItems();
-			lightPerspectiveSystem.processDirtyItems();
-			directionalLightSystem.processDirtyItems();
-			pointLightSystem.processDirtyItems();
-			spotlightSystem.processDirtyItems();
-			axisAlignedBoundingBoxSystem.processDirty();
-			// frustumSystem.processDirty();
-
-			meshSystem.processDirtyDraws();
-
-			// Resources to GPU
-			materialSystem.store();
-			meshSystem.store();
-			pointSystem.store();
-			lineSystem.store();
-			spatialSystem.store();
-			relativeSpatialSystem.store();
-			objectSystem.store();
-			cameraSystem.store();
-			lightSystem.store();
-			lightPerspectiveSystem.store();
-			pointLightSystem.store();
-			directionalLightSystem.store();
-			spotlightSystem.store();
-			axisAlignedBoundingBoxSystem.store();
-			frustumSystem.store();
-			boneSystem.store();
-
-			// Store updates to GPU
-			materialSystem.updateStore();
-			meshSystem.updateStore();
-			pointSystem.updateStore();
-			lineSystem.updateStore();
-			spatialSystem.updateStore();
-			relativeSpatialSystem.updateStore();
-			objectSystem.updateStore();
-			cameraSystem.updateStore();
-			lightSystem.updateStore();
-			lightPerspectiveSystem.updateStore();
-			pointLightSystem.updateStore();
-			directionalLightSystem.updateStore();
-			spotlightSystem.updateStore();
-			axisAlignedBoundingBoxSystem.updateStore();
-			boneSystem.updateStore();
-			frustumSystem.updateStore();
-			globalSystem.update();
-
-			boneSpatialSystem.propagateChanges();
-			boneSpatialSystem.store();
-			boneSpatialSystem.updateStore();
-			animationSystem.createSkinnedMeshInstanceResources(engineState.getFrameIndex());
-			animationSystem.updateSkins(frameState.commandBuffer);
-			// auto draws = registry.view<Scenes::Draws::SceneDraw>();
-			// registry.destroy(draws.begin(), draws.end());
-
-			// Emit draws
-			meshSystem.emitDraws();
-			meshShadowSystem.emitDraws();
-			pointSystem.emitDraws();
-			lineSystem.emitDraws();
-			axisAlignedBoundingBoxSystem.emitDraws();
-			frustumSystem.emitDraws();
-
-			// Stores draws to GPU
-			sceneSystem.updateShadowDraws();
-			sceneSystem.updateDraws();
-
-			// Clear frame
-			registry.clear<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>();
-			registry.clear<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>>();
-
-			// Renders
-			sceneRenderer.render(0, frameState.commandBuffer);
-
-			renderGui(applicationState);
-
-			if (sceneTexture.has_value()) {
-				Devices::Device::transitionLayout(
-					frameState.commandBuffer,
-					sceneTexture->image.image,
-					sceneTexture->imageCreateInfo.format,
-					vk::ImageLayout::eUndefined,
-					vk::ImageLayout::eShaderReadOnlyOptimal,
-					1
+		if (applicationState.sceneExtent.width != applicationState.actualExtent.width || applicationState.sceneExtent.height != applicationState.actualExtent.height) {
+			if (applicationState.sceneExtent.width < applicationState.actualExtent.width || applicationState.sceneExtent.height < applicationState.actualExtent.height) {
+				if (applicationState.sceneTextureImageDescriptorSet.has_value())
+					ImGui_ImplVulkan_RemoveTexture(applicationState.sceneTextureImageDescriptorSet.value());
+				if (sceneTexture.has_value())
+					deviceContext.destroyTexture(sceneTexture.value());
+				sceneTexture =
+					Scenes::Renderers::SceneRenderer::BuildSceneRenderTargetTexture(deviceContext, {applicationState.actualExtent.width, applicationState.actualExtent.height, 1});
+				applicationState.sceneTextureImageDescriptorSet = (vk::DescriptorSet)ImGui_ImplVulkan_AddTexture(
+					(VkSampler)engineState.GetDefaultTextureSampler(), (VkImageView)sceneTexture->imageView, static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal)
 				);
-			}
-			userInterfaceRenderer.render(swapchainImageAcquisitionResult.value, frameState.commandBuffer);
 
-			frameState.commandBuffer.end();
-
-			vk::PipelineStageFlags submissionWaitDstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-			vk::SubmitInfo submitInfo = {
-				.waitSemaphoreCount = 1,
-				.pWaitSemaphores = &frameState.imageReadySemaphore,
-				.pWaitDstStageMask = &submissionWaitDstStageMask,
-				.commandBufferCount = 1,
-				.pCommandBuffers = &frameState.commandBuffer,
-				.signalSemaphoreCount = 1,
-				.pSignalSemaphores = &frameState.imageRenderedSemaphore,
-			};
-
-			deviceContext.GraphicQueue.submit({submitInfo}, fence);
-
-			vk::Result presentResult;
-			bool outOfDate = false;
-			try {
-				presentResult = graphics.Present(swapchainImageAcquisitionResult.value);
-			} catch (const vk::OutOfDateKHRError& e) {
-				outOfDate = true;
-			}
-			shouldRecreateSwapchain = outOfDate || presentResult == vk::Result::eSuboptimalKHR;
-			if (shouldRecreateSwapchain) {
-				RecreateSwapchain(windowExtent);
-			}
-
-			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-				ImGui::UpdatePlatformWindows();
-				ImGui::RenderPlatformWindowsDefault();
+				sceneRenderer.setTargetImageViews(
+					{
+						applicationState.actualExtent,
+						vk::Format::eR8G8B8A8Srgb,
+					},
+					{sceneTexture->imageView}
+				);
+				applicationState.sceneExtent = vk::Extent3D{applicationState.actualExtent.width, applicationState.actualExtent.height, 1};
+			} else {
+				sceneRenderer.setTargetExtent(applicationState.actualExtent);
 			}
 		}
-		engineState.incrementFrameIndex();
+
+		//				ImGuizmo::SetDrawlist();
+		//				float windowWidth = (float) viewportPanelSize.x;
+		//				float windowHeight = (float) viewportPanelSize.y;
+		//				auto viewport = ImGui::GetWindowViewport();
+		//				ImGuizmo::SetRect(viewport->WorkPos.x, viewport->WorkPos.y, viewport->Size.x, viewport->Size.y);
+		//
+		//				const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
+		//				auto perspective = camera.perspective;
+		//				perspective[1][1] *= -1.0f;
+		//				ImGuizmo::DrawGrid(
+		//					glm::value_ptr(camera.view),
+		//					glm::value_ptr(perspective),
+		//					glm::value_ptr(glm::identity<glm::mat4>()),
+		//					100.f
+		//				);
+
+		globalSystem.GlobalSynchronizationState.Reset();
+		// Resources to GPU
+		textureSystem.UploadTextures();
+		meshSystem.uploadMeshes();
+		animationSystem.storeMeshes();
+		// animationSystem.uploadVertexWeights();
+		// animationSystem.mamadou();
+
+		// Alterations
+		flyCamController.Step(applicationState.frameTime);
+
+		// Change propagations
+		animationSystem.updateAnimations();
+		spatialSystem.PropagateChanges();
+		cameraSystem.processDirtyItems();
+		lightPerspectiveSystem.processDirtyItems();
+		directionalLightSystem.processDirtyItems();
+		pointLightSystem.processDirtyItems();
+		spotlightSystem.processDirtyItems();
+		axisAlignedBoundingBoxSystem.processDirty();
+		// frustumSystem.processDirty();
+
+		meshSystem.processDirtyDraws();
+
+		// Resources to GPU
+		materialSystem.store();
+		meshSystem.store();
+		pointSystem.store();
+		lineSystem.store();
+		spatialSystem.store();
+		relativeSpatialSystem.store();
+		objectSystem.store();
+		cameraSystem.store();
+		lightSystem.store();
+		lightPerspectiveSystem.store();
+		pointLightSystem.store();
+		directionalLightSystem.store();
+		spotlightSystem.store();
+		axisAlignedBoundingBoxSystem.store();
+		frustumSystem.store();
+		boneSystem.store();
+
+		// Store updates to GPU
+		materialSystem.updateStore();
+		meshSystem.updateStore();
+		pointSystem.updateStore();
+		lineSystem.updateStore();
+		spatialSystem.updateStore();
+		relativeSpatialSystem.updateStore();
+		objectSystem.updateStore();
+		cameraSystem.updateStore();
+		lightSystem.updateStore();
+		lightPerspectiveSystem.updateStore();
+		pointLightSystem.updateStore();
+		directionalLightSystem.updateStore();
+		spotlightSystem.updateStore();
+		axisAlignedBoundingBoxSystem.updateStore();
+		boneSystem.updateStore();
+		frustumSystem.updateStore();
+		globalSystem.update();
+
+		boneSpatialSystem.propagateChanges();
+		boneSpatialSystem.store();
+		boneSpatialSystem.updateStore();
+		animationSystem.createSkinnedMeshInstanceResources(engineState.getFrameIndex());
+
+		frameState.commandBuffer.reset();
+		vk::CommandBufferBeginInfo commandBufferBeginInfo = {};
+		const auto& result = frameState.commandBuffer.begin(&commandBufferBeginInfo);
+
+		animationSystem.updateSkins(frameState.commandBuffer);
+		// auto draws = registry.view<Scenes::Draws::SceneDraw>();
+		// registry.destroy(draws.begin(), draws.end());
+
+		// Emit draws
+		meshSystem.emitDraws();
+		meshShadowSystem.emitDraws();
+		pointSystem.emitDraws();
+		lineSystem.emitDraws();
+		axisAlignedBoundingBoxSystem.emitDraws();
+		frustumSystem.emitDraws();
+
+		// Stores draws to GPU
+		sceneSystem.updateShadowDraws();
+		sceneSystem.updateDraws();
+
+		// Clear frame
+		registry.clear<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>();
+		registry.clear<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>>();
+
+		// Renders
+		sceneRenderer.render(0, frameState.commandBuffer);
+
+		renderGui(applicationState);
+
+		if (sceneTexture.has_value()) {
+			Devices::Device::transitionLayout(
+				frameState.commandBuffer, sceneTexture->image.image, sceneTexture->imageCreateInfo.format, vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal, 1
+			);
+		}
+		userInterfaceRenderer.render(swapchainImageAcquisitionResult.value, frameState.commandBuffer);
+
+		frameState.commandBuffer.end();
+
+		vk::PipelineStageFlags submissionWaitDstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+		vk::SubmitInfo submitInfo = {
+			.waitSemaphoreCount = 1,
+			.pWaitSemaphores = &frameState.imageReadySemaphore,
+			.pWaitDstStageMask = &submissionWaitDstStageMask,
+			.commandBufferCount = 1,
+			.pCommandBuffers = &frameState.commandBuffer,
+			.signalSemaphoreCount = 1,
+			.pSignalSemaphores = &frameState.imageRenderedSemaphore,
+		};
+
+		deviceContext.GraphicQueue.submit({submitInfo}, fence);
+
+		vk::Result presentResult;
+		bool outOfDate = false;
+		try {
+			presentResult = graphics.Present(swapchainImageAcquisitionResult.value);
+		} catch (const vk::OutOfDateKHRError& e) {
+			outOfDate = true;
+		}
+
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
 	}
+	engineState.incrementFrameIndex();
+
 	deviceContext.device.waitIdle();
 	if (sceneTexture.has_value())
 		deviceContext.destroyTexture(sceneTexture.value());

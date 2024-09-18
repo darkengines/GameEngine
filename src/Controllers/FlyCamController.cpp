@@ -60,7 +60,8 @@ void FlyCamController::OnCursorPositionEvent(double xpos, double ypos) { MousePo
 void FlyCamController::OnMouseButtonEvent(int button, int action, int mods) {}
 
 void FlyCamController::Step(float dt) {
-	const auto& [camera, relativeSpatial] = Registry.get<Cameras::Components::Camera, Spatials::Components::Spatial<Spatials::Components::Relative>>(CameraEntity);
+	const auto& [camera, relativeSpatial] = Registry.get<Cameras::Components::Camera,
+	Spatials::Components::Spatial<Spatials::Components::Relative>>(CameraEntity);
 	auto inputs = glm::vec3(right, up, forward);
 	auto hasPositionInputs = glm::length(inputs) > std::numeric_limits<float>::epsilon();
 	if (hasPositionInputs) {

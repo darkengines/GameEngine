@@ -13,6 +13,7 @@
 		"nlohmann-json",
 		"nameof",
 		"boost-signals2",
-		"imguizmo"
+		"imguizmo",
+		"cpp-taskflow"
 	]
 }

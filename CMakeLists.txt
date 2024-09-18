@@ -152,6 +152,7 @@ file(
 	src/Lights/Systems/PointLightSystem.hpp
 	src/Lights/Systems/ShadowMappingSystem.hpp
 	src/Lights/Systems/SpotlightSystem.hpp
+	src/Lights/Editors/LightEditor.hpp
 	src/Lines/Extensions.hpp
 	src/Lines/Components/Line.hpp
 	src/Lines/Components/LineDraw.hpp
@@ -299,6 +300,7 @@ file(
 	src/Lights/Systems/PointLightSystem.cpp
 	src/Lights/Systems/ShadowMappingSystem.cpp
 	src/Lights/Systems/SpotlightSystem.cpp
+	src/Lights/Editors/LightEditor.cpp
 	src/Lines/Models/LineVertex.cpp
 	src/Lines/Pipelines/LinePipeline.cpp
 	src/Lines/Systems/LineSystem.cpp
@@ -386,6 +388,7 @@ find_package(fmt REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(nameof REQUIRED)
 find_package(imguizmo CONFIG REQUIRED)
+find_package(Taskflow CONFIG REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
 
 target_include_directories(drk SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS})
 target_include_directories(drk SYSTEM PUBLIC ${stb_INCLUDE_DIRS})
@@ -404,3 +407,4 @@ target_link_libraries(drk PRIVATE imgui)
 target_link_libraries(drk PRIVATE fmt::fmt-header-only)
 target_link_libraries(drk PRIVATE nlohmann_json)
 target_link_libraries(drk PRIVATE imguizmo::imguizmo)
+target_link_libraries(drk PUBLIC Taskflow::Taskflow)

@@ -179,7 +179,7 @@ namespace drk::Graphics {
 
 		return DeviceContext.PresentQueue.presentKHR(presentInfoKHR);
 	}
-	vk::ResultValue<uint32_t> Graphics::AcuireSwapchainImageIndex() {
+	vk::ResultValue<uint32_t> Graphics::AcquireSwapchainImageIndex() {
 		const auto& frameState = EngineState.getCurrentFrameState();
 		auto result = DeviceContext.device.acquireNextImageKHR(
 			Swapchain.swapchain,

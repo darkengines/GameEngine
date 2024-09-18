@@ -11,7 +11,6 @@ bool SpatialEditor::Spatial(
 	bool orientationChanged;
 	glm::vec3 speed{0, 0, 0};
 
-	ImGui::SeparatorText("Spatial");
 	hasChanged |= ImGui::InputFloat3("Position", (float*)&absoluteSpatial.position);
 	//			if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_KeypadAdd)) {
 	//				speed = 1.0f;

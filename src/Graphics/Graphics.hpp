@@ -18,7 +18,7 @@ namespace drk::Graphics {
 		);
 		~Graphics();
 
-		vk::ResultValue<uint32_t> AcuireSwapchainImageIndex();
+		vk::ResultValue<uint32_t> AcquireSwapchainImageIndex();
 		vk::Result Present(uint32_t swapchainImageIndex);
 		static vk::PipelineDepthStencilStateCreateInfo DefaultPipelineDepthStencilStateCreateInfo();
 		static vk::PipelineColorBlendAttachmentState DefaultPipelineColorBlendAttachmentState();

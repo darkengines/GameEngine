@@ -1,5 +1,6 @@
 #define BOOST_DI_CFG_DIAGNOSTICS_LEVEL 2
 #include <nlohmann/json.hpp>
+#include <taskflow/taskflow.hpp>
 
 #include "Animations/Extensions.hpp"
 #include "Applications/Application.hpp"
@@ -23,12 +24,12 @@
 #include "Relationships/Extensions.hpp"
 #include "Scenes/Extensions.hpp"
 #include "Spatials/Extensions.hpp"
+#include "Spatials/Systems/SpatialSystem.hpp"
 #include "Stores/Extensions.hpp"
 #include "Textures/Extensions.hpp"
 #include "UserInterfaces/Extensions.hpp"
 #include "Windows/Extensions.hpp"
 #include "implementations.hpp"
-#include "Spatials/Systems/SpatialSystem.hpp"
 
 int main(int argc, char** argv) {
 	drk::FreeList freeList = drk::FreeList::create(1024);
@@ -44,7 +45,9 @@ int main(int argc, char** argv) {
 	freeList.allocate(150);
 
 	auto currentPath = std::filesystem::current_path();
-	auto modelPath = argv[1];
+	std::optional<std::string> modelPath;
+	if (argc > 1)
+		modelPath = std::string(argv[1]);
 
 	auto injector = boost::di::make_injector(
 		drk::Configuration::AddConfiguration(),
@@ -73,14 +76,31 @@ int main(int argc, char** argv) {
 	);
 
 	auto& app = injector.create<drk::Applications::Application&>();
-	auto& loader = injector.create<drk::Loaders::AssimpLoader&>();
 	auto& registry = injector.create<entt::registry&>();
 	auto& spatialSystem = injector.create<drk::Spatials::Systems::SpatialSystem&>();
 
 	spatialSystem.AddSpatialSystem(registry);
+	if (modelPath.has_value()) {
+		auto& loader = injector.create<drk::Loaders::AssimpLoader&>();
+		auto loadResult = loader.Load(*modelPath, registry);
+		app.applicationState.loadResults.emplace_back(std::move(loadResult));
+	}
 
-	auto loadResult = loader.Load(modelPath, registry);
-	app.applicationState.loadResults.emplace_back(std::move(loadResult));
+	auto taskflow = tf::Taskflow("Test");
+	auto semaphore = tf::Semaphore(1);
+	auto taskStart = taskflow.emplace([](tf::Runtime& rt) { std::cout << "\r\nSTART"; }).name("START");
+	auto taskA = taskflow.emplace([]() { std::cout << "\r\nA"; }).name("A");
+	auto taskB = taskflow.emplace([]() { std::cout << "\r\nB"; }).name("B");
+	auto taskC = taskflow.emplace([]() { std::cout << "\r\nC"; }).name("C");
+	auto taskEnd = taskflow.emplace([]() { 
+		std::cout << "\r\END"; 
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	}).name("END");
+	taskEnd.succeed(taskA, taskB, taskC);
+
+	auto executor = tf::Executor();
+	//executor.run_until(taskflow, []() { return false; });
+	//executor.wait_for_all();
 
 	app.run();
 

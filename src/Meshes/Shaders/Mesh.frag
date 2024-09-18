@@ -63,6 +63,20 @@ layout(location = 10) flat in StoreItemLocation drawItemLocation;
 
 layout(location = 0) out vec4 outColor;
 
+vec3 sampleOffsetDirections[20] = vec3[]
+(
+vec3(1, 1, 1), vec3(1, -1, 1), vec3(-1, -1, 1), vec3(-1, 1, 1),
+vec3(1, 1, -1), vec3(1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+vec3(1, 1, 0), vec3(1, -1, 0), vec3(-1, -1, 0), vec3(-1, 1, 0),
+vec3(1, 0, 1), vec3(-1, 0, 1), vec3(1, 0, -1), vec3(-1, 0, -1),
+vec3(0, 1, 1), vec3(0, -1, 1), vec3(0, -1, -1), vec3(0, 1, -1)
+);
+
+float delinearize_depth(float d, float zNear, float zFar)
+{
+    return d * (zFar - zNear) + zNear;
+}
+
 float sampleCube(vec3 lightToNode, PointLight pointLight, out LightPerspective lightPerspective) {
     vec3 lightToNodeMagnitude = abs(lightToNode);
     vec4 shadowMapRect;
@@ -119,34 +133,22 @@ float sampleCube(vec3 lightToNode, PointLight pointLight, out LightPerspective l
     return texture(textures[0], shadowMapUv).r;
 }
 
-vec3 sampleOffsetDirections[20] = vec3[]
-(
-vec3(1, 1, 1), vec3(1, -1, 1), vec3(-1, -1, 1), vec3(-1, 1, 1),
-vec3(1, 1, -1), vec3(1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
-vec3(1, 1, 0), vec3(1, -1, 0), vec3(-1, -1, 0), vec3(-1, 1, 0),
-vec3(1, 0, 1), vec3(-1, 0, 1), vec3(1, 0, -1), vec3(-1, 0, -1),
-vec3(0, 1, 1), vec3(0, -1, 1), vec3(0, -1, -1), vec3(0, 1, -1)
-);
-
-float delinearize_depth(float d, float zNear, float zFar)
-{
-    return d * (zFar - zNear) + zNear;
-}
 
 float samplePointLightShadow(vec3 lightToNode, PointLight pointLight, float diskRadius, vec3 normal, vec3 lightDirection) {
+    int samples = 20;
     float shadow = 0.0;
-    int samples  = 20;
     float d = length(lightToNode);
-    float closestDepth;
     LightPerspective lightPerspective;
+
     for (int i = 0; i < samples; ++i)
     {
-        float bias = max(0.1 * (1.0 - dot(point.normal.xyz, normalize(lightDirection + sampleOffsetDirections[i] * diskRadius))), 0.5);
+        float slope = dot(normalize(point.normal.xyz), normalize(lightDirection + sampleOffsetDirections[i]));
+        float bias = 0.02 + abs(slope) * 0.2;
         float closestDepth = sampleCube(lightToNode + sampleOffsetDirections[i] * diskRadius, pointLight, lightPerspective);
         closestDepth = delinearize_depth(closestDepth, lightPerspective.near, lightPerspective.far);
 
-        if (d - bias > closestDepth)
-        shadow += 1.0;
+        if (d-bias > closestDepth)
+            shadow += 1;
     }
     shadow /= float(samples);
 
@@ -160,7 +162,7 @@ float diskRadius,
 LightPerspective lightPerspective
 ) {
     float shadow = 0.0f;
-    int samples  = 20;
+    int samples  = 8;
     float uDenominator = cos(PI/2.0f - spotlight.outerConeAngle);
     float vDenominator = sin(spotlight.outerConeAngle);
     vec3 lightDirection = normalize(lightToNode);
@@ -169,7 +171,7 @@ LightPerspective lightPerspective
     for (int i = 0; i < samples; ++i)
     {
         vec3 sampleLightDirection = normalize(lightDirection + sampleOffsetDirections[i] * diskRadius);
-        float bias = max(0.1 * (1.0 - dot(point.normal.xyz, -sampleLightDirection)), 0.5);
+        //float bias = max(0.1 * (1.0 - dot(point.normal.xyz, -sampleLightDirection)), 0.5);
         vec2 preShadowMapUv = (vec2(
         -dot(sampleLightDirection, cross(lightPerspective.absoluteFront.xyz, lightPerspective.absoluteUp.xyz)) / uDenominator,
         dot(sampleLightDirection, lightPerspective.absoluteUp.xyz) / vDenominator
@@ -180,7 +182,7 @@ LightPerspective lightPerspective
         float closestDepth = texture(textures[0], shadowMapUv).r;
         closestDepth = delinearize_depth(closestDepth, lightPerspective.near, lightPerspective.far);
 
-        if (fragmentLightDistance - bias > closestDepth) {
+        if (fragmentLightDistance > closestDepth) {
             shadow += 1.0f;
         }
     }
@@ -235,16 +237,16 @@ void main() {
     float roughness = 0.0;
     float metallic = 0.0;
 
+    if (material.hasMetallicTexture) {
+        metallic = texture(textures[material.metallicTextureIndex], point.texCoord).r;
+    }
+    if (material.hasRoughnessTexture) {
+        roughness = texture(textures[material.roughnessTextureIndex], point.texCoord).r;
+    }
     if (material.hasMetallicRoughnessTexture) {
         vec4 metallicRoughnessMap = vec4(texture(textures[material.metallicRoughnessTextureIndex], point.texCoord).xyz, 0);
         roughness = metallicRoughnessMap.g;
         metallic = metallicRoughnessMap.b;
-    }
-    if (material.hasMetallicTexture) {
-        metallic = texture(textures[material.metallicTextureIndex], point.texCoord).b;
-    }
-    if (material.hasRoughnessTexture) {
-        roughness = texture(textures[material.roughnessTextureIndex], point.texCoord).g;
     }
 
     vec3 viewDirection = normalize(cameraAbsoluteSpatial.position.xyz - point.position.xyz);
@@ -271,7 +273,7 @@ void main() {
         float attenuation = 1.0 / (pointLight.constantAttenuation + pointLight.linearAttenuation * fragmentLightDistance + pointLight.quadraticAttenuation * fragmentLightDistance * fragmentLightDistance);
 
         vec3 lightToNode = point.position.xyz - lightPosition;
-        float shadow = samplePointLightShadow(lightToNode, pointLight, 0.01, normal.xyz, lightDirection);
+        float shadow = samplePointLightShadow(lightToNode, pointLight, 0.02, normal.xyz, lightDirection);
         float shadowFactor = 1.0f - shadow;
 
         color += computeMetallicColor(

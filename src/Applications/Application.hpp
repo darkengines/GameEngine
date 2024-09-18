@@ -1,4 +1,5 @@
 #pragma once
+#include <taskflow/taskflow.hpp>
 #include <GLFW/glfw3.h>
 #include "../Loaders/AssimpLoader.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
@@ -162,5 +163,6 @@ namespace drk::Applications {
 		void renderAnimations();
 		void renderSystemInfos();
 		void renderGui(ApplicationState& applicationState);
+		void taskflow();
 	};
 }

@@ -1,6 +1,7 @@
 #include "AssimpLoader.hpp"
 
 #include <assimp/postprocess.h>
+#include <filesystem>
 
 #include <algorithm>
 #include <glm/ext.hpp>
@@ -112,7 +113,8 @@ void AssimpLoader::loadMaterials(
 		std::unordered_map<std::string, entt::entity> textureNameMap;
 		std::unordered_map<Textures::TextureType, entt::entity> textureTypeMap;
 		for (auto textureTypePair : TextureTypeMap) {
-			if (aiMaterial->GetTextureCount(textureTypePair.first)) {
+			auto textureCount = aiMaterial->GetTextureCount(textureTypePair.first);
+			if (textureCount) {
 				aiString aiTexturePath;
 				auto result = aiMaterial->GetTexture(textureTypePair.first, 0, &aiTexturePath);
 				if (result == aiReturn::aiReturn_SUCCESS) {
@@ -142,6 +144,23 @@ void AssimpLoader::loadMaterials(
 					} else {
 						textureTypeMap[textureTypePair.second] = texturePathPair->second;
 					}
+				} 
+			} else {
+				auto regexEntry = TextureTypeRegexMap.find(textureTypePair.second);
+				if (regexEntry != TextureTypeRegexMap.end()) {
+					for (const auto& entry : std::filesystem::directory_iterator(workingDirectoryPath)) {
+						auto ok = std::regex_search(entry.path().filename().string(), regexEntry->second);
+						if (ok) {
+							auto image = std::move(Textures::ImageInfo::fromFile(entry.path().filename().string(), entry.path().string(), textureTypePair.second));
+							if (image.pixels.size() > 0) {
+								auto textureEntity = registry.create();
+								registry.emplace<Common::Components::Name>(textureEntity, entry.path().filename().string());
+								registry.emplace<Textures::ImageInfo>(textureEntity, std::move(image));
+								textureNameMap[entry.path().string()] = textureEntity;
+								textureTypeMap[textureTypePair.second] = textureEntity;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -153,8 +172,8 @@ void AssimpLoader::loadMaterials(
 		const auto& specularColorTexturePair = textureTypeMap.find(Textures::TextureType::SpecularColor);
 		const auto& normalMapPair = textureTypeMap.find(Textures::TextureType::NormalMap);
 		const auto& metallicRoughnessPair = textureTypeMap.find(Textures::TextureType::RoughnessMetalnessMap);
-		const auto& metallicPair = textureTypeMap.find(Textures::TextureType::RoughnessMap);
-		const auto& roughnessPair = textureTypeMap.find(Textures::TextureType::MetalnessMap);
+		const auto& roughnessPair = textureTypeMap.find(Textures::TextureType::RoughnessMap);
+		const auto& metallicPair = textureTypeMap.find(Textures::TextureType::MetalnessMap);
 
 		entt::entity baseColorTexture = baseColorTexturePair != textureTypeMap.end() ? baseColorTexturePair->second : entt::null;
 		entt::entity ambientColorTexture = ambientColorTexturePair != textureTypeMap.end() ? ambientColorTexturePair->second : entt::null;
@@ -595,7 +614,13 @@ void AssimpLoader::loadCameras(std::span<aiCamera*> aiCameras, std::unordered_ma
 		};
 
 		auto cameraFrustum = Frustums::Components::Frustum::createFrustumFromView(
-			glm::vec4(cameraPosition, 1.f), glm::vec4(front, 0.f), glm::vec4(cameraUp, 0.f), verticalFov, aiCamera->mAspect, aiCamera->mClipPlaneNear, aiCamera->mClipPlaneFar
+			glm::vec4(cameraPosition, 1.f), 
+			glm::vec4(front, 0.f), 
+			glm::vec4(cameraUp, 0.f), 
+			verticalFov, 
+			aiCamera->mAspect, 
+			aiCamera->mClipPlaneNear, 
+			aiCamera->mClipPlaneFar
 		);
 
 		auto entity = registry.create();
@@ -772,7 +797,7 @@ std::unordered_map<aiTextureType, Textures::TextureType> AssimpLoader::TextureTy
 	{aiTextureType::aiTextureType_AMBIENT_OCCLUSION, Textures::TextureType::AmbientOcclusionMap},
 	{aiTextureType::aiTextureType_BASE_COLOR, Textures::TextureType::BaseColor},
 	{aiTextureType::aiTextureType_DIFFUSE, Textures::TextureType::DiffuseColor},
-	{aiTextureType::aiTextureType_DIFFUSE_ROUGHNESS, Textures::TextureType::DiffuseRoughnessMap},
+	{aiTextureType::aiTextureType_DIFFUSE_ROUGHNESS, Textures::TextureType::RoughnessMap},
 	{aiTextureType::aiTextureType_DISPLACEMENT, Textures::TextureType::DisplacementMap},
 	{aiTextureType::aiTextureType_EMISSION_COLOR, Textures::TextureType::EmissionColor},
 	{aiTextureType::aiTextureType_EMISSIVE, Textures::TextureType::EmissionMap},
@@ -787,6 +812,18 @@ std::unordered_map<aiTextureType, Textures::TextureType> AssimpLoader::TextureTy
 	{aiTextureType::aiTextureType_SHININESS, Textures::TextureType::ShininessMap},
 	{aiTextureType::aiTextureType_SPECULAR, Textures::TextureType::SpecularColor},
 	{aiTextureType::aiTextureType_UNKNOWN, Textures::TextureType::RoughnessMetalnessMap},
+};
+
+std::unordered_map<Textures::TextureType, std::regex> AssimpLoader::TextureTypeRegexMap = {
+	{Textures::TextureType::BaseColor, std::regex(".*_albedo.*", std::regex_constants::syntax_option_type::icase)},
+	{Textures::TextureType::AlbedoColor, std::regex(".*_albedo.*", std::regex_constants::syntax_option_type::icase)},
+	{Textures::TextureType::AmbientColor, std::regex(".*_albedo.*", std::regex_constants::syntax_option_type::icase)},
+	{Textures::TextureType::DiffuseColor, std::regex(".*_albedo.*", std::regex_constants::syntax_option_type::icase)},
+	{Textures::TextureType::AmbientOcclusionMap, std::regex(".*_ao.*", std::regex_constants::syntax_option_type::icase)},
+	{Textures::TextureType::MetalnessMap, std::regex(".*_metalness.*", std::regex_constants::syntax_option_type::icase)},
+	{Textures::TextureType::NormalMap, std::regex(".*_normal.*", std::regex_constants::syntax_option_type::icase)},
+	{Textures::TextureType::SpecularColor, std::regex(".*_specular.*", std::regex_constants::syntax_option_type::icase)},
+	{Textures::TextureType::RoughnessMap, std::regex(".*_roughness.*", std::regex_constants::syntax_option_type::icase)}
 };
 
 std::unordered_map<aiAnimBehaviour, Animations::Components::AnimationBehavior> AssimpLoader::animationBehaviorMap = {

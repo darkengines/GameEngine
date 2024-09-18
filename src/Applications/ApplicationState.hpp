@@ -15,5 +15,6 @@ namespace drk::Applications {
 		ImGui::FileBrowser fileBrowser;
 		float frameTime;
 		std::chrono::time_point<std::chrono::steady_clock> currentTime;
+		bool isDemoWindowOpen = false;
 	};
 }

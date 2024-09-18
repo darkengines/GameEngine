@@ -86,7 +86,18 @@ namespace drk::Meshes::Pipelines {
 			viewport,
 			scissor
 		);
-		const auto& pipelineRasterizationStateCreateInfo = Graphics::Graphics::DefaultPipelineRasterizationStateCreateInfo();
+		auto pipelineRasterizationStateCreateInfo = Graphics::Graphics::DefaultPipelineRasterizationStateCreateInfo();
+
+		// Constant depth bias factor (always applied)
+		float depthBiasConstant = 0.f;
+		// Slope depth bias factor, applied depending on polygon's slope
+		float depthBiasSlope = 0.f;
+
+		pipelineRasterizationStateCreateInfo.depthBiasSlopeFactor = depthBiasSlope;
+		pipelineRasterizationStateCreateInfo.depthBiasConstantFactor = depthBiasConstant;
+		pipelineRasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
+		pipelineRasterizationStateCreateInfo.cullMode = vk::CullModeFlagBits::eNone;
+
 		auto pipelineMultisampleStateCreateInfo = Graphics::Graphics::DefaultPipelineMultisampleStateCreateInfo();
 		//TODO: Use configurable sample count
 		pipelineMultisampleStateCreateInfo.rasterizationSamples = vk::SampleCountFlagBits::e1;
