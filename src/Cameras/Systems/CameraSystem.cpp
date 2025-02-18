@@ -1,6 +1,7 @@
 #include "CameraSystem.hpp"
 
 #include <entt/entt.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
 #include "../../Common/Components/Dirty.hpp"

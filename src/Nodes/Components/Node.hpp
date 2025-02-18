@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "entt/entity/entity.hpp"
+#include <entt/entity/entity.hpp>
 
 namespace drk::Nodes::Components {
 	struct Node {

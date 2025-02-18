@@ -135,6 +135,8 @@ namespace drk::Frustums::Systems {
 				entt::entity frustumEntity,
 				const Components::Frustum& frustum
 			) {
+				if (frustumEntity == engineState.cameraEntity)
+					return;
 				Scenes::Draws::SceneDraw draw = {
 					.drawSystem = this,
 					.pipelineTypeIndex = std::type_index(typeid(Pipelines::FrustumPipeline)),

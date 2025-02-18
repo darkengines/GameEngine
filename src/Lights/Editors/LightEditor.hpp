@@ -1,6 +1,6 @@
 
 #pragma once
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <imgui.h>
 #include <vector>

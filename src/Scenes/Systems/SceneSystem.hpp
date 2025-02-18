@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "entt/entity/registry.hpp"
+#include <entt/entity/registry.hpp>
 #include "../../Engine/EngineState.hpp"
 
 namespace drk::Scenes::Systems {

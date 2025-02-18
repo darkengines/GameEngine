@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "vulkan/vulkan.hpp"
+#include <vulkan/vulkan.hpp>
 #include <cstdint>
 
 namespace drk::Renderers {

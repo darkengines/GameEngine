@@ -10,10 +10,7 @@
 			"cacheVariables": {
 				"CMAKE_C_COMPILER": "cl.exe",
 				"CMAKE_CXX_COMPILER": "cl.exe",
-				"CMAKE_TOOLCHAIN_FILE": {
-					"value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-					"type": "FILEPATH"
-				}
+				"CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
 			},
 			"condition": {
 				"type": "equals",
@@ -30,16 +27,8 @@
 			"cacheVariables": {
 				"CMAKE_C_COMPILER": "clang-cl",
 				"CMAKE_CXX_COMPILER": "clang-cl",
-				"CMAKE_TOOLCHAIN_FILE": {
-					"value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-					"type": "FILEPATH"
-				}
-			},
-			"toolset": "ClangCL",
-			"vendor": {
-				"microsoft.com/VisualStudioSettings/CMake/1.0": {
-					"intelliSenseMode": "windows-clang-x64"
-				}
+				"CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+				"toolset": "ClangCL"
 			}
 		},
 		{

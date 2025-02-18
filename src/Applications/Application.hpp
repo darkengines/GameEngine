@@ -33,6 +33,7 @@
 #include "../Frustums/Systems/FrustumSystem.hpp"
 #include "../Animations/Systems/BoneMeshSystem.hpp"
 #include "../Animations/Systems/BoneSpatialSystem.hpp"
+#include "../Systems/StorageSystem.hpp"
 #include "ApplicationState.hpp"
 #include <boost/di.hpp>
 #include <memory>
@@ -158,7 +159,7 @@ namespace drk::Applications {
 		bool shouldRecreateSwapchain = false;
 		void RecreateSwapchain(vk::Extent2D windowExtent);
 		vk::Extent2D windowExtent;
-		void renderEntity(entt::entity entity);
+		void renderEntity(const entt::entity entity);
 		void renderEntities();
 		void renderAnimations();
 		void renderSystemInfos();

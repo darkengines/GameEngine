@@ -164,7 +164,7 @@ vk::Instance Device::createInstance(const std::vector<const char*>& requiredInst
 		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
 		.pEngineName = "DarkEngines",
 		.engineVersion = VK_MAKE_VERSION(1, 0, 0),
-		.apiVersion = VK_API_VERSION_1_3,
+		.apiVersion = VK_API_VERSION_1_4,
 	};
 
 	const auto enabledValidationFeature = vk::ValidationFeatureEnableEXT::eGpuAssisted;
@@ -175,7 +175,7 @@ vk::Instance Device::createInstance(const std::vector<const char*>& requiredInst
 		.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
 						   vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
 		.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
-		.pfnUserCallback = debugCallback
+		.pfnUserCallback = (vk::PFN_DebugUtilsMessengerCallbackEXT)debugCallback
 	};
 
 	vk::InstanceCreateInfo instanceCreationInfo = {

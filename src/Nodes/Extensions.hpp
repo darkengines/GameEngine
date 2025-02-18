@@ -1,6 +1,6 @@
 #pragma once
 
-#include "boost/di.hpp"
+#include <boost/di.hpp>
 #include "Systems/NodeSystem.hpp"
 
 namespace drk::Nodes {

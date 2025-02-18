@@ -1,7 +1,7 @@
 #pragma once
 
-#include "glm/ext.hpp"
-#include "glm/glm.hpp"
+#include <glm/ext.hpp>
+#include <glm/glm.hpp>
 
 namespace drk::Spatials::Components {
 	enum class SpatialType {

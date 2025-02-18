@@ -178,6 +178,8 @@ void Application::taskflow() {
 	auto shadowDrawUpdateTask = taskflow.emplace([&]() { sceneSystem.updateShadowDraws(); }).name("ShadowDrawUpdate");
 	auto drawUpdateTask = taskflow.emplace([&]() { sceneSystem.updateDraws(); }).name("DrawUpdate");
 
+
+
 	tf::Executor executor;
 	executor.run(taskflow);
 }
@@ -269,7 +271,7 @@ void Application::renderGui(ApplicationState& applicationState) {
 		applicationState.actualExtent.height = contentRegionAvailable.y;
 		if (applicationState.sceneTextureImageDescriptorSet.has_value()) {
 			ImGui::Image(
-				(ImTextureID)applicationState.sceneTextureImageDescriptorSet.value(),
+				(ImTextureID)(void*)applicationState.sceneTextureImageDescriptorSet.value(),
 				{static_cast<float>(applicationState.actualExtent.width), static_cast<float>(applicationState.actualExtent.height)},
 				{0.0f, 0.0f},
 				{(float)applicationState.actualExtent.width / applicationState.sceneExtent.width, (float)applicationState.actualExtent.height / applicationState.sceneExtent.height}
@@ -426,7 +428,7 @@ void Application::run() {
 				);
 				applicationState.sceneExtent = vk::Extent3D{applicationState.actualExtent.width, applicationState.actualExtent.height, 1};
 			} else {
-				sceneRenderer.setTargetExtent(applicationState.actualExtent);
+				//sceneRenderer.setTargetExtent(applicationState.actualExtent);
 			}
 		}
 
@@ -446,29 +448,32 @@ void Application::run() {
 		//					100.f
 		//				);
 
-		globalSystem.GlobalSynchronizationState.Reset();
+		globalSystem.GlobalSynchronizationState.Reset(); //*
+		
 		// Resources to GPU
 		textureSystem.UploadTextures();
-		meshSystem.uploadMeshes();
-		animationSystem.storeMeshes();
-		// animationSystem.uploadVertexWeights();
-		// animationSystem.mamadou();
 
-		// Alterations
+		meshSystem.uploadMeshes();
+			animationSystem.storeMeshes();
+
 		flyCamController.Step(applicationState.frameTime);
 
-		// Change propagations
+		// Alterations
 		animationSystem.updateAnimations();
-		spatialSystem.PropagateChanges();
-		cameraSystem.processDirtyItems();
-		lightPerspectiveSystem.processDirtyItems();
-		directionalLightSystem.processDirtyItems();
-		pointLightSystem.processDirtyItems();
-		spotlightSystem.processDirtyItems();
-		axisAlignedBoundingBoxSystem.processDirty();
-		// frustumSystem.processDirty();
+			// Change propagations
+			spatialSystem.PropagateChanges();
+				//ProcessDirtyItems
+				cameraSystem.processDirtyItems();
+				lightPerspectiveSystem.processDirtyItems();
+				directionalLightSystem.processDirtyItems();
+				pointLightSystem.processDirtyItems();
+				spotlightSystem.processDirtyItems();
+				axisAlignedBoundingBoxSystem.processDirty();
+				//frustumSystem.processDirty();
 
-		meshSystem.processDirtyDraws();
+				// ??
+				meshSystem.processDirtyDraws();
+		
 
 		// Resources to GPU
 		materialSystem.store();

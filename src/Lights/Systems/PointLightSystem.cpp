@@ -8,6 +8,7 @@
 #include "../../Common/Components/Name.hpp"
 #include "../Components/Light.hpp"
 #include "../../GlmExtensions.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>

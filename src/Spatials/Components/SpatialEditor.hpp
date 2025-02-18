@@ -1,11 +1,10 @@
 
 #pragma once
 
-#include <glm/gtx/quaternion.hpp>
 #include <imgui.h>
 #include <vector>
-
 #include "Spatial.hpp"
+
 
 namespace drk::Spatials::Components {
 class SpatialEditor {

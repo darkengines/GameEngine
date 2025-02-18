@@ -2,7 +2,8 @@
 #include "../../Common/Components/Dirty.hpp"
 #include "../Components/RootBoneInstanceReference.hpp"
 #include "../../Nodes/Components/Node.hpp"
-#include "glm/gtx/quaternion.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 #include <entt/entt.hpp>
 
 namespace drk::Animations::Systems {

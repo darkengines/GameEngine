@@ -1,4 +1,5 @@
 #define BOOST_DI_CFG_DIAGNOSTICS_LEVEL 2
+#define GLM_ENABLE_EXPERIMENTAL
 #include <nlohmann/json.hpp>
 #include <taskflow/taskflow.hpp>
 

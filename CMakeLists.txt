@@ -236,6 +236,7 @@ file(
 	src/Stores/TextureStore.hpp
 	src/Stores/Models/StoreItemLocation.hpp
 	src/Systems/System.hpp
+	src/Systems/StorageSystem.hpp
 	src/Textures/Extensions.hpp
 	src/Textures/ImageInfo.hpp
 	src/Textures/TextureType.hpp
@@ -376,6 +377,7 @@ add_custom_target(
 add_executable(drk ${HEADERS} ${SOURCES} src/Applications/ApplicationState.hpp)
 add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
+file (GENERATE OUTPUT imgui.ini INPUT ${PROJECT_SOURCE_DIR}/imgui.ini)
 
 find_package(Vulkan REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
@@ -396,6 +398,7 @@ target_include_directories(drk SYSTEM PUBLIC ${IMGUI_INCLUDE_DIR} ${IMGUI_INCLUD
 target_include_directories(drk SYSTEM PUBLIC ${imgui-filebrowser})
 target_include_directories(drk SYSTEM PUBLIC ${nlohmann_json_INCLUDE_DIRS})
 target_include_directories(drk SYSTEM PUBLIC ${nameof_INCLUDE_DIRS})
+target_include_directories(drk SYSTEM PUBLIC ${fruit_INCLUDE_DIRS})
 
 target_link_libraries(drk PRIVATE ${Vulkan_LIBRARIES})
 target_link_libraries(drk PRIVATE GPUOpen::VulkanMemoryAllocator)
