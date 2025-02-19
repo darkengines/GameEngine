@@ -408,7 +408,8 @@ void Application::run() {
 		}
 
 		if (applicationState.sceneExtent.width != applicationState.actualExtent.width || applicationState.sceneExtent.height != applicationState.actualExtent.height) {
-			if (applicationState.sceneExtent.width < applicationState.actualExtent.width || applicationState.sceneExtent.height < applicationState.actualExtent.height) {
+			if ((applicationState.sceneExtent.width < applicationState.actualExtent.width && applicationState.actualExtent.width < INT_MAX) ||
+				(applicationState.sceneExtent.height < applicationState.actualExtent.height && applicationState.actualExtent.height < INT_MAX)) {
 				if (applicationState.sceneTextureImageDescriptorSet.has_value())
 					ImGui_ImplVulkan_RemoveTexture(applicationState.sceneTextureImageDescriptorSet.value());
 				if (sceneTexture.has_value())
