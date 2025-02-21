@@ -28,7 +28,7 @@ namespace drk::Scenes::Renderers {
 		ShadowSceneRenderer(
 			const Devices::DeviceContext& deviceContext,
 			entt::registry& registry,
-			std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshShadowPipeline
+			std::function<std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline>()> meshShadowPipelineFactory
 		);
 		~ShadowSceneRenderer();
 		void render(uint32_t targetImageIndex, const vk::CommandBuffer& sceneDraw);

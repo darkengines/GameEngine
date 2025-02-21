@@ -18,7 +18,13 @@ namespace drk::Spatials::Systems {
 			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
 			entt::registry& registry
-		) : System(engineState, registry), deviceContext(deviceContext) {}
+		) : System(engineState, registry), deviceContext(deviceContext) {
+			addSpatialSystem(registry);
+		}
+
+		void addSpatialSystem(entt::registry& registry) {
+			registry.on_construct<Components::Spatial<Components::Relative>>().connect<SpatialSystem::OnSpatialConstruct>();
+		}
 
 		void update(
 			Models::RelativeSpatial& spatialModel,

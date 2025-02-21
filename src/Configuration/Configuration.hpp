@@ -11,5 +11,6 @@ namespace drk::Configuration {
 		explicit Configuration(const nlohmann::json& jsonConfiguration) : jsonConfiguration(jsonConfiguration) {};
 		nlohmann::json jsonConfiguration;
 		static std::shared_ptr<Configuration> loadConfiguration(const std::filesystem::path& inputConfigurationPath);
+		static Configuration loadConfiguration2(const std::filesystem::path& inputConfigurationPath);
 	};
 }

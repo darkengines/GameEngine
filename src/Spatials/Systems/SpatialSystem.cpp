@@ -16,12 +16,12 @@ namespace drk::Spatials::Systems {
 		Engine::EngineState& engineState,
 		entt::registry& registry
 	)
-		: System(engineState, registry), deviceContext(deviceContext) {}
-
-	void SpatialSystem::AddSpatialSystem(entt::registry& registry) {
+		: System(engineState, registry), deviceContext(deviceContext) {
+		addSpatialSystem(registry);
+	}
+	void SpatialSystem::addSpatialSystem(entt::registry& registry) {
 		registry.on_construct<Components::Spatial<Components::Relative>>().connect<SpatialSystem::OnSpatialConstruct>();
 	}
-
 	void SpatialSystem::RemoveSpatialSystem(entt::registry& registry) {
 		registry.on_construct<Components::Spatial<Components::Relative>>().disconnect<SpatialSystem::OnSpatialConstruct>();
 	}

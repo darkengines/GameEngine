@@ -45,12 +45,12 @@ namespace drk::Scenes::Renderers {
 			Engine::EngineState& engineState,
 			const Devices::DeviceContext& deviceContext,
 			entt::registry& registry,
-			std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
-			std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline,
-			std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline,
-			std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline> boundingVolumePipeline,
-			std::unique_ptr<Frustums::Pipelines::FrustumPipeline> frustumPipeline,
-			std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer,
+			std::function<std::unique_ptr<Meshes::Pipelines::MeshPipeline>()> meshPipelineFactory,
+			std::function<std::unique_ptr<Points::Pipelines::PointPrimitivePipeline>()> pointPrimitivePipelineFactory,
+			std::function<std::unique_ptr<Lines::Pipelines::LinePipeline>()> linePipelineFactory,
+			std::function<std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline>()> boundingVolumePipelineFactory,
+			std::function<std::unique_ptr<Frustums::Pipelines::FrustumPipeline>()> frustumPipelineFactory,
+			std::function<std::unique_ptr<Renderers::ShadowSceneRenderer>()> shadowSceneRendererFactory,
 			Lights::Systems::ShadowMappingSystem& shadowMappingSystem
 		);
 		~SceneRenderer();

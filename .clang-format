@@ -14,7 +14,7 @@ AllowShortIfStatementsOnASingleLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
 IndentCaseLabels: false
 AccessModifierOffset: -4
-ColumnLimit: 180
+ColumnLimit: 0
 BinPackArguments: false
 BinPackParameters: false
 PenaltyBreakBeforeFirstCallParameter: 0

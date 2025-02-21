@@ -6,11 +6,11 @@ namespace drk::Scenes::Renderers {
 	ShadowSceneRenderer::ShadowSceneRenderer(
 		const Devices::DeviceContext& deviceContext,
 		entt::registry& registry,
-		std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline> meshShadowPipeline
+		std::function<std::unique_ptr<Meshes::Pipelines::ShadowMeshPipeline>()> meshShadowPipelineFactory
 	)
 		: registry(registry),
 		  deviceContext(deviceContext),
-		  meshShadowPipeline(std::move(meshShadowPipeline)) {}
+		  meshShadowPipeline(std::move(meshShadowPipelineFactory())) {}
 
 	ShadowSceneRenderer::~ShadowSceneRenderer() {
 		destroyFramebuffers();

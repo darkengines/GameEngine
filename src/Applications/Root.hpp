@@ -41,45 +41,9 @@
 #include "ApplicationState.hpp"
 
 namespace drk::Applications {
-
-class Application {
+class Root {
 public:
-	using boost_di_inject__ = boost::di::inject<
-		const Windows::Window&,
-		Engine::EngineState&,
-		const Devices::DeviceContext&,
-		Textures::Systems::TextureSystem&,
-		Materials::Systems::MaterialSystem&,
-		Meshes::Systems::MeshSystem&,
-		Meshes::Systems::MeshShadowSystem&,
-		Spatials::Systems::SpatialSystem&,
-		Spatials::Systems::RelativeSpatialSystem&,
-		Nodes::Systems::NodeSystem&,
-		Cameras::Systems::CameraSystem&,
-		Graphics::GlobalSystem&,
-		const Loaders::AssimpLoader&,
-		Graphics::Graphics&,
-		Controllers::FlyCamController&,
-		UserInterfaces::UserInterface&,
-		entt::registry&,
-		UserInterfaces::Renderers::UserInterfaceRenderer&,
-		Scenes::Renderers::SceneRenderer&,
-		Scenes::Systems::SceneSystem&,
-		Points::Systems::PointSystem&,
-		BoundingVolumes::Systems::AxisAlignedBoundingBoxSystem&,
-		Frustums::Systems::FrustumSystem&,
-		Lines::Systems::LineSystem&,
-		Lights::Systems::LightSystem&,
-		Lights::Systems::PointLightSystem&,
-		Lights::Systems::DirectionalLightSystem&,
-		Lights::Systems::SpotlightSystem&,
-		Lights::Systems::LightPerspectiveSystem&,
-		Animations::Systems::AnimationSystem&,
-		Animations::Systems::BoneMeshSystem&,
-		Animations::Systems::BoneSpatialSystem&,
-		UserInterfaces::AssetExplorer&>;
-
-	Application(
+	Root(
 		const Windows::Window& window,
 		Engine::EngineState& engineState,
 		const Devices::DeviceContext& deviceContext,
@@ -103,7 +67,7 @@ public:
 		Points::Systems::PointSystem& pointSystem,
 		BoundingVolumes::Systems::AxisAlignedBoundingBoxSystem& axisAlignedBoundingBoxSystem,
 		Frustums::Systems::FrustumSystem& frustumSystem,
-		Lines::Systems::LineSystem&,
+		Lines::Systems::LineSystem& lineSystem,
 		Lights::Systems::LightSystem& lightSystem,
 		Lights::Systems::PointLightSystem& pointLightSystem,
 		Lights::Systems::DirectionalLightSystem& directionalLightSystem,
@@ -111,13 +75,23 @@ public:
 		Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
 		Animations::Systems::AnimationSystem& animationSystem,
 		Animations::Systems::BoneMeshSystem& boneSystem,
-		Animations::Systems::BoneSpatialSystem& boneSpatialSystem,
-		UserInterfaces::AssetExplorer& assetExplorer
+		Animations::Systems::BoneSpatialSystem& boneSpatialSystem
+		// UserInterfaces::AssetExplorer& assetExplorer
 	);
 
+public:
+	void onWindowSizeChanged(uint32_t width, uint32_t height);
+	static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
+	void recreateSwapchain(vk::Extent2D windowExtent);
+	void renderGui(ApplicationState& applicationState);
+	void renderEntities();
+	void renderEntity(const entt::entity entity);
+	void renderProperties(entt::entity entity);
+	void renderAnimations();
+	void renderSystemInfos();
+	void renderStorageBuffers();
 	void run();
 	ApplicationState applicationState;
-	static void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 
 protected:
 	const Windows::Window& window;
@@ -152,20 +126,10 @@ protected:
 	Animations::Systems::AnimationSystem& animationSystem;
 	Animations::Systems::BoneMeshSystem& boneSystem;
 	Animations::Systems::BoneSpatialSystem& boneSpatialSystem;
-	entt::entity selectedEntity = entt::null;
-	UserInterfaces::AssetExplorer& assetExplorer;
+	// UserInterfaces::AssetExplorer& assetExplorer;
 
-	void OnWindowSizeChanged(uint32_t width, uint32_t height);
-	void renderProperties(entt::entity entity);
-	void renderStorageBuffers();
+	entt::entity selectedEntity = entt::null;
 	bool shouldRecreateSwapchain = false;
-	void RecreateSwapchain(vk::Extent2D windowExtent);
 	vk::Extent2D windowExtent;
-	void renderEntity(const entt::entity entity);
-	void renderEntities();
-	void renderAnimations();
-	void renderSystemInfos();
-	void renderGui(ApplicationState& applicationState);
-	void taskflow();
 };
 }  // namespace drk::Applications

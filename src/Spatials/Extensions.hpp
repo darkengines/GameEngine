@@ -1,14 +1,31 @@
 #pragma once
 
 #include <boost/di.hpp>
-#include "Systems/SpatialSystem.hpp"
+
 #include "Systems/RelativeSpatialSystem.hpp"
+#include "Systems/SpatialSystem.hpp"
 
 namespace drk::Spatials {
-	auto AddSpatials() {
-		return boost::di::make_injector(
-			boost::di::bind<Systems::SpatialSystem>.to<Systems::SpatialSystem>(),
-			boost::di::bind<Systems::RelativeSpatialSystem>.to<Systems::RelativeSpatialSystem>()
-		);
-	}
+fruit::Component<Systems::SpatialSystem, Systems::RelativeSpatialSystem> addSpatials() {
+	return fruit::createComponent()
+		.registerConstructor<Systems::SpatialSystem(
+			const Devices::DeviceContext& deviceContext,
+			Engine::EngineState& engineState,
+			entt::registry& registry
+		)>()
+		.registerConstructor<Systems::RelativeSpatialSystem(
+			const Devices::DeviceContext& deviceContext,
+			Engine::EngineState& engineState,
+			entt::registry& registry
+		)>()
+		.install(Devices::addDevices)
+		.install(Engine::addEngine)
+		.install(drk::addRegistry);
 }
+auto AddSpatials() {
+	return boost::di::make_injector(
+		boost::di::bind<Systems::SpatialSystem>.to<Systems::SpatialSystem>(),
+		boost::di::bind<Systems::RelativeSpatialSystem>.to<Systems::RelativeSpatialSystem>()
+	);
+}
+}  // namespace drk::Spatials

@@ -1,5 +1,7 @@
 #define BOOST_DI_CFG_DIAGNOSTICS_LEVEL 2
 #define GLM_ENABLE_EXPERIMENTAL
+#include <fruit/fruit.h>
+
 #include <nlohmann/json.hpp>
 #include <taskflow/taskflow.hpp>
 
@@ -11,6 +13,8 @@
 #include "Configuration/Extensions.hpp"
 #include "Controllers/Extensions.hpp"
 #include "Devices/Extensions.hpp"
+#include "Engine/Extensions.hpp"
+#include "Extensions.hpp"
 #include "FreeList/FreeList.hpp"
 #include "Frustums/Extensions.hpp"
 #include "Graphics/Extentions.hpp"
@@ -31,6 +35,10 @@
 #include "UserInterfaces/Extensions.hpp"
 #include "Windows/Extensions.hpp"
 #include "implementations.hpp"
+
+// fruit::Component<drk::Configuration::Configuration> getConfigurationComponent(drk::Configuration::Configuration& configuration) {
+//	return fruit::createComponent().bindInstance(configuration);
+// }
 
 int main(int argc, char** argv) {
 	drk::FreeList freeList = drk::FreeList::create(1024);
@@ -76,34 +84,40 @@ int main(int argc, char** argv) {
 		drk::Applications::AddApplications()
 	);
 
-	auto& app = injector.create<drk::Applications::Application&>();
-	auto& registry = injector.create<entt::registry&>();
-	auto& spatialSystem = injector.create<drk::Spatials::Systems::SpatialSystem&>();
+	fruit::Injector<drk::Applications::Root, entt::registry, drk::Loaders::AssimpLoader> fruitInjector(drk::Applications::addRoot);
+	const auto& storageSystems = fruitInjector.getMultibindings<drk::Systems::StorageSystem>();
+	auto& root = fruitInjector.get<drk::Applications::Root&>();
 
-	spatialSystem.AddSpatialSystem(registry);
 	if (modelPath.has_value()) {
-		auto& loader = injector.create<drk::Loaders::AssimpLoader&>();
+		auto& loader = fruitInjector.get<drk::Loaders::AssimpLoader&>();
+		auto& registry = fruitInjector.get<entt::registry&>();
 		auto loadResult = loader.Load(*modelPath, registry);
-		app.applicationState.loadResults.emplace_back(std::move(loadResult));
+		root.applicationState.loadResults.emplace_back(std::move(loadResult));
 	}
 
-	auto taskflow = tf::Taskflow("Test");
-	auto semaphore = tf::Semaphore(1);
-	auto taskStart = taskflow.emplace([](tf::Runtime& rt) { std::cout << "\r\nSTART"; }).name("START");
-	auto taskA = taskflow.emplace([]() { std::cout << "\r\nA"; }).name("A");
-	auto taskB = taskflow.emplace([]() { std::cout << "\r\nB"; }).name("B");
-	auto taskC = taskflow.emplace([]() { std::cout << "\r\nC"; }).name("C");
-	auto taskEnd = taskflow.emplace([]() { 
-		std::cout << "\r\END"; 
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	}).name("END");
-	taskEnd.succeed(taskA, taskB, taskC);
+	root.run();
+	// auto& app = injector.create<drk::Applications::Application&>();
+	// auto& registry = injector.create<entt::registry&>();
+	// auto& spatialSystem = injector.create<drk::Spatials::Systems::SpatialSystem&>();
 
-	auto executor = tf::Executor();
-	//executor.run_until(taskflow, []() { return false; });
-	//executor.wait_for_all();
+	// auto taskflow = tf::Taskflow("Test");
+	// auto semaphore = tf::Semaphore(1);
+	// auto taskStart = taskflow.emplace([](tf::Runtime& rt) { std::cout << "\r\nSTART"; }).name("START");
+	// auto taskA = taskflow.emplace([]() { std::cout << "\r\nA"; }).name("A");
+	// auto taskB = taskflow.emplace([]() { std::cout << "\r\nB"; }).name("B");
+	// auto taskC = taskflow.emplace([]() { std::cout << "\r\nC"; }).name("C");
+	// auto taskEnd = taskflow.emplace([]() {
+	//						   std::cout << "\r\nEND";
+	//						   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	//					   })
+	//				   .name("END");
+	// taskEnd.succeed(taskA, taskB, taskC);
 
-	app.run();
+	// auto executor = tf::Executor();
+	//// executor.run_until(taskflow, []() { return false; });
+	//// executor.wait_for_all();
+
+	// app.run();
 
 	return 0;
 }

@@ -58,6 +58,7 @@ file(
 	src/Animations/Systems/VertexWeightSystem.hpp
 	src/Applications/Application.hpp
 	src/Applications/Extentions.hpp
+	src/Applications/Root.hpp
 	src/BoundingVolumes/Extensions.hpp
 	src/BoundingVolumes/Components/AxisAlignedBoundingBox.hpp
 	src/BoundingVolumes/Components/Draw.hpp
@@ -68,6 +69,7 @@ file(
 	src/BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp
 	src/BoundingVolumes/Systems/AxisAlignedBoundingBoxSystem.hpp
 	src/Buffers/Resources/BufferResourceManager.hpp
+	src/Buffers/Extensions.hpp
 	src/Cameras/Extensions.hpp
 	src/Cameras/Components/Camera.hpp
 	src/Cameras/Components/CameraRefrence.hpp
@@ -263,6 +265,8 @@ file(
 	src/Animations/Systems/VertexWeightSystem.cpp
 	src/Applications/Application.cpp
 	src/Applications/Application.UserInterface.cpp
+	src/Applications/Root.UserInterface.cpp
+	src/Applications/Root.cpp
 	src/BoundingVolumes/Components/AxisAlignedBoundingBox.cpp
 	src/BoundingVolumes/Models/Vertex.cpp
 	src/BoundingVolumes/Pipelines/BoundingVolumePipeline.cpp
@@ -379,6 +383,7 @@ add_dependencies(drk Shaders)
 file (GENERATE OUTPUT settings.json INPUT ${PROJECT_SOURCE_DIR}/settings.json)
 file (GENERATE OUTPUT imgui.ini INPUT ${PROJECT_SOURCE_DIR}/imgui.ini)
 
+find_package(fruit CONFIG)
 find_package(Vulkan REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 find_package(entt REQUIRED)
@@ -398,7 +403,6 @@ target_include_directories(drk SYSTEM PUBLIC ${IMGUI_INCLUDE_DIR} ${IMGUI_INCLUD
 target_include_directories(drk SYSTEM PUBLIC ${imgui-filebrowser})
 target_include_directories(drk SYSTEM PUBLIC ${nlohmann_json_INCLUDE_DIRS})
 target_include_directories(drk SYSTEM PUBLIC ${nameof_INCLUDE_DIRS})
-target_include_directories(drk SYSTEM PUBLIC ${fruit_INCLUDE_DIRS})
 
 target_link_libraries(drk PRIVATE ${Vulkan_LIBRARIES})
 target_link_libraries(drk PRIVATE GPUOpen::VulkanMemoryAllocator)
@@ -411,3 +415,5 @@ target_link_libraries(drk PRIVATE fmt::fmt-header-only)
 target_link_libraries(drk PRIVATE nlohmann_json)
 target_link_libraries(drk PRIVATE imguizmo::imguizmo)
 target_link_libraries(drk PUBLIC Taskflow::Taskflow)
+#target_link_libraries(drk PUBLIC fruit)
+target_link_libraries(drk PUBLIC ${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/lib/fruit.lib)

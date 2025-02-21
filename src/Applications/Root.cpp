@@ -1,6 +1,3 @@
-#include "Application.hpp"
-
-#include <ImGuizmo.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
@@ -13,13 +10,14 @@
 #include "../Common/Components/Name.hpp"
 #include "../GlmExtensions.hpp"
 #include "../Lights/Components/LightPerspectiveCollection.hpp"
+#include "Root.hpp"
 
 #undef near
 #undef far
 
 namespace drk::Applications {
 
-Application::Application(
+Root::Root(
 	const Windows::Window& window,
 	Engine::EngineState& engineState,
 	const Devices::DeviceContext& deviceContext,
@@ -51,138 +49,78 @@ Application::Application(
 	Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
 	Animations::Systems::AnimationSystem& animationSystem,
 	Animations::Systems::BoneMeshSystem& boneSystem,
-	Animations::Systems::BoneSpatialSystem& boneSpatialSystem,
-	UserInterfaces::AssetExplorer& assetExplorer
-)
-	: window(window),
-	  engineState(engineState),
-	  deviceContext(deviceContext),
-	  textureSystem(textureSystem),
-	  materialSystem(materialSystem),
-	  meshSystem(meshSystem),
-	  meshShadowSystem(meshShadowSystem),
-	  spatialSystem(spatialSystem),
-	  relativeSpatialSystem(relativeSpatialSystem),
-	  objectSystem(objectSystem),
-	  cameraSystem(cameraSystem),
-	  globalSystem(globalSystem),
-	  loader(loader),
-	  graphics(graphics),
-	  flyCamController(flyCamController),
-	  userInterface(userInterface),
-	  registry(registry),
-	  userInterfaceRenderer(userInterfaceRenderer),
-	  sceneRenderer(sceneRenderer),
-	  sceneSystem(sceneSystem),
-	  pointSystem(pointSystem),
-	  axisAlignedBoundingBoxSystem(axisAlignedBoundingBoxSystem),
-	  frustumSystem(frustumSystem),
-	  lineSystem(lineSystem),
-	  lightSystem(lightSystem),
-	  pointLightSystem(pointLightSystem),
-	  directionalLightSystem(directionalLightSystem),
-	  spotlightSystem(spotlightSystem),
-	  lightPerspectiveSystem(lightPerspectiveSystem),
-	  animationSystem(animationSystem),
-	  boneSystem(boneSystem),
-	  boneSpatialSystem(boneSpatialSystem),
-	  assetExplorer(assetExplorer),
-	  windowExtent(window.GetExtent()) {
-	// ImGui::GetIO().IniFilename = NULL;
+	Animations::Systems::BoneSpatialSystem& boneSpatialSystem
+) : window(window),
+	engineState(engineState),
+	deviceContext(deviceContext),
+	registry(registry),
+	textureSystem(textureSystem),
+	materialSystem(materialSystem),
+	meshSystem(meshSystem),
+	meshShadowSystem(meshShadowSystem),
+	spatialSystem(spatialSystem),
+	relativeSpatialSystem(relativeSpatialSystem),
+	objectSystem(objectSystem),
+	cameraSystem(cameraSystem),
+	globalSystem(globalSystem),
+	loader(loader),
+	graphics(graphics),
+	flyCamController(flyCamController),
+	userInterface(userInterface),
+	userInterfaceRenderer(userInterfaceRenderer),
+	sceneRenderer(sceneRenderer),
+	sceneSystem(sceneSystem),
+	pointSystem(pointSystem),
+	axisAlignedBoundingBoxSystem(axisAlignedBoundingBoxSystem),
+	frustumSystem(frustumSystem),
+	lineSystem(lineSystem),
+	lightSystem(lightSystem),
+	pointLightSystem(pointLightSystem),
+	directionalLightSystem(directionalLightSystem),
+	spotlightSystem(spotlightSystem),
+	lightPerspectiveSystem(lightPerspectiveSystem),
+	animationSystem(animationSystem),
+	boneSystem(boneSystem),
+	boneSpatialSystem(boneSpatialSystem) {
 	const auto& glfwWindow = window.GetWindow();
-	glfwSetCursorPosCallback(glfwWindow, CursorPosCallback);
+	glfwSetCursorPosCallback(glfwWindow, Root::cursorPosCallback);
 	glfwSetWindowUserPointer(glfwWindow, this);
 	glfwSetWindowSizeCallback(glfwWindow, [](GLFWwindow* window, int width, int height) {
-		auto application = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-		application->OnWindowSizeChanged(width, height);
+		auto application = reinterpret_cast<Root*>(glfwGetWindowUserPointer(window));
+		application->onWindowSizeChanged(width, height);
 	});
 	ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
 	auto io = ImGui::GetIO();
 	glfwMakeContextCurrent(glfwWindow);
 }
-void Application::taskflow() {
-	const auto& frameState = engineState.getCurrentFrameState();
-	auto taskflow = tf::Taskflow("Application");
 
-	// Resources to GPU
-	auto textureUploadTask = taskflow.emplace([&]() { textureSystem.UploadTextures(); }).name("TextureUploads");
-	auto meshUploadTask = taskflow.emplace([&]() { meshSystem.uploadMeshes(); }).name("MeshUploads");
-
-	auto animationMeshStorageTask = taskflow.emplace([&]() { animationSystem.storeMeshes(); }).name("AnimationMeshStorages");
-	animationMeshStorageTask.succeed(meshUploadTask);
-
-	auto controllerStepTask = taskflow.emplace([&]() { flyCamController.Step(applicationState.frameTime); }).name("ControllerSteps");
-	auto animationUpdateTask = taskflow.emplace([&]() { animationSystem.updateAnimations(); }).name("AnimationUpdates");
-	auto spatialPropagationTask = taskflow.emplace([&]() { spatialSystem.PropagateChanges(); }).name("SpatialPropagation");
-	auto cameraDirtyTask = taskflow.emplace([&]() { cameraSystem.processDirtyItems(); }).name("CameraDirty");
-	auto lightPerspectiveDirtyTask = taskflow.emplace([&]() { lightPerspectiveSystem.processDirtyItems(); }).name("LightPerspectiveDirty");
-	auto directionalLightDirtyTask = taskflow.emplace([&]() { directionalLightSystem.processDirtyItems(); }).name("DirectionalLightDirty");
-	auto pointLightDirtyTask = taskflow.emplace([&]() { pointLightSystem.processDirtyItems(); }).name("PointLightDirty");
-	auto spotlighDirtyTask = taskflow.emplace([&]() { spotlightSystem.processDirtyItems(); }).name("SpotlightDirty");
-	auto axisAlignedBoundingBoxDirtyTask = taskflow.emplace([&]() { axisAlignedBoundingBoxSystem.processDirty(); }).name("AxisAlignedBoundingBoxDirty");
-	auto meshDrawDirtyTask = taskflow.emplace([&]() { meshSystem.processDirtyDraws(); }).name("MeshDrawDirty");
-
-	// Resources to GPU
-	auto materialStorageTask = taskflow.emplace([&]() { materialSystem.store(); }).name("MaterialStorage");
-	auto meshStorageTask = taskflow.emplace([&]() { meshSystem.store(); }).name("MeshStorage");
-	auto pointStorageTask = taskflow.emplace([&]() { pointSystem.store(); }).name("PointStorage");
-	auto lineStorageTask = taskflow.emplace([&]() { lineSystem.store(); }).name("LineStorage");
-	auto spatialStorageTask = taskflow.emplace([&]() { spatialSystem.store(); }).name("SpatialStorage");
-	auto relativeSpatialStorageTask = taskflow.emplace([&]() { relativeSpatialSystem.store(); }).name("RelativeSpatialStorage");
-	auto objectStorageTask = taskflow.emplace([&]() { objectSystem.store(); }).name("ObjectStorage");
-	auto cameraStorageTask = taskflow.emplace([&]() { cameraSystem.store(); }).name("CameraStorage");
-	auto lightStorageTask = taskflow.emplace([&]() { lightSystem.store(); }).name("LightStorage");
-	auto lightPerspectiveStorageTask = taskflow.emplace([&]() { lightPerspectiveSystem.store(); }).name("LightPerspectiveStorage");
-	auto pointLightStorageTask = taskflow.emplace([&]() { pointLightSystem.store(); }).name("PointLightStorage");
-	auto directionalLightStorageTask = taskflow.emplace([&]() { directionalLightSystem.store(); }).name("DirectionalLightStorage");
-	auto spotlightStorageTask = taskflow.emplace([&]() { spotlightSystem.store(); }).name("SpotlightStorage");
-	auto axisAlignedBoundingBoxStorageTask = taskflow.emplace([&]() { axisAlignedBoundingBoxSystem.store(); }).name("AxisAlignedBoundingBoxStorage");
-	auto frustumStorageTask = taskflow.emplace([&]() { frustumSystem.store(); }).name("FrustumStorage");
-	auto boneStorageTask = taskflow.emplace([&]() { boneSystem.store(); }).name("BoneStorage");
-
-	// Store updates to GPU
-	auto materialStoreUpdateTask = taskflow.emplace([&]() { materialSystem.store(); }).name("MaterialStoreUpdate");
-	auto meshStoreUpdateTask = taskflow.emplace([&]() { meshSystem.store(); }).name("MeshStoreUpdate");
-	auto pointStoreUpdateTask = taskflow.emplace([&]() { pointSystem.store(); }).name("PointStoreUpdate");
-	auto lineStoreUpdateTask = taskflow.emplace([&]() { lineSystem.store(); }).name("LineStoreUpdate");
-	auto spatialStoreUpdateTask = taskflow.emplace([&]() { spatialSystem.store(); }).name("SpatialStoreUpdate");
-	auto relativeSpatialStoreUpdateTask = taskflow.emplace([&]() { relativeSpatialSystem.store(); }).name("RelativeSpatialStoreUpdate");
-	auto objectStoreUpdateTask = taskflow.emplace([&]() { objectSystem.store(); }).name("ObjectStoreUpdate");
-	auto cameraStoreUpdateTask = taskflow.emplace([&]() { cameraSystem.store(); }).name("CameraStoreUpdate");
-	auto lightStoreUpdateTask = taskflow.emplace([&]() { lightSystem.store(); }).name("LightStoreUpdate");
-	auto lightPerspectiveStoreUpdateTask = taskflow.emplace([&]() { lightPerspectiveSystem.store(); }).name("LightPerspectiveStoreUpdate");
-	auto pointLightStoreUpdateTask = taskflow.emplace([&]() { pointLightSystem.store(); }).name("PointLightStoreUpdate");
-	auto directionalLightStoreUpdateTask = taskflow.emplace([&]() { directionalLightSystem.store(); }).name("DirectionalLightStoreUpdate");
-	auto spotlightStoreUpdateTask = taskflow.emplace([&]() { spotlightSystem.store(); }).name("SpotlightStoreUpdate");
-	auto axisAlignedBoundingBoxStoreUpdateTask = taskflow.emplace([&]() { axisAlignedBoundingBoxSystem.store(); }).name("AxisAlignedBoundingBoxStoreUpdate");
-	auto frustumStoreUpdateTask = taskflow.emplace([&]() { frustumSystem.store(); }).name("FrustumStoreUpdate");
-	auto boneStoreUpdateTask = taskflow.emplace([&]() { boneSystem.store(); }).name("BoneStoreUpdate");
-
-	auto boneSpatialPropagationTask = taskflow.emplace([&]() { boneSpatialSystem.propagateChanges(); }).name("BoneSpatialPropagation");
-	auto boneSpatialStorageTask = taskflow.emplace([&]() { boneSpatialSystem.store(); }).name("BoneSpatialStorage");
-	auto boneSpatialStoreUpdateTask = taskflow.emplace([&]() { boneSpatialSystem.updateStore(); }).name("BoneSpatialStoreUpdate");
-
-	auto skinnedMeshInstanceResourceCreationTask =
-		taskflow.emplace([&]() { animationSystem.createSkinnedMeshInstanceResources(engineState.getFrameIndex()); }).name("SkinnedMeshInstanceResourceCreation");
-	auto skinUpdateTask = taskflow.emplace([&]() { animationSystem.updateSkins(frameState.commandBuffer); }).name("SkinUpdates");
-
-	// Emit draws
-	auto meshDrawsTask = taskflow.emplace([&]() { meshSystem.emitDraws(); }).name("MeshDraws");
-	auto meshShadowDrawsTask = taskflow.emplace([&]() { meshShadowSystem.emitDraws(); }).name("MeshShadowDraws");
-	auto pointDrawsTask = taskflow.emplace([&]() { pointSystem.emitDraws(); }).name("PointDraws");
-	auto lineDrawsTask = taskflow.emplace([&]() { lineSystem.emitDraws(); }).name("LineDraws");
-	auto axisAlignedBoundingBoxDrawsTask = taskflow.emplace([&]() { axisAlignedBoundingBoxSystem.emitDraws(); }).name("AxisAlignedBoundingBoxDraws");
-	auto frustumDrawsTask = taskflow.emplace([&]() { frustumSystem.emitDraws(); }).name("FrustumDraws");
-
-	// Stores draws to GPU
-
-	auto shadowDrawUpdateTask = taskflow.emplace([&]() { sceneSystem.updateShadowDraws(); }).name("ShadowDrawUpdate");
-	auto drawUpdateTask = taskflow.emplace([&]() { sceneSystem.updateDraws(); }).name("DrawUpdate");
-
-	tf::Executor executor;
-	executor.run(taskflow);
+void Root::onWindowSizeChanged(uint32_t width, uint32_t height) {
+	while (width == 0 || height == 0) {
+		glfwGetFramebufferSize(window.GetWindow(), reinterpret_cast<int*>(&width), reinterpret_cast<int*>(&height));
+		glfwWaitEvents();
+	}
+	if (windowExtent.width != width || windowExtent.height != height) {
+		windowExtent.width = width;
+		windowExtent.height = height;
+		shouldRecreateSwapchain = true;
+	}
 }
-void Application::renderGui(ApplicationState& applicationState) {
+
+void Root::cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
+	auto application = reinterpret_cast<Root*>(glfwGetWindowUserPointer(window));
+	if (application->userInterface.IsExplorationMode()) {
+		application->flyCamController.OnCursorPositionEvent(xpos, ypos);
+	}
+}
+
+void Root::recreateSwapchain(vk::Extent2D windowExtent) {
+	graphics.RecreateSwapchain(windowExtent);
+	const auto swapchain = graphics.GetSwapchain();
+	userInterfaceRenderer.SetTargetImageViews({.extent = swapchain.extent, .format = swapchain.imageFormat}, swapchain.imageViews);
+	shouldRecreateSwapchain = false;
+}
+
+void Root::renderGui(ApplicationState& applicationState) {
 	auto io = ImGui::GetIO();
 	io.MouseDrawCursor = false;
 	io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
@@ -287,7 +225,7 @@ void Application::renderGui(ApplicationState& applicationState) {
 		renderAnimations();
 		renderSystemInfos();
 		// renderInspector();
-		assetExplorer.render(registry);
+		//assetExplorer.render(registry);
 
 		applicationState.fileBrowser.Display();
 		if (applicationState.fileBrowser.HasSelected()) {
@@ -298,7 +236,8 @@ void Application::renderGui(ApplicationState& applicationState) {
 	}
 	ImGui::EndFrame();
 }
-void Application::run() {
+
+void Root::run() {
 	ImGui::FileBrowser fileBrowser;
 
 	auto defaultCamera = cameraSystem.createCamera(
@@ -313,66 +252,6 @@ void Application::run() {
 
 	std::optional<Devices::Texture> sceneTexture;
 	glm::vec2 previousMousePosition{0, 0};
-
-	/*Materials::Components::Material pointMaterial{
-		.name = "Point",
-		.source = "User",
-		.baseColor = {0.0f, 1.0f, 0.0f, 1.0f},
-		.ambientColor = {0.0f, 1.0f, 0.0f, 1.0f},
-		.diffuseColor = {0.0f, 1.0f, 0.0f, 1.0f},
-		.specularColor = {0.0f, 1.0f, 0.0f, 1.0f}
-	};
-	auto pointMaterialPointer = std::make_shared<Materials::Components::Material>(std::move(pointMaterial));
-
-	auto pointMaterialEntity = registry.create();
-	registry.emplace<std::shared_ptr<Materials::Components::Material>>(pointMaterialEntity, pointMaterialPointer);
-
-	for (auto pointIndex = 0; pointIndex < 1024; pointIndex++) {
-		auto r = glm::ballRand<float>(16.0);
-		Points::Components::Point point{
-			.materialEntity = pointMaterialEntity
-		};
-
-		Spatials::Components::Spatial pointSpatial{
-			.relativeScale = { 1.0f, 1.0f, 1.0f, 1.0f },
-			.relativeRotation = glm::quatLookAt(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-			.relativePosition = glm::vec4(r, 1.0),
-			.relativeModel = glm::identity<glm::mat4>()
-		};
-
-		Objects::Relationship pointRelationship;
-		Objects::Object pointObject{ .Name = "Point" };
-
-		auto pointEntity = registry.create();
-
-		registry.emplace<Points::Components::Point>(pointEntity, std::move(point));
-		registry.emplace<Spatials::Components::Spatial>(pointEntity, std::move(pointSpatial));
-		registry.emplace<Objects::Relationship>(pointEntity, std::move(pointRelationship));
-		registry.emplace<Objects::Object>(pointEntity, std::move(pointObject));
-	}*/
-	//		for (auto pointIndex = 0; pointIndex < 2097152 / 1024; pointIndex++) {
-	//			auto r = glm::ballRand<float>(16.0);
-	//			Lines::Components::Line line{
-	//				.materialEntity = pointMaterialEntity
-	//			};
-	//
-	//			Spatials::Components::Spatial lineSpatial{
-	//				.relativeScale = {1.0f, 1.0f, 1.0f, 1.0f},
-	//				.relativeRotation = glm::quatLookAt(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-	//				.relativePosition = glm::vec4(r, 1.0),
-	//				.relativeModel = glm::identity<glm::mat4>()
-	//			};
-	//
-	//			Objects::Relationship lineRelationship;
-	//			Objects::Object lineObject{.Name = "Line"};
-	//
-	//			auto lineEntity = registry.create();
-	//
-	//			registry.emplace<Lines::Components::Line>(lineEntity, std::move(line));
-	//			registry.emplace<Spatials::Components::Spatial>(lineEntity, std::move(lineSpatial));
-	//			registry.emplace<Objects::Relationship>(lineEntity, std::move(lineRelationship));
-	//			registry.emplace<Objects::Object>(lineEntity, std::move(lineObject));
-	//		}
 
 	auto windowExtent = window.GetExtent();
 
@@ -391,7 +270,7 @@ void Application::run() {
 		auto imGuiMousePosition = ImGui::GetMousePos();
 		glm::vec2 mousePosition{imGuiMousePosition.x, imGuiMousePosition.y};
 		if (!userInterface.IsExplorationMode()) {
-			CursorPosCallback(window.GetWindow(), mousePosition.x, mousePosition.y);
+			cursorPosCallback(window.GetWindow(), mousePosition.x, mousePosition.y);
 		}
 
 		const auto& frameState = engineState.getCurrentFrameState();
@@ -402,7 +281,7 @@ void Application::run() {
 
 		if (shouldRecreateSwapchain || swapchainImageAcquisitionResult.result == vk::Result::eSuboptimalKHR ||
 			swapchainImageAcquisitionResult.result == vk::Result::eErrorOutOfDateKHR) {
-			RecreateSwapchain(windowExtent);
+			recreateSwapchain(windowExtent);
 			swapchainImageAcquisitionResult = graphics.AcquireSwapchainImageIndex();
 		}
 
@@ -585,30 +464,5 @@ void Application::run() {
 	deviceContext.device.waitIdle();
 	if (sceneTexture.has_value())
 		deviceContext.destroyTexture(sceneTexture.value());
-}
-
-void Application::OnWindowSizeChanged(uint32_t width, uint32_t height) {
-	while (width == 0 || height == 0) {
-		glfwGetFramebufferSize(window.GetWindow(), reinterpret_cast<int*>(&width), reinterpret_cast<int*>(&height));
-		glfwWaitEvents();
-	}
-	if (windowExtent.width != width || windowExtent.height != height) {
-		windowExtent.width = width;
-		windowExtent.height = height;
-		shouldRecreateSwapchain = true;
-	}
-}
-
-void Application::CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
-	auto application = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-	if (application->userInterface.IsExplorationMode()) {
-		application->flyCamController.OnCursorPositionEvent(xpos, ypos);
-	}
-}
-void Application::RecreateSwapchain(vk::Extent2D windowExtent) {
-	graphics.RecreateSwapchain(windowExtent);
-	const auto swapchain = graphics.GetSwapchain();
-	userInterfaceRenderer.SetTargetImageViews({.extent = swapchain.extent, .format = swapchain.imageFormat}, swapchain.imageViews);
-	shouldRecreateSwapchain = false;
 }
 }  // namespace drk::Applications

@@ -3,29 +3,30 @@
 
 #include "../../Graphics/Graphics.hpp"
 #include "imgui_impl_vulkan.h"
+#include <functional>
 
 namespace drk::Scenes::Renderers {
 SceneRenderer::SceneRenderer(
 	Engine::EngineState& engineState,
 	const Devices::DeviceContext& deviceContext,
 	entt::registry& registry,
-	std::unique_ptr<Meshes::Pipelines::MeshPipeline> meshPipeline,
-	std::unique_ptr<Points::Pipelines::PointPrimitivePipeline> pointPrimitivePipeline,
-	std::unique_ptr<Lines::Pipelines::LinePipeline> linePipeline,
-	std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline> boundingVolumePipeline,
-	std::unique_ptr<Frustums::Pipelines::FrustumPipeline> frustumPipeline,
-	std::unique_ptr<ShadowSceneRenderer> shadowSceneRenderer,
+	std::function<std::unique_ptr<Meshes::Pipelines::MeshPipeline>()> meshPipelineFactory,
+	std::function<std::unique_ptr<Points::Pipelines::PointPrimitivePipeline>()> pointPrimitivePipelineFactory,
+	std::function<std::unique_ptr<Lines::Pipelines::LinePipeline>()> linePipelineFactory,
+	std::function<std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline>()> boundingVolumePipelineFactory,
+	std::function<std::unique_ptr<Frustums::Pipelines::FrustumPipeline>()> frustumPipelineFactory,
+	std::function<std::unique_ptr<Renderers::ShadowSceneRenderer>()> shadowSceneRendererFactory,
 	Lights::Systems::ShadowMappingSystem& shadowMappingSystem
 )
 	: engineState(engineState),
 	  deviceContext(deviceContext),
 	  registry(registry),
-	  meshPipeline(std::move(meshPipeline)),
-	  pointPrimitivePipeline(std::move(pointPrimitivePipeline)),
-	  linePipeline(std::move(linePipeline)),
-	  boundingVolumePipeline(std::move(boundingVolumePipeline)),
-	  frustumPipeline(std::move(frustumPipeline)),
-	  shadowSceneRenderer(std::move(shadowSceneRenderer)),
+	  meshPipeline(std::move(meshPipelineFactory())),
+	  pointPrimitivePipeline(std::move(pointPrimitivePipelineFactory())),
+	  linePipeline(std::move(linePipelineFactory())),
+	  boundingVolumePipeline(std::move(boundingVolumePipelineFactory())),
+	  frustumPipeline(std::move(frustumPipelineFactory())),
+	  shadowSceneRenderer(std::move(shadowSceneRendererFactory())),
 	  shadowMappingSystem(shadowMappingSystem),
 	  pipelines{
 		  {std::type_index(typeid(Meshes::Pipelines::MeshPipeline)), this->meshPipeline.get()},
