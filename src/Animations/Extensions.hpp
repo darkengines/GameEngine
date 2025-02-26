@@ -52,7 +52,9 @@ fruit::Component<Systems::AnimationSystem, Systems::BoneMeshSystem, Systems::Bon
 		.install(Engine::addEngine)
 		.install(Devices::addDevices)
 		.install(drk::addRegistry)
-		.install(drk::Configuration::addConfiguration);
+		.install(drk::Configuration::addConfiguration)
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::BoneMeshSystem>()
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::BoneSpatialSystem>();
 }
 
 auto AddAnimations() {

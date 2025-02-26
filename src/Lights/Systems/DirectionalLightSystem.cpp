@@ -5,7 +5,7 @@ namespace drk::Lights::Systems {
 		const Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
 		entt::registry& registry
-	) : System(engineState, registry) {}
+	) : StorageSystem(engineState, registry) {}
 	void DirectionalLightSystem::update(
 		Models::DirectionalLight& model,
 		const Components::DirectionalLight& directionalLight,

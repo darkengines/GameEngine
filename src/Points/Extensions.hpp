@@ -33,7 +33,9 @@ fruit::Component<
 		})
 		.install(Engine::addEngine)
 		.install(Devices::addDevices)
-		.install(drk::addRegistry);
+		.install(drk::addRegistry)
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::PointSystem>()
+		.addMultibinding<drk::Draws::Systems::IDrawSystem, Systems::PointSystem>();
 }
 auto AddPoints() {
 	return boost::di::make_injector(

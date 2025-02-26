@@ -1,14 +1,14 @@
 #pragma once
 
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../Models/Point.hpp"
 #include "../Components/Point.hpp"
-#include "../../Draws/Systems/DrawSystem.hpp"
+#include "../../Draws/Systems/IDrawSystem.hpp"
 
 namespace drk::Points::Systems {
 
 	class PointSystem
-		: public drk::Systems::System<Models::Point, Components::Point>, public Draws::Systems::DrawSystem {
+		: public drk::Systems::StorageSystem<Models::Point, Components::Point>, public Draws::Systems::IDrawSystem {
 	public:
 		PointSystem(Engine::EngineState& engineState, entt::registry& registry, Devices::DeviceContext& deviceContext);
 		~PointSystem();

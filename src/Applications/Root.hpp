@@ -32,13 +32,14 @@
 #include "../Scenes/Systems/SceneSystem.hpp"
 #include "../Spatials/Systems/RelativeSpatialSystem.hpp"
 #include "../Spatials/Systems/SpatialSystem.hpp"
-#include "../Systems/StorageSystem.hpp"
+#include "../Systems/IStorageSystem.hpp"
 #include "../Textures/Systems/TextureSystem.hpp"
 #include "../UserInterfaces/AssetExplorer.hpp"
 #include "../UserInterfaces/Renderers/UserInterfaceRenderer.hpp"
 #include "../UserInterfaces/UserInterface.hpp"
 #include "../Windows/Window.hpp"
 #include "ApplicationState.hpp"
+#include <semaphore>
 
 namespace drk::Applications {
 class Root {
@@ -84,6 +85,7 @@ public:
 	static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 	void recreateSwapchain(vk::Extent2D windowExtent);
 	void renderGui(ApplicationState& applicationState);
+	void updateApplicationState(std::optional<Devices::Texture>& sceneTexture, vk::ResultValue<uint32_t>& swapchainImageAcquisitionResult, Engine::FrameState const *& frameStatePtr);
 	void renderEntities();
 	void renderEntity(const entt::entity entity);
 	void renderProperties(entt::entity entity);
@@ -126,6 +128,10 @@ protected:
 	Animations::Systems::AnimationSystem& animationSystem;
 	Animations::Systems::BoneMeshSystem& boneSystem;
 	Animations::Systems::BoneSpatialSystem& boneSpatialSystem;
+    std::binary_semaphore mainToWorkflow { 0 };
+    std::binary_semaphore workflowToMain{ 0 };
+    std::binary_semaphore glfwTaskflowToMainSemaphore{ 0 };
+    std::binary_semaphore glfwmainToTaskflowSemaphore{ 0 };
 	// UserInterfaces::AssetExplorer& assetExplorer;
 
 	entt::entity selectedEntity = entt::null;

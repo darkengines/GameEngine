@@ -1,367 +1,435 @@
 
 #include "SceneRenderer.hpp"
 
-#include "../../Graphics/Graphics.hpp"
-#include "imgui_impl_vulkan.h"
 #include <functional>
 
-namespace drk::Scenes::Renderers {
-SceneRenderer::SceneRenderer(
-	Engine::EngineState& engineState,
-	const Devices::DeviceContext& deviceContext,
-	entt::registry& registry,
-	std::function<std::unique_ptr<Meshes::Pipelines::MeshPipeline>()> meshPipelineFactory,
-	std::function<std::unique_ptr<Points::Pipelines::PointPrimitivePipeline>()> pointPrimitivePipelineFactory,
-	std::function<std::unique_ptr<Lines::Pipelines::LinePipeline>()> linePipelineFactory,
-	std::function<std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline>()> boundingVolumePipelineFactory,
-	std::function<std::unique_ptr<Frustums::Pipelines::FrustumPipeline>()> frustumPipelineFactory,
-	std::function<std::unique_ptr<Renderers::ShadowSceneRenderer>()> shadowSceneRendererFactory,
-	Lights::Systems::ShadowMappingSystem& shadowMappingSystem
-)
-	: engineState(engineState),
-	  deviceContext(deviceContext),
-	  registry(registry),
-	  meshPipeline(std::move(meshPipelineFactory())),
-	  pointPrimitivePipeline(std::move(pointPrimitivePipelineFactory())),
-	  linePipeline(std::move(linePipelineFactory())),
-	  boundingVolumePipeline(std::move(boundingVolumePipelineFactory())),
-	  frustumPipeline(std::move(frustumPipelineFactory())),
-	  shadowSceneRenderer(std::move(shadowSceneRendererFactory())),
-	  shadowMappingSystem(shadowMappingSystem),
-	  pipelines{
-		  {std::type_index(typeid(Meshes::Pipelines::MeshPipeline)), this->meshPipeline.get()},
-		  {std::type_index(typeid(Points::Pipelines::PointPrimitivePipeline)), this->pointPrimitivePipeline.get()},
-		  {std::type_index(typeid(Lines::Pipelines::LinePipeline)), this->linePipeline.get()},
-		  {std::type_index(typeid(BoundingVolumes::Pipelines::BoundingVolumePipeline)), this->boundingVolumePipeline.get()},
-		  {std::type_index(typeid(Frustums::Pipelines::FrustumPipeline)), this->frustumPipeline.get()}
-	  } {
-	this->shadowSceneRenderer->setTargetImageViews(
-		{.extent = shadowMappingSystem.shadowMappingTexture->imageCreateInfo.extent, .format = shadowMappingSystem.shadowMappingTexture->imageCreateInfo.format},
-		{shadowMappingSystem.shadowMappingTexture->imageView}
-	);
-}
+#include "../../Graphics/Graphics.hpp"
+#include "imgui_impl_vulkan.h"
 
-SceneRenderer::~SceneRenderer() {
-	destroyFramebuffers();
-	destroyRenderPass();
-	destroyFramebufferResources();
-}
-Pipelines::GraphicsPipeline* SceneRenderer::getPipeline(std::type_index pipelineTypeIndex) {
-	auto keyValuePair = pipelines.find(pipelineTypeIndex);
-	if (keyValuePair == pipelines.end())
-		throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
-	return keyValuePair->second;
-}
-void SceneRenderer::destroyFramebuffers() {
-	for (const auto& framebuffer : framebuffers) {
-		deviceContext.device.destroyFramebuffer(framebuffer);
-	}
-	framebuffers.clear();
-}
+namespace drk::Scenes::Renderers
+{
+  SceneRenderer::SceneRenderer(Engine::EngineState& engineState,
+      const Devices::DeviceContext& deviceContext,
+      entt::registry& registry,
+      std::function<std::unique_ptr<Meshes::Pipelines::MeshPipeline>()> meshPipelineFactory,
+      std::function<std::unique_ptr<Points::Pipelines::PointPrimitivePipeline>()> pointPrimitivePipelineFactory,
+      std::function<std::unique_ptr<Lines::Pipelines::LinePipeline>()> linePipelineFactory,
+      std::function<std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline>()> boundingVolumePipelineFactory,
+      std::function<std::unique_ptr<Frustums::Pipelines::FrustumPipeline>()> frustumPipelineFactory,
+      std::function<std::unique_ptr<Renderers::ShadowSceneRenderer>()> shadowSceneRendererFactory,
+      Lights::Systems::ShadowMappingSystem& shadowMappingSystem)
+      : engineState(engineState),
+        deviceContext(deviceContext),
+        registry(registry),
+        meshPipeline(std::move(meshPipelineFactory())),
+        pointPrimitivePipeline(std::move(pointPrimitivePipelineFactory())),
+        linePipeline(std::move(linePipelineFactory())),
+        boundingVolumePipeline(std::move(boundingVolumePipelineFactory())),
+        frustumPipeline(std::move(frustumPipelineFactory())),
+        shadowSceneRenderer(std::move(shadowSceneRendererFactory())),
+        shadowMappingSystem(shadowMappingSystem),
+        pipelines{ { std::type_index(typeid(Meshes::Pipelines::MeshPipeline)), this->meshPipeline.get() },
+          { std::type_index(typeid(Points::Pipelines::PointPrimitivePipeline)), this->pointPrimitivePipeline.get() },
+          { std::type_index(typeid(Lines::Pipelines::LinePipeline)), this->linePipeline.get() },
+          { std::type_index(typeid(BoundingVolumes::Pipelines::BoundingVolumePipeline)),
+              this->boundingVolumePipeline.get() },
+          { std::type_index(typeid(Frustums::Pipelines::FrustumPipeline)), this->frustumPipeline.get() } }
+  {
+    this->shadowSceneRenderer->setTargetImageViews(
+        { .extent = shadowMappingSystem.shadowMappingTexture->imageCreateInfo.extent,
+            .format = shadowMappingSystem.shadowMappingTexture->imageCreateInfo.format },
+        { shadowMappingSystem.shadowMappingTexture->imageView });
+  }
 
-void SceneRenderer::destroyFramebufferResources() {
-	if (depthTexture.has_value())
-		deviceContext.destroyTexture(depthTexture.value());
-	if (colorTexture.has_value())
-		deviceContext.destroyTexture(colorTexture.value());
-}
-void SceneRenderer::createFramebufferResources() {
-	vk::ImageCreateInfo imageCreateInfo{
-		.imageType = vk::ImageType::e2D,
-		.format = targetImageInfo->format,
-		.extent = {targetImageInfo->extent.width, targetImageInfo->extent.height, 1},
-		.mipLevels = 1,
-		.arrayLayers = 1,
-		.samples = deviceContext.MaxSampleCount,
-		.usage = vk::ImageUsageFlagBits::eColorAttachment,
-		.sharingMode = vk::SharingMode::eExclusive,
-	};
-	auto mainFramebufferImage = deviceContext.createImage(imageCreateInfo, vk::MemoryPropertyFlagBits::eDeviceLocal);
+  SceneRenderer::~SceneRenderer()
+  {
+    destroyFramebuffers();
+    destroyRenderPass();
+    destroyFramebufferResources();
+  }
+  vk::Extent3D SceneRenderer::getUserExtent()
+  {
+    return userExtent;
+  }
+  Pipelines::GraphicsPipeline* SceneRenderer::getPipeline(std::type_index pipelineTypeIndex)
+  {
+    auto keyValuePair = pipelines.find(pipelineTypeIndex);
+    if (keyValuePair == pipelines.end())
+      throw std::runtime_error(fmt::format("Unsupported pipeline type index {0}.", pipelineTypeIndex.name()));
+    return keyValuePair->second;
+  }
+  void SceneRenderer::destroyFramebuffers()
+  {
+    for (const auto& framebuffer : framebuffers)
+    {
+      deviceContext.device.destroyFramebuffer(framebuffer);
+    }
+    framebuffers.clear();
+  }
 
-	vk::ImageSubresourceRange subresourceRange = {.aspectMask = vk::ImageAspectFlagBits::eColor, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1};
+  void SceneRenderer::destroyFramebufferResources()
+  {
+    if (depthTexture.has_value())
+      deviceContext.destroyTexture(depthTexture.value());
+    if (colorTexture.has_value())
+      deviceContext.destroyTexture(colorTexture.value());
+  }
+  void SceneRenderer::createFramebufferResources()
+  {
+    vk::ImageCreateInfo imageCreateInfo{
+      .imageType = vk::ImageType::e2D,
+      .format = targetImageInfo->format,
+      .extent = { targetImageInfo->extent.width, targetImageInfo->extent.height, 1 },
+      .mipLevels = 1,
+      .arrayLayers = 1,
+      .samples = deviceContext.MaxSampleCount,
+      .usage = vk::ImageUsageFlagBits::eColorAttachment,
+      .sharingMode = vk::SharingMode::eExclusive,
+    };
+    auto mainFramebufferImage = deviceContext.createImage(imageCreateInfo, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-	vk::ImageViewCreateInfo imageViewCreateInfo = {
-		.image = mainFramebufferImage.image, .viewType = vk::ImageViewType::e2D, .format = targetImageInfo->format, .subresourceRange = subresourceRange
-	};
+    vk::ImageSubresourceRange subresourceRange = {
+      .aspectMask = vk::ImageAspectFlagBits::eColor, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1
+    };
 
-	auto mainFramebufferImageView = deviceContext.device.createImageView(imageViewCreateInfo);
+    vk::ImageViewCreateInfo imageViewCreateInfo = { .image = mainFramebufferImage.image,
+      .viewType = vk::ImageViewType::e2D,
+      .format = targetImageInfo->format,
+      .subresourceRange = subresourceRange };
 
-	vk::ImageCreateInfo depthImageCreateInfo{
-		.imageType = vk::ImageType::e2D,
-		.format = deviceContext.DepthFormat,
-		.extent = {targetImageInfo->extent.width, targetImageInfo->extent.height, 1},
-		.mipLevels = 1,
-		.arrayLayers = 1,
-		.samples = deviceContext.MaxSampleCount,
-		.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
-		.sharingMode = vk::SharingMode::eExclusive,
-	};
-	auto mainFramebufferDepthImage = deviceContext.createImage(depthImageCreateInfo, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    auto mainFramebufferImageView = deviceContext.device.createImageView(imageViewCreateInfo);
 
-	vk::ImageSubresourceRange depthSubresourceRange = {.aspectMask = vk::ImageAspectFlagBits::eDepth, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1};
+    vk::ImageCreateInfo depthImageCreateInfo{
+      .imageType = vk::ImageType::e2D,
+      .format = deviceContext.DepthFormat,
+      .extent = { targetImageInfo->extent.width, targetImageInfo->extent.height, 1 },
+      .mipLevels = 1,
+      .arrayLayers = 1,
+      .samples = deviceContext.MaxSampleCount,
+      .usage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
+      .sharingMode = vk::SharingMode::eExclusive,
+    };
+    auto mainFramebufferDepthImage =
+        deviceContext.createImage(depthImageCreateInfo, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-	vk::ImageViewCreateInfo depthImageViewCreateInfo = {
-		.image = mainFramebufferDepthImage.image, .viewType = vk::ImageViewType::e2D, .format = deviceContext.DepthFormat, .subresourceRange = depthSubresourceRange
-	};
+    vk::ImageSubresourceRange depthSubresourceRange = {
+      .aspectMask = vk::ImageAspectFlagBits::eDepth, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1
+    };
 
-	auto mainFramebufferDepthImageView = deviceContext.device.createImageView(depthImageViewCreateInfo);
-	colorTexture = {.image = mainFramebufferImage, .imageView = mainFramebufferImageView};
-	depthTexture = {.image = mainFramebufferDepthImage, .imageView = mainFramebufferDepthImageView};
-}
+    vk::ImageViewCreateInfo depthImageViewCreateInfo = { .image = mainFramebufferDepthImage.image,
+      .viewType = vk::ImageViewType::e2D,
+      .format = deviceContext.DepthFormat,
+      .subresourceRange = depthSubresourceRange };
 
-void SceneRenderer::createFramebuffers() {
-	for (const auto& swapChainImageView : targetImageViews) {
-		std::array<vk::ImageView, 3> attachments{colorTexture->imageView, depthTexture->imageView, swapChainImageView};
-		vk::FramebufferCreateInfo framebufferCreateInfo = {
-			.renderPass = renderPass,
-			.attachmentCount = (uint32_t)attachments.size(),
-			.pAttachments = attachments.data(),
-			.width = targetImageInfo->extent.width,
-			.height = targetImageInfo->extent.height,
-			.layers = 1
-		};
-		auto framebuffer = deviceContext.device.createFramebuffer(framebufferCreateInfo);
-		framebuffers.push_back(framebuffer);
-	}
-}
+    auto mainFramebufferDepthImageView = deviceContext.device.createImageView(depthImageViewCreateInfo);
+    colorTexture = { .image = mainFramebufferImage, .imageView = mainFramebufferImageView };
+    depthTexture = { .image = mainFramebufferDepthImage, .imageView = mainFramebufferDepthImageView };
+  }
 
-void SceneRenderer::createRenderPass() {
-	vk::AttachmentDescription colorAttachment = {
-		.format = targetImageInfo->format,
-		// TODO: Use configurable sample count
-		.samples = vk::SampleCountFlagBits::e8,
-		.loadOp = vk::AttachmentLoadOp::eClear,
-		.storeOp = vk::AttachmentStoreOp::eStore,
-		.stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
-		.stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
-		.initialLayout = vk::ImageLayout::eUndefined,
-		.finalLayout = vk::ImageLayout::eColorAttachmentOptimal,
-	};
+  void SceneRenderer::createFramebuffers()
+  {
+    for (const auto& swapChainImageView : targetImageViews)
+    {
+      std::array<vk::ImageView, 3> attachments{ colorTexture->imageView, depthTexture->imageView, swapChainImageView };
+      vk::FramebufferCreateInfo framebufferCreateInfo = { .renderPass = renderPass,
+        .attachmentCount = (uint32_t)attachments.size(),
+        .pAttachments = attachments.data(),
+        .width = targetImageInfo->extent.width,
+        .height = targetImageInfo->extent.height,
+        .layers = 1 };
+      auto framebuffer = deviceContext.device.createFramebuffer(framebufferCreateInfo);
+      framebuffers.push_back(framebuffer);
+    }
+  }
 
-	vk::AttachmentReference colorAttachmentRef = {.attachment = 0, .layout = vk::ImageLayout::eColorAttachmentOptimal};
+  void SceneRenderer::createRenderPass()
+  {
+    vk::AttachmentDescription colorAttachment = {
+      .format = targetImageInfo->format,
+      // TODO: Use configurable sample count
+      .samples = vk::SampleCountFlagBits::e8,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+      .stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
+      .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+      .initialLayout = vk::ImageLayout::eUndefined,
+      .finalLayout = vk::ImageLayout::eColorAttachmentOptimal,
+    };
 
-	vk::AttachmentDescription depthAttachment = {
-		.format = deviceContext.DepthFormat,
-		// TODO: Use configurable sample count
-		.samples = vk::SampleCountFlagBits::e8,
-		.loadOp = vk::AttachmentLoadOp::eClear,
-		.storeOp = vk::AttachmentStoreOp::eStore,
-		.stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
-		.stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
-		.initialLayout = vk::ImageLayout::eUndefined,
-		.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
-	};
+    vk::AttachmentReference colorAttachmentRef = { .attachment = 0, .layout = vk::ImageLayout::eColorAttachmentOptimal };
 
-	vk::AttachmentReference depthAttachmentRef = {.attachment = 1, .layout = vk::ImageLayout::eDepthStencilAttachmentOptimal};
+    vk::AttachmentDescription depthAttachment = {
+      .format = deviceContext.DepthFormat,
+      // TODO: Use configurable sample count
+      .samples = vk::SampleCountFlagBits::e8,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+      .stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
+      .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+      .initialLayout = vk::ImageLayout::eUndefined,
+      .finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+    };
 
-	vk::AttachmentDescription resolvedColorAttachment = {
-		.format = targetImageInfo->format,
-		.samples = vk::SampleCountFlagBits::e1,
-		.loadOp = vk::AttachmentLoadOp::eClear,
-		.storeOp = vk::AttachmentStoreOp::eStore,
-		.stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
-		.stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
-		.initialLayout = vk::ImageLayout::eUndefined,
-		.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
-	};
+    vk::AttachmentReference depthAttachmentRef = { .attachment = 1,
+      .layout = vk::ImageLayout::eDepthStencilAttachmentOptimal };
 
-	vk::AttachmentReference resolvedColorAttachmentRef = {.attachment = 2, .layout = vk::ImageLayout::eColorAttachmentOptimal};
+    vk::AttachmentDescription resolvedColorAttachment = {
+      .format = targetImageInfo->format,
+      .samples = vk::SampleCountFlagBits::e1,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+      .stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
+      .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+      .initialLayout = vk::ImageLayout::eUndefined,
+      .finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+    };
 
-	vk::SubpassDescription subpass = {
-		.pipelineBindPoint = vk::PipelineBindPoint::eGraphics,
-		.colorAttachmentCount = 1,
-		.pColorAttachments = &colorAttachmentRef,
-		.pResolveAttachments = &resolvedColorAttachmentRef,
-		.pDepthStencilAttachment = &depthAttachmentRef,
-	};
+    vk::AttachmentReference resolvedColorAttachmentRef = { .attachment = 2,
+      .layout = vk::ImageLayout::eColorAttachmentOptimal };
 
-	vk::SubpassDependency dependency = {
-		.srcSubpass = VK_SUBPASS_EXTERNAL,
-		.dstSubpass = 0,
-		.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests,
-		.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests,
-		.srcAccessMask = vk::AccessFlagBits::eNone,
-		.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite
-	};
+    vk::SubpassDescription subpass = {
+      .pipelineBindPoint = vk::PipelineBindPoint::eGraphics,
+      .colorAttachmentCount = 1,
+      .pColorAttachments = &colorAttachmentRef,
+      .pResolveAttachments = &resolvedColorAttachmentRef,
+      .pDepthStencilAttachment = &depthAttachmentRef,
+    };
 
-	std::vector<vk::AttachmentDescription> attachments{colorAttachment, depthAttachment, resolvedColorAttachment};
-	vk::RenderPassCreateInfo renderPassCreationInfo = {
-		.attachmentCount = static_cast<uint32_t>(attachments.size()),
-		.pAttachments = attachments.data(),
-		.subpassCount = 1,
-		.pSubpasses = &subpass,
-		.dependencyCount = 1,
-		.pDependencies = &dependency,
-	};
+    vk::SubpassDependency dependency = { .srcSubpass = VK_SUBPASS_EXTERNAL,
+      .dstSubpass = 0,
+      .srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests,
+      .dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests,
+      .srcAccessMask = vk::AccessFlagBits::eNone,
+      .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite };
 
-	renderPass = deviceContext.device.createRenderPass(renderPassCreationInfo);
-}
-void SceneRenderer::setTargetImageViews(Devices::ImageInfo targetImageInfo, std::vector<vk::ImageView> targetImageViews) {
-	this->targetImageInfo = targetImageInfo;
-	this->targetImageViews = targetImageViews;
-	for (const auto& pipeline : pipelines) pipeline.second->destroyPipeline();
-	destroyFramebuffers();
-	destroyFramebufferResources();
-	destroyRenderPass();
-	createRenderPass();
+    std::vector<vk::AttachmentDescription> attachments{ colorAttachment, depthAttachment, resolvedColorAttachment };
+    vk::RenderPassCreateInfo renderPassCreationInfo = {
+      .attachmentCount = static_cast<uint32_t>(attachments.size()),
+      .pAttachments = attachments.data(),
+      .subpassCount = 1,
+      .pSubpasses = &subpass,
+      .dependencyCount = 1,
+      .pDependencies = &dependency,
+    };
 
-	vk::Viewport viewport;
-	vk::Rect2D scissor;
+    renderPass = deviceContext.device.createRenderPass(renderPassCreationInfo);
+  }
+  void SceneRenderer::setTargetImageViews(Devices::ImageInfo targetImageInfo, std::vector<vk::ImageView> targetImageViews)
+  {
+    this->targetImageInfo = targetImageInfo;
+    this->targetImageViews = targetImageViews;
+    for (const auto& pipeline : pipelines)
+      pipeline.second->destroyPipeline();
+    destroyFramebuffers();
+    destroyFramebufferResources();
+    destroyRenderPass();
+    createRenderPass();
 
-	const auto& pipelineViewportStateCreateInfo =
-		Graphics::Graphics::DefaultPipelineViewportStateCreateInfo({targetImageInfo.extent.width, targetImageInfo.extent.height}, viewport, scissor);
-	for (const auto& pipeline : pipelines) {
-		pipeline.second->configure([&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-			graphicsPipelineCreateInfo.renderPass = renderPass;
-			graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-		});
-	}
+    vk::Viewport viewport;
+    vk::Rect2D scissor;
 
-	createFramebufferResources();
-	createFramebuffers();
-}
-void SceneRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) {
-	if (!targetImageInfo.has_value())
-		return;
-	shadowSceneRenderer->render(0, commandBuffer);
-	vk::ClearValue colorClearValue = {.color = {std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}};
-	vk::ClearValue depthClearValue{.depthStencil = {1.0f, 0}};
-	std::array<vk::ClearValue, 3> clearValues{colorClearValue, depthClearValue, colorClearValue};
-	const auto& extent = targetImageInfo.value().extent;
-	vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
-		.renderPass = renderPass,
-		.framebuffer = framebuffers[targetImageIndex],
-		.renderArea = {0, 0, {extent.width, extent.height}},
-		.clearValueCount = static_cast<uint32_t>(clearValues.size()),
-		.pClearValues = clearValues.data(),
-	};
-	commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
-	//		ImGui::Render();
-	//		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
-	const auto& draws = registry.view<Draws::SceneDraw>();
-	const Draws::SceneDraw* previousSceneDraw = nullptr;
-	entt::entity previousDrawEntity = entt::null;
+    userExtent = targetImageInfo.extent;
+    const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
+        { userExtent.width, userExtent.height }, viewport, scissor);
 
-	uint32_t instanceCount = 0u;
+    for (const auto& pipeline : pipelines)
+    {
+      pipeline.second->configure(
+          [&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo)
+          {
+            graphicsPipelineCreateInfo.renderPass = renderPass;
+            graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
+          });
+    }
 
-	std::map<std::type_index, int> pipelineDrawIndices;
-	for (const auto& pipeline : pipelines) {
-		pipelineDrawIndices[pipeline.first] = 0;
-	}
-	bool isFirst = true;
-	Pipelines::GraphicsPipeline const* pCurrentPipeline;
+    createFramebufferResources();
+    createFramebuffers();
+  }
+  void SceneRenderer::render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer)
+  {
+    if (!targetImageInfo.has_value())
+      return;
+    shadowSceneRenderer->render(0, commandBuffer);
+    vk::ClearValue colorClearValue = { .color = { std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f } } };
+    vk::ClearValue depthClearValue{ .depthStencil = { 1.0f, 0 } };
+    std::array<vk::ClearValue, 3> clearValues{ colorClearValue, depthClearValue, colorClearValue };
+    const auto& extent = targetImageInfo.value().extent;
+    vk::RenderPassBeginInfo mainRenderPassBeginInfo = {
+      .renderPass = renderPass,
+      .framebuffer = framebuffers[targetImageIndex],
+      .renderArea = { 0, 0, { extent.width, extent.height } },
+      .clearValueCount = static_cast<uint32_t>(clearValues.size()),
+      .pClearValues = clearValues.data(),
+    };
+    commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
+    //		ImGui::Render();
+    //		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+    const auto& draws = registry.view<Draws::SceneDraw>();
+    const Draws::SceneDraw* previousSceneDraw = nullptr;
+    entt::entity previousDrawEntity = entt::null;
 
-	draws.each([&](entt::entity drawEntity, const Draws::SceneDraw& sceneDraw) {
-		auto operations = drk::Renderers::RenderOperation::None;
-		if (isFirst || previousSceneDraw->pipelineTypeIndex != sceneDraw.pipelineTypeIndex) {
-			isFirst = false;
-			operations |= drk::Renderers::RenderOperation::BindPipeline;
-		}
-		if (previousDrawEntity == entt::null || (previousSceneDraw->indexBufferView.buffer.buffer != sceneDraw.indexBufferView.buffer.buffer) ||
-			(previousSceneDraw->vertexBufferView.buffer.buffer != sceneDraw.vertexBufferView.buffer.buffer)) {
-			operations |= drk::Renderers::RenderOperation::BindIndexBuffer | drk::Renderers::RenderOperation::BindVertexBuffer;
-		}
-		if (previousDrawEntity != entt::null && (previousSceneDraw->indexBufferView.byteOffset != sceneDraw.indexBufferView.byteOffset ||
-												 previousSceneDraw->vertexBufferView.byteOffset != sceneDraw.vertexBufferView.byteOffset)) {
-			operations |= drk::Renderers::RenderOperation::Draw;
-		}
-		if (previousDrawEntity == entt::null) {
-			doOperations(commandBuffer, operations, sceneDraw, &pCurrentPipeline);
-		} else {
-			if (operations != drk::Renderers::RenderOperation::None) {
-				draw(previousDrawEntity, *previousSceneDraw, commandBuffer, instanceCount, pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex], pCurrentPipeline);
-				pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex] += instanceCount;
-				instanceCount = 0u;
-			}
-			doOperations(commandBuffer, operations, sceneDraw, &pCurrentPipeline);
-		}
-		previousSceneDraw = &sceneDraw;
-		previousDrawEntity = drawEntity;
-		instanceCount++;
-	});
-	if (previousDrawEntity != entt::null) {
-		this->draw(previousDrawEntity, *previousSceneDraw, commandBuffer, instanceCount, pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex], pCurrentPipeline);
-	}
-	commandBuffer.endRenderPass();
-}
-void SceneRenderer::draw(
-	entt::entity previousDrawEntity,
-	const Draws::SceneDraw& previousSceneDraw,
-	const vk::CommandBuffer& commandBuffer,
-	int instanceCount,
-	int firstInstance,
-	Pipelines::GraphicsPipeline const* pPipeline
-) {
-	auto bufferInfo = pPipeline->getBufferInfo(registry, previousDrawEntity);
-	commandBuffer.drawIndexed(bufferInfo.indexCount, instanceCount, bufferInfo.firstIndex, bufferInfo.vertexOffset, firstInstance);
-}
-void SceneRenderer::doOperations(
-	const vk::CommandBuffer& commandBuffer,
-	drk::Renderers::RenderOperation sceneRenderOperation,
-	const Draws::SceneDraw& sceneDraw,
-	Pipelines::GraphicsPipeline const** ppPipeline
-) {
-	if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindPipeline) == drk::Renderers::RenderOperation::BindPipeline) {
-		const auto& pipeline = getPipeline(sceneDraw.pipelineTypeIndex);
-		*ppPipeline = pipeline;
-		pipeline->bind(commandBuffer);
-	}
-	if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindIndexBuffer) == drk::Renderers::RenderOperation::BindIndexBuffer) {
-		commandBuffer.bindIndexBuffer(sceneDraw.indexBufferView.buffer.buffer, 0, vk::IndexType::eUint32);
-	}
-	if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindVertexBuffer) == drk::Renderers::RenderOperation::BindVertexBuffer) {
-		vk::DeviceSize offset = 0u;
-		commandBuffer.bindVertexBuffers(0, 1, &sceneDraw.vertexBufferView.buffer.buffer, &offset);
-	}
-}
-void SceneRenderer::destroyRenderPass() { deviceContext.device.destroyRenderPass(renderPass); }
-Devices::Texture SceneRenderer::BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent) {
-	vk::ImageCreateInfo imageCreateInfo{
-		.imageType = vk::ImageType::e2D,
-		.format = vk::Format::eR8G8B8A8Srgb,
-		.extent = extent,
-		.mipLevels = 1,
-		.arrayLayers = 1,
-		.samples = vk::SampleCountFlagBits::e1,
-		.usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
-		.sharingMode = vk::SharingMode::eExclusive,
-	};
-	auto memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal;
-	auto mainFramebufferImage = deviceContext.createImage(imageCreateInfo, memoryProperties);
+    uint32_t instanceCount = 0u;
 
-	vk::ImageSubresourceRange subresourceRange = {.aspectMask = vk::ImageAspectFlagBits::eColor, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1};
+    std::map<std::type_index, int> pipelineDrawIndices;
+    for (const auto& pipeline : pipelines)
+    {
+      pipelineDrawIndices[pipeline.first] = 0;
+    }
+    bool isFirst = true;
+    Pipelines::GraphicsPipeline const* pCurrentPipeline;
 
-	vk::ImageViewCreateInfo imageViewCreateInfo = {
-		.image = mainFramebufferImage.image, .viewType = vk::ImageViewType::e2D, .format = vk::Format::eR8G8B8A8Srgb, .subresourceRange = subresourceRange
-	};
+    draws.each(
+        [&](entt::entity drawEntity, const Draws::SceneDraw& sceneDraw)
+        {
+          auto operations = drk::Renderers::RenderOperation::None;
+          if (isFirst || previousSceneDraw->pipelineTypeIndex != sceneDraw.pipelineTypeIndex)
+          {
+            isFirst = false;
+            operations |= drk::Renderers::RenderOperation::BindPipeline;
+          }
+          if (previousDrawEntity == entt::null ||
+              (previousSceneDraw->indexBufferView.buffer.buffer != sceneDraw.indexBufferView.buffer.buffer) ||
+              (previousSceneDraw->vertexBufferView.buffer.buffer != sceneDraw.vertexBufferView.buffer.buffer))
+          {
+            operations |=
+                drk::Renderers::RenderOperation::BindIndexBuffer | drk::Renderers::RenderOperation::BindVertexBuffer;
+          }
+          if (previousDrawEntity != entt::null &&
+              (previousSceneDraw->indexBufferView.byteOffset != sceneDraw.indexBufferView.byteOffset ||
+                  previousSceneDraw->vertexBufferView.byteOffset != sceneDraw.vertexBufferView.byteOffset))
+          {
+            operations |= drk::Renderers::RenderOperation::Draw;
+          }
+          if (previousDrawEntity == entt::null)
+          {
+            doOperations(commandBuffer, operations, sceneDraw, &pCurrentPipeline);
+          }
+          else
+          {
+            if (operations != drk::Renderers::RenderOperation::None)
+            {
+              draw(previousDrawEntity,
+                  *previousSceneDraw,
+                  commandBuffer,
+                  instanceCount,
+                  pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
+                  pCurrentPipeline);
+              pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex] += instanceCount;
+              instanceCount = 0u;
+            }
+            doOperations(commandBuffer, operations, sceneDraw, &pCurrentPipeline);
+          }
+          previousSceneDraw = &sceneDraw;
+          previousDrawEntity = drawEntity;
+          instanceCount++;
+        });
+    if (previousDrawEntity != entt::null)
+    {
+      this->draw(previousDrawEntity,
+          *previousSceneDraw,
+          commandBuffer,
+          instanceCount,
+          pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
+          pCurrentPipeline);
+    }
+    commandBuffer.endRenderPass();
+  }
+  void SceneRenderer::draw(entt::entity previousDrawEntity,
+      const Draws::SceneDraw& previousSceneDraw,
+      const vk::CommandBuffer& commandBuffer,
+      int instanceCount,
+      int firstInstance,
+      Pipelines::GraphicsPipeline const* pPipeline)
+  {
+    auto bufferInfo = pPipeline->getBufferInfo(registry, previousDrawEntity);
+    commandBuffer.drawIndexed(
+        bufferInfo.indexCount, instanceCount, bufferInfo.firstIndex, bufferInfo.vertexOffset, firstInstance);
+  }
+  void SceneRenderer::doOperations(const vk::CommandBuffer& commandBuffer,
+      drk::Renderers::RenderOperation sceneRenderOperation,
+      const Draws::SceneDraw& sceneDraw,
+      Pipelines::GraphicsPipeline const** ppPipeline)
+  {
+    if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindPipeline) ==
+        drk::Renderers::RenderOperation::BindPipeline)
+    {
+      const auto& pipeline = getPipeline(sceneDraw.pipelineTypeIndex);
+      *ppPipeline = pipeline;
+      pipeline->bind(commandBuffer);
+    }
+    if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindIndexBuffer) ==
+        drk::Renderers::RenderOperation::BindIndexBuffer)
+    {
+      commandBuffer.bindIndexBuffer(sceneDraw.indexBufferView.buffer.buffer, 0, vk::IndexType::eUint32);
+    }
+    if ((sceneRenderOperation & drk::Renderers::RenderOperation::BindVertexBuffer) ==
+        drk::Renderers::RenderOperation::BindVertexBuffer)
+    {
+      vk::DeviceSize offset = 0u;
+      commandBuffer.bindVertexBuffers(0, 1, &sceneDraw.vertexBufferView.buffer.buffer, &offset);
+    }
+  }
+  void SceneRenderer::destroyRenderPass()
+  {
+    deviceContext.device.destroyRenderPass(renderPass);
+  }
+  Devices::Texture SceneRenderer::BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext,
+      vk::Extent3D extent)
+  {
+    vk::ImageCreateInfo imageCreateInfo{
+      .imageType = vk::ImageType::e2D,
+      .format = vk::Format::eR8G8B8A8Srgb,
+      .extent = extent,
+      .mipLevels = 1,
+      .arrayLayers = 1,
+      .samples = vk::SampleCountFlagBits::e1,
+      .usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
+      .sharingMode = vk::SharingMode::eExclusive,
+    };
+    auto memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal;
+    auto mainFramebufferImage = deviceContext.createImage(imageCreateInfo, memoryProperties);
 
-	auto mainFramebufferImageView = deviceContext.device.createImageView(imageViewCreateInfo);
+    vk::ImageSubresourceRange subresourceRange = {
+      .aspectMask = vk::ImageAspectFlagBits::eColor, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1
+    };
 
-	Devices::Texture target = {
-		.image = mainFramebufferImage,
-		.imageView = mainFramebufferImageView,
-		.imageCreateInfo = imageCreateInfo,
-		.imageViewCreateInfo = imageViewCreateInfo,
-		.memoryProperties = memoryProperties
-	};
+    vk::ImageViewCreateInfo imageViewCreateInfo = { .image = mainFramebufferImage.image,
+      .viewType = vk::ImageViewType::e2D,
+      .format = vk::Format::eR8G8B8A8Srgb,
+      .subresourceRange = subresourceRange };
 
-	return target;
-}
-void SceneRenderer::setTargetExtent(vk::Extent3D extent) {
-	deviceContext.device.waitIdle();
-	for (const auto& pipeline : pipelines) {
-		pipeline.second->destroyPipeline();
-	}
+    auto mainFramebufferImageView = deviceContext.device.createImageView(imageViewCreateInfo);
 
-	vk::Viewport viewport;
-	vk::Rect2D scissor;
+    Devices::Texture target = { .image = mainFramebufferImage,
+      .imageView = mainFramebufferImageView,
+      .imageCreateInfo = imageCreateInfo,
+      .imageViewCreateInfo = imageViewCreateInfo,
+      .memoryProperties = memoryProperties };
 
-	const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo({extent.width, extent.height}, viewport, scissor);
-	for (const auto& pipeline : pipelines) {
-		pipeline.second->configure([&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
-			graphicsPipelineCreateInfo.renderPass = renderPass;
-			graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
-		});
-	}
-}
+    return target;
+  }
+  void SceneRenderer::setTargetExtent(vk::Extent3D extent)
+  {
+    userExtent = extent;
+    deviceContext.device.waitIdle();
+    for (const auto& pipeline : pipelines)
+    {
+      pipeline.second->destroyPipeline();
+    }
+
+    vk::Viewport viewport;
+    vk::Rect2D scissor;
+
+    const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
+        { userExtent.width, userExtent.height }, viewport, scissor);
+    for (const auto& pipeline : pipelines)
+    {
+      pipeline.second->configure(
+          [&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo)
+          {
+            graphicsPipelineCreateInfo.renderPass = renderPass;
+            graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
+          });
+    }
+  }
 }  // namespace drk::Scenes::Renderers

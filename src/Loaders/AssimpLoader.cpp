@@ -50,7 +50,6 @@ LoadResult AssimpLoader::Load(std::filesystem::path scenePath, entt::registry& r
 		aiProcess_FindInstances | aiProcess_GenBoundingBoxes | aiProcess_Triangulate | aiProcess_FindInstances | aiProcess_GenNormals | aiProcess_JoinIdenticalVertices |
 			aiProcess_CalcTangentSpace | aiProcess_OptimizeMeshes | aiProcess_PopulateArmatureData
 	);
-
 	std::span<aiMaterial*> aiMaterials(aiScene->mMaterials, aiScene->mNumMaterials);
 	std::span<aiTexture*> aiTextures(aiScene->mTextures, aiScene->mNumTextures);
 	std::span<aiMesh*> aiMeshes(aiScene->mMeshes, aiScene->mNumMeshes);
@@ -662,6 +661,7 @@ entt::entity AssimpLoader::loadNode(
 	auto localModel = translationMatrix * rotationMatrix * scalingMatrix;
 
 	Spatials::Components::Spatial<Spatials::Components::Relative> spatial{position, rotation, scale, localModel};
+    Spatials::Components::Spatial<Spatials::Components::Absolute> absoluteSpatial{ position, rotation, scale, localModel };
 
 	entt::entity entity = entt::null;
 	bool shouldEmplaceSpatial = true;
@@ -752,7 +752,11 @@ entt::entity AssimpLoader::loadNode(
 	}
 
 	if (shouldEmplaceSpatial)
-		registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity, spatial);
+        {
+          registry.emplace<Spatials::Components::Spatial<Spatials::Components::Relative>>(entity, spatial);
+          registry.emplace<Spatials::Components::Spatial<Spatials::Components::Absolute>>(entity, absoluteSpatial);
+        }
+        
 
 	Nodes::Components::Node relationship;
 	Nodes::Components::Node* previousRelationship = nullptr;

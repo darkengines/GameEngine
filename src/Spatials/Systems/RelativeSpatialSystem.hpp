@@ -4,12 +4,12 @@
 #include "../../Engine/EngineState.hpp"
 #include "../Models/RelativeSpatial.hpp"
 #include "../Components/Spatial.hpp"
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../../Nodes/Components/Node.hpp"
 
 namespace drk::Spatials::Systems {
 	class RelativeSpatialSystem
-		: public drk::Systems::System<Models::RelativeSpatial, Components::Spatial<Components::Relative>> {
+		: public drk::Systems::StorageSystem<Models::RelativeSpatial, Components::Spatial<Components::Relative>> {
 	protected:
 		const Devices::DeviceContext& deviceContext;
 
@@ -18,7 +18,7 @@ namespace drk::Spatials::Systems {
 			const Devices::DeviceContext& deviceContext,
 			Engine::EngineState& engineState,
 			entt::registry& registry
-		) : System(engineState, registry), deviceContext(deviceContext) {
+		) : StorageSystem(engineState, registry), deviceContext(deviceContext) {
 			addSpatialSystem(registry);
 		}
 

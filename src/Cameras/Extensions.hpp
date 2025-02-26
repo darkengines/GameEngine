@@ -19,7 +19,8 @@ fruit::Component<Systems::CameraSystem> addCameras() {
 		)>()
 		.install(Devices::addDevices)
 		.install(Engine::addEngine)
-		.install(drk::addRegistry);
+		.install(drk::addRegistry)
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::CameraSystem>();
 }
 auto AddCameras() {
 	return boost::di::make_injector(

@@ -14,7 +14,7 @@
 
 namespace drk::Lines::Systems {
 LineSystem::LineSystem(Engine::EngineState& engineState, entt::registry& registry, Devices::DeviceContext& deviceContext)
-	: drk::Systems::System<Models::Line, Components::Line>(engineState, registry), deviceContext(deviceContext) {
+	: drk::Systems::StorageSystem<Models::Line, Components::Line>(engineState, registry), deviceContext(deviceContext) {
 	createResources();
 }
 LineSystem::~LineSystem() {

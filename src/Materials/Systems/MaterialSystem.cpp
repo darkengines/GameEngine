@@ -8,7 +8,7 @@ namespace drk::Materials::Systems {
 		const drk::Devices::DeviceContext& deviceContext,
 		entt::registry& registry,
 		Engine::EngineState& engineState
-	) : System(engineState, registry), deviceContext(deviceContext) {}
+	) : StorageSystem(engineState, registry), deviceContext(deviceContext) {}
 
 	void MaterialSystem::update(
 		Models::Material& storedMaterial,

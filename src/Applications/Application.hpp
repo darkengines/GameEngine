@@ -32,7 +32,7 @@
 #include "../Scenes/Systems/SceneSystem.hpp"
 #include "../Spatials/Systems/RelativeSpatialSystem.hpp"
 #include "../Spatials/Systems/SpatialSystem.hpp"
-#include "../Systems/StorageSystem.hpp"
+#include "../Systems/IStorageSystem.hpp"
 #include "../Textures/Systems/TextureSystem.hpp"
 #include "../UserInterfaces/AssetExplorer.hpp"
 #include "../UserInterfaces/Renderers/UserInterfaceRenderer.hpp"

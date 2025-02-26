@@ -18,7 +18,7 @@ namespace drk::Frustums::Systems {
 		Engine::EngineState& engineState,
 		entt::registry& registry,
 		const Devices::DeviceContext& deviceContext
-	) : System<Models::Frustum, Components::Frustum>(engineState, registry),
+	) : StorageSystem<Models::Frustum, Components::Frustum>(engineState, registry),
 		deviceContext(deviceContext) {
 		createResources();
 	}

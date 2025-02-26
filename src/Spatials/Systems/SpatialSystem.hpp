@@ -4,11 +4,11 @@
 #include "../../Engine/EngineState.hpp"
 #include "../Models/Spatial.hpp"
 #include "../Components/Spatial.hpp"
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../../Nodes/Components/Node.hpp"
 
 namespace drk::Spatials::Systems {
-	class SpatialSystem : public drk::Systems::System<Models::Spatial, Components::Spatial < Components::Absolute>>
+	class SpatialSystem : public drk::Systems::StorageSystem<Models::Spatial, Components::Spatial<Components::Absolute>>
 
 {
 	protected:

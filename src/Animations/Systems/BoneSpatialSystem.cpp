@@ -10,7 +10,7 @@ namespace drk::Animations::Systems {
 	BoneSpatialSystem::BoneSpatialSystem(
 		Engine::EngineState& engineState,
 		entt::registry& registry
-	) : drk::Systems::System<Models::BoneSpatial, Spatials::Components::Spatial<Components::Bone>>(
+	) : drk::Systems::StorageSystem<Models::BoneSpatial, Spatials::Components::Spatial<Components::Bone>>(
 		engineState,
 		registry
 	) {}

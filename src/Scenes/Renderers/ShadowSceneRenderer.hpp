@@ -8,7 +8,7 @@
 #include "../../Meshes/Pipelines/ShadowMeshPipeline.hpp"
 #include "../../Points/Pipelines/PointPrimitivePipeline.hpp"
 #include "../../Devices/ImageInfo.hpp"
-#include "../../Draws/Systems/DrawSystem.hpp"
+#include "../../Draws/Systems/IDrawSystem.hpp"
 #include "../Draws/ShadowSceneDraw.hpp"
 #include "../../Renderers/RenderOperation.hpp"
 #include "../../Lines/Pipelines/LinePipeline.hpp"

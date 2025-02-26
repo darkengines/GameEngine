@@ -109,7 +109,7 @@ file(
 	src/Draws/Extentions.hpp
 	src/Draws/Components/DrawVertexBufferInfo.hpp
 	src/Draws/Models/Draw.hpp
-	src/Draws/Systems/DrawSystem.hpp
+	src/Draws/Systems/IDrawSystem.hpp
 	src/Engine/DescriptorSetAllocator.hpp
 	src/Engine/DescriptorSetLayoutCache.hpp
 	src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.hpp
@@ -237,7 +237,7 @@ file(
 	src/Stores/StoreItemLocation.hpp
 	src/Stores/TextureStore.hpp
 	src/Stores/Models/StoreItemLocation.hpp
-	src/Systems/System.hpp
+	src/Systems/IStorageSystem.hpp
 	src/Systems/StorageSystem.hpp
 	src/Textures/Extensions.hpp
 	src/Textures/ImageInfo.hpp
@@ -335,7 +335,7 @@ file(
 	src/Stores/StoreBuffer.cpp
 	src/Stores/StoreBufferAllocator.cpp
 	src/Stores/TextureStore.cpp
-	src/Systems/System.cpp
+	src/Systems/StorageSystem.cpp
 	src/Textures/ImageInfo.cpp
 	src/Textures/Systems/TextureSystem.cpp
 	src/UserInterfaces/AssetExplorer.cpp
@@ -403,6 +403,7 @@ target_include_directories(drk SYSTEM PUBLIC ${IMGUI_INCLUDE_DIR} ${IMGUI_INCLUD
 target_include_directories(drk SYSTEM PUBLIC ${imgui-filebrowser})
 target_include_directories(drk SYSTEM PUBLIC ${nlohmann_json_INCLUDE_DIRS})
 target_include_directories(drk SYSTEM PUBLIC ${nameof_INCLUDE_DIRS})
+target_include_directories(drk SYSTEM PUBLIC ${Taskflow_INCLUDE_DIRS})
 
 target_link_libraries(drk PRIVATE ${Vulkan_LIBRARIES})
 target_link_libraries(drk PRIVATE GPUOpen::VulkanMemoryAllocator)
@@ -414,6 +415,6 @@ target_link_libraries(drk PRIVATE imgui)
 target_link_libraries(drk PRIVATE fmt::fmt-header-only)
 target_link_libraries(drk PRIVATE nlohmann_json)
 target_link_libraries(drk PRIVATE imguizmo::imguizmo)
-target_link_libraries(drk PUBLIC Taskflow::Taskflow)
+target_link_libraries(drk PRIVATE Taskflow::Taskflow)
 #target_link_libraries(drk PUBLIC fruit)
 target_link_libraries(drk PUBLIC ${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/lib/fruit.lib)

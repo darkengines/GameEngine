@@ -4,12 +4,12 @@
 #include "../Models/LightPerspective.hpp"
 #include "../Models/Spotlight.hpp"
 #include "../Components/Spotlight.hpp"
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../Models/Light.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
 
 namespace drk::Lights::Systems {
-	class SpotlightSystem : public drk::Systems::System<
+	class SpotlightSystem : public drk::Systems::StorageSystem<
 		Models::Spotlight,
 		Components::Spotlight,
 		Stores::StoreItem<Models::Light>,

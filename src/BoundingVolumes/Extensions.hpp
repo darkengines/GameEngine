@@ -28,7 +28,10 @@ fruit::Component<std::function<std::unique_ptr<Pipelines::BoundingVolumePipeline
 		)>()
 		.install(Engine::addEngine)
 		.install(Devices::addDevices)
-		.install(drk::addRegistry);
+		.install(drk::addRegistry)
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::AxisAlignedBoundingBoxSystem>()
+		.addMultibinding<drk::Draws::Systems::IDrawSystem, Systems::AxisAlignedBoundingBoxSystem>();
+	;
 }
 auto AddBoundingVolumes() {
 	return boost::di::make_injector(

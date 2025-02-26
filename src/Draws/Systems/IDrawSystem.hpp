@@ -4,7 +4,7 @@
 #include "../Components/DrawVertexBufferInfo.hpp"
 
 namespace drk::Draws::Systems {
-	class DrawSystem {
+	class IDrawSystem {
 	public:
 		virtual void updateDraw(entt::entity drawEntity, int drawIndex) = 0;
 		virtual void emitDraws() = 0;

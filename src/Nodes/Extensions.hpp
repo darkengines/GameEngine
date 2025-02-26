@@ -13,7 +13,8 @@ fruit::Component<Systems::NodeSystem> addObjects() {
 		)>()
 		.install(Devices::addDevices)
 		.install(Engine::addEngine)
-		.install(drk::addRegistry);
+		.install(drk::addRegistry)
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::NodeSystem>();
 }
 	auto AddObjects() {
 		return boost::di::make_injector(

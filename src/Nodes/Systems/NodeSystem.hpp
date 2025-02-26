@@ -7,11 +7,11 @@
 #include "../../Meshes/Models/Mesh.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
 #include "../../Spatials/Models/RelativeSpatial.hpp"
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../../Loaders/LoadResult.hpp"
 
 namespace drk::Nodes::Systems {
-	class NodeSystem : public drk::Systems::System<
+	class NodeSystem : public drk::Systems::StorageSystem<
 		Models::Node,
 		Stores::StoreItem<Spatials::Models::Spatial>,
 		Stores::StoreItem<Spatials::Models::RelativeSpatial>

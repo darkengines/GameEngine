@@ -215,7 +215,7 @@ void main() {
     }
 
     if (globalBuffer.global.renderStyle == material_style) {
-        outColor = vec4(hashFloatToRgb(drawItemLocation.itemIndex), 1.f);
+        outColor = vec4(hashFloatToRgb(mesh.materialItemLocation.itemIndex), 1.f);
         return;
     }
     Spatial spatial = spatialBuffer[node.spatialItemLocation.storeIndex].spatials[node.spatialItemLocation.itemIndex];
@@ -229,7 +229,7 @@ void main() {
     }
 
     if (globalBuffer.global.renderStyle == normal_style) {
-        outColor = normal;
+        outColor = abs(normal);
         outColor.a = 1.0f;
         return;
     }

@@ -2,13 +2,13 @@
 #pragma once
 #include "../Models/PointLight.hpp"
 #include "../Components/PointLight.hpp"
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../Models/Light.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
 #include "./ShadowMappingSystem.hpp"
 
 namespace drk::Lights::Systems {
-	class PointLightSystem : public drk::Systems::System<
+	class PointLightSystem : public drk::Systems::StorageSystem<
 		Models::PointLight,
 		Components::PointLight,
 		Stores::StoreItem<Models::Light>,

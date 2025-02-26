@@ -1,12 +1,12 @@
 
 #pragma once
 
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../Models/Light.hpp"
 #include "../Components/Light.hpp"
 
 namespace drk::Lights::Systems {
-	class LightSystem : public drk::Systems::System<
+	class LightSystem : public drk::Systems::StorageSystem<
 		Models::Light,
 		Components::Light
 	> {
@@ -14,7 +14,7 @@ namespace drk::Lights::Systems {
 		LightSystem(
 			Engine::EngineState& engineState,
 			entt::registry& registry
-		) : System(engineState, registry) {};
+		) : StorageSystem(engineState, registry) {};
 		void update(Models::Light& lightModel, const Components::Light& lightComponent) override;
 	};
 }

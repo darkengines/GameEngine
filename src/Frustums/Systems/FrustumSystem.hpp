@@ -1,14 +1,14 @@
 #pragma once
 
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../Components/Frustum.hpp"
 #include "../Models/Frustum.hpp"
-#include "../../Draws/Systems/DrawSystem.hpp"
+#include "../../Draws/Systems/IDrawSystem.hpp"
 
 namespace drk::Frustums::Systems {
 	class FrustumSystem :
-		public drk::Systems::System<Models::Frustum, Components::Frustum>,
-		drk::Draws::Systems::DrawSystem {
+		public drk::Systems::StorageSystem<Models::Frustum, Components::Frustum>,
+		public drk::Draws::Systems::IDrawSystem {
 	protected:
 		const Devices::DeviceContext& deviceContext;
 		Devices::BufferView vertexBufferView;

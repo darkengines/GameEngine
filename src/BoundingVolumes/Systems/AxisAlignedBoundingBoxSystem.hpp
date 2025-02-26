@@ -1,17 +1,17 @@
 #pragma once
 
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../Models/AxisAlignedBoundingBox.hpp"
 #include "../Components/AxisAlignedBoundingBox.hpp"
 #include "../../Common/Components/Dirty.hpp"
 #include "../../Spatials/Components/Spatial.hpp"
-#include "../../Draws/Systems/DrawSystem.hpp"
+#include "../../Draws/Systems/IDrawSystem.hpp"
 #include "../../Nodes/Components/NodeMesh.hpp"
 
 namespace drk::BoundingVolumes::Systems {
 	class AxisAlignedBoundingBoxSystem :
-		public Draws::Systems::DrawSystem,
-		public drk::Systems::System<
+		public Draws::Systems::IDrawSystem,
+		public drk::Systems::StorageSystem<
 			Models::AxisAlignedBoundingBox,
 			Components::AxisAlignedBoundingBox,
 			Nodes::Components::NodeMesh

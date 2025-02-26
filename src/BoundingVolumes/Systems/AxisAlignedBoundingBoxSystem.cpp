@@ -15,7 +15,7 @@ namespace drk::BoundingVolumes::Systems {
 		Engine::EngineState& engineState,
 		entt::registry& registry,
 		const Devices::DeviceContext& deviceContext
-	) : System<
+	) : StorageSystem<
 		Models::AxisAlignedBoundingBox,
 		Components::AxisAlignedBoundingBox,
 		Nodes::Components::NodeMesh

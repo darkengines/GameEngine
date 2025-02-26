@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Meshes/Components/MeshBufferView.hpp"
-#include "../../Draws/Systems/DrawSystem.hpp"
+#include "../../Draws/Systems/IDrawSystem.hpp"
 #include "../../Lights/Components/LightPerspective.hpp"
 #include "../../Engine/EngineState.hpp"
 #include "../../Cameras/Components/Camera.hpp"
@@ -9,7 +9,7 @@
 #include <entt/entt.hpp>
 
 namespace drk::Meshes::Systems {
-	class MeshShadowSystem : public Draws::Systems::DrawSystem {
+	class MeshShadowSystem : public Draws::Systems::IDrawSystem {
 	protected:
 		entt::registry& registry;
 		Engine::EngineState& engineState;

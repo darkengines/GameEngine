@@ -3,8 +3,8 @@
 #include "../../Devices/DeviceContext.hpp"
 #include "../../Engine/EngineState.hpp"
 #include "../Models/Mesh.hpp"
-#include "../../Draws/Systems/DrawSystem.hpp"
-#include "../../Systems/System.hpp"
+#include "../../Draws/Systems/IDrawSystem.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../Components/Mesh.hpp"
 #include "../../Nodes/Models/Node.hpp"
 #include "../../Nodes/Components/NodeMesh.hpp"
@@ -22,8 +22,8 @@
 
 namespace drk::Meshes::Systems {
 	class MeshSystem :
-		public Draws::Systems::DrawSystem,
-		public drk::Systems::System<
+		public Draws::Systems::IDrawSystem,
+		public drk::Systems::StorageSystem<
 			Models::Mesh,
 			Materials::Components::MaterialReference
 		> {

@@ -2,12 +2,12 @@
 
 #include "../Models/BoneMesh.hpp"
 #include "../Components/BoneMesh.hpp"
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../../Engine/EngineState.hpp"
 #include <entt/entt.hpp>
 
 namespace drk::Animations::Systems {
-	class BoneMeshSystem : public drk::Systems::System<Models::BoneMesh, Components::BoneMesh> {
+	class BoneMeshSystem : public drk::Systems::StorageSystem<Models::BoneMesh, Components::BoneMesh> {
 	public:
 		BoneMeshSystem(
 			Engine::EngineState& engineState,

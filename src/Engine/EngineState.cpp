@@ -1,6 +1,5 @@
 #include "EngineState.hpp"
 
-#include <chrono>
 #include <vulkan/vulkan.hpp>
 
 namespace drk::Engine {

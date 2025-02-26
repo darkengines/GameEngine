@@ -4,7 +4,7 @@ namespace drk::Lights::Systems {
 	SpotlightSystem::SpotlightSystem(
 		Engine::EngineState& engineState,
 		entt::registry& registry
-	) : System(engineState, registry) {}
+	) : StorageSystem(engineState, registry) {}
 	void SpotlightSystem::update(
 		Models::Spotlight& model,
 		const Components::Spotlight& component,

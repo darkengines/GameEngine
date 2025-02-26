@@ -4,17 +4,18 @@
 #include "../../Engine/EngineState.hpp"
 #include "../Components/Camera.hpp"
 #include "../Models/Camera.hpp"
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../../Stores/Models/StoreItemLocation.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
 #include "../../Spatials/Models/RelativeSpatial.hpp"
+#include "../../Spatials/Components/Spatial.hpp"
 
 namespace drk::Cameras::Systems {
-	class CameraSystem : public drk::Systems::System<
+	class CameraSystem : public drk::Systems::StorageSystem<
 		Models::Camera, 
 		Components::Camera, 
-		Stores::StoreItem<Spatials::Models::RelativeSpatial>, 
-		Stores::StoreItem<Spatials::Models::Spatial>
+		Stores::StoreItem<Spatials::Models::Spatial>,
+        Stores::StoreItem<Spatials::Models::RelativeSpatial>
 	> {
 	protected:
 		const Devices::DeviceContext& deviceContext;
@@ -27,8 +28,8 @@ namespace drk::Cameras::Systems {
 		void update(
 			Models::Camera& cameraModel, 
 			const Components::Camera& camera,
-			const Stores::StoreItem<Spatials::Models::RelativeSpatial>& relativeSpatialStoreItem,
-			const Stores::StoreItem<Spatials::Models::Spatial>& absoluteSpatialStoreItem
+            const Stores::StoreItem<Spatials::Models::Spatial>& absoluteSpatialStoreItem,
+            const Stores::StoreItem<Spatials::Models::RelativeSpatial>& relativeSpatialStoreItem
 		);
 		void processDirtyItems();
 

@@ -4,6 +4,7 @@
 
 #include "../Buffers/Extensions.hpp"
 #include "../Graphics/Extentions.hpp"
+#include "../Draws/Systems/IDrawSystem.hpp"
 #include "Pipelines/MeshPipeline.hpp"
 #include "Pipelines/ShadowMeshPipeline.hpp"
 #include "Resources/MeshResourceManager.hpp"
@@ -64,7 +65,10 @@ addMeshes() {
 		.install(Engine::addEngine)
 		.install(drk::addRegistry)
 		.install(Buffers::addBuffers)
-		.install(Graphics::addGraphics);
+		.install(Graphics::addGraphics)
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::MeshSystem>()
+		.addMultibinding<drk::Draws::Systems::IDrawSystem, Systems::MeshSystem>()
+		.addMultibinding<drk::Draws::Systems::IDrawSystem, Systems::MeshShadowSystem>();
 }
 auto AddMeshes() {
 	return boost::di::make_injector(

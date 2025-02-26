@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../Models/Line.hpp"
 #include "../Components/Line.hpp"
-#include "../../Draws/Systems/DrawSystem.hpp"
+#include "../../Draws/Systems/IDrawSystem.hpp"
 
 namespace drk::Lines::Systems {
 
-	class LineSystem : public drk::Systems::System<Models::Line, Components::Line>, public Draws::Systems::DrawSystem {
+	class LineSystem : public drk::Systems::StorageSystem<Models::Line, Components::Line>, public Draws::Systems::IDrawSystem {
 	public:
 		LineSystem(Engine::EngineState& engineState, entt::registry& registry, Devices::DeviceContext& deviceContext);
 		~LineSystem();

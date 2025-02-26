@@ -16,7 +16,7 @@ namespace drk::Points::Systems {
 		entt::registry& registry,
 		Devices::DeviceContext& deviceContext
 	)
-		: drk::Systems::System<Models::Point, Components::Point>(engineState, registry), deviceContext(deviceContext) {
+		: drk::Systems::StorageSystem<Models::Point, Components::Point>(engineState, registry), deviceContext(deviceContext) {
 		createResources();
 	}
 	PointSystem::~PointSystem() {

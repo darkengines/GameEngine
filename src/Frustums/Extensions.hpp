@@ -28,7 +28,9 @@ fruit::Component<std::function<std::unique_ptr<Pipelines::FrustumPipeline>()>, S
 		)>()
 		.install(Engine::addEngine)
 		.install(Devices::addDevices)
-		.install(drk::addRegistry);
+		.install(drk::addRegistry)
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::FrustumSystem>()
+		.addMultibinding<drk::Draws::Systems::IDrawSystem, Systems::FrustumSystem>();
 }
 auto AddFrustums() {
 	return boost::di::make_injector(

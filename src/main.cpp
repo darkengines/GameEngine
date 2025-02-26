@@ -1,5 +1,6 @@
 #define BOOST_DI_CFG_DIAGNOSTICS_LEVEL 2
 #define GLM_ENABLE_EXPERIMENTAL
+
 #include <fruit/fruit.h>
 
 #include <nlohmann/json.hpp>
@@ -58,7 +59,7 @@ int main(int argc, char** argv) {
 	if (argc > 1)
 		modelPath = std::string(argv[1]);
 
-	auto injector = boost::di::make_injector(
+	/*auto injector = boost::di::make_injector(
 		drk::Configuration::AddConfiguration(),
 		drk::Windows::AddWindows(),
 		drk::Devices::AddDevices(),
@@ -82,20 +83,24 @@ int main(int argc, char** argv) {
 		drk::Animations::AddAnimations(),
 		boost::di::bind<entt::registry>.to<entt::registry>(),
 		drk::Applications::AddApplications()
-	);
+	);*/
 
 	fruit::Injector<drk::Applications::Root, entt::registry, drk::Loaders::AssimpLoader> fruitInjector(drk::Applications::addRoot);
-	const auto& storageSystems = fruitInjector.getMultibindings<drk::Systems::StorageSystem>();
-	auto& root = fruitInjector.get<drk::Applications::Root&>();
 
-	if (modelPath.has_value()) {
-		auto& loader = fruitInjector.get<drk::Loaders::AssimpLoader&>();
-		auto& registry = fruitInjector.get<entt::registry&>();
-		auto loadResult = loader.Load(*modelPath, registry);
-		root.applicationState.loadResults.emplace_back(std::move(loadResult));
+	{
+        drk::Systems::IStorageSystem::storageSystems = fruitInjector.getMultibindings<drk::Systems::IStorageSystem>();
+		const auto& drawSystems = fruitInjector.getMultibindings<drk::Draws::Systems::IDrawSystem>();
+		auto& root = fruitInjector.get<drk::Applications::Root&>();
+
+		if (modelPath.has_value()) {
+			auto& loader = fruitInjector.get<drk::Loaders::AssimpLoader&>();
+			auto& registry = fruitInjector.get<entt::registry&>();
+			auto loadResult = loader.Load(*modelPath, registry);
+			root.applicationState.loadResults.emplace_back(std::move(loadResult));
+		}
+
+		root.run();
 	}
-
-	root.run();
 	// auto& app = injector.create<drk::Applications::Application&>();
 	// auto& registry = injector.create<entt::registry&>();
 	// auto& spatialSystem = injector.create<drk::Spatials::Systems::SpatialSystem&>();

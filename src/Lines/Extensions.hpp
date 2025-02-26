@@ -30,7 +30,9 @@ fruit::Component<Systems::LineSystem, std::function<std::unique_ptr<Lines::Pipel
 		})
 		.install(Engine::addEngine)
 		.install(Devices::addDevices)
-		.install(drk::addRegistry);
+		.install(drk::addRegistry)
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::LineSystem>()
+		.addMultibinding<drk::Draws::Systems::IDrawSystem, Systems::LineSystem>();
 }
 auto AddLines() {
 	return boost::di::make_injector(

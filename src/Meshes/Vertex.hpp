@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../system.hpp"
 #include <glm/glm.hpp>
 #include <vector>
 #include <vulkan/vulkan.hpp>

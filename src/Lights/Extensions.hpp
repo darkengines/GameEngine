@@ -57,7 +57,12 @@ addLights() {
 		)>()
 		.install(drk::addRegistry)
 		.install(Devices::addDevices)
-		.install(Engine::addEngine);
+		.install(Engine::addEngine)
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::LightSystem>()
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::DirectionalLightSystem>()
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::PointLightSystem>()
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::SpotlightSystem>()
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::LightPerspectiveSystem>();
 }
 auto AddLights() {
 	return boost::di::make_injector(

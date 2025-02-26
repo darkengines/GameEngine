@@ -2,12 +2,12 @@
 
 #include "../Components/LightPerspective.hpp"
 #include "../Models/LightPerspective.hpp"
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../../Common/KGuillotineAllocator.hpp"
 #include "./ShadowMappingSystem.hpp"
 
 namespace drk::Lights::Systems {
-	class LightPerspectiveSystem : public drk::Systems::System<
+	class LightPerspectiveSystem : public drk::Systems::StorageSystem<
 		Models::LightPerspective,
 		Components::LightPerspective
 	> {

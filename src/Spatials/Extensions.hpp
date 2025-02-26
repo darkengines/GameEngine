@@ -20,7 +20,9 @@ fruit::Component<Systems::SpatialSystem, Systems::RelativeSpatialSystem> addSpat
 		)>()
 		.install(Devices::addDevices)
 		.install(Engine::addEngine)
-		.install(drk::addRegistry);
+		.install(drk::addRegistry)
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::SpatialSystem>()
+		.addMultibinding<drk::Systems::IStorageSystem, Systems::RelativeSpatialSystem>();
 }
 auto AddSpatials() {
 	return boost::di::make_injector(

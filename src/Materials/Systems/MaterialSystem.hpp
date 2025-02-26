@@ -4,10 +4,10 @@
 #include "../../Devices/Device.hpp"
 #include "../../Devices/DeviceContext.hpp"
 #include "../Models/Material.hpp"
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 
 namespace drk::Materials::Systems {
-	class MaterialSystem : public drk::Systems::System<Models::Material, Components::Material> {
+	class MaterialSystem : public drk::Systems::StorageSystem<Models::Material, Components::Material> {
 	protected:
 		const Devices::DeviceContext& deviceContext;
 	public:

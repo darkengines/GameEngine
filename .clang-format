@@ -1,21 +1,36 @@
-# clang-format configuration for Greenbone C code
-#
-# Minimum required clang-format version: 6.0
-
----
-
-BasedOnStyle: Google
-UseTab: 'true'
-IndentWidth: 4
-TabWidth: 4
-BreakBeforeBraces: Attach
-AlignAfterOpenBracket : BlockIndent
-AllowShortIfStatementsOnASingleLine: false
+﻿BasedOnStyle: Google
+AlignAfterOpenBracket: DontAlign  # Prevents forced line breaks after `(`
+AllowAllConstructorInitializersOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
-IndentCaseLabels: false
-AccessModifierOffset: -4
-ColumnLimit: 0
+AlignConsecutiveMacros: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBraces: Allman  # Keeps Allman style braces
 BinPackArguments: false
 BinPackParameters: false
-PenaltyBreakBeforeFirstCallParameter: 0
-PenaltyReturnTypeOnItsOwnLine: 1000
+Cpp11BracedListStyle: false
+ColumnLimit: 125
+NamespaceIndentation: All
+SpaceAfterTemplateKeyword: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyBlock: true
+Standard: Latest
+
+# 🔥 Disable All Penalties:
+# PenaltyBreakAssignment: 0
+# PenaltyBreakBeforeFirstCallParameter: 0
+# PenaltyBreakBeforeMemberAccess: 0
+# PenaltyBreakComment: 0
+# PenaltyBreakFirstLessLess: 0
+# PenaltyBreakOpenParenthesis: 0
+# PenaltyBreakScopeResolution: 0
+# PenaltyBreakString: 0
+# PenaltyBreakTemplateDeclaration: 0
+# PenaltyExcessCharacter: 0
+# PenaltyIndentedWhitespace: 0
+# PenaltyReturnTypeOnItsOwnLine: 0

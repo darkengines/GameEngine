@@ -1,14 +1,14 @@
 #pragma once
 
 #include "../Models/LightPerspective.hpp"
-#include "../../Systems/System.hpp"
+#include "../../Systems/StorageSystem.hpp"
 #include "../Models/DirectionalLight.hpp"
 #include "../Components/DirectionalLight.hpp"
 #include "../Models/Light.hpp"
 #include "../../Spatials/Models/Spatial.hpp"
 
 namespace drk::Lights::Systems {
-	class DirectionalLightSystem : public drk::Systems::System<
+	class DirectionalLightSystem : public drk::Systems::StorageSystem<
 		Models::DirectionalLight,
 		Components::DirectionalLight,
 		Stores::StoreItem<Models::Light>,
