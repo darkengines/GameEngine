@@ -11,7 +11,7 @@ namespace drk::Applications {
 
 void Application::renderEntities() {
 	auto entities = registry.storage<entt::entity>().each();
-	for (const auto entity : entities) {
+	for (const auto& entity : entities) {
 		renderEntity(std::get<0>(entity));
 	}
 	/*const auto& relationships = registry.view<Nodes::Components::Node>();

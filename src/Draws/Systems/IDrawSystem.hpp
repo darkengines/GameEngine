@@ -8,5 +8,6 @@ namespace drk::Draws::Systems {
 	public:
 		virtual void updateDraw(entt::entity drawEntity, int drawIndex) = 0;
 		virtual void emitDraws() = 0;
+        inline static std::vector<IDrawSystem*> drawSystems;
 	};
 }

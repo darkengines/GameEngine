@@ -351,7 +351,7 @@ namespace drk::Debugging::Renderers {
 		int firstInstance,
 		Pipelines::GraphicsPipeline const* pPipeline
 	) {
-		auto bufferInfo = pPipeline->getBufferInfo(registry, previousDrawEntity);
+		const auto& bufferInfo = pPipeline->getBufferInfo(registry, previousDrawEntity);
 		commandBuffer.drawIndexed(
 			bufferInfo.indexCount,
 			instanceCount,

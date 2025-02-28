@@ -46,6 +46,7 @@ namespace drk::Scenes::Renderers
     vk::Extent3D userExtent;
 
    public:
+    void SetupImgui();
     SceneRenderer(Engine::EngineState& engineState,
         const Devices::DeviceContext& deviceContext,
         entt::registry& registry,

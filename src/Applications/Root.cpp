@@ -1,5 +1,6 @@
 #include "Root.hpp"
 
+#include <ImGuizmo.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
@@ -247,6 +248,36 @@ namespace drk::Applications
             { 0.0f, 0.0f },
             { (float)applicationState.actualExtent.width / applicationState.sceneExtent.width,
                 (float)applicationState.actualExtent.height / applicationState.sceneExtent.height });
+
+        ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
+        ImGuizmo::SetDrawlist();
+        float windowWidth = (float)applicationState.actualExtent.width;
+        float windowHeight = (float)applicationState.actualExtent.height;
+        auto viewport = ImGui::GetWindowViewport();
+        ImGuizmo::SetRect(viewport->WorkPos.x, viewport->WorkPos.y, viewport->Size.x, viewport->Size.y);
+
+        const auto &camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
+        auto perspective = camera.perspective;
+        perspective[1][1] *= -1.0f;
+        ImGuizmo::DrawGrid(
+            glm::value_ptr(camera.view), glm::value_ptr(perspective), glm::value_ptr(glm::identity<glm::mat4>()), 100.f);
+
+        if (selectedEntity != entt::null)
+        {
+          const auto &spatial =
+              registry.try_get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(selectedEntity);
+          if (spatial != nullptr)
+          {
+            ImGuizmo::Manipulate(glm::value_ptr(camera.view),
+                glm::value_ptr(perspective),
+                (ImGuizmo::OPERATION)0xffffffff,
+                ImGuizmo::WORLD,
+                glm::value_ptr(spatial->model),
+                nullptr);
+
+            Spatials::Systems::SpatialSystem::makeDirty(registry, selectedEntity);
+          }
+        }
       }
 
       ImGui::End();
@@ -401,16 +432,11 @@ namespace drk::Applications
         rootTaskflow.emplace([&]() { globalSystem.update(); }).succeed(storeTaskflow).name("Global system update");
     const auto &spatialSystemPropagation =
         rootTaskflow.emplace([&]() { spatialSystem.PropagateChanges(); }).name("Spatial systempass").succeed(storeTaskflow);
-    const auto &cameraPass = rootTaskflow.emplace([&]() { cameraSystem.processDirtyItems(); })
-                                 .name("Camera dirty processing")
-                                 .succeed(spatialSystemPropagation);
-    const auto &emitMeshDrawsTask = rootTaskflow.emplace([&]() { meshSystem.emitDraws(); })
-                                        .name("Mesh draw")
-                                        .succeed(spatialSystemPropagation)
-                                        .succeed(cameraPass);
-    auto dirtyDrawTaskflow = rootTaskflow.emplace([&]() { meshSystem.processDirtyDraws(); })
-                                 .name("Mesh dirty draw processing")
-                                 .succeed(emitMeshDrawsTask);
+
+    const auto &animationUpdate = rootTaskflow.emplace([&]() { animationSystem.updateAnimations(); })
+                                      .name("Animation system pass")
+                                      .precede(spatialSystemPropagation)
+                                      .succeed(storeTaskflow);
 
     const auto &storeUpdateTask = rootTaskflow
                                       .emplace(
@@ -425,28 +451,20 @@ namespace drk::Applications
                                       .succeed(storeTaskflow)
                                       .name("Store update");
 
-    const auto &updateDraws = rootTaskflow.emplace([&]() { sceneSystem.updateDraws(); })
-                                  .precede(storeUpdateTask)
-                                  .succeed(dirtyDrawTaskflow)
-                                  .name("Update scene draws");
-
-    /*
-
-    const auto &animationUpdate = rootTaskflow.emplace([&]() { animationSystem.updateAnimations(); })
-                                      .name("Animation system pass")
-                                      .precede(spatialSystemPropagation)
-                                      .succeed(resetSynchronizationState);
-
     rootTaskflow.emplace([&]() { boneSpatialSystem.propagateChanges(); })
         .name("Bone spatial propagation")
-        .precede(updateStoreTaskflow)
-        .succeed(spatialSystemPropagation);
+        .succeed(spatialSystemPropagation)
+        .precede(storeUpdateTask);
 
+    const auto &cameraPass = rootTaskflow.emplace([&]() { cameraSystem.processDirtyItems(); })
+                                 .name("Camera dirty processing")
+                                 .succeed(spatialSystemPropagation)
+                                 .precede(storeUpdateTask);
 
     const auto &lightPerspectiveUpdate = rootTaskflow.emplace([&]() { lightPerspectiveSystem.processDirtyItems(); })
                                              .name("Light perspective processing")
-                                             .precede(updateStoreTaskflow)
-                                             .succeed(spatialSystemPropagation);
+                                             .succeed(spatialSystemPropagation)
+                                             .precede(storeUpdateTask);
 
     rootTaskflow.emplace([&]() { directionalLightSystem.processDirtyItems(); })
         .name("Directional light processing")
@@ -463,30 +481,48 @@ namespace drk::Applications
         .succeed(spatialSystemPropagation)
         .precede(lightPerspectiveUpdate);
 
+    auto createSkinnedMeshInstanceTaskflow =
+        rootTaskflow.emplace([&]() { animationSystem.createSkinnedMeshInstanceResources(engineState.getFrameIndex()); })
+            .name("Create skinned mesh instance")
+            .succeed(storeTaskflow);
+
+    const auto emitDrawsTask = rootTaskflow
+                                   .emplace(
+                                       [&]()
+                                       {
+                                         for (const auto &drawSystem : drk::Draws::Systems::IDrawSystem::drawSystems)
+                                         {
+                                           drawSystem->emitDraws();
+                                         }
+                                       })
+                                   .succeed(spatialSystemPropagation)
+                                   .succeed(lightPerspectiveUpdate);
+
+    auto dirtyDrawTaskflow = rootTaskflow.emplace([&]() { meshSystem.processDirtyDraws(); })
+                                 .name("Mesh dirty draw processing")
+                                 .succeed(emitDrawsTask);
+
+    const auto &updateShadowDrawsTaskflow = rootTaskflow.emplace([&]() { sceneSystem.updateShadowDraws(); })
+                                                .precede(storeUpdateTask)
+                                                .succeed(emitDrawsTask)
+                                                .name("Update shadow draws");
+
+    const auto &updateDraws = rootTaskflow.emplace([&]() { sceneSystem.updateDraws(); })
+                                  .precede(storeUpdateTask)
+                                  .succeed(dirtyDrawTaskflow)
+                                  .name("Update scene draws");
+
+    auto updateSkinTaskflow = rootTaskflow.emplace([&]() { animationSystem.updateSkins(frameStatePtr->commandBuffer); })
+                                  .name("Skin update")
+                                  .succeed(skinnedMeshUpload);
+
+    /*
+
+
     const auto &axisAlignedBoundingBoxPass = rootTaskflow.emplace([&]() { axisAlignedBoundingBoxSystem.processDirty(); })
                                                  .name("AABB processing")
                                                  .succeed(spatialSystemPropagation)
                                                  .precede(lightPerspectiveUpdate);
-
-    auto controllerTaskflow = rootTaskflow.emplace([&]() { flyCamController.Step(applicationState.frameTime); })
-                                  .name("Flycam controller update")
-                                  .precede(spatialSystemPropagation)
-                                  .succeed(resetSynchronizationState);
-
-*/
-    /*auto resetCommandBufferTaskflow = rootTaskflow.emplace(
-        [&]()
-        {
-          frameStatePtr->commandBuffer.reset();
-          vk::CommandBufferBeginInfo commandBufferBeginInfo = {};
-          const auto &result = frameStatePtr->commandBuffer.begin(&commandBufferBeginInfo);
-        });
-    resetCommandBufferTaskflow.succeed(updateApplicationStateTaskflow).name("Command buffer reset");*/
-
-    /*
-    const auto &updateShadowDrawsTaskflow =
-        rootTaskflow.emplace([&]() { sceneSystem.updateShadowDraws(); }).name("Update shadow
-    draws").succeed(updateStoreTaskflow);
 
 
      auto renderSceneTaskflow = rootTaskflow.emplace([&]() { sceneRenderer.render(0, frameStatePtr->commandBuffer); })
@@ -495,94 +531,19 @@ namespace drk::Applications
                                    .succeed(resetCommandBufferTaskflow)
                                    .name("Render scene");
 
-    auto updateSkinTaskflow = rootTaskflow.emplace([&]() { animationSystem.updateSkins(frameStatePtr->commandBuffer); })
-                                  .name("Skin update")
-                                  .succeed(skinnedMeshUpload)
-                                  .succeed(resetCommandBufferTaskflow)
-                                    .precede(renderSceneTaskflow);
 
-    rootTaskflow.emplace([&]() { meshShadowSystem.emitDraws(); }).name("Mesh shadowd
-    raw").succeed(spatialSystemPropagation).precede(updateShadowDrawsTaskflow); rootTaskflow.emplace([&]() {
-    pointSystem.emitDraws(); }).name("Point draw").succeed(spatialSystemPropagation).precede(updateDraws);
+
+
     rootTaskflow.emplace([&]() { lineSystem.emitDraws(); }).name("Line
     draw").succeed(spatialSystemPropagation).precede(updateDraws); rootTaskflow.emplace([&]() {
-    axisAlignedBoundingBoxSystem.emitDraws(); }) .name("AABB draw") .succeed(axisAlignedBoundingBoxPass)
-        .succeed(spatialSystemPropagation)
-        .precede(updateDraws);
+        axisAlignedBoundingBoxSystem.emitDraws();
+    }).name("AABB draw").succeed(axisAlignedBoundingBoxPass)
+    .succeed(spatialSystemPropagation)
+    .precede(updateDraws);
+
     rootTaskflow.emplace([&]() { frustumSystem.emitDraws(); }).name("Frustum
     draw").succeed(cameraPass).succeed(spatialSystemPropagation) .precede(updateDraws);
-
-    auto createSkinnedMeshInstanceTaskflow =
-        rootTaskflow.emplace([&]() { animationSystem.createSkinnedMeshInstanceResources(engineState.getFrameIndex()); })
-            .name("Create skinned mesh instance")
-            .succeed(resetCommandBufferTaskflow)
-            .succeed(meshUpload)
-            .succeed(skinnedMeshUpload);
-
-    auto resetTaskflow = rootTaskflow
-                             .emplace(
-                                 [&](tf::Subflow &resetSubflow)
-                                 {
-                                   resetSubflow
-                                       .emplace(
-                                           [&]()
-                                           {
-                                             registry.clear<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>();
-                                           })
-                                       .name("Reset relative spatial dirty flags");
-
-                                   resetSubflow
-                                       .emplace(
-                                           [&]()
-                                           {
-                                             registry.clear<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>>();
-                                           })
-                                       .name("Reset absolute spatial dirty flags");
-                                 })
-                             .name("Dirty item cleanup")
-                             .succeed(updateStoreTaskflow);
 */
-    // auto drawGuiTaskflow = rootTaskflow.emplace([&]() { renderGui(applicationState);
-    // }).name("DrawGUI").succeed(updateApplicationStateTaskflow);
-
-    /* auto finalTask = rootTaskflow
-                          .emplace(
-                              [&]()
-                              {
-                                frameStatePtr->commandBuffer.end();
-
-                                vk::PipelineStageFlags submissionWaitDstStageMask =
-       vk::PipelineStageFlagBits::eColorAttachmentOutput; vk::SubmitInfo submitInfo = { .waitSemaphoreCount = 1,
-       .pWaitSemaphores = &frameStatePtr->imageReadySemaphore, .pWaitDstStageMask = &submissionWaitDstStageMask,
-       .commandBufferCount = 1, .pCommandBuffers = &frameStatePtr->commandBuffer, .signalSemaphoreCount = 1,
-       .pSignalSemaphores = &frameStatePtr->imageRenderedSemaphore,
-                                };
-
-                                deviceContext.GraphicQueue.submit({ submitInfo }, frameStatePtr->fence);
-
-                                vk::Result presentResult;
-                                try
-                                {
-                                  presentResult = graphics.Present(swapchainImageAcquisitionResult.value);
-                                }
-                                catch (const vk::OutOfDateKHRError &e)
-                                {
-                                  shouldRecreateSwapchain = true;
-                                }
-                                workflowToMain.release();
-                                mainToWorkflow.acquire();
-                              })
-                          .name("Final rendering task");*/
-
-    /*auto renderGuiTaskflow =
-        rootTaskflow
-            .emplace(
-                [&]() { userInterfaceRenderer.render(swapchainImageAcquisitionResult.value, frameStatePtr->commandBuffer); })
-            .name("Render GUI")
-            .succeed(drawGuiTaskflow)
-            .succeed(sceneTextureTransitionTask);*/
-
-    //.succeed(renderGuiTaskflow);
 
     rootTaskflow.dump(std::cout);
     tf::Executor executor;

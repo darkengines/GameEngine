@@ -11,8 +11,12 @@ namespace drk::Applications {
 
 void Root::renderEntities() {
 	auto entities = registry.storage<entt::entity>().each();
-	for (const auto entity : entities) {
-		renderEntity(std::get<0>(entity));
+	for (const auto entityTuple : entities) {
+          const auto entity = std::get<0>(entityTuple);
+          if (registry.any_of<Nodes::Components::Node, Lights::Components::Light>(entity))
+          {
+            renderEntity(entity);
+          }
 	}
 	/*const auto& relationships = registry.view<Nodes::Components::Node>();
 	relationships.each([this](entt::entity entity, Nodes::Components::Node& relationship) {

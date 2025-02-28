@@ -61,7 +61,12 @@ namespace drk::Animations::Systems {
 			descriptorSetAllocator(descriptorSetAllocator),
 			descriptorSetLayoutCache(descriptorSetLayoutCache),
 			animationResourceManager(animationResourceManager),
-			skinningPipeline(skinningPipeline) {}
+			skinningPipeline(skinningPipeline) {
+                  auto skinnedMeshInstances =
+                      registry
+                          .view<Components::SkinnedMeshInstance, Nodes::Components::NodeMesh, Components::SkinnedBufferView>(
+                              entt::exclude<Components::BoneInstanceWeightBufferView>);
+        }
 		~AnimationSystem() {
 			for (const auto buffer: buffers) {
 				Devices::Device::destroyBuffer(deviceContext.Allocator, buffer);

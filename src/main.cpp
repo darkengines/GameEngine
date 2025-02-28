@@ -89,9 +89,9 @@ int main(int argc, char** argv) {
 
 	{
         drk::Systems::IStorageSystem::storageSystems = fruitInjector.getMultibindings<drk::Systems::IStorageSystem>();
-		const auto& drawSystems = fruitInjector.getMultibindings<drk::Draws::Systems::IDrawSystem>();
+        drk::Draws::Systems::IDrawSystem::drawSystems = fruitInjector.getMultibindings<drk::Draws::Systems::IDrawSystem>();
 		auto& root = fruitInjector.get<drk::Applications::Root&>();
-
+        
 		if (modelPath.has_value()) {
 			auto& loader = fruitInjector.get<drk::Loaders::AssimpLoader&>();
 			auto& registry = fruitInjector.get<entt::registry&>();

@@ -24,7 +24,7 @@ void FlyCamController::Attach(entt::entity cameraEntity) {
 	yaw = eulers.y;
 	roll = eulers.z;
 	relativeSpatial.rotation = glm::quat(glm::vec3(pitch, yaw, roll));
-	Registry.emplace_or_replace<Graphics::SynchronizationState<Spatials::Models::Spatial>>(CameraEntity, 2u);
+	//Registry.emplace_or_replace<Graphics::SynchronizationState<Spatials::Models::Spatial>>(CameraEntity, 2u);
 	Registry.emplace_or_replace<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>(CameraEntity);
 }
 

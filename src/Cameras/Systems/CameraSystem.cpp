@@ -18,6 +18,10 @@ namespace drk::Cameras::Systems
       : StorageSystem(engineState, registry),
         deviceContext(deviceContext)
   {
+    auto dirtyCameraView = registry.view<Components::Camera,
+        Spatials::Components::Spatial<Spatials::Components::Relative>,
+        Spatials::Components::Spatial<Spatials::Components::Absolute>,
+        Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>();
   }
 
   void CameraSystem::update(Models::Camera& cameraModel, const Components::Camera& camera, const Stores::StoreItem<Spatials::Models::Spatial>& absoluteSpatialStoreItem, const Stores::StoreItem<Spatials::Models::RelativeSpatial>& relativeSpatialStoreItem)

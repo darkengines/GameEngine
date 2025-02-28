@@ -24,6 +24,10 @@ namespace drk::Lights::Systems
         deviceContext(deviceContext),
         shadowMappingSystem(shadowMappingSystem)
   {
+    const auto& dirtyPointLightView = registry.view<Components::PointLight,
+        Spatials::Components::Spatial<Spatials::Components::Absolute>,
+        Components::LightPerspectiveCollection,
+        Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>>();
   }
   void PointLightSystem::update(Models::PointLight& model,
       const Components::PointLight& component,

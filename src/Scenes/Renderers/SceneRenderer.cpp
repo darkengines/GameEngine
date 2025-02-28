@@ -8,6 +8,27 @@
 
 namespace drk::Scenes::Renderers
 {
+  void SceneRenderer::SetupImgui()
+  {
+    if (imGuiInitialized)
+      return;
+    ImGui_ImplVulkan_InitInfo infos{
+      .Instance = deviceContext.Instance,
+      .PhysicalDevice = deviceContext.PhysicalDevice,
+      .Device = deviceContext.device,
+      .QueueFamily = 0,
+      .Queue = deviceContext.GraphicQueue,
+      .DescriptorPool = engineState.imGuiDescriptorPool,
+      .RenderPass = static_cast<VkRenderPass>(renderPass),
+      .MinImageCount = 2,
+      .ImageCount = 2,
+      // TODO: Use configurable sample count
+      .MSAASamples = VK_SAMPLE_COUNT_8_BIT,
+    };
+    ImGui_ImplVulkan_Init(&infos);
+    imGuiInitialized = true;
+  }
+
   SceneRenderer::SceneRenderer(Engine::EngineState& engineState,
       const Devices::DeviceContext& deviceContext,
       entt::registry& registry,
