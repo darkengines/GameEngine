@@ -44,10 +44,8 @@ namespace drk::Scenes::Renderers
     std::unordered_map<std::type_index, Pipelines::GraphicsPipeline*> pipelines;
     vk::Extent3D userExtent;
     const Windows::Window& window;
-    bool imGuiInitialized;
 
    public:
-    void initializeImGuiContext();
     SceneRenderer(Engine::EngineState& engineState,
         const Devices::DeviceContext& deviceContext,
         entt::registry& registry,
@@ -65,10 +63,6 @@ namespace drk::Scenes::Renderers
     void setTargetImageViews(Devices::ImageInfo targetImageInfo, std::vector<vk::ImageView> targetImageViews);
     static Devices::Texture BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent);
     void setTargetExtent(vk::Extent3D extent2D);
-    void renderGridGui();
-    void renderGizmoGui();
-    NestedWindow nestedWindow;
-    ImGuiContext* imGuiContext;
 
    protected:
     Pipelines::GraphicsPipeline* getPipeline(std::type_index pipelineTypeIndex);

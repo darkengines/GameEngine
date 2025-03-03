@@ -37,6 +37,7 @@
 #include "../Nodes/Components/NodeMesh.hpp"
 #include "../Nodes/Components/NodeMeshCollection.hpp"
 #include "../Spatials/Components/Spatial.hpp"
+#include <fmt/format.h>
 
 namespace drk::Loaders
 {
@@ -81,7 +82,7 @@ namespace drk::Loaders
     meshEntityInstanceEntityMap.push(map);
 
     loadLights(aiLights, lightMap, registry, loadResult);
-    loadCameras(aiCameras, cameraMap, registry);
+    loadCameras(aiCameras, cameraMap, registry, loadResult);
     loadSkeletons(aiSkeletons, loadResult, registry);
     loadAnimations(aiAnimations, aiNodeNameNodeAnimationMap, loadResult, registry);
 
@@ -339,7 +340,8 @@ namespace drk::Loaders
         uint32_t boneIndex = 0;
         for (const auto& aiBone : aiBones)
         {
-          auto boneEntityEntry = aiBoneNodeNameBoneEntityMap.find(aiBone->mName.C_Str());
+          auto boneEntityEntry =
+              aiBoneNodeNameBoneEntityMap.find(loadResult.getEntityExternalId(std::string(aiBone->mName.C_Str())));
           entt::entity boneEntity;
           if (boneEntityEntry != aiBoneNodeNameBoneEntityMap.end())
           {
@@ -349,7 +351,7 @@ namespace drk::Loaders
           {
             boneEntity = registry.create();
             aiBonePtrBoneEntityMap[aiBone] = boneEntity;
-            aiBoneNodeNameBoneEntityMap[aiBone->mName.C_Str()] = boneEntity;
+            aiBoneNodeNameBoneEntityMap[loadResult.getEntityExternalId(std::string(aiBone->mName.C_Str()))] = boneEntity;
             registry.emplace<Common::Components::Name>(boneEntity, aiBone->mName.C_Str());
             registry.emplace<Animations::Components::Bone>(boneEntity, std::vector<entt::entity>{});
           }
@@ -494,13 +496,14 @@ namespace drk::Loaders
       std::transform(aiChannels.begin(),
           aiChannels.end(),
           animation.nodeAnimations.data(),
-          [&nodeNameAnimationMap, &registry, animationEntity](const aiNodeAnim* aiChannel)
+          [&nodeNameAnimationMap, &loadResult, &registry, animationEntity](const aiNodeAnim* aiChannel)
           {
             std::span<aiVectorKey> aiPositionKeys(aiChannel->mPositionKeys, aiChannel->mNumPositionKeys);
             std::span<aiVectorKey> aiScalingKeys(aiChannel->mScalingKeys, aiChannel->mNumScalingKeys);
             std::span<aiQuatKey> aiRotationKeys(aiChannel->mRotationKeys, aiChannel->mNumRotationKeys);
 
             Animations::Components::NodeAnimation nodeAnimation{
+              .nodeEntity = entt::null,
               .animationEntity = animationEntity,
               .preState = animationBehaviorMap[aiChannel->mPreState],
               .postState = animationBehaviorMap[aiChannel->mPostState],
@@ -546,7 +549,7 @@ namespace drk::Loaders
             entt::entity nodeAnimationEntity = registry.create();
             registry.emplace<Animations::Components::NodeAnimation>(nodeAnimationEntity, nodeAnimation);
             registry.emplace<Animations::Components::AnimationState>(nodeAnimationEntity, 0.0);
-            nodeNameAnimationMap[aiChannel->mNodeName.C_Str()] = nodeAnimationEntity;
+            nodeNameAnimationMap[loadResult.getEntityExternalId(std::string(aiChannel->mNodeName.C_Str()))] = nodeAnimationEntity;
             return nodeAnimation;
           });
       std::span<aiMeshAnim*> aiMeshChannels(aiAnimation->mMeshChannels, aiAnimation->mNumMeshChannels);
@@ -733,13 +736,13 @@ namespace drk::Loaders
         { aiLight->mColorSpecular.r / 256.0f, aiLight->mColorSpecular.g / 256.0f, aiLight->mColorSpecular.b / 256.0f, 1 }
       };
       registry.emplace<Lights::Components::Light>(entity, light);
-      lightNameMap[lightName] = { entity, aiLight->mType };
+      lightNameMap[loadResult.getEntityExternalId(lightName)] = { entity, aiLight->mType };
     }
   }
 
   void AssimpLoader::loadCameras(std::span<aiCamera*> aiCameras,
       std::unordered_map<std::string, entt::entity>& cameraNameMap,
-      entt::registry& registry) const
+      entt::registry& registry, LoadResult& loadResult) const
   {
     for (auto aiCamera : aiCameras)
     {
@@ -784,7 +787,7 @@ namespace drk::Loaders
       registry.emplace<Cameras::Components::Camera>(entity, camera);
       registry.emplace<Frustums::Components::Frustum>(entity, cameraFrustum);
 
-      cameraNameMap[cameraName] = entity;
+      cameraNameMap[loadResult.getEntityExternalId(cameraName)] = entity;
     }
   }
 
@@ -823,7 +826,7 @@ namespace drk::Loaders
     entt::entity entity = entt::null;
     bool shouldEmplaceSpatial = true;
 
-    auto light = lightMap.find(nodeName);
+    auto light = lightMap.find(loadResult.getEntityExternalId(nodeName));
     if (light != lightMap.end())
     {
       shouldEmplaceSpatial = false;
@@ -850,7 +853,7 @@ namespace drk::Loaders
         spotlightSpatial.position += glm::vec4(glm::vec3(spatial.position), 0.0f);
       }
     }
-    auto cameraEntry = cameraMap.find(nodeName);
+    auto cameraEntry = cameraMap.find(loadResult.getEntityExternalId(nodeName));
     if (cameraEntry != cameraMap.end())
     {
       entity = cameraEntry->second;
@@ -862,14 +865,14 @@ namespace drk::Loaders
       entity = registry.create();
     registry.emplace<Common::Components::Name>(entity, assimpNode->mName.C_Str());
 
-    auto nodeAnimationEntityEntry = aiNodeNameNodeAnimationMap.find(assimpNode->mName.C_Str());
+    auto nodeAnimationEntityEntry = aiNodeNameNodeAnimationMap.find(loadResult.getEntityExternalId(std::string(assimpNode->mName.C_Str())));
     if (nodeAnimationEntityEntry != aiNodeNameNodeAnimationMap.end())
     {
       auto& nodeAnimation = registry.get<Animations::Components::NodeAnimation>(nodeAnimationEntityEntry->second);
       nodeAnimation.nodeEntity = entity;
     }
 
-    auto boneEntityEntry = aiBonePtrBoneEntityMap.find(assimpNode->mName.C_Str());
+    auto boneEntityEntry = aiBonePtrBoneEntityMap.find(loadResult.getEntityExternalId(std::string(assimpNode->mName.C_Str())));
     if (boneEntityEntry != aiBonePtrBoneEntityMap.end())
     {
       auto boneEntity = boneEntityEntry->second;

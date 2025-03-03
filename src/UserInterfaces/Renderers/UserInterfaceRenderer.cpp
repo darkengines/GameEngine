@@ -10,7 +10,6 @@ namespace drk::UserInterfaces::Renderers
   void UserInterfaceRenderer::initializeImGuiContext()
   {
     IMGUI_CHECKVERSION();
-    ImGui::SetCurrentContext(imGuiContext);
     auto& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -44,7 +43,6 @@ namespace drk::UserInterfaces::Renderers
   {}
   UserInterfaceRenderer::~UserInterfaceRenderer()
   {
-    ImGui::SetCurrentContext(imGuiContext);
     ImGui_ImplVulkan_Shutdown();
     DestroyMainFramebuffer();
     deviceContext.device.destroyRenderPass(mainRenderPass);
@@ -261,7 +259,6 @@ namespace drk::UserInterfaces::Renderers
       .pClearValues = clearValues.data(),
     };
     commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
-    ImGui::SetCurrentContext(imGuiContext);
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
     commandBuffer.endRenderPass();
   }

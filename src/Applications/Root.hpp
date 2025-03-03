@@ -92,6 +92,7 @@ namespace drk::Applications
     void updateApplicationState(std::optional<Devices::Texture>& sceneTexture,
         vk::ResultValue<uint32_t>& swapchainImageAcquisitionResult,
         Engine::FrameState const*& frameStatePtr);
+    void renderGizmoGui();
     void renderEntities();
     void renderEntity(const entt::entity entity);
     void renderProperties(entt::entity entity);
