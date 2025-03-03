@@ -6,7 +6,7 @@
 namespace drk::Stores {
 	class TextureStore {
 	protected:
-		const Devices::DeviceContext& DeviceContext;
+		const Devices::DeviceContext& deviceContext;
 		std::vector<Devices::Texture> Textures;
 		vk::DescriptorSet DescriptorSet;
 		vk::Sampler TextureSampler;
@@ -22,7 +22,7 @@ namespace drk::Stores {
 
 		~TextureStore() {
 			for (const auto& texture: Textures) {
-				DeviceContext.destroyTexture(texture);
+				deviceContext.destroyTexture(texture);
 			}
 		}
 

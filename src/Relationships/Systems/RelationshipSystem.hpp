@@ -6,7 +6,7 @@
 namespace drk::Relationships::Systems {
 	class RelationshipSystem {
 	protected:
-		const Devices::DeviceContext& DeviceContext;
+		const Devices::DeviceContext& deviceContext;
 		Engine::EngineState& EngineState;
 		entt::registry& registry;
 

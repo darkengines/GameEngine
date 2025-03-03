@@ -9,7 +9,7 @@ namespace drk::Nodes {
 		Engine::EngineState& engineState,
 		entt::registry& registry
 	)
-		: StorageSystem(engineState, registry), DeviceContext(deviceContext) {}
+		: StorageSystem(engineState, registry), deviceContext(deviceContext) {}
 
 	void Systems::NodeSystem::update(
 		Models::Node& nodeModel,

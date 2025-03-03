@@ -7,7 +7,7 @@ namespace drk::Textures::Systems {
 		Engine::EngineState& engineState,
 		entt::registry& registry
 	)
-		: DeviceContext(deviceContext), EngineState(engineState), registry(registry) {
+		: deviceContext(deviceContext), EngineState(engineState), registry(registry) {
           const auto& ImageInfoView = registry.view<Textures::ImageInfo>(entt::exclude<Devices::Texture>);
     }
 

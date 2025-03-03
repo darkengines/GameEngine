@@ -6,7 +6,7 @@
 namespace drk::Textures::Systems {
 	class TextureSystem {
 	protected:
-		const Devices::DeviceContext& DeviceContext;
+		const Devices::DeviceContext& deviceContext;
 		Engine::EngineState& EngineState;
 		entt::registry& registry;
 

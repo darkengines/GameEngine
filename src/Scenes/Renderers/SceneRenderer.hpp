@@ -2,7 +2,6 @@
 #pragma once
 
 #include <imgui.h>
-
 #include <entt/entt.hpp>
 
 #include "../../BoundingVolumes/Pipelines/BoundingVolumePipeline.hpp"
@@ -19,6 +18,7 @@
 #include "../../Renderers/Renderer.hpp"
 #include "../Draws/SceneDraw.hpp"
 #include "./ShadowSceneRenderer.hpp"
+#include "../../ImGui/imgui_impl_nested.h"
 
 namespace drk::Scenes::Renderers
 {
@@ -42,11 +42,12 @@ namespace drk::Scenes::Renderers
     Lights::Systems::ShadowMappingSystem& shadowMappingSystem;
     vk::RenderPass renderPass;
     std::unordered_map<std::type_index, Pipelines::GraphicsPipeline*> pipelines;
-    ImGuiContext* imGuiContextPtr;
     vk::Extent3D userExtent;
+    const Windows::Window& window;
+    bool imGuiInitialized;
 
    public:
-    void SetupImgui();
+    void initializeImGuiContext();
     SceneRenderer(Engine::EngineState& engineState,
         const Devices::DeviceContext& deviceContext,
         entt::registry& registry,
@@ -56,13 +57,18 @@ namespace drk::Scenes::Renderers
         std::function<std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline>()> boundingVolumePipelineFactory,
         std::function<std::unique_ptr<Frustums::Pipelines::FrustumPipeline>()> frustumPipelineFactory,
         std::function<std::unique_ptr<Renderers::ShadowSceneRenderer>()> shadowSceneRendererFactory,
-        Lights::Systems::ShadowMappingSystem& shadowMappingSystem);
+        Lights::Systems::ShadowMappingSystem& shadowMappingSystem,
+        const Windows::Window& window);
     ~SceneRenderer();
     vk::Extent3D getUserExtent();
     void render(uint32_t targetImageIndex, const vk::CommandBuffer& sceneDraw);
     void setTargetImageViews(Devices::ImageInfo targetImageInfo, std::vector<vk::ImageView> targetImageViews);
     static Devices::Texture BuildSceneRenderTargetTexture(const Devices::DeviceContext& deviceContext, vk::Extent3D extent);
     void setTargetExtent(vk::Extent3D extent2D);
+    void renderGridGui();
+    void renderGizmoGui();
+    NestedWindow nestedWindow;
+    ImGuiContext* imGuiContext;
 
    protected:
     Pipelines::GraphicsPipeline* getPipeline(std::type_index pipelineTypeIndex);

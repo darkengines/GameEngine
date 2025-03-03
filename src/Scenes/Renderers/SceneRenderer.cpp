@@ -1,17 +1,27 @@
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include "SceneRenderer.hpp"
 
-#include <functional>
+#include <imgui_internal.h>
 
+#include <functional>
+#include <glm/gtx/matrix_decompose.hpp>
+
+#include "../../Cameras/Components/Camera.hpp"
+#include "../../Editors/Components/Selected.hpp"
 #include "../../Graphics/Graphics.hpp"
+#include "../../Spatials/Components/Spatial.hpp"
+#include "../../Spatials/Systems/SpatialSystem.hpp"
+#include "ImGuizmo.h"
 #include "imgui_impl_vulkan.h"
 
 namespace drk::Scenes::Renderers
 {
-  void SceneRenderer::SetupImgui()
+  void SceneRenderer::initializeImGuiContext()
   {
-    if (imGuiInitialized)
-      return;
+    IMGUI_CHECKVERSION();
+    auto parentContext = ImGui::GetCurrentContext();
+    ImGui::SetCurrentContext(imGuiContext);
+
     ImGui_ImplVulkan_InitInfo infos{
       .Instance = deviceContext.Instance,
       .PhysicalDevice = deviceContext.PhysicalDevice,
@@ -22,11 +32,20 @@ namespace drk::Scenes::Renderers
       .RenderPass = static_cast<VkRenderPass>(renderPass),
       .MinImageCount = 2,
       .ImageCount = 2,
-      // TODO: Use configurable sample count
       .MSAASamples = VK_SAMPLE_COUNT_8_BIT,
+      .PipelineRenderingCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
+        .colorAttachmentCount = 1,
+        .pColorAttachmentFormats = (VkFormat*)&targetImageInfo->format,
+        .depthAttachmentFormat = (VkFormat)deviceContext.DepthFormat,
+      },
+      // TODO: Use configurable sample count
     };
+
+    const auto& glfwWindow = window.GetWindow();
+    nestedWindow = { .handle = glfwWindow, .parentContext = parentContext };
+    ImGui_ImplNested_InitForVulkan(&nestedWindow, true);
     ImGui_ImplVulkan_Init(&infos);
-    imGuiInitialized = true;
   }
 
   SceneRenderer::SceneRenderer(Engine::EngineState& engineState,
@@ -38,7 +57,8 @@ namespace drk::Scenes::Renderers
       std::function<std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline>()> boundingVolumePipelineFactory,
       std::function<std::unique_ptr<Frustums::Pipelines::FrustumPipeline>()> frustumPipelineFactory,
       std::function<std::unique_ptr<Renderers::ShadowSceneRenderer>()> shadowSceneRendererFactory,
-      Lights::Systems::ShadowMappingSystem& shadowMappingSystem)
+      Lights::Systems::ShadowMappingSystem& shadowMappingSystem,
+      const Windows::Window& window)
       : engineState(engineState),
         deviceContext(deviceContext),
         registry(registry),
@@ -54,7 +74,10 @@ namespace drk::Scenes::Renderers
           { std::type_index(typeid(Lines::Pipelines::LinePipeline)), this->linePipeline.get() },
           { std::type_index(typeid(BoundingVolumes::Pipelines::BoundingVolumePipeline)),
               this->boundingVolumePipeline.get() },
-          { std::type_index(typeid(Frustums::Pipelines::FrustumPipeline)), this->frustumPipeline.get() } }
+          { std::type_index(typeid(Frustums::Pipelines::FrustumPipeline)), this->frustumPipeline.get() } },
+        imGuiContext(ImGui::CreateContext()),
+        window(window),
+        imGuiInitialized(false)
   {
     this->shadowSceneRenderer->setTargetImageViews(
         { .extent = shadowMappingSystem.shadowMappingTexture->imageCreateInfo.extent,
@@ -64,6 +87,8 @@ namespace drk::Scenes::Renderers
 
   SceneRenderer::~SceneRenderer()
   {
+    ImGui::SetCurrentContext(imGuiContext);
+    ImGui_ImplVulkan_Shutdown();
     destroyFramebuffers();
     destroyRenderPass();
     destroyFramebufferResources();
@@ -245,6 +270,11 @@ namespace drk::Scenes::Renderers
     destroyFramebufferResources();
     destroyRenderPass();
     createRenderPass();
+    if (!imGuiInitialized)
+    {
+      initializeImGuiContext();
+      imGuiInitialized = true;
+    }
 
     vk::Viewport viewport;
     vk::Rect2D scissor;
@@ -283,8 +313,6 @@ namespace drk::Scenes::Renderers
       .pClearValues = clearValues.data(),
     };
     commandBuffer.beginRenderPass(mainRenderPassBeginInfo, vk::SubpassContents::eInline);
-    //		ImGui::Render();
-    //		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
     const auto& draws = registry.view<Draws::SceneDraw>();
     const Draws::SceneDraw* previousSceneDraw = nullptr;
     entt::entity previousDrawEntity = entt::null;
@@ -299,6 +327,20 @@ namespace drk::Scenes::Renderers
     bool isFirst = true;
     Pipelines::GraphicsPipeline const* pCurrentPipeline;
 
+    auto previousContext = ImGui::GetCurrentContext();
+    ImGui::SetCurrentContext(imGuiContext);
+
+    ImGui_ImplNested_NewFrame();
+    ImGui_ImplVulkan_NewFrame();
+
+    ImGui::NewFrame();
+    ImGuizmo::BeginFrame();
+    ImGuizmo::SetRect(0, 0, userExtent.width, userExtent.height);
+
+    renderGridGui();
+    ImGui::Render();
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+    //ImGui::EndFrame();
     draws.each(
         [&](entt::entity drawEntity, const Draws::SceneDraw& sceneDraw)
         {
@@ -353,6 +395,13 @@ namespace drk::Scenes::Renderers
           pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
           pCurrentPipeline);
     }
+    /*ImGui::NewFrame();
+    ImGuizmo::BeginFrame();*/
+    renderGizmoGui();
+    ImGui::Render();
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+    ImGui::EndFrame();
+    ImGui::SetCurrentContext(previousContext);
     commandBuffer.endRenderPass();
   }
   void SceneRenderer::draw(entt::entity previousDrawEntity,
@@ -452,5 +501,44 @@ namespace drk::Scenes::Renderers
             graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
           });
     }
+  }
+  void SceneRenderer::renderGridGui()
+  {
+    const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
+
+    auto perspective = camera.perspective;
+    perspective[1][1] *= -1.0f;
+    ImGuizmo::DrawGrid(
+        glm::value_ptr(camera.view), glm::value_ptr(perspective), glm::value_ptr(glm::identity<glm::mat4>()), 100.f);
+
+  }
+  void SceneRenderer::renderGizmoGui()
+  {
+    
+    const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
+    const auto& selectedEntities =
+        registry.view<Spatials::Components::Spatial<Spatials::Components::Relative>, drk::Editors::Components::Selected>();
+    auto perspective = camera.perspective;
+    perspective[1][1] *= -1.0f;
+    selectedEntities.each(
+        [&](entt::entity selectedEntity, Spatials::Components::Spatial<Spatials::Components::Relative>& relativeSpatial)
+        {
+          if (ImGuizmo::Manipulate(glm::value_ptr(camera.view),
+                  glm::value_ptr(perspective),
+                  ImGuizmo::OPERATION::UNIVERSAL,
+                  ImGuizmo::WORLD,
+                  glm::value_ptr(relativeSpatial.model),
+                  nullptr))
+          {
+            glm::vec3 scale, translation, skew;
+            glm::vec4 perspective;
+            glm::quat rotation;
+            glm::decompose(relativeSpatial.model, scale, rotation, translation, skew, perspective);
+            relativeSpatial.position = glm::vec4(translation, 1);
+            relativeSpatial.rotation = rotation;
+            relativeSpatial.scale = glm::vec4(scale, 0);
+            Spatials::Systems::SpatialSystem::makeDirty(registry, selectedEntity);
+          }
+        });
   }
 }  // namespace drk::Scenes::Renderers

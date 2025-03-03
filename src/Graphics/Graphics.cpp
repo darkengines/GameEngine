@@ -13,34 +13,34 @@ namespace drk::Graphics {
 		Devices::DeviceContext& deviceContext,
 		Engine::EngineState& engineState,
 		Windows::Window& window
-	) : DeviceContext(deviceContext), EngineState(engineState) {
+	) : deviceContext(deviceContext), EngineState(engineState) {
 
 		CreateSwapchain(window.GetExtent());
 	}
 
 	Graphics::~Graphics() {
-		DeviceContext.device.destroyDescriptorPool(ImGuiDescriptorPool);
+		deviceContext.device.destroyDescriptorPool(ImGuiDescriptorPool);
 		DestroySwapchain();
 	}
 
 	void Graphics::CreateSwapchain(const vk::Extent2D& extent) {
 		Swapchain = Devices::Device::createSwapchain(
-			DeviceContext.device,
-			DeviceContext.PhysicalDevice,
-			DeviceContext.Surface,
+			deviceContext.device,
+			deviceContext.PhysicalDevice,
+			deviceContext.Surface,
 			extent
 		);
 	}
 
 	void Graphics::DestroySwapchain() {
-		Devices::Device::destroySwapchain(DeviceContext.device, Swapchain);
+		Devices::Device::destroySwapchain(deviceContext.device, Swapchain);
 	}
 
 	void Graphics::RecreateSwapchain(vk::Extent2D extent) {
-		DeviceContext.device.waitIdle();
+		deviceContext.device.waitIdle();
 		DestroySwapchain();
 		CreateSwapchain(extent);
-		DeviceContext.device.waitIdle();
+		deviceContext.device.waitIdle();
 	}
 
 	vk::PipelineDepthStencilStateCreateInfo Graphics::DefaultPipelineDepthStencilStateCreateInfo() {
@@ -177,11 +177,11 @@ namespace drk::Graphics {
 			.pResults = &presentResults,
 		};
 
-		return DeviceContext.PresentQueue.presentKHR(presentInfoKHR);
+		return deviceContext.PresentQueue.presentKHR(presentInfoKHR);
 	}
 	vk::ResultValue<uint32_t> Graphics::AcquireSwapchainImageIndex() {
 		const auto& frameState = EngineState.getCurrentFrameState();
-		auto result = DeviceContext.device.acquireNextImageKHR(
+		auto result = deviceContext.device.acquireNextImageKHR(
 			Swapchain.swapchain,
 			UINT64_MAX,
 			frameState.imageReadySemaphore,

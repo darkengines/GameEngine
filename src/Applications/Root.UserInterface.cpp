@@ -51,6 +51,7 @@ void Root::renderEntity(const entt::entity entity) {
 			ImGui::Text(fmt::format("{0}", (int)entity).c_str());
 		}
 		if (ImGui::IsItemClicked()) {
+            registry.emplace_or_replace<drk::Editors::Components::Selected>(entity);
 			selectedEntity = entity;
 		}
 	}

@@ -17,7 +17,7 @@ namespace drk::Nodes::Systems {
 		Stores::StoreItem<Spatials::Models::RelativeSpatial>
 	> {
 	protected:
-		const Devices::DeviceContext& DeviceContext;
+		const Devices::DeviceContext& deviceContext;
 		void update(
 			Models::Node& objectModel,
 			const Stores::StoreItem<Spatials::Models::Spatial>& spatialStoreItem,

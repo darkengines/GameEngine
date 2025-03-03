@@ -115,6 +115,7 @@ file(
 	src/Engine/DescriptorSetLayoutCreateInfoEqualityComparer.hpp
 	src/Engine/DescriptorSetLayouts.hpp
 	src/Engine/EngineState.hpp
+	src/Editors/Components/Selected.hpp
 	src/Engine/Extensions.hpp
 	src/Engine/FrameState.hpp
 	src/Engine/Models/Global.hpp
@@ -297,6 +298,7 @@ file(
 	src/Graphics/Graphics.cpp
 	src/Graphics/SynchronizationState.cpp
 	src/ImGui/imgui_impl_glfw.cpp
+	src/ImGui/imgui_impl_nested.cpp
 	src/ImGui/imgui_impl_vulkan.cpp
 	src/ImGui/imgui_stdlib.cpp
 	src/Lights/Systems/DirectionalLightSystem.cpp
@@ -394,7 +396,6 @@ find_package(stb REQUIRED)
 find_package(fmt REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(nameof REQUIRED)
-find_package(imguizmo CONFIG REQUIRED)
 find_package(Taskflow CONFIG REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
 
 target_include_directories(drk SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS})
@@ -414,7 +415,9 @@ target_link_libraries(drk PRIVATE assimp::assimp)
 target_link_libraries(drk PRIVATE imgui)
 target_link_libraries(drk PRIVATE fmt::fmt-header-only)
 target_link_libraries(drk PRIVATE nlohmann_json)
-target_link_libraries(drk PRIVATE imguizmo::imguizmo)
 target_link_libraries(drk PRIVATE Taskflow::Taskflow)
 #target_link_libraries(drk PUBLIC fruit)
 target_link_libraries(drk PUBLIC ${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/lib/fruit.lib)
+
+target_include_directories(drk SYSTEM PUBLIC ${imguizmo_INCLUDE_DIR})
+target_link_libraries(drk PRIVATE imguizmo)

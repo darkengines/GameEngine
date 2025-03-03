@@ -22,5 +22,35 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(imgui-filebrowser)
+
 set(imgui-filebrowser ${imgui-filebrowser_SOURCE_DIR} PARENT_SCOPE)
 set(imgui_SOURCE_DIR ${imgui_SOURCE_DIR} PARENT_SCOPE)
+
+FetchContent_Declare(
+    imguizmo
+    GIT_REPOSITORY "https://github.com/CedricGuillemet/imguizmo"
+    GIT_TAG origin/master  # Use latest master branch
+)
+
+FetchContent_GetProperties(imguizmo)
+if (NOT imguizmo_POPULATED)
+    FetchContent_Populate(imguizmo)
+    
+    # Ensure the fetched files are available
+    if(NOT EXISTS "${imguizmo_SOURCE_DIR}/imguizmo.cpp")
+        message(FATAL_ERROR "imguizmo source files not found in ${imguizmo_SOURCE_DIR}")
+    endif()
+
+    add_library(imguizmo STATIC 
+        ${imguizmo_SOURCE_DIR}/imguizmo.cpp
+    )
+
+    target_include_directories(imguizmo PUBLIC 
+        ${imguizmo_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}  # Ensure imguizmo uses locally built ImGui
+    )
+
+    target_link_libraries(imguizmo PUBLIC imgui)
+endif ()
+
+set(imguizmo_INCLUDE_DIR ${imguizmo_SOURCE_DIR} PARENT_SCOPE)

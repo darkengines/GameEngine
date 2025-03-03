@@ -23,7 +23,8 @@ fruit::Component<Systems::SceneSystem, Renderers::SceneRenderer> addScenes() {
 			std::function<std::unique_ptr<BoundingVolumes::Pipelines::BoundingVolumePipeline>()> boundingVolumePipelineFactory,
 			std::function<std::unique_ptr<Frustums::Pipelines::FrustumPipeline>()> frustumPipelineFactory,
 			std::function<std::unique_ptr<Renderers::ShadowSceneRenderer>()> shadowSceneRendererFactory,
-			Lights::Systems::ShadowMappingSystem& shadowMappingSystem
+			Lights::Systems::ShadowMappingSystem& shadowMappingSystem,
+            const Windows::Window& window
 		)>()
 		.registerFactory<std::unique_ptr<Renderers::ShadowSceneRenderer>(
 			const Devices::DeviceContext& deviceContext,
@@ -48,7 +49,8 @@ fruit::Component<Systems::SceneSystem, Renderers::SceneRenderer> addScenes() {
 		.install(Points::addPoints)
 		.install(Lines::addLines)
 		.install(BoundingVolumes::addBoundingVolumes)
-		.install(Frustums::addFrustums);
+		.install(Frustums::addFrustums)
+        .install(Windows::addWindows);
 }
 	auto AddScenes() {
 		return boost::di::make_injector(

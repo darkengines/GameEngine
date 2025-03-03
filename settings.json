@@ -9,12 +9,12 @@
             "VK_EXT_debug_utils",
             "VK_EXT_debug_report"
         ],
-        "RequiredValidationLayers": [],
+        "RequiredValidationLayers": [ "VK_LAYER_KHRONOS_validation" ],
         "RequiredDeviceExtensions": [
             "VK_KHR_swapchain",
             "VK_EXT_descriptor_indexing"
         ],
-        "EnableValidationLayers": false
+        "EnableValidationLayers": true
     },
     "ResourceManager": {
         "frameCount":  2

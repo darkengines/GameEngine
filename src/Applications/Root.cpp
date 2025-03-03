@@ -2,8 +2,8 @@
 
 #include <ImGuizmo.h>
 #include <imgui.h>
-#include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
+#include <imgui_internal.h>
 
 #include <algorithm>
 #include <entt/entt.hpp>
@@ -12,6 +12,7 @@
 
 #include "../Common/Components/Name.hpp"
 #include "../GlmExtensions.hpp"
+#include "../ImGui/imgui_impl_nested.h"
 #include "../Lights/Components/LightPerspectiveCollection.hpp"
 
 #undef near
@@ -94,8 +95,6 @@ namespace drk::Applications
           auto application = reinterpret_cast<Root *>(glfwGetWindowUserPointer(window));
           application->onWindowSizeChanged(width, height);
         });
-    ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
-    auto io = ImGui::GetIO();
     glfwMakeContextCurrent(glfwWindow);
   }
 
@@ -132,10 +131,10 @@ namespace drk::Applications
     shouldRecreateSwapchain = false;
   }
 
-  void Root::renderGui(ApplicationState &applicationState)
+  void Root::renderGui(ApplicationState &applicationState, std::optional<ImVec2> &sceneCursorPosition)
   {
-    ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
+    ImGui_ImplVulkan_NewFrame();
     auto mainViewport = ImGui::GetMainViewport();
     auto mainViewportSize = mainViewport->Size;
     ImGui::SetNextWindowSize(mainViewportSize, ImGuiCond_FirstUseEver);
@@ -238,6 +237,8 @@ namespace drk::Applications
           ImGuiCond_FirstUseEver);
       ImGui::Begin("Hello World!", &open, ImGuiWindowFlags_MenuBar);
       auto contentRegionAvailable = ImGui::GetContentRegionAvail();
+      sceneCursorPosition = ImGui::GetCursorScreenPos();
+
       applicationState.actualExtent.width = contentRegionAvailable.x;
       applicationState.actualExtent.height = contentRegionAvailable.y;
       if (applicationState.sceneTextureImageDescriptorSet.has_value())
@@ -248,38 +249,17 @@ namespace drk::Applications
             { 0.0f, 0.0f },
             { (float)applicationState.actualExtent.width / applicationState.sceneExtent.width,
                 (float)applicationState.actualExtent.height / applicationState.sceneExtent.height });
-
-        ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
-        ImGuizmo::SetDrawlist();
-        float windowWidth = (float)applicationState.actualExtent.width;
-        float windowHeight = (float)applicationState.actualExtent.height;
-        auto viewport = ImGui::GetWindowViewport();
-        ImGuizmo::SetRect(viewport->WorkPos.x, viewport->WorkPos.y, viewport->Size.x, viewport->Size.y);
-
-        const auto &camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
-        auto perspective = camera.perspective;
-        perspective[1][1] *= -1.0f;
-        ImGuizmo::DrawGrid(
-            glm::value_ptr(camera.view), glm::value_ptr(perspective), glm::value_ptr(glm::identity<glm::mat4>()), 100.f);
-
-        if (selectedEntity != entt::null)
-        {
-          const auto &spatial =
-              registry.try_get<Spatials::Components::Spatial<Spatials::Components::Absolute>>(selectedEntity);
-          if (spatial != nullptr)
-          {
-            ImGuizmo::Manipulate(glm::value_ptr(camera.view),
-                glm::value_ptr(perspective),
-                (ImGuizmo::OPERATION)0xffffffff,
-                ImGuizmo::WORLD,
-                glm::value_ptr(spatial->model),
-                nullptr);
-
-            Spatials::Systems::SpatialSystem::makeDirty(registry, selectedEntity);
-          }
-        }
       }
-
+      ImVec2 mousePosScreen = userInterfaceRenderer.imGuiContext->IO.MousePos;  // global/screen coords
+      ImVec2 localMousePos =
+          ImVec2(mousePosScreen.x - sceneCursorPosition.value().x, mousePosScreen.y - sceneCursorPosition.value().y);
+      ImGui::SetCurrentContext(sceneRenderer.imGuiContext);
+      if (sceneRenderer.imGuiContext->IO.MousePos.x != localMousePos.x ||
+          sceneRenderer.imGuiContext->IO.MousePos.y != localMousePos.y)
+      {
+        ImGui_ImplNested_CursorPosCallback(&sceneRenderer.nestedWindow, localMousePos.x, localMousePos.y);
+      }
+      ImGui::SetCurrentContext(userInterfaceRenderer.imGuiContext);
       ImGui::End();
       ImGui::Begin("Entities");
       renderEntities();
@@ -392,6 +372,7 @@ namespace drk::Applications
         { .extent = { swapchain.extent.width, swapchain.extent.height, 1 }, .format = swapchain.imageFormat },
         swapchain.imageViews);
 
+    std::optional<ImVec2> sceneCursorPosition;
     std::optional<Devices::Texture> sceneTexture;
     glm::vec2 previousMousePosition{ 0, 0 };
 
@@ -564,8 +545,21 @@ namespace drk::Applications
       registry.clear<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>();
       registry.clear<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Absolute>>>();
 
+      bool parentDown = userInterfaceRenderer.imGuiContext->IO.MouseDown[0];
+      bool childDown = sceneRenderer.imGuiContext->IO.MouseDown[0];
+
+      // If the parent's button state changed this frame, update the nested context:
+      ImGui::SetCurrentContext(sceneRenderer.imGuiContext);
+      if (parentDown != childDown)
+      {
+        ImGui_ImplNested_MouseButtonCallback(&sceneRenderer.nestedWindow, 0, parentDown);
+      }
+
       sceneRenderer.render(0, frameStatePtr->commandBuffer);
-      renderGui(applicationState);
+
+      ImGui::SetCurrentContext(userInterfaceRenderer.imGuiContext);
+
+      renderGui(applicationState, sceneCursorPosition);
 
       if (sceneTexture.has_value())
       {
@@ -603,7 +597,13 @@ namespace drk::Applications
       {
         shouldRecreateSwapchain = true;
       }
-
+      ImGui::SetCurrentContext(sceneRenderer.imGuiContext);
+      if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+      {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+      }
+      ImGui::SetCurrentContext(userInterfaceRenderer.imGuiContext);
       if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
       {
         ImGui::UpdatePlatformWindows();

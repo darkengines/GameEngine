@@ -36,7 +36,7 @@ namespace drk::Graphics {
 		[[nodiscard]] const Devices::Swapchain& GetSwapchain() const;
 		void RecreateSwapchain(vk::Extent2D extent);
 	protected:
-		Devices::DeviceContext& DeviceContext;
+		Devices::DeviceContext& deviceContext;
 		Engine::EngineState& EngineState;
 		Devices::Swapchain Swapchain;
 

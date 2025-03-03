@@ -6,7 +6,7 @@ namespace drk::Stores {
 		const Devices::DeviceContext& deviceContext,
 		const vk::DescriptorSet& descriptorSet
 	)
-		: DeviceContext(
+		: deviceContext(
 		deviceContext
 	), DescriptorSet(descriptorSet) {
 
@@ -14,12 +14,12 @@ namespace drk::Stores {
 
 	StoreBufferAllocator::~StoreBufferAllocator() {
 		for (const auto buffer: Buffers) {
-			Devices::Device::unmapBuffer(DeviceContext.Allocator, buffer);
-			DeviceContext.DestroyBuffer(buffer);
+			Devices::Device::unmapBuffer(deviceContext.Allocator, buffer);
+			deviceContext.DestroyBuffer(buffer);
 		}
 	}
-	StoreBufferAllocator::StoreBufferAllocator(StoreBufferAllocator&& storeBufferAllocator) noexcept: DeviceContext(
-		storeBufferAllocator.DeviceContext
+	StoreBufferAllocator::StoreBufferAllocator(StoreBufferAllocator&& storeBufferAllocator) noexcept: deviceContext(
+		storeBufferAllocator.deviceContext
 	), DescriptorSet(storeBufferAllocator.DescriptorSet), Buffers(std::move(storeBufferAllocator.Buffers)) {
 		storeBufferAllocator.Buffers.clear();
 	}
@@ -33,7 +33,7 @@ namespace drk::Stores {
 													  vk::MemoryPropertyFlagBits::eHostCoherent),
 		};
 		auto storageBuffer = Devices::Device::createBuffer(
-			DeviceContext.Allocator,
+			deviceContext.Allocator,
 			vk::MemoryPropertyFlagBits::eHostVisible,
 			vk::BufferUsageFlagBits::eStorageBuffer,
 			allocationCreationInfo,
@@ -43,7 +43,7 @@ namespace drk::Stores {
 		Buffers.push_back(storageBuffer);
 
 		void* mappedMemory = nullptr;
-		Devices::Device::mapBuffer(DeviceContext.Allocator, storageBuffer, &mappedMemory);
+		Devices::Device::mapBuffer(deviceContext.Allocator, storageBuffer, &mappedMemory);
 
 		vk::DescriptorBufferInfo descriptorBufferInfo{};
 		descriptorBufferInfo.buffer = storageBuffer.buffer;
@@ -59,7 +59,7 @@ namespace drk::Stores {
 		writeDescriptorSet.descriptorType = vk::DescriptorType::eStorageBuffer;
 		writeDescriptorSet.pBufferInfo = &descriptorBufferInfo;
 
-		DeviceContext.device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
+		deviceContext.device.updateDescriptorSets(1, &writeDescriptorSet, 0, nullptr);
 
 		auto store = std::make_unique<GenericStoreBuffer>(itemCount, bufferIndex, mappedMemory);
 
