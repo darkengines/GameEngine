@@ -41,6 +41,7 @@ file(
 	src/Animations/Components/VectorKey.hpp
 	src/Animations/Components/VertexWeight.hpp
 	src/Animations/Components/VertexWeightInstance.hpp
+	src/Animations/Editors/AnimationSequencer.hpp
 	src/Animations/Models/AnimationBehavior.hpp
 	src/Animations/Models/BoneInstanceWeight.hpp
 	src/Animations/Models/BoneMesh.hpp
@@ -264,6 +265,7 @@ file(
 	src/Animations/Systems/BoneMeshSystem.cpp
 	src/Animations/Systems/BoneSpatialSystem.cpp
 	src/Animations/Systems/VertexWeightSystem.cpp
+	src/Animations/Editors/AnimationSequencer.cpp
 	src/Applications/Application.cpp
 	src/Applications/Application.UserInterface.cpp
 	src/Applications/Root.UserInterface.cpp

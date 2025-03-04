@@ -135,14 +135,21 @@ namespace drk::Applications
   void Root::renderAnimations()
   {
     ImGui::Begin("Animations");
-    auto animationView = registry.view<Animations::Components::Animation, Common::Components::Name>();
-    animationView.each([](entt::entity animationEntity,
+    int currentFrame = (int)engineState.getTime() % 16000;
+    bool expanded = true;
+    int selectedEntry;
+    int firstFrame = 0;
+    int sequenceOptions = 0;
+
+    ImSequencer::Sequencer(
+        animationSequencer.get(), &currentFrame, &expanded, &selectedEntry, &firstFrame, 0xffffffff);
+    /*auto animationView = registry.view<Animations::Components::Animation, Common::Components::Name>();
+    animationView.each([&](entt::entity animationEntity,
                            const Animations::Components::Animation animation,
                            const Common::Components::Name& name) {
             ImGui::Text(name.name.c_str());
-            ImGuizmo::seq
-
-        });
+          
+        });*/
     ImGui::End();
   };
 

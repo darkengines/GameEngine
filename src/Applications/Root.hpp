@@ -1,11 +1,13 @@
 #pragma once
 #include <GLFW/glfw3.h>
+#include <imgui_internal.h>
 
 #include <boost/di.hpp>
 #include <memory>
 #include <semaphore>
 #include <taskflow/taskflow.hpp>
 
+#include "../Animations/Editors/AnimationSequencer.hpp"
 #include "../Animations/Systems/AnimationSystem.hpp"
 #include "../Animations/Systems/BoneMeshSystem.hpp"
 #include "../Animations/Systems/BoneSpatialSystem.hpp"
@@ -13,8 +15,8 @@
 #include "../Cameras/Systems/CameraSystem.hpp"
 #include "../Controllers/FlyCamController.hpp"
 #include "../Devices/DeviceContext.hpp"
-#include "../Engine/EngineState.hpp"
 #include "../Editors/Components/Selected.hpp"
+#include "../Engine/EngineState.hpp"
 #include "../Frustums/Systems/FrustumSystem.hpp"
 #include "../Graphics/GlobalSystem.hpp"
 #include "../Graphics/Graphics.hpp"
@@ -41,7 +43,6 @@
 #include "../UserInterfaces/UserInterface.hpp"
 #include "../Windows/Window.hpp"
 #include "ApplicationState.hpp"
-#include <imgui_internal.h>
 
 namespace drk::Applications
 {
@@ -79,7 +80,8 @@ namespace drk::Applications
         Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
         Animations::Systems::AnimationSystem& animationSystem,
         Animations::Systems::BoneMeshSystem& boneSystem,
-        Animations::Systems::BoneSpatialSystem& boneSpatialSystem
+        Animations::Systems::BoneSpatialSystem& boneSpatialSystem,
+        std::function<std::unique_ptr<Animations::Editors::AnimationSequencer>()> animationSequencerFactory
         // UserInterfaces::AssetExplorer& assetExplorer
     );
 
@@ -87,7 +89,7 @@ namespace drk::Applications
     void onWindowSizeChanged(uint32_t width, uint32_t height);
     static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
     void recreateSwapchain(vk::Extent2D windowExtent);
-    //void renderSceneGui(std::optional<Devices::Texture> sceneTexture, const std::optional<ImVec2>& sceneCursorPosition);
+    // void renderSceneGui(std::optional<Devices::Texture> sceneTexture, const std::optional<ImVec2>& sceneCursorPosition);
     void renderGui(ApplicationState& applicationState, std::optional<ImVec2>& sceneCursorPosition);
     void updateApplicationState(std::optional<Devices::Texture>& sceneTexture,
         vk::ResultValue<uint32_t>& swapchainImageAcquisitionResult,
@@ -103,6 +105,7 @@ namespace drk::Applications
     ApplicationState applicationState;
 
    protected:
+    std::unique_ptr<Animations::Editors::AnimationSequencer> animationSequencer;
     const Windows::Window& window;
     Engine::EngineState& engineState;
     const Devices::DeviceContext& deviceContext;

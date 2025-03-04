@@ -1,5 +1,4 @@
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/matrix_decompose.hpp>
 #include "Root.hpp"
 
 #include <ImGuizmo.h>
@@ -9,6 +8,7 @@
 
 #include <algorithm>
 #include <entt/entt.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include <stack>
 #include <taskflow/taskflow.hpp>
 
@@ -54,7 +54,8 @@ namespace drk::Applications
       Lights::Systems::LightPerspectiveSystem &lightPerspectiveSystem,
       Animations::Systems::AnimationSystem &animationSystem,
       Animations::Systems::BoneMeshSystem &boneSystem,
-      Animations::Systems::BoneSpatialSystem &boneSpatialSystem)
+      Animations::Systems::BoneSpatialSystem &boneSpatialSystem,
+      std::function<std::unique_ptr<Animations::Editors::AnimationSequencer>()> animationSequencerFactory)
       : window(window),
         engineState(engineState),
         deviceContext(deviceContext),
@@ -86,7 +87,8 @@ namespace drk::Applications
         lightPerspectiveSystem(lightPerspectiveSystem),
         animationSystem(animationSystem),
         boneSystem(boneSystem),
-        boneSpatialSystem(boneSpatialSystem)
+        boneSpatialSystem(boneSpatialSystem),
+        animationSequencer(animationSequencerFactory())
   {
     const auto &glfwWindow = window.GetWindow();
     glfwSetCursorPosCallback(glfwWindow, Root::cursorPosCallback);
@@ -261,7 +263,7 @@ namespace drk::Applications
         ImGuizmo::SetDrawlist();
         renderGizmoGui();
       }
-      
+
       ImGui::End();
       ImGui::Begin("Entities");
       renderEntities();
@@ -620,7 +622,7 @@ namespace drk::Applications
       {
         shouldRecreateSwapchain = true;
       }
-      
+
       if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
       {
         ImGui::UpdatePlatformWindows();

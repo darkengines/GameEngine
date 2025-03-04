@@ -35,15 +35,10 @@ FetchContent_Declare(
 FetchContent_GetProperties(imguizmo)
 if (NOT imguizmo_POPULATED)
     FetchContent_Populate(imguizmo)
-    
-    # Ensure the fetched files are available
-    if(NOT EXISTS "${imguizmo_SOURCE_DIR}/imguizmo.cpp")
-        message(FATAL_ERROR "imguizmo source files not found in ${imguizmo_SOURCE_DIR}")
-    endif()
-
-    add_library(imguizmo STATIC 
-        ${imguizmo_SOURCE_DIR}/imguizmo.cpp
-    )
+    set(IMGUIZMO_INCLUDE_DIR ${imguizmo_SOURCE_DIR}/ PARENT_SCOPE)
+    file(GLOB IMGUIZMO_SOURCES ${imguizmo_SOURCE_DIR}/*.cpp)
+    file(GLOB IMGUIZMO_HEADERS ${imguizmo_SOURCE_DIR}/*.h)
+    add_library(imguizmo ${IMGUIZMO_SOURCES} ${IMGUIZMO_SOURCES})
 
     target_include_directories(imguizmo PUBLIC 
         ${imguizmo_SOURCE_DIR}
