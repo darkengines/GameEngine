@@ -18,6 +18,7 @@
 #include "../Spatials/Extensions.hpp"
 #include "../Textures/Extensions.hpp"
 #include "../UserInterfaces/Extensions.hpp"
+#include "../Physics/PhysicsExtensions.hpp"
 #include "../Windows/Extensions.hpp"
 #include "Application.hpp"
 #include "Root.hpp"
@@ -60,7 +61,8 @@ namespace drk::Applications
             Animations::Systems::BoneMeshSystem& boneSystem,
             Animations::Systems::BoneSpatialSystem& boneSpatialSystem,
             std::function<std::unique_ptr<Animations::Editors::AnimationSequencer>()>
-                animationSequencerFactory)>()
+                animationSequencerFactory,
+            Physics::Systems::PhysicsSystem& physicsSystem)>()
         .install(drk::addRegistry)
         .install(drk::Windows::addWindows)
         .install(drk::Engine::addEngine)
@@ -82,7 +84,8 @@ namespace drk::Applications
         .install(drk::Frustums::addFrustums)
         .install(drk::BoundingVolumes::addBoundingVolumes)
         .install(drk::Lines::addLines)
-        .install(drk::Animations::addAnimation);
+        .install(drk::Animations::addAnimation)
+        .install(drk::Physics::addPhysics);
   }
   // fruit::Component<Application> addApplications() {
   //	return fruit::createComponent()

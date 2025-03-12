@@ -461,4 +461,4 @@ namespace drk::Debugging::Renderers {
 			);
 		}
 	}
-}
+}  // namespace drk::Debugging::Renderers

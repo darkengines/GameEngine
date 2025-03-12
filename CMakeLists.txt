@@ -59,6 +59,7 @@ file(
 	src/Animations/Systems/VertexWeightSystem.hpp
 	src/Applications/Application.hpp
 	src/Applications/Extentions.hpp
+	src/Applications/Helpers.hpp
 	src/Applications/Root.hpp
 	src/BoundingVolumes/Extensions.hpp
 	src/BoundingVolumes/Components/AxisAlignedBoundingBox.hpp
@@ -198,6 +199,16 @@ file(
 	src/Nodes/Components/NodeMeshCollection.hpp
 	src/Nodes/Models/Node.hpp
 	src/Nodes/Systems/NodeSystem.hpp
+	src/Physics/PhysicsExtensions.hpp
+	src/Physics/BodyActivationListener.hpp
+	src/Physics/BroadPhaseLayer.hpp
+	src/Physics/ContactListener.hpp
+	src/Physics/ObjectLayerPairFilter.hpp
+	src/Physics/PhysicsConfiguration.hpp
+	src/Physics/Systems/PhysicsSystem.hpp
+	src/Physics/Components/Body.hpp
+	src/Physics/PhysicsDebugRenderer.hpp
+	src/Physics/ObjectVsBroadPhaseLayerFilter.hpp
 	src/Pipelines/ComputePipeline.hpp
 	src/Pipelines/GraphicsPipeline.hpp
 	src/Planes/Components/Plane.hpp
@@ -295,6 +306,10 @@ file(
 	src/Frustums/Components/Frustum.cpp
 	src/Frustums/Models/Vertex.cpp
 	src/Frustums/Pipelines/FrustumPipeline.cpp
+	src/Physics/PhysicsConfiguration.cpp
+	src/Physics/PhysicsExtensions.cpp
+	src/Physics/Systems/PhysicsSystem.cpp
+	src/Physics/PhysicsDebugRenderer.cpp
 	src/Frustums/Systems/FrustumSystem.cpp
 	src/Graphics/GlobalSystem.cpp
 	src/Graphics/Graphics.cpp
@@ -399,6 +414,7 @@ find_package(fmt REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(nameof REQUIRED)
 find_package(Taskflow CONFIG REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
+find_package(Jolt REQUIRED)
 
 target_include_directories(drk SYSTEM PUBLIC ${Vulkan_INCLUDE_DIRS})
 target_include_directories(drk SYSTEM PUBLIC ${stb_INCLUDE_DIRS})
@@ -407,6 +423,7 @@ target_include_directories(drk SYSTEM PUBLIC ${imgui-filebrowser})
 target_include_directories(drk SYSTEM PUBLIC ${nlohmann_json_INCLUDE_DIRS})
 target_include_directories(drk SYSTEM PUBLIC ${nameof_INCLUDE_DIRS})
 target_include_directories(drk SYSTEM PUBLIC ${Taskflow_INCLUDE_DIRS})
+target_include_directories(drk SYSTEM PUBLIC ${Jolt_INCLUDE_DIRS})
 
 target_link_libraries(drk PRIVATE ${Vulkan_LIBRARIES})
 target_link_libraries(drk PRIVATE GPUOpen::VulkanMemoryAllocator)
@@ -418,6 +435,7 @@ target_link_libraries(drk PRIVATE imgui)
 target_link_libraries(drk PRIVATE fmt::fmt-header-only)
 target_link_libraries(drk PRIVATE nlohmann_json)
 target_link_libraries(drk PRIVATE Taskflow::Taskflow)
+target_link_libraries(drk PRIVATE Jolt::Jolt)
 #target_link_libraries(drk PUBLIC fruit)
 target_link_libraries(drk PUBLIC ${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/lib/fruit.lib)
 

@@ -36,12 +36,16 @@
 #include "UserInterfaces/Extensions.hpp"
 #include "Windows/Extensions.hpp"
 #include "implementations.hpp"
+#include "Physics/PhysicsExtensions.hpp"
 
 // fruit::Component<drk::Configuration::Configuration> getConfigurationComponent(drk::Configuration::Configuration& configuration) {
 //	return fruit::createComponent().bindInstance(configuration);
 // }
 
 int main(int argc, char** argv) {
+
+    //drk::Physics::test();
+
 	drk::FreeList freeList = drk::FreeList::create(1024);
 	auto a512 = freeList.allocate(512);
 	auto a256 = freeList.allocate(256);

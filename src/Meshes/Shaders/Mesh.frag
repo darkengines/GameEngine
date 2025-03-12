@@ -72,6 +72,8 @@ vec3(1, 0, 1), vec3(-1, 0, 1), vec3(1, 0, -1), vec3(-1, 0, -1),
 vec3(0, 1, 1), vec3(0, -1, 1), vec3(0, -1, -1), vec3(0, 1, -1)
 );
 
+float shadowStrength = 0.8;
+
 float delinearize_depth(float d, float zNear, float zFar)
 {
     return d * (zFar - zNear) + zNear;
@@ -152,7 +154,7 @@ float samplePointLightShadow(vec3 lightToNode, PointLight pointLight, float disk
     }
     shadow /= float(samples);
 
-    return shadow;
+    return shadow * shadowStrength;
 }
 
 float sampleSpotlightShadow(

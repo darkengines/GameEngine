@@ -77,26 +77,6 @@ namespace drk::Spatials::Systems
     return fmt::format("{0}-->{1}", GetPath(relationship.parent), nameComponent.name);
   }
 
-  //	bool SpatialSystem::compareRelationship(
-  //		const entt::registry& registry,
-  //		const entt::entity leftEntity,
-  //		const entt::entity rightEntity
-  //	) {
-  //		Objects::Relationship leftRelationship = registry.get<Objects::Relationship>(leftEntity);
-  //		Objects::Relationship rightRelationship = registry.get<Objects::Relationship>(rightEntity);
-  //
-  //		return rightRelationship.parent == leftEntity
-  //			   || leftRelationship.nextSibling == rightEntity
-  //			   || (
-  //				   !(leftRelationship.parent == rightEntity || rightRelationship.nextSibling == leftEntity)
-  //				   && (
-  //					   leftRelationship.parent < rightRelationship.parent
-  //					   || (leftRelationship.parent == rightRelationship.parent && &leftRelationship <
-  //&rightRelationship)
-  //				   )
-  //			   );
-  //	}
-
   void SpatialSystem::PropagateChanges()
   {
     registry.sort<Common::Components::Dirty<Components::Spatial<Components::Relative>>>(

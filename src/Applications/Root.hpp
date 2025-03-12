@@ -31,6 +31,7 @@
 #include "../Meshes/Systems/MeshShadowSystem.hpp"
 #include "../Meshes/Systems/MeshSystem.hpp"
 #include "../Nodes/Systems/NodeSystem.hpp"
+#include "../Physics/Systems/PhysicsSystem.hpp"
 #include "../Points/Systems/PointSystem.hpp"
 #include "../Scenes/Renderers/SceneRenderer.hpp"
 #include "../Scenes/Systems/SceneSystem.hpp"
@@ -43,109 +44,111 @@
 #include "../UserInterfaces/UserInterface.hpp"
 #include "../Windows/Window.hpp"
 #include "ApplicationState.hpp"
+#include "Helpers.hpp"
 
-namespace drk::Applications
-{
-  class Root
-  {
-   public:
-    Root(const Windows::Window& window,
-        Engine::EngineState& engineState,
-        const Devices::DeviceContext& deviceContext,
-        Textures::Systems::TextureSystem& textureSystem,
-        Materials::Systems::MaterialSystem& materialSystem,
-        Meshes::Systems::MeshSystem& meshSystem,
-        Meshes::Systems::MeshShadowSystem& meshShadowSystem,
-        Spatials::Systems::SpatialSystem& spatialSystem,
-        Spatials::Systems::RelativeSpatialSystem& relativeSpatialSystem,
-        Nodes::Systems::NodeSystem& objectSystem,
-        Cameras::Systems::CameraSystem& cameraSystem,
-        Graphics::GlobalSystem& globalSystem,
-        const Loaders::AssimpLoader& loader,
-        Graphics::Graphics& graphics,
-        Controllers::FlyCamController& flyCamController,
-        UserInterfaces::UserInterface& userInterface,
-        entt::registry& registry,
-        UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer,
-        Scenes::Renderers::SceneRenderer& sceneRenderer,
-        Scenes::Systems::SceneSystem& sceneSystem,
-        Points::Systems::PointSystem& pointSystem,
-        BoundingVolumes::Systems::AxisAlignedBoundingBoxSystem& axisAlignedBoundingBoxSystem,
-        Frustums::Systems::FrustumSystem& frustumSystem,
-        Lines::Systems::LineSystem& lineSystem,
-        Lights::Systems::LightSystem& lightSystem,
-        Lights::Systems::PointLightSystem& pointLightSystem,
-        Lights::Systems::DirectionalLightSystem& directionalLightSystem,
-        Lights::Systems::SpotlightSystem& spotlightSystem,
-        Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem,
-        Animations::Systems::AnimationSystem& animationSystem,
-        Animations::Systems::BoneMeshSystem& boneSystem,
-        Animations::Systems::BoneSpatialSystem& boneSpatialSystem,
-        std::function<std::unique_ptr<Animations::Editors::AnimationSequencer>()> animationSequencerFactory
-        // UserInterfaces::AssetExplorer& assetExplorer
-    );
+namespace drk::Applications {
+class Root {
+  public:
+	Root(const Windows::Window &window,
+		 Engine::EngineState &engineState,
+		 const Devices::DeviceContext &deviceContext,
+		 Textures::Systems::TextureSystem &textureSystem,
+		 Materials::Systems::MaterialSystem &materialSystem,
+		 Meshes::Systems::MeshSystem &meshSystem,
+		 Meshes::Systems::MeshShadowSystem &meshShadowSystem,
+		 Spatials::Systems::SpatialSystem &spatialSystem,
+		 Spatials::Systems::RelativeSpatialSystem &relativeSpatialSystem,
+		 Nodes::Systems::NodeSystem &objectSystem,
+		 Cameras::Systems::CameraSystem &cameraSystem,
+		 Graphics::GlobalSystem &globalSystem,
+		 const Loaders::AssimpLoader &loader,
+		 Graphics::Graphics &graphics,
+		 Controllers::FlyCamController &flyCamController,
+		 UserInterfaces::UserInterface &userInterface,
+		 entt::registry &registry,
+		 UserInterfaces::Renderers::UserInterfaceRenderer &userInterfaceRenderer,
+		 Scenes::Renderers::SceneRenderer &sceneRenderer,
+		 Scenes::Systems::SceneSystem &sceneSystem,
+		 Points::Systems::PointSystem &pointSystem,
+		 BoundingVolumes::Systems::AxisAlignedBoundingBoxSystem &axisAlignedBoundingBoxSystem,
+		 Frustums::Systems::FrustumSystem &frustumSystem,
+		 Lines::Systems::LineSystem &lineSystem,
+		 Lights::Systems::LightSystem &lightSystem,
+		 Lights::Systems::PointLightSystem &pointLightSystem,
+		 Lights::Systems::DirectionalLightSystem &directionalLightSystem,
+		 Lights::Systems::SpotlightSystem &spotlightSystem,
+		 Lights::Systems::LightPerspectiveSystem &lightPerspectiveSystem,
+		 Animations::Systems::AnimationSystem &animationSystem,
+		 Animations::Systems::BoneMeshSystem &boneSystem,
+		 Animations::Systems::BoneSpatialSystem &boneSpatialSystem,
+		 std::function<std::unique_ptr<Animations::Editors::AnimationSequencer>()> animationSequencerFactory,
+		 Physics::Systems::PhysicsSystem &physicsSystem
+		 // UserInterfaces::AssetExplorer& assetExplorer
+	);
 
-   public:
-    void onWindowSizeChanged(uint32_t width, uint32_t height);
-    static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
-    void recreateSwapchain(vk::Extent2D windowExtent);
-    // void renderSceneGui(std::optional<Devices::Texture> sceneTexture, const std::optional<ImVec2>& sceneCursorPosition);
-    void renderGui(ApplicationState& applicationState, std::optional<ImVec2>& sceneCursorPosition);
-    void updateApplicationState(std::optional<Devices::Texture>& sceneTexture,
-        vk::ResultValue<uint32_t>& swapchainImageAcquisitionResult,
-        Engine::FrameState const*& frameStatePtr);
-    void renderGizmoGui();
-    void renderEntities();
-    void renderEntity(const entt::entity entity);
-    void renderProperties(entt::entity entity);
-    void renderAnimations();
-    void renderSystemInfos();
-    void renderStorageBuffers();
-    void run();
-    ApplicationState applicationState;
+  public:
+	void onWindowSizeChanged(uint32_t width, uint32_t height);
+	static void cursorPosCallback(GLFWwindow *window, double xpos, double ypos);
+	void recreateSwapchain(vk::Extent2D windowExtent);
+	// void renderSceneGui(std::optional<Devices::Texture> sceneTexture, const std::optional<ImVec2>& sceneCursorPosition);
+	void renderGui(ApplicationState &applicationState, std::optional<ImVec2> &sceneCursorPosition);
+	void updateApplicationState(std::optional<Devices::Texture> &sceneTexture,
+								vk::ResultValue<uint32_t> &swapchainImageAcquisitionResult,
+								Engine::FrameState const *&frameStatePtr);
+	void renderGizmoGui();
+	void renderEntities();
+	void renderEntity(const entt::entity entity);
+	void renderProperties(entt::entity entity);
+	void renderAnimations();
+	void renderSystemInfos();
+	void renderStorageBuffers();
+	void run();
+	
+	ApplicationState applicationState;
 
-   protected:
-    std::unique_ptr<Animations::Editors::AnimationSequencer> animationSequencer;
-    const Windows::Window& window;
-    Engine::EngineState& engineState;
-    const Devices::DeviceContext& deviceContext;
-    Textures::Systems::TextureSystem& textureSystem;
-    Materials::Systems::MaterialSystem& materialSystem;
-    Meshes::Systems::MeshSystem& meshSystem;
-    Meshes::Systems::MeshShadowSystem& meshShadowSystem;
-    Spatials::Systems::SpatialSystem& spatialSystem;
-    Spatials::Systems::RelativeSpatialSystem& relativeSpatialSystem;
-    Nodes::Systems::NodeSystem& objectSystem;
-    Cameras::Systems::CameraSystem& cameraSystem;
-    Graphics::GlobalSystem& globalSystem;
-    const Loaders::AssimpLoader& loader;
-    Graphics::Graphics& graphics;
-    Controllers::FlyCamController& flyCamController;
-    UserInterfaces::UserInterface& userInterface;
-    entt::registry& registry;
-    UserInterfaces::Renderers::UserInterfaceRenderer& userInterfaceRenderer;
-    Scenes::Renderers::SceneRenderer& sceneRenderer;
-    Scenes::Systems::SceneSystem& sceneSystem;
-    Points::Systems::PointSystem& pointSystem;
-    BoundingVolumes::Systems::AxisAlignedBoundingBoxSystem& axisAlignedBoundingBoxSystem;
-    Frustums::Systems::FrustumSystem& frustumSystem;
-    Lines::Systems::LineSystem& lineSystem;
-    Lights::Systems::LightSystem& lightSystem;
-    Lights::Systems::PointLightSystem& pointLightSystem;
-    Lights::Systems::DirectionalLightSystem& directionalLightSystem;
-    Lights::Systems::SpotlightSystem& spotlightSystem;
-    Lights::Systems::LightPerspectiveSystem& lightPerspectiveSystem;
-    Animations::Systems::AnimationSystem& animationSystem;
-    Animations::Systems::BoneMeshSystem& boneSystem;
-    Animations::Systems::BoneSpatialSystem& boneSpatialSystem;
-    std::binary_semaphore mainToWorkflow{ 0 };
-    std::binary_semaphore workflowToMain{ 0 };
-    std::binary_semaphore glfwTaskflowToMainSemaphore{ 0 };
-    std::binary_semaphore glfwmainToTaskflowSemaphore{ 0 };
-    // UserInterfaces::AssetExplorer& assetExplorer;
+  protected:
+	Physics::Systems::PhysicsSystem &physicsSystem;
+	std::unique_ptr<Animations::Editors::AnimationSequencer> animationSequencer;
+	const Windows::Window &window;
+	Engine::EngineState &engineState;
+	const Devices::DeviceContext &deviceContext;
+	Textures::Systems::TextureSystem &textureSystem;
+	Materials::Systems::MaterialSystem &materialSystem;
+	Meshes::Systems::MeshSystem &meshSystem;
+	Meshes::Systems::MeshShadowSystem &meshShadowSystem;
+	Spatials::Systems::SpatialSystem &spatialSystem;
+	Spatials::Systems::RelativeSpatialSystem &relativeSpatialSystem;
+	Nodes::Systems::NodeSystem &objectSystem;
+	Cameras::Systems::CameraSystem &cameraSystem;
+	Graphics::GlobalSystem &globalSystem;
+	const Loaders::AssimpLoader &loader;
+	Graphics::Graphics &graphics;
+	Controllers::FlyCamController &flyCamController;
+	UserInterfaces::UserInterface &userInterface;
+	entt::registry &registry;
+	UserInterfaces::Renderers::UserInterfaceRenderer &userInterfaceRenderer;
+	Scenes::Renderers::SceneRenderer &sceneRenderer;
+	Scenes::Systems::SceneSystem &sceneSystem;
+	Points::Systems::PointSystem &pointSystem;
+	BoundingVolumes::Systems::AxisAlignedBoundingBoxSystem &axisAlignedBoundingBoxSystem;
+	Frustums::Systems::FrustumSystem &frustumSystem;
+	Lines::Systems::LineSystem &lineSystem;
+	Lights::Systems::LightSystem &lightSystem;
+	Lights::Systems::PointLightSystem &pointLightSystem;
+	Lights::Systems::DirectionalLightSystem &directionalLightSystem;
+	Lights::Systems::SpotlightSystem &spotlightSystem;
+	Lights::Systems::LightPerspectiveSystem &lightPerspectiveSystem;
+	Animations::Systems::AnimationSystem &animationSystem;
+	Animations::Systems::BoneMeshSystem &boneSystem;
+	Animations::Systems::BoneSpatialSystem &boneSpatialSystem;
+	std::binary_semaphore mainToWorkflow{0};
+	std::binary_semaphore workflowToMain{0};
+	std::binary_semaphore glfwTaskflowToMainSemaphore{0};
+	std::binary_semaphore glfwmainToTaskflowSemaphore{0};
+	// UserInterfaces::AssetExplorer& assetExplorer;
 
-    entt::entity selectedEntity = entt::null;
-    bool shouldRecreateSwapchain = false;
-    vk::Extent2D windowExtent;
-  };
-}  // namespace drk::Applications
+	entt::entity selectedEntity = entt::null;
+	bool shouldRecreateSwapchain = false;
+	vk::Extent2D windowExtent;
+};
+} // namespace drk::Applications

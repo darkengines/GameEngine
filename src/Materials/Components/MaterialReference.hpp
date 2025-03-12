@@ -1,3 +1,4 @@
+#pragma once
 #include <entt/entt.hpp>
 
 namespace drk::Materials::Components {

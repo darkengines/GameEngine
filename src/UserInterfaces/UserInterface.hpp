@@ -6,6 +6,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>
+#include "../Applications/Helpers.hpp"
 
 namespace drk::UserInterfaces {
 	class UserInterface {
@@ -14,11 +15,15 @@ namespace drk::UserInterfaces {
 		bool isVisible;
 		bool isExplorationMode = false;
 		Controllers::FlyCamController& flyCamController;
+		entt::registry &registry;
 
 	public:
-		UserInterface(Windows::Window& window, Controllers::FlyCamController& flyCamController)
-			: window(window), isVisible(false), flyCamController(flyCamController) {}
+		UserInterface(Windows::Window& window, Controllers::FlyCamController& flyCamController, entt::registry& registry)
+			: window(window), isVisible(false), flyCamController(flyCamController), registry(registry) {}
 		void HandleKeyboardEvents() {
+			if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_X)) {
+				setupCubeOnly(registry);
+			}
 			if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_LeftAlt)) {
 				int cursorMode;
 				isExplorationMode = !isExplorationMode;
