@@ -3,8 +3,8 @@
 namespace drk::Engine {
 
 	DescriptorSetAllocator::DescriptorSetAllocator(const Devices::DeviceContext& deviceContext) : deviceContext(
-		deviceContext
-	) {}
+			deviceContext
+		) {}
 
 	DescriptorSetAllocator::~DescriptorSetAllocator() {
 		for (const auto pool: pools) deviceContext.device.destroyDescriptorPool(pool);

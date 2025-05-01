@@ -20,11 +20,11 @@ namespace drk::BoundingVolumes::Components {
 		glm::vec4 forward = model * GlmExtensions::front * extent.z;
 
 		auto i = abs(dot(GlmExtensions::right, right)) + abs(dot(GlmExtensions::right, top)) +
-				 abs(dot(GlmExtensions::right, forward));
+			abs(dot(GlmExtensions::right, forward));
 		auto j = abs(dot(GlmExtensions::up, right)) + abs(dot(GlmExtensions::up, top)) +
-				 abs(dot(GlmExtensions::up, forward));
+			abs(dot(GlmExtensions::up, forward));
 		auto k = abs(dot(GlmExtensions::front, right)) + abs(dot(GlmExtensions::front, top)) +
-				 abs(dot(GlmExtensions::front, forward));
+			abs(dot(GlmExtensions::front, forward));
 
 		glm::vec4 newExtent{i, j, k, 0};
 		glm::vec4 newCenter = model * center;
@@ -39,11 +39,11 @@ namespace drk::BoundingVolumes::Components {
 		glm::vec4 forward = model * GlmExtensions::front * extent.z;
 
 		absoluteExtent.x = abs(dot(GlmExtensions::right, right)) + abs(dot(GlmExtensions::right, top)) +
-						   abs(dot(GlmExtensions::right, forward));
+			abs(dot(GlmExtensions::right, forward));
 		absoluteExtent.y = abs(dot(GlmExtensions::up, right)) + abs(dot(GlmExtensions::up, top)) +
-						   abs(dot(GlmExtensions::up, forward));
+			abs(dot(GlmExtensions::up, forward));
 		absoluteExtent.z = abs(dot(GlmExtensions::front, right)) + abs(dot(GlmExtensions::front, top)) +
-						   abs(dot(GlmExtensions::front, forward));
+			abs(dot(GlmExtensions::front, forward));
 		absoluteCenter = model * center;
 	}
 
@@ -59,18 +59,18 @@ namespace drk::BoundingVolumes::Components {
 
 	bool AxisAlignedBoundingBox::isOnOrForwardPlane(const Planes::Components::Plane& plane) const {
 		auto radius = extent.x * glm::abs(plane.normal.x) + extent.y * glm::abs(plane.normal.y) +
-					  extent.z * glm::abs(plane.normal.z);
+			extent.z * glm::abs(plane.normal.z);
 		auto signedDistance = plane.getSignedDistanceToPlan(center);
 		return signedDistance >= -radius;
 	}
 
 	bool AxisAlignedBoundingBox::isOnFrustum(const Frustums::Components::Frustum& frustum) {
 		return isOnOrForwardPlane(frustum.nearPlane)
-			   && isOnOrForwardPlane(frustum.leftPlane)
-			   && isOnOrForwardPlane(frustum.rightPlane)
-			   && isOnOrForwardPlane(frustum.bottomPlane)
-			   && isOnOrForwardPlane(frustum.topPlane)
-			   && isOnOrForwardPlane(frustum.farPlane);
+			&& isOnOrForwardPlane(frustum.leftPlane)
+			&& isOnOrForwardPlane(frustum.rightPlane)
+			&& isOnOrForwardPlane(frustum.bottomPlane)
+			&& isOnOrForwardPlane(frustum.topPlane)
+			&& isOnOrForwardPlane(frustum.farPlane);
 	}
 
 //Todo: implementation

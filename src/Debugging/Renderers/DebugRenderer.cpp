@@ -9,11 +9,11 @@ namespace drk::Debugging::Renderers {
 	) : deviceContext(deviceContext), registry(registry),
 		boundingVolumePipeline(std::move(boundingVolumePipeline)),
 		pipelines{
-			{
-				std::type_index(typeid(BoundingVolumes::Pipelines::BoundingVolumePipeline)),
-				this->boundingVolumePipeline.get()
-			}
-		} {}
+	{
+		std::type_index(typeid(BoundingVolumes::Pipelines::BoundingVolumePipeline)),
+		this->boundingVolumePipeline.get()
+	}
+	} {}
 
 	DebugRenderer::~DebugRenderer() {
 		destroyFramebuffers();
@@ -49,9 +49,9 @@ namespace drk::Debugging::Renderers {
 			.sharingMode = vk::SharingMode::eExclusive,
 		};
 		auto mainFramebufferImage = deviceContext.createImage(
-			imageCreateInfo,
-			vk::MemoryPropertyFlagBits::eDeviceLocal
-		);
+				imageCreateInfo,
+				vk::MemoryPropertyFlagBits::eDeviceLocal
+			);
 
 		vk::ImageSubresourceRange subresourceRange = {
 			.aspectMask = vk::ImageAspectFlagBits::eColor,
@@ -81,9 +81,9 @@ namespace drk::Debugging::Renderers {
 			.sharingMode = vk::SharingMode::eExclusive,
 		};
 		auto mainFramebufferDepthImage = deviceContext.createImage(
-			depthImageCreateInfo,
-			vk::MemoryPropertyFlagBits::eDeviceLocal
-		);
+				depthImageCreateInfo,
+				vk::MemoryPropertyFlagBits::eDeviceLocal
+			);
 
 		vk::ImageSubresourceRange depthSubresourceRange = {
 			.aspectMask = vk::ImageAspectFlagBits::eDepth,
@@ -195,12 +195,12 @@ namespace drk::Debugging::Renderers {
 			.srcSubpass = VK_SUBPASS_EXTERNAL,
 			.dstSubpass = 0,
 			.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput |
-							vk::PipelineStageFlagBits::eEarlyFragmentTests,
+			vk::PipelineStageFlagBits::eEarlyFragmentTests,
 			.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput |
-							vk::PipelineStageFlagBits::eEarlyFragmentTests,
+			vk::PipelineStageFlagBits::eEarlyFragmentTests,
 			.srcAccessMask = vk::AccessFlagBits::eNone,
 			.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite |
-							 vk::AccessFlagBits::eDepthStencilAttachmentWrite
+			vk::AccessFlagBits::eDepthStencilAttachmentWrite
 		};
 
 		std::vector<vk::AttachmentDescription> attachments{
@@ -235,9 +235,9 @@ namespace drk::Debugging::Renderers {
 		vk::Rect2D scissor;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{targetImageInfo.extent.width, targetImageInfo.extent.height},
-			viewport,
-			scissor
+		{targetImageInfo.extent.width, targetImageInfo.extent.height},
+		viewport,
+		scissor
 		);
 		for (const auto& pipeline: pipelines) {
 			pipeline.second->configure(
@@ -296,39 +296,39 @@ namespace drk::Debugging::Renderers {
 					operations |= drk::Renderers::RenderOperation::BindPipeline;
 				}
 				if (previousDrawEntity == entt::null ||
-					(previousDebugDraw->indexBufferView.buffer.buffer != debugDraw.indexBufferView.buffer.buffer)) {
-					operations |= drk::Renderers::RenderOperation::BindIndexBuffer |
-								  drk::Renderers::RenderOperation::BindVertexBuffer;
-				}
-				if (previousDrawEntity != entt::null &&
-					previousDebugDraw->indexBufferView.byteOffset != debugDraw.indexBufferView.byteOffset) {
-					operations |= drk::Renderers::RenderOperation::Draw;
-				}
-				if (previousDrawEntity == entt::null) {
-					doOperations(commandBuffer, operations, debugDraw, &pCurrentPipeline);
-				} else {
-					if (operations != drk::Renderers::RenderOperation::None) {
-						draw(
-							previousDrawEntity,
-							*previousDebugDraw,
-							commandBuffer,
-							instanceCount,
-							pipelineDrawIndices[previousDebugDraw->pipelineTypeIndex],
-							pCurrentPipeline
-						);
-						pipelineDrawIndices[previousDebugDraw->pipelineTypeIndex] += instanceCount;
-						instanceCount = 0u;
-					}
-					doOperations(
-						commandBuffer,
-						operations,
-						debugDraw,
-						&pCurrentPipeline
-					);
-				}
-				previousDebugDraw = &debugDraw;
-				previousDrawEntity = drawEntity;
-				instanceCount++;
+			(previousDebugDraw->indexBufferView.buffer.buffer != debugDraw.indexBufferView.buffer.buffer)) {
+			operations |= drk::Renderers::RenderOperation::BindIndexBuffer |
+				drk::Renderers::RenderOperation::BindVertexBuffer;
+		}
+	if (previousDrawEntity != entt::null &&
+			previousDebugDraw->indexBufferView.byteOffset != debugDraw.indexBufferView.byteOffset) {
+		operations |= drk::Renderers::RenderOperation::Draw;
+	}
+	if (previousDrawEntity == entt::null) {
+		doOperations(commandBuffer, operations, debugDraw, &pCurrentPipeline);
+		} else {
+			if (operations != drk::Renderers::RenderOperation::None) {
+				draw(
+					previousDrawEntity,
+					*previousDebugDraw,
+					commandBuffer,
+					instanceCount,
+					pipelineDrawIndices[previousDebugDraw->pipelineTypeIndex],
+					pCurrentPipeline
+				);
+				pipelineDrawIndices[previousDebugDraw->pipelineTypeIndex] += instanceCount;
+				instanceCount = 0u;
+			}
+			doOperations(
+				commandBuffer,
+				operations,
+				debugDraw,
+				&pCurrentPipeline
+			);
+		}
+		previousDebugDraw = &debugDraw;
+			previousDrawEntity = drawEntity;
+			instanceCount++;
 			}
 		);
 		if (previousDrawEntity != entt::null) {
@@ -408,9 +408,9 @@ namespace drk::Debugging::Renderers {
 		};
 		auto memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal;
 		auto mainFramebufferImage = deviceContext.createImage(
-			imageCreateInfo,
-			memoryProperties
-		);
+				imageCreateInfo,
+				memoryProperties
+			);
 
 		vk::ImageSubresourceRange subresourceRange = {
 			.aspectMask = vk::ImageAspectFlagBits::eColor,
@@ -448,9 +448,9 @@ namespace drk::Debugging::Renderers {
 		vk::Rect2D scissor;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{extent.width, extent.height},
-			viewport,
-			scissor
+		{extent.width, extent.height},
+		viewport,
+		scissor
 		);
 		for (const auto& pipeline: pipelines) {
 			pipeline.second->configure(

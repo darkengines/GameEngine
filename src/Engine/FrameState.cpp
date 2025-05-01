@@ -13,13 +13,13 @@ namespace drk::Engine {
 		descriptorSetLayouts(descriptorSetLayouts),
 		descriptorSetAllocator(descriptorSetAllocator),
 		storeDescriptorSet(descriptorSetAllocator.allocateDescriptorSets({descriptorSetLayouts.storeDescriptorSetLayout})[0]),
-		globalDescriptorSet(descriptorSetAllocator.allocateDescriptorSets({descriptorSetLayouts.globalDescriptorSetLayout})[0]),
-		commandBuffer(FrameState::CreateCommandBuffer(deviceContext)),
-		fence(FrameState::CreateFence(deviceContext)),
-		imageReadySemaphore(FrameState::CreateSemaphore(deviceContext)),
-		imageRenderedSemaphore(FrameState::CreateSemaphore(deviceContext)),
-		storeBufferAllocator(deviceContext, storeDescriptorSet),
-		globalUniformBuffer(createGlobalUniformBuffer(deviceContext, globalDescriptorSet, &Global)) {
+					   globalDescriptorSet(descriptorSetAllocator.allocateDescriptorSets({descriptorSetLayouts.globalDescriptorSetLayout})[0]),
+					   commandBuffer(FrameState::CreateCommandBuffer(deviceContext)),
+					   fence(FrameState::CreateFence(deviceContext)),
+					   imageReadySemaphore(FrameState::CreateSemaphore(deviceContext)),
+					   imageRenderedSemaphore(FrameState::CreateSemaphore(deviceContext)),
+					   storeBufferAllocator(deviceContext, storeDescriptorSet),
+	globalUniformBuffer(createGlobalUniformBuffer(deviceContext, globalDescriptorSet, &Global)) {
 	}
 
 	FrameState::FrameState(FrameState&& frameState) noexcept
@@ -91,16 +91,16 @@ namespace drk::Engine {
 			.flags = VmaAllocationCreateFlagBits::VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
 			.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
 			.requiredFlags = (VkMemoryPropertyFlags) (vk::MemoryPropertyFlagBits::eHostVisible |
-													  vk::MemoryPropertyFlagBits::eHostCoherent),
+				vk::MemoryPropertyFlagBits::eHostCoherent),
 		};
 		auto uniformBuffer = Devices::Device::createBuffer(
-			deviceContext.Allocator,
-			vk::MemoryPropertyFlagBits::eHostVisible,
-			vk::BufferUsageFlagBits::eUniformBuffer,
-			allocationCreationInfo,
-			byteLength,
-			fmt::format("{0}.UniformBuffer", typeid(FrameState).name()).c_str()
-		);
+				deviceContext.Allocator,
+				vk::MemoryPropertyFlagBits::eHostVisible,
+				vk::BufferUsageFlagBits::eUniformBuffer,
+				allocationCreationInfo,
+				byteLength,
+				fmt::format("{0}.UniformBuffer", typeid(FrameState).name()).c_str()
+			);
 
 		Devices::Device::mapBuffer(deviceContext.Allocator, uniformBuffer, (void**) global);
 

@@ -62,8 +62,8 @@ namespace drk::Graphics {
 
 			for (const auto& entity: directionalLightStoreItems) {
 				auto directionalLightStoreItem = Registry.get<Stores::StoreItem<Lights::Models::DirectionalLight>>(
-					entity
-				);
+						entity
+					);
 				global.directionalLightArrayIndex = directionalLightStoreItem.frameStoreItems[frameIndex].pStore->descriptorArrayElement;
 				break;
 			}

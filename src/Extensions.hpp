@@ -4,8 +4,8 @@
 #include <entt/entt.hpp>
 
 namespace drk {
-fruit::Component<entt::registry> addRegistry() {
-	return fruit::createComponent()
-		.registerProvider([]() { return entt::registry(); });
-}
+	fruit::Component<entt::registry> addRegistry() {
+		return fruit::createComponent()
+			.registerProvider([]() { return entt::registry(); });
+	}
 }  // namespace drk

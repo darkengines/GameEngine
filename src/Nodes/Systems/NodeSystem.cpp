@@ -51,10 +51,10 @@ namespace drk::Nodes {
 				if (nodeMesh.nodeEntity == sourceEntity) {
 					auto destinationNodeMeshEntity = destination.create();
 					auto destinationMeshEntity = Meshes::Systems::MeshSystem::copyMeshEntity(
-						source,
-						destination,
-						nodeMesh.meshEntity
-					);
+							source,
+							destination,
+							nodeMesh.meshEntity
+						);
 
 					destination.emplace<Nodes::Components::NodeMesh>(
 						destinationNodeMeshEntity,

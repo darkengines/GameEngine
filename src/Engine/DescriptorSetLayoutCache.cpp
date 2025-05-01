@@ -3,8 +3,8 @@
 namespace drk::Engine {
 
 	DescriptorSetLayoutCache::DescriptorSetLayoutCache(const Devices::DeviceContext& deviceContext) : deviceContext(
-		deviceContext
-	) {}
+			deviceContext
+		) {}
 
 	DescriptorSetLayoutCache::~DescriptorSetLayoutCache() {
 		for (auto& layout: Layouts) {

@@ -39,33 +39,33 @@ namespace drk::Materials::Systems {
 
 		if (hasBaseColorTexture) {
 			storedMaterial.baseColorTextureIndex = registry.get<Devices::Texture>(
-				material.baseColorTexture
-			).index;
+					material.baseColorTexture
+				).index;
 		}
 		if (hasAmbientColorTexture) {
 			storedMaterial.ambientColorTextureIndex = registry.get<Devices::Texture>(
-				material.ambientColorTexture
-			).index;
+					material.ambientColorTexture
+				).index;
 		}
 		if (hasDiffuseColorTexture) {
 			storedMaterial.diffuseColorTextureIndex = registry.get<Devices::Texture>(
-				material.diffuseColorTexture
-			).index;
+					material.diffuseColorTexture
+				).index;
 		}
 		if (hasSpecularColorTexture) {
 			storedMaterial.specularColorTextureIndex = registry.get<Devices::Texture>(
-				material.specularColorTexture
-			).index;
+					material.specularColorTexture
+				).index;
 		}
 		if (hasNormalMap) {
 			storedMaterial.normalMapIndex = registry.get<Devices::Texture>(
-				material.normalMap
-			).index;
+					material.normalMap
+				).index;
 		}
 		if (hasMetallicRoughnessMap) {
 			storedMaterial.metallicRoughnessTextureIndex = registry.get<Devices::Texture>(
-				material.metallicRoughnessTexture
-			).index;
+					material.metallicRoughnessTexture
+				).index;
 		}
 		if (hasMetallicMap) {
 			storedMaterial.metallicTextureIndex = registry.get<Devices::Texture>(material.metallicTexture).index;

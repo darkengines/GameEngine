@@ -13,7 +13,7 @@
 		"nlohmann-json",
 		"nameof",
 		"boost-signals2",
-		"cpp-taskflow",
+		"taskflow",
 		"fruit",
 		"joltphysics"
 	]

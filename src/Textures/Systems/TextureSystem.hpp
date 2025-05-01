@@ -5,19 +5,19 @@
 
 namespace drk::Textures::Systems {
 	class TextureSystem {
-	protected:
-		const Devices::DeviceContext& deviceContext;
-		Engine::EngineState& EngineState;
-		entt::registry& registry;
+		protected:
+			const Devices::DeviceContext& deviceContext;
+			Engine::EngineState& EngineState;
+			entt::registry& registry;
 
-	public:
-		TextureSystem(
-			const Devices::DeviceContext& deviceContext,
-			Engine::EngineState& engineState,
-			entt::registry& registry
-		);
-		void UploadTextures();
-		static entt::entity
-		copyTextureEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
+		public:
+			TextureSystem(
+				const Devices::DeviceContext& deviceContext,
+				Engine::EngineState& engineState,
+				entt::registry& registry
+			);
+			void UploadTextures();
+			static entt::entity
+			copyTextureEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
 	};
 }

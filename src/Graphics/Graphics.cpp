@@ -25,11 +25,11 @@ namespace drk::Graphics {
 
 	void Graphics::CreateSwapchain(const vk::Extent2D& extent) {
 		Swapchain = Devices::Device::createSwapchain(
-			deviceContext.device,
-			deviceContext.PhysicalDevice,
-			deviceContext.Surface,
-			extent
-		);
+				deviceContext.device,
+				deviceContext.PhysicalDevice,
+				deviceContext.Surface,
+				extent
+			);
 	}
 
 	void Graphics::DestroySwapchain() {
@@ -66,7 +66,7 @@ namespace drk::Graphics {
 			.dstAlphaBlendFactor = vk::BlendFactor::eZero,
 			.alphaBlendOp = vk::BlendOp::eAdd,
 			.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-							  vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA,
+			vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA,
 		};
 		return colorBlendAttachment;
 	}
@@ -182,11 +182,11 @@ namespace drk::Graphics {
 	vk::ResultValue<uint32_t> Graphics::AcquireSwapchainImageIndex() {
 		const auto& frameState = EngineState.getCurrentFrameState();
 		auto result = deviceContext.device.acquireNextImageKHR(
-			Swapchain.swapchain,
-			UINT64_MAX,
-			frameState.imageReadySemaphore,
-			VK_NULL_HANDLE
-		);
+				Swapchain.swapchain,
+				UINT64_MAX,
+				frameState.imageReadySemaphore,
+				VK_NULL_HANDLE
+			);
 		return result;
 	}
 	const Devices::Swapchain& Graphics::GetSwapchain() const {

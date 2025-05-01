@@ -80,25 +80,25 @@ namespace drk::Frustums::Systems {
 		};
 		std::vector<uint32_t> frustumIndices{0, 1, 1, 3, 3, 2, 2, 0, 4, 5, 5, 7, 7, 6, 6, 4, 0, 4, 1, 5, 2, 6, 3, 7};
 		auto vertexUploadResult = Devices::Device::uploadBuffers<Models::Vertex>(
-			deviceContext.PhysicalDevice,
-			deviceContext.device,
-			deviceContext.GraphicQueue,
-			deviceContext.CommandPool,
-			deviceContext.Allocator,
-			{frustumVertices},
-			vk::BufferUsageFlagBits::eVertexBuffer,
-			fmt::format("{0}.VertexBuffer", typeid(FrustumSystem).name()).c_str()
-		);
+				deviceContext.PhysicalDevice,
+				deviceContext.device,
+				deviceContext.GraphicQueue,
+				deviceContext.CommandPool,
+				deviceContext.Allocator,
+		{frustumVertices},
+		vk::BufferUsageFlagBits::eVertexBuffer,
+		fmt::format("{0}.VertexBuffer", typeid(FrustumSystem).name()).c_str()
+			);
 
 		auto indexUploadResult = Devices::Device::uploadBuffers<uint32_t>(
-			deviceContext.PhysicalDevice,
-			deviceContext.device,
-			deviceContext.GraphicQueue,
-			deviceContext.CommandPool,
-			deviceContext.Allocator,
-			{frustumIndices},
-			vk::BufferUsageFlagBits::eIndexBuffer, fmt::format("{0}.IndexBuffer", typeid(FrustumSystem).name()).c_str()
-		);
+				deviceContext.PhysicalDevice,
+				deviceContext.device,
+				deviceContext.GraphicQueue,
+				deviceContext.CommandPool,
+				deviceContext.Allocator,
+		{frustumIndices},
+		vk::BufferUsageFlagBits::eIndexBuffer, fmt::format("{0}.IndexBuffer", typeid(FrustumSystem).name()).c_str()
+			);
 
 		vertexBufferView = vertexUploadResult.bufferViews[0];
 		indexBufferView = indexUploadResult.bufferViews[0];
@@ -113,7 +113,7 @@ namespace drk::Frustums::Systems {
 		const auto& [frustumStoreItem, spatial] = registry.get<
 			Stores::StoreItem<Models::Frustum>,
 			Stores::StoreItem<Spatials::Models::Spatial>
-		>(draw.frustumEntity);
+			>(draw.frustumEntity);
 		const auto& cameraStoreItem = registry.get<Stores::StoreItem<Cameras::Models::Camera>>(engineState.cameraEntity);
 
 		auto frameIndex = engineState.getFrameIndex();
@@ -128,7 +128,7 @@ namespace drk::Frustums::Systems {
 		const auto& camera = registry.get<Cameras::Components::Camera>(engineState.cameraEntity);
 		const auto frustumEntities = registry.view<
 			Components::Frustum
-		>(entt::exclude<Components::HasDraw>);
+			>(entt::exclude<Components::HasDraw>);
 
 		frustumEntities.each(
 			[&](
@@ -136,7 +136,7 @@ namespace drk::Frustums::Systems {
 				const Components::Frustum& frustum
 			) {
 				if (frustumEntity == engineState.cameraEntity)
-					return;
+				return;
 				Scenes::Draws::SceneDraw draw = {
 					.drawSystem = this,
 					.pipelineTypeIndex = std::type_index(typeid(Pipelines::FrustumPipeline)),
@@ -145,20 +145,20 @@ namespace drk::Frustums::Systems {
 					.hasTransparency = false,
 					.depth = 0.0f,
 				};
-				Components::Draw Draw = {
-					.frustumEntity = frustumEntity,
-					.spatialEntity = frustumEntity,
-					.cameraEntity = engineState.cameraEntity,
-				};
-				auto entity = registry.create();
-				registry.emplace_or_replace<Scenes::Draws::SceneDraw>(entity, std::move(draw));
-				registry.emplace_or_replace<Components::Draw>(entity, std::move(Draw));
-				registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
-					entity,
-					engineState.getFrameCount());
+		Components::Draw Draw = {
+		.frustumEntity = frustumEntity,
+		.spatialEntity = frustumEntity,
+		.cameraEntity = engineState.cameraEntity,
+	};
+	auto entity = registry.create();
+		registry.emplace_or_replace<Scenes::Draws::SceneDraw>(entity, std::move(draw));
+		registry.emplace_or_replace<Components::Draw>(entity, std::move(Draw));
+		registry.emplace_or_replace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
+			entity,
+			engineState.getFrameCount());
 
-				registry.emplace<Components::HasDraw>(frustumEntity);
-			}
-		);
+		registry.emplace<Components::HasDraw>(frustumEntity);
+		}
+	);
 	}
 }

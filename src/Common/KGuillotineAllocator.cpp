@@ -18,7 +18,7 @@ namespace drk {
 			auto x2 = std::max(left.offset.x + left.extent.width, right.offset.x + right.extent.width);
 			auto y2 = std::max(left.offset.y + left.extent.height, right.offset.y + right.extent.height);
 			return vk::Rect2D{{x1,      y1},
-							  {x2 - x1, y2 - y1}};
+				{x2 - x1, y2 - y1}};
 		};
 
 		struct AllocationNode {
@@ -44,17 +44,17 @@ namespace drk {
 		};
 
 		class AllocatorPrivate {
-		public:
-			std::tuple<AllocationId, bool> selectFreeNode(const vk::Extent2D& size) const;
+			public:
+				std::tuple<AllocationId, bool> selectFreeNode(const vk::Extent2D& size) const;
 
-			AllocationId allocateNode();
-			void releaseNode(AllocationId nodeId);
+				AllocationId allocateNode();
+				void releaseNode(AllocationId nodeId);
 
-			int computeScore(int xDelta, int yDelta) const;
+				int computeScore(int xDelta, int yDelta) const;
 
-			std::vector<AllocationNode> nodes;
-			vk::Extent2D size;
-			AllocatorOptions options;
+				std::vector<AllocationNode> nodes;
+				vk::Extent2D size;
+				AllocatorOptions options;
 		};
 
 		AllocationId AllocatorPrivate::allocateNode() {
@@ -78,15 +78,15 @@ namespace drk {
 			d->options = options;
 
 			d->nodes.push_back(
-				AllocationNode{
-					.prevSibling = AllocationId::null(),
-					.nextSibling = AllocationId::null(),
-					.parent = AllocationId::null(),
-					.orientation = Orientation::Horizontal,
-					.scissor = vk::Rect2D({0, 0}, size),
-					.kind = AllocationNode::Kind::Leaf,
-					.status = AllocationNode::Status::Free,
-				}
+			AllocationNode{
+				.prevSibling = AllocationId::null(),
+				.nextSibling = AllocationId::null(),
+				.parent = AllocationId::null(),
+				.orientation = Orientation::Horizontal,
+				.scissor = vk::Rect2D({0, 0}, size),
+				.kind = AllocationNode::Kind::Leaf,
+				.status = AllocationNode::Status::Free,
+			}
 			);
 		}
 
@@ -165,15 +165,15 @@ namespace drk {
 			vk::Rect2D leftoverRect, splitRect;
 			if (axis == Orientation::Vertical) {
 				leftoverRect = vk::Rect2D{{bounds.offset.x, (int32_t) (bounds.offset.y + size.height)},
-										  {size.width,      bounds.extent.height - size.height}};
+					{size.width,      bounds.extent.height - size.height}};
 				splitRect = vk::Rect2D{{(int32_t) (bounds.offset.x + size.width), bounds.offset.y},
-									   {bounds.extent.width - size.width,         bounds.extent.height}};
+					{bounds.extent.width - size.width,         bounds.extent.height}};
 			} else {
 				leftoverRect = vk::Rect2D{{(int32_t) (bounds.offset.x + size.width), bounds.offset.y},
-										  {bounds.extent.width - size.width,         size.height}};
+					{bounds.extent.width - size.width,         size.height}};
 
-				splitRect = vk::Rect2D{{bounds.offset.x,     (int32_t) (bounds.offset.y + size.height)},
-									   {bounds.extent.width, bounds.extent.height - size.height}};
+				splitRect = vk::Rect2D{{bounds.offset.x, (int32_t) (bounds.offset.y + size.height)},
+					{bounds.extent.width, bounds.extent.height - size.height}};
 			}
 
 			return {allocatedRect, leftoverRect, splitRect};

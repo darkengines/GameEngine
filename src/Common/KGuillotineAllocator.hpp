@@ -78,25 +78,25 @@ namespace drk::guillotine {
 	 * Allocation object will be returned.
 	 */
 	class Allocator {
-	public:
-		explicit Allocator(const vk::Extent2D& size, const AllocatorOptions& options = {});
-		~Allocator();
+		public:
+			explicit Allocator(const vk::Extent2D& size, const AllocatorOptions& options = {});
+			~Allocator();
 
-		vk::Extent2D size() const;
+			vk::Extent2D size() const;
 
-		/**
-		 * Allocates the space for a texture with the specified size \a requestedSize. If
-		 * the allocation has failed, a null Allocation object will be returned.
-		 */
-		Allocation allocate(const vk::Extent2D& requestedSize);
+			/**
+			 * Allocates the space for a texture with the specified size \a requestedSize. If
+			 * the allocation has failed, a null Allocation object will be returned.
+			 */
+			Allocation allocate(const vk::Extent2D& requestedSize);
 
-		/**
-		 * Release a rectangular area previously allocated by the allocate() function. Passing
-		 * an allocation id that was not returned by allocate() will lead to undefined behavior.
-		 */
-		void deallocate(AllocationId allocationId);
+			/**
+			 * Release a rectangular area previously allocated by the allocate() function. Passing
+			 * an allocation id that was not returned by allocate() will lead to undefined behavior.
+			 */
+			void deallocate(AllocationId allocationId);
 
-	private:
-		AllocatorPrivate* d;
+		private:
+			AllocatorPrivate* d;
 	};
 } // namespace KGuillotineAllocator

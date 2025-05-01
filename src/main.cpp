@@ -44,7 +44,7 @@
 
 int main(int argc, char** argv) {
 
-    //drk::Physics::test();
+	//drk::Physics::test();
 
 	drk::FreeList freeList = drk::FreeList::create(1024);
 	auto a512 = freeList.allocate(512);
@@ -92,10 +92,10 @@ int main(int argc, char** argv) {
 	fruit::Injector<drk::Applications::Root, entt::registry, drk::Loaders::AssimpLoader> fruitInjector(drk::Applications::addRoot);
 
 	{
-        drk::Systems::IStorageSystem::storageSystems = fruitInjector.getMultibindings<drk::Systems::IStorageSystem>();
-        drk::Draws::Systems::IDrawSystem::drawSystems = fruitInjector.getMultibindings<drk::Draws::Systems::IDrawSystem>();
+		drk::Systems::IStorageSystem::storageSystems = fruitInjector.getMultibindings<drk::Systems::IStorageSystem>();
+		drk::Draws::Systems::IDrawSystem::drawSystems = fruitInjector.getMultibindings<drk::Draws::Systems::IDrawSystem>();
 		auto& root = fruitInjector.get<drk::Applications::Root&>();
-        
+
 		if (modelPath.has_value()) {
 			auto& loader = fruitInjector.get<drk::Loaders::AssimpLoader&>();
 			auto& registry = fruitInjector.get<entt::registry&>();

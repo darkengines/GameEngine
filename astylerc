@@ -1,0 +1,20 @@
+# Use tabs for indentation
+indent=tab
+indent=force-tab
+indent-classes
+indent-modifiers
+indent-switches
+indent-cases
+indent-namespaces
+indent-continuation=1
+indent-after-parens
+indent-lambda
+
+align-pointer=type
+align-reference=type
+
+style=attach
+
+keep-one-line-blocks
+keep-one-line-statements
+

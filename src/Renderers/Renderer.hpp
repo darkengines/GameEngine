@@ -6,7 +6,7 @@
 
 namespace drk::Renderers {
 	class Renderer {
-		virtual void render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) = 0;
+			virtual void render(uint32_t targetImageIndex, const vk::CommandBuffer& commandBuffer) = 0;
 	};
 }
 

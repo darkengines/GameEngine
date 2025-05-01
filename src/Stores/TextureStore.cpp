@@ -27,16 +27,16 @@ namespace drk::Stores {
 				.flags = VmaAllocationCreateFlagBits::VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
 				.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
 				.requiredFlags = (VkMemoryPropertyFlags) (vk::MemoryPropertyFlagBits::eHostVisible |
-														  vk::MemoryPropertyFlagBits::eHostCoherent),
+					vk::MemoryPropertyFlagBits::eHostCoherent),
 			};
 			const auto imageByteLength = imageInfo->width * imageInfo->height * 4 * sizeof(unsigned char);
 			const auto stagingBuffer = deviceContext.CreateBuffer(
-				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-				vk::BufferUsageFlagBits::eTransferSrc,
-				stagingAllocationCreationInfo,
-				imageByteLength, 
-				fmt::format("Staging {0}.ImageBuffer", typeid(TextureStore).name()).c_str()
-			);
+					vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+					vk::BufferUsageFlagBits::eTransferSrc,
+					stagingAllocationCreationInfo,
+					imageByteLength,
+					fmt::format("Staging {0}.ImageBuffer", typeid(TextureStore).name()).c_str()
+				);
 
 			unsigned char* stagingMemory;
 			Devices::Device::mapBuffer(deviceContext.Allocator, stagingBuffer, (void**) &stagingMemory);
@@ -59,12 +59,12 @@ namespace drk::Stores {
 				//TODO: Use configurable sample count
 				.samples = vk::SampleCountFlagBits::e1,
 				.usage = vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst |
-						 vk::ImageUsageFlagBits::eSampled
+				vk::ImageUsageFlagBits::eSampled
 			};
 			const auto image = deviceContext.createImage(
-				imageCreationInfo,
-				vk::MemoryPropertyFlagBits::eDeviceLocal
-			);
+					imageCreationInfo,
+					vk::MemoryPropertyFlagBits::eDeviceLocal
+				);
 
 			vk::BufferImageCopy region = {
 				.imageSubresource = {
@@ -78,9 +78,9 @@ namespace drk::Stores {
 			};
 
 			auto commandBuffer = Devices::Device::beginSingleTimeCommands(
-				deviceContext.device,
-				deviceContext.CommandPool
-			);
+					deviceContext.device,
+					deviceContext.CommandPool
+				);
 			Devices::Device::transitionLayout(
 				commandBuffer,
 				image.image,
@@ -161,7 +161,7 @@ namespace drk::Stores {
 			.pBufferInfo = nullptr,
 		};
 
-		deviceContext.device.updateDescriptorSets(std::array<vk::WriteDescriptorSet, 1>{write}, {});
+		deviceContext.device.updateDescriptorSets(std::array<vk::WriteDescriptorSet, 1> {write}, {});
 
 		return uploadedTextures;
 	}
@@ -190,7 +190,7 @@ namespace drk::Stores {
 			.pBufferInfo = nullptr,
 		};
 
-		deviceContext.device.updateDescriptorSets(std::array<vk::WriteDescriptorSet, 1>{write}, {});
+		deviceContext.device.updateDescriptorSets(std::array<vk::WriteDescriptorSet, 1> {write}, {});
 	}
 	void TextureStore::registerTexture(Devices::Texture& texture) {
 		registerTextures(&texture, 1);

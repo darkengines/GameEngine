@@ -7,8 +7,8 @@ namespace drk::Stores {
 		const vk::DescriptorSet& descriptorSet
 	)
 		: deviceContext(
-		deviceContext
-	), DescriptorSet(descriptorSet) {
+			  deviceContext
+		  ), DescriptorSet(descriptorSet) {
 
 	}
 
@@ -19,8 +19,8 @@ namespace drk::Stores {
 		}
 	}
 	StoreBufferAllocator::StoreBufferAllocator(StoreBufferAllocator&& storeBufferAllocator) noexcept: deviceContext(
-		storeBufferAllocator.deviceContext
-	), DescriptorSet(storeBufferAllocator.DescriptorSet), Buffers(std::move(storeBufferAllocator.Buffers)) {
+			storeBufferAllocator.deviceContext
+		), DescriptorSet(storeBufferAllocator.DescriptorSet), Buffers(std::move(storeBufferAllocator.Buffers)) {
 		storeBufferAllocator.Buffers.clear();
 	}
 	std::unique_ptr<GenericStoreBuffer> StoreBufferAllocator::allocate(size_t itemByteLength, uint32_t itemCount) {
@@ -30,16 +30,16 @@ namespace drk::Stores {
 			.flags = VmaAllocationCreateFlagBits::VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
 			.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
 			.requiredFlags = (VkMemoryPropertyFlags) (vk::MemoryPropertyFlagBits::eHostVisible |
-													  vk::MemoryPropertyFlagBits::eHostCoherent),
+				vk::MemoryPropertyFlagBits::eHostCoherent),
 		};
 		auto storageBuffer = Devices::Device::createBuffer(
-			deviceContext.Allocator,
-			vk::MemoryPropertyFlagBits::eHostVisible,
-			vk::BufferUsageFlagBits::eStorageBuffer,
-			allocationCreationInfo,
-			byteLength,
-			fmt::format("{0}.StorageBuffer", typeid(StoreBufferAllocator).name()).c_str()
-		);
+				deviceContext.Allocator,
+				vk::MemoryPropertyFlagBits::eHostVisible,
+				vk::BufferUsageFlagBits::eStorageBuffer,
+				allocationCreationInfo,
+				byteLength,
+				fmt::format("{0}.StorageBuffer", typeid(StoreBufferAllocator).name()).c_str()
+			);
 		Buffers.push_back(storageBuffer);
 
 		void* mappedMemory = nullptr;

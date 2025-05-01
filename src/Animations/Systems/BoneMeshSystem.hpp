@@ -8,11 +8,11 @@
 
 namespace drk::Animations::Systems {
 	class BoneMeshSystem : public drk::Systems::StorageSystem<Models::BoneMesh, Components::BoneMesh> {
-	public:
-		BoneMeshSystem(
-			Engine::EngineState& engineState,
-			entt::registry& registry
-		);
-		void update(Models::BoneMesh& boneMeshModel, const Components::BoneMesh& boneMeshComponent) override;
+		public:
+			BoneMeshSystem(
+				Engine::EngineState& engineState,
+				entt::registry& registry
+			);
+			void update(Models::BoneMesh& boneMeshModel, const Components::BoneMesh& boneMeshComponent) override;
 	};
 }

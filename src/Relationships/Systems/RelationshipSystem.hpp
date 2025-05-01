@@ -5,16 +5,16 @@
 
 namespace drk::Relationships::Systems {
 	class RelationshipSystem {
-	protected:
-		const Devices::DeviceContext& deviceContext;
-		Engine::EngineState& EngineState;
-		entt::registry& registry;
+		protected:
+			const Devices::DeviceContext& deviceContext;
+			Engine::EngineState& EngineState;
+			entt::registry& registry;
 
-	public:
-		RelationshipSystem(
-			const Devices::DeviceContext& deviceContext,
-			Engine::EngineState& engineState,
-			entt::registry& registry
-		);
+		public:
+			RelationshipSystem(
+				const Devices::DeviceContext& deviceContext,
+				Engine::EngineState& engineState,
+				entt::registry& registry
+			);
 	};
 }

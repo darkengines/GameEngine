@@ -38,15 +38,15 @@ namespace drk::Points::Systems {
 		vk::DeviceSize indexOffset = 0;
 		std::vector<Models::PointVertex> pointVertices{pointVertex};
 		auto vertexResult = Devices::Device::uploadBuffers<Models::PointVertex>(
-			deviceContext.PhysicalDevice,
-			deviceContext.device,
-			deviceContext.GraphicQueue,
-			deviceContext.CommandPool,
-			deviceContext.Allocator,
-			{pointVertices},
-			vk::BufferUsageFlagBits::eVertexBuffer, 
-			fmt::format("{0}.VertexBuffer", typeid(PointSystem).name()).c_str()
-		);
+				deviceContext.PhysicalDevice,
+				deviceContext.device,
+				deviceContext.GraphicQueue,
+				deviceContext.CommandPool,
+				deviceContext.Allocator,
+		{pointVertices},
+		vk::BufferUsageFlagBits::eVertexBuffer,
+		fmt::format("{0}.VertexBuffer", typeid(PointSystem).name()).c_str()
+			);
 		auto vertexBuffer = vertexResult.buffer;
 		pointVertexBufferView = {
 			.buffer = vertexBuffer,
@@ -55,14 +55,14 @@ namespace drk::Points::Systems {
 		};
 		std::vector<unsigned int> pointIndices{0u};
 		auto indexResult = Devices::Device::uploadBuffers<unsigned int>(
-			deviceContext.PhysicalDevice,
-			deviceContext.device,
-			deviceContext.GraphicQueue,
-			deviceContext.CommandPool,
-			deviceContext.Allocator,
-			{pointIndices},
-			vk::BufferUsageFlagBits::eIndexBuffer, fmt::format("{0}.IndexBuffer", typeid(PointSystem).name()).c_str()
-		);
+				deviceContext.PhysicalDevice,
+				deviceContext.device,
+				deviceContext.GraphicQueue,
+				deviceContext.CommandPool,
+				deviceContext.Allocator,
+		{pointIndices},
+		vk::BufferUsageFlagBits::eIndexBuffer, fmt::format("{0}.IndexBuffer", typeid(PointSystem).name()).c_str()
+			);
 		auto indexBuffer = indexResult.buffer;
 		pointIndexBufferView = {
 			.buffer = indexBuffer,
@@ -87,7 +87,7 @@ namespace drk::Points::Systems {
 			Components::Point,
 			Spatials::Components::Spatial<Spatials::Components::Absolute>,
 			Stores::StoreItem<Nodes::Models::Node>
-		>(entt::exclude<Models::PointDraw>);
+			>(entt::exclude<Models::PointDraw>);
 
 		auto cameraEntity = engineState.cameraEntity;
 		const auto& [camera, cameraSpatial] = registry.get<Cameras::Components::Camera, Spatials::Components::Spatial<Spatials::Components::Absolute>>(cameraEntity);
@@ -111,17 +111,17 @@ namespace drk::Points::Systems {
 					.hasTransparency = material.hasTransparency,
 					.depth = glm::distance(cameraSpatial.position, spatial.position)
 				};
-				Models::PointDraw pointDraw = {
-					.pointItemLocation = pointStoreItemLocation,
-					.objectItemLocation = objectStoreItemLocation
-				};
+		Models::PointDraw pointDraw = {
+			.pointItemLocation = pointStoreItemLocation,
+			.objectItemLocation = objectStoreItemLocation
+		};
 
-				//auto entity = registry.create();
-				registry.emplace<Scenes::Draws::SceneDraw>(pointEntity, draw);
-				registry.emplace<Models::PointDraw>(pointEntity, pointDraw);
-				registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
-					pointEntity,
-					engineState.getFrameCount());
+		//auto entity = registry.create();
+		registry.emplace<Scenes::Draws::SceneDraw>(pointEntity, draw);
+		registry.emplace<Models::PointDraw>(pointEntity, pointDraw);
+		registry.emplace<Graphics::SynchronizationState<Scenes::Draws::SceneDraw>>(
+			pointEntity,
+			engineState.getFrameCount());
 			}
 		);
 	}

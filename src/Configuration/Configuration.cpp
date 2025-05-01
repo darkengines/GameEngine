@@ -24,4 +24,4 @@ namespace drk::Configuration {
 		nlohmann::json jsonConfiguration = nlohmann::json::parse(inputConfiguration);
 		return Configuration{jsonConfiguration};
 	}
-	}
+}

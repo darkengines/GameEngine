@@ -1,5 +1,4 @@
-class RegistrySystem
-{
- public:
-  RegistrySystem(entt::registry registry)
+class RegistrySystem {
+	public:
+		RegistrySystem(entt::registry registry)
 };

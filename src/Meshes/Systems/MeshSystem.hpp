@@ -24,38 +24,38 @@ namespace drk::Meshes::Systems {
 	class MeshSystem :
 		public Draws::Systems::IDrawSystem,
 		public drk::Systems::StorageSystem<
-			Models::Mesh,
-			Materials::Components::MaterialReference
+		Models::Mesh,
+		Materials::Components::MaterialReference
 		> {
-	protected:
-		Graphics::GlobalSystem& globalSystem;
-		MeshSystemOperation operations;
-		boost::signals2::connection cameraChangedConnection;
-		Resources::MeshResourceManager& meshResourceManager;
-	public:
-		void update(
-			Models::Mesh& model,
-			const Materials::Components::MaterialReference&
-		) override;
-	protected:
-		const Devices::DeviceContext& deviceContext;
-	public:
-		MeshSystem(
-			const Devices::DeviceContext& deviceContext,
-			Engine::EngineState& engineState,
-			entt::registry& registry,
-			Graphics::GlobalSystem& globalSystem,
-			Resources::MeshResourceManager& meshResourceManager
-		);
-		~MeshSystem();
-		void onCameraChanged(entt::entity cameraEntity);
-		void uploadMeshes();
-		void emitDraws() override;
-		void doOperations(MeshSystemOperation operations);
-		void updateDraw(entt::entity drawEntity, int drawIndex) override;
-		Draws::Components::DrawVertexBufferInfo getVertexBufferInfo(entt::entity drawEntity);
-		static entt::entity
-		copyMeshEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
-		void processDirtyDraws();
+		protected:
+			Graphics::GlobalSystem& globalSystem;
+			MeshSystemOperation operations;
+			boost::signals2::connection cameraChangedConnection;
+			Resources::MeshResourceManager& meshResourceManager;
+		public:
+			void update(
+				Models::Mesh& model,
+				const Materials::Components::MaterialReference&
+			) override;
+		protected:
+			const Devices::DeviceContext& deviceContext;
+		public:
+			MeshSystem(
+				const Devices::DeviceContext& deviceContext,
+				Engine::EngineState& engineState,
+				entt::registry& registry,
+				Graphics::GlobalSystem& globalSystem,
+				Resources::MeshResourceManager& meshResourceManager
+			);
+			~MeshSystem();
+			void onCameraChanged(entt::entity cameraEntity);
+			void uploadMeshes();
+			void emitDraws() override;
+			void doOperations(MeshSystemOperation operations);
+			void updateDraw(entt::entity drawEntity, int drawIndex) override;
+			Draws::Components::DrawVertexBufferInfo getVertexBufferInfo(entt::entity drawEntity);
+			static entt::entity
+			copyMeshEntity(const entt::registry& source, entt::registry& destination, entt::entity sourceEntity);
+			void processDirtyDraws();
 	};
 }

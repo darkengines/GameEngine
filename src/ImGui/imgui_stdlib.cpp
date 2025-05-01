@@ -66,14 +66,14 @@ bool ImGui::InputTextMultiline(
 	cb_user_data.ChainCallback = callback;
 	cb_user_data.ChainCallbackUserData = user_data;
 	return InputTextMultiline(
-		label,
-		(char*) str->c_str(),
-		str->capacity() + 1,
-		size,
-		flags,
-		InputTextCallback,
-		&cb_user_data
-	);
+			label,
+			(char*) str->c_str(),
+			str->capacity() + 1,
+			size,
+			flags,
+			InputTextCallback,
+			&cb_user_data
+		);
 }
 
 bool ImGui::InputTextWithHint(
@@ -92,12 +92,12 @@ bool ImGui::InputTextWithHint(
 	cb_user_data.ChainCallback = callback;
 	cb_user_data.ChainCallbackUserData = user_data;
 	return InputTextWithHint(
-		label,
-		hint,
-		(char*) str->c_str(),
-		str->capacity() + 1,
-		flags,
-		InputTextCallback,
-		&cb_user_data
-	);
+			label,
+			hint,
+			(char*) str->c_str(),
+			str->capacity() + 1,
+			flags,
+			InputTextCallback,
+			&cb_user_data
+		);
 }

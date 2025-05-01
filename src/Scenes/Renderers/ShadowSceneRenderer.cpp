@@ -77,12 +77,12 @@ namespace drk::Scenes::Renderers {
 			.srcSubpass = VK_SUBPASS_EXTERNAL,
 			.dstSubpass = 0,
 			.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput |
-							vk::PipelineStageFlagBits::eEarlyFragmentTests,
+			vk::PipelineStageFlagBits::eEarlyFragmentTests,
 			.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput |
-							vk::PipelineStageFlagBits::eEarlyFragmentTests,
+			vk::PipelineStageFlagBits::eEarlyFragmentTests,
 			.srcAccessMask = vk::AccessFlagBits::eNone,
 			.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite |
-							 vk::AccessFlagBits::eDepthStencilAttachmentWrite
+			vk::AccessFlagBits::eDepthStencilAttachmentWrite
 		};
 
 		std::vector<vk::AttachmentDescription> attachments{
@@ -114,9 +114,9 @@ namespace drk::Scenes::Renderers {
 		vk::Rect2D scissor;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{targetImageInfo->extent.width, targetImageInfo->extent.height},
-			viewport,
-			scissor
+		{targetImageInfo->extent.width, targetImageInfo->extent.height},
+		viewport,
+		scissor
 		);
 		meshShadowPipeline->configure(
 			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {
@@ -165,44 +165,44 @@ namespace drk::Scenes::Renderers {
 					operations |= drk::Renderers::RenderOperation::BindPipeline;
 				}
 				if (previousDrawEntity == entt::null ||
-					(previousSceneDraw->indexBufferView.buffer.buffer != sceneDraw.indexBufferView.buffer.buffer)
-					||
-					(previousSceneDraw->vertexBufferView.buffer.buffer != sceneDraw.vertexBufferView.buffer.buffer)) {
-					operations |= drk::Renderers::RenderOperation::BindIndexBuffer |
-								  drk::Renderers::RenderOperation::BindVertexBuffer;
-				}
-				if (previousDrawEntity == entt::null ||
-					(previousSceneDraw->lightPerspectiveEntity != sceneDraw.lightPerspectiveEntity)) {
-					operations |= drk::Renderers::RenderOperation::SetScissor;
-				}
-				if (previousDrawEntity != entt::null &&
-					previousSceneDraw->indexBufferView.byteOffset != sceneDraw.indexBufferView.byteOffset) {
-					operations |= drk::Renderers::RenderOperation::Draw;
-				}
-				if (previousDrawEntity == entt::null) {
-					doOperations(commandBuffer, operations, sceneDraw, &pCurrentPipeline);
-				} else {
-					if (operations != drk::Renderers::RenderOperation::None) {
-						draw(
-							previousDrawEntity,
-							commandBuffer,
-							instanceCount,
-							pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
-							pCurrentPipeline
-						);
-						pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex] += instanceCount;
-						instanceCount = 0u;
-					}
-					doOperations(
-						commandBuffer,
-						operations,
-						sceneDraw,
-						&pCurrentPipeline
-					);
-				}
-				previousSceneDraw = &sceneDraw;
-				previousDrawEntity = drawEntity;
-				instanceCount++;
+						(previousSceneDraw->indexBufferView.buffer.buffer != sceneDraw.indexBufferView.buffer.buffer)
+						||
+			(previousSceneDraw->vertexBufferView.buffer.buffer != sceneDraw.vertexBufferView.buffer.buffer)) {
+			operations |= drk::Renderers::RenderOperation::BindIndexBuffer |
+				drk::Renderers::RenderOperation::BindVertexBuffer;
+		}
+	if (previousDrawEntity == entt::null ||
+			(previousSceneDraw->lightPerspectiveEntity != sceneDraw.lightPerspectiveEntity)) {
+		operations |= drk::Renderers::RenderOperation::SetScissor;
+	}
+	if (previousDrawEntity != entt::null &&
+			previousSceneDraw->indexBufferView.byteOffset != sceneDraw.indexBufferView.byteOffset) {
+		operations |= drk::Renderers::RenderOperation::Draw;
+	}
+	if (previousDrawEntity == entt::null) {
+		doOperations(commandBuffer, operations, sceneDraw, &pCurrentPipeline);
+		} else {
+			if (operations != drk::Renderers::RenderOperation::None) {
+				draw(
+					previousDrawEntity,
+					commandBuffer,
+					instanceCount,
+					pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex],
+					pCurrentPipeline
+				);
+				pipelineDrawIndices[previousSceneDraw->pipelineTypeIndex] += instanceCount;
+				instanceCount = 0u;
+			}
+			doOperations(
+				commandBuffer,
+				operations,
+				sceneDraw,
+				&pCurrentPipeline
+			);
+		}
+		previousSceneDraw = &sceneDraw;
+			previousDrawEntity = drawEntity;
+			instanceCount++;
 			}
 		);
 		if (previousDrawEntity != entt::null) {
@@ -297,9 +297,9 @@ namespace drk::Scenes::Renderers {
 		};
 		auto memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal;
 		auto mainFramebufferImage = deviceContext.createImage(
-			imageCreateInfo,
-			memoryProperties
-		);
+				imageCreateInfo,
+				memoryProperties
+			);
 
 		vk::ImageSubresourceRange subresourceRange = {
 			.aspectMask = vk::ImageAspectFlagBits::eDepth,
@@ -335,9 +335,9 @@ namespace drk::Scenes::Renderers {
 		vk::Rect2D scissor;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{extent.width, extent.height},
-			viewport,
-			scissor
+		{extent.width, extent.height},
+		viewport,
+		scissor
 		);
 		meshShadowPipeline->configure(
 			[&](vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) {

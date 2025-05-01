@@ -22,7 +22,7 @@ namespace drk::Lights::Systems {
 		/*auto dirtyDirectionalLightView = registry.view<
 			Components::DirectionalLight,
 			Components::LightPerspective,
-			Spatials::Components::Spatial, 
+			Spatials::Components::Spatial,
 			Objects::Dirty<Spatials::Components::Spatial>
 		>();
 		dirtyDirectionalLightView.each(

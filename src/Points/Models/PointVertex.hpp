@@ -6,7 +6,8 @@
 #include <vulkan/vulkan.hpp>
 
 namespace drk::Points::Models {
-	struct PointVertex { ;
+	struct PointVertex {
+		;
 		glm::vec4 position;
 		glm::vec4 diffuseColor;
 		glm::vec2 textureCoordinates;

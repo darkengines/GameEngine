@@ -148,7 +148,7 @@
 #define GLFW_HAS_MONITOR_WORK_AREA (GLFW_VERSION_COMBINED >= 3300)	 // 3.3+ glfwGetMonitorWorkarea
 #define GLFW_HAS_OSX_WINDOW_POS_FIX (GLFW_VERSION_COMBINED >= 3301)	 // 3.3.1+ Fixed: Resizing window repositions it on MacOS #1553
 #ifdef GLFW_RESIZE_NESW_CURSOR	// Let's be nice to people who pulled GLFW between 2019-04-16 (3.4 define) and 2019-11-29 (cursors defines) // FIXME: Remove when GLFW 3.4 is
-								// released?
+// released?
 #define GLFW_HAS_NEW_CURSORS (GLFW_VERSION_COMBINED >= 3400)  // 3.4+ GLFW_RESIZE_ALL_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_NWSE_CURSOR, GLFW_NOT_ALLOWED_CURSOR
 #else
 #define GLFW_HAS_NEW_CURSORS (0)
@@ -223,242 +223,242 @@ ImGuiKey ImGui_ImplGlfw_KeyToImGuiKey(int keycode, int scancode);
 ImGuiKey ImGui_ImplGlfw_KeyToImGuiKey(int keycode, int scancode) {
 	IM_UNUSED(scancode);
 	switch (keycode) {
-	case GLFW_KEY_TAB:
-		return ImGuiKey_Tab;
-	case GLFW_KEY_LEFT:
-		return ImGuiKey_LeftArrow;
-	case GLFW_KEY_RIGHT:
-		return ImGuiKey_RightArrow;
-	case GLFW_KEY_UP:
-		return ImGuiKey_UpArrow;
-	case GLFW_KEY_DOWN:
-		return ImGuiKey_DownArrow;
-	case GLFW_KEY_PAGE_UP:
-		return ImGuiKey_PageUp;
-	case GLFW_KEY_PAGE_DOWN:
-		return ImGuiKey_PageDown;
-	case GLFW_KEY_HOME:
-		return ImGuiKey_Home;
-	case GLFW_KEY_END:
-		return ImGuiKey_End;
-	case GLFW_KEY_INSERT:
-		return ImGuiKey_Insert;
-	case GLFW_KEY_DELETE:
-		return ImGuiKey_Delete;
-	case GLFW_KEY_BACKSPACE:
-		return ImGuiKey_Backspace;
-	case GLFW_KEY_SPACE:
-		return ImGuiKey_Space;
-	case GLFW_KEY_ENTER:
-		return ImGuiKey_Enter;
-	case GLFW_KEY_ESCAPE:
-		return ImGuiKey_Escape;
-	case GLFW_KEY_APOSTROPHE:
-		return ImGuiKey_Apostrophe;
-	case GLFW_KEY_COMMA:
-		return ImGuiKey_Comma;
-	case GLFW_KEY_MINUS:
-		return ImGuiKey_Minus;
-	case GLFW_KEY_PERIOD:
-		return ImGuiKey_Period;
-	case GLFW_KEY_SLASH:
-		return ImGuiKey_Slash;
-	case GLFW_KEY_SEMICOLON:
-		return ImGuiKey_Semicolon;
-	case GLFW_KEY_EQUAL:
-		return ImGuiKey_Equal;
-	case GLFW_KEY_LEFT_BRACKET:
-		return ImGuiKey_LeftBracket;
-	case GLFW_KEY_BACKSLASH:
-		return ImGuiKey_Backslash;
-	case GLFW_KEY_RIGHT_BRACKET:
-		return ImGuiKey_RightBracket;
-	case GLFW_KEY_GRAVE_ACCENT:
-		return ImGuiKey_GraveAccent;
-	case GLFW_KEY_CAPS_LOCK:
-		return ImGuiKey_CapsLock;
-	case GLFW_KEY_SCROLL_LOCK:
-		return ImGuiKey_ScrollLock;
-	case GLFW_KEY_NUM_LOCK:
-		return ImGuiKey_NumLock;
-	case GLFW_KEY_PRINT_SCREEN:
-		return ImGuiKey_PrintScreen;
-	case GLFW_KEY_PAUSE:
-		return ImGuiKey_Pause;
-	case GLFW_KEY_KP_0:
-		return ImGuiKey_Keypad0;
-	case GLFW_KEY_KP_1:
-		return ImGuiKey_Keypad1;
-	case GLFW_KEY_KP_2:
-		return ImGuiKey_Keypad2;
-	case GLFW_KEY_KP_3:
-		return ImGuiKey_Keypad3;
-	case GLFW_KEY_KP_4:
-		return ImGuiKey_Keypad4;
-	case GLFW_KEY_KP_5:
-		return ImGuiKey_Keypad5;
-	case GLFW_KEY_KP_6:
-		return ImGuiKey_Keypad6;
-	case GLFW_KEY_KP_7:
-		return ImGuiKey_Keypad7;
-	case GLFW_KEY_KP_8:
-		return ImGuiKey_Keypad8;
-	case GLFW_KEY_KP_9:
-		return ImGuiKey_Keypad9;
-	case GLFW_KEY_KP_DECIMAL:
-		return ImGuiKey_KeypadDecimal;
-	case GLFW_KEY_KP_DIVIDE:
-		return ImGuiKey_KeypadDivide;
-	case GLFW_KEY_KP_MULTIPLY:
-		return ImGuiKey_KeypadMultiply;
-	case GLFW_KEY_KP_SUBTRACT:
-		return ImGuiKey_KeypadSubtract;
-	case GLFW_KEY_KP_ADD:
-		return ImGuiKey_KeypadAdd;
-	case GLFW_KEY_KP_ENTER:
-		return ImGuiKey_KeypadEnter;
-	case GLFW_KEY_KP_EQUAL:
-		return ImGuiKey_KeypadEqual;
-	case GLFW_KEY_LEFT_SHIFT:
-		return ImGuiKey_LeftShift;
-	case GLFW_KEY_LEFT_CONTROL:
-		return ImGuiKey_LeftCtrl;
-	case GLFW_KEY_LEFT_ALT:
-		return ImGuiKey_LeftAlt;
-	case GLFW_KEY_LEFT_SUPER:
-		return ImGuiKey_LeftSuper;
-	case GLFW_KEY_RIGHT_SHIFT:
-		return ImGuiKey_RightShift;
-	case GLFW_KEY_RIGHT_CONTROL:
-		return ImGuiKey_RightCtrl;
-	case GLFW_KEY_RIGHT_ALT:
-		return ImGuiKey_RightAlt;
-	case GLFW_KEY_RIGHT_SUPER:
-		return ImGuiKey_RightSuper;
-	case GLFW_KEY_MENU:
-		return ImGuiKey_Menu;
-	case GLFW_KEY_0:
-		return ImGuiKey_0;
-	case GLFW_KEY_1:
-		return ImGuiKey_1;
-	case GLFW_KEY_2:
-		return ImGuiKey_2;
-	case GLFW_KEY_3:
-		return ImGuiKey_3;
-	case GLFW_KEY_4:
-		return ImGuiKey_4;
-	case GLFW_KEY_5:
-		return ImGuiKey_5;
-	case GLFW_KEY_6:
-		return ImGuiKey_6;
-	case GLFW_KEY_7:
-		return ImGuiKey_7;
-	case GLFW_KEY_8:
-		return ImGuiKey_8;
-	case GLFW_KEY_9:
-		return ImGuiKey_9;
-	case GLFW_KEY_A:
-		return ImGuiKey_A;
-	case GLFW_KEY_B:
-		return ImGuiKey_B;
-	case GLFW_KEY_C:
-		return ImGuiKey_C;
-	case GLFW_KEY_D:
-		return ImGuiKey_D;
-	case GLFW_KEY_E:
-		return ImGuiKey_E;
-	case GLFW_KEY_F:
-		return ImGuiKey_F;
-	case GLFW_KEY_G:
-		return ImGuiKey_G;
-	case GLFW_KEY_H:
-		return ImGuiKey_H;
-	case GLFW_KEY_I:
-		return ImGuiKey_I;
-	case GLFW_KEY_J:
-		return ImGuiKey_J;
-	case GLFW_KEY_K:
-		return ImGuiKey_K;
-	case GLFW_KEY_L:
-		return ImGuiKey_L;
-	case GLFW_KEY_M:
-		return ImGuiKey_M;
-	case GLFW_KEY_N:
-		return ImGuiKey_N;
-	case GLFW_KEY_O:
-		return ImGuiKey_O;
-	case GLFW_KEY_P:
-		return ImGuiKey_P;
-	case GLFW_KEY_Q:
-		return ImGuiKey_Q;
-	case GLFW_KEY_R:
-		return ImGuiKey_R;
-	case GLFW_KEY_S:
-		return ImGuiKey_S;
-	case GLFW_KEY_T:
-		return ImGuiKey_T;
-	case GLFW_KEY_U:
-		return ImGuiKey_U;
-	case GLFW_KEY_V:
-		return ImGuiKey_V;
-	case GLFW_KEY_W:
-		return ImGuiKey_W;
-	case GLFW_KEY_X:
-		return ImGuiKey_X;
-	case GLFW_KEY_Y:
-		return ImGuiKey_Y;
-	case GLFW_KEY_Z:
-		return ImGuiKey_Z;
-	case GLFW_KEY_F1:
-		return ImGuiKey_F1;
-	case GLFW_KEY_F2:
-		return ImGuiKey_F2;
-	case GLFW_KEY_F3:
-		return ImGuiKey_F3;
-	case GLFW_KEY_F4:
-		return ImGuiKey_F4;
-	case GLFW_KEY_F5:
-		return ImGuiKey_F5;
-	case GLFW_KEY_F6:
-		return ImGuiKey_F6;
-	case GLFW_KEY_F7:
-		return ImGuiKey_F7;
-	case GLFW_KEY_F8:
-		return ImGuiKey_F8;
-	case GLFW_KEY_F9:
-		return ImGuiKey_F9;
-	case GLFW_KEY_F10:
-		return ImGuiKey_F10;
-	case GLFW_KEY_F11:
-		return ImGuiKey_F11;
-	case GLFW_KEY_F12:
-		return ImGuiKey_F12;
-	case GLFW_KEY_F13:
-		return ImGuiKey_F13;
-	case GLFW_KEY_F14:
-		return ImGuiKey_F14;
-	case GLFW_KEY_F15:
-		return ImGuiKey_F15;
-	case GLFW_KEY_F16:
-		return ImGuiKey_F16;
-	case GLFW_KEY_F17:
-		return ImGuiKey_F17;
-	case GLFW_KEY_F18:
-		return ImGuiKey_F18;
-	case GLFW_KEY_F19:
-		return ImGuiKey_F19;
-	case GLFW_KEY_F20:
-		return ImGuiKey_F20;
-	case GLFW_KEY_F21:
-		return ImGuiKey_F21;
-	case GLFW_KEY_F22:
-		return ImGuiKey_F22;
-	case GLFW_KEY_F23:
-		return ImGuiKey_F23;
-	case GLFW_KEY_F24:
-		return ImGuiKey_F24;
-	default:
-		return ImGuiKey_None;
+		case GLFW_KEY_TAB:
+			return ImGuiKey_Tab;
+		case GLFW_KEY_LEFT:
+			return ImGuiKey_LeftArrow;
+		case GLFW_KEY_RIGHT:
+			return ImGuiKey_RightArrow;
+		case GLFW_KEY_UP:
+			return ImGuiKey_UpArrow;
+		case GLFW_KEY_DOWN:
+			return ImGuiKey_DownArrow;
+		case GLFW_KEY_PAGE_UP:
+			return ImGuiKey_PageUp;
+		case GLFW_KEY_PAGE_DOWN:
+			return ImGuiKey_PageDown;
+		case GLFW_KEY_HOME:
+			return ImGuiKey_Home;
+		case GLFW_KEY_END:
+			return ImGuiKey_End;
+		case GLFW_KEY_INSERT:
+			return ImGuiKey_Insert;
+		case GLFW_KEY_DELETE:
+			return ImGuiKey_Delete;
+		case GLFW_KEY_BACKSPACE:
+			return ImGuiKey_Backspace;
+		case GLFW_KEY_SPACE:
+			return ImGuiKey_Space;
+		case GLFW_KEY_ENTER:
+			return ImGuiKey_Enter;
+		case GLFW_KEY_ESCAPE:
+			return ImGuiKey_Escape;
+		case GLFW_KEY_APOSTROPHE:
+			return ImGuiKey_Apostrophe;
+		case GLFW_KEY_COMMA:
+			return ImGuiKey_Comma;
+		case GLFW_KEY_MINUS:
+			return ImGuiKey_Minus;
+		case GLFW_KEY_PERIOD:
+			return ImGuiKey_Period;
+		case GLFW_KEY_SLASH:
+			return ImGuiKey_Slash;
+		case GLFW_KEY_SEMICOLON:
+			return ImGuiKey_Semicolon;
+		case GLFW_KEY_EQUAL:
+			return ImGuiKey_Equal;
+		case GLFW_KEY_LEFT_BRACKET:
+			return ImGuiKey_LeftBracket;
+		case GLFW_KEY_BACKSLASH:
+			return ImGuiKey_Backslash;
+		case GLFW_KEY_RIGHT_BRACKET:
+			return ImGuiKey_RightBracket;
+		case GLFW_KEY_GRAVE_ACCENT:
+			return ImGuiKey_GraveAccent;
+		case GLFW_KEY_CAPS_LOCK:
+			return ImGuiKey_CapsLock;
+		case GLFW_KEY_SCROLL_LOCK:
+			return ImGuiKey_ScrollLock;
+		case GLFW_KEY_NUM_LOCK:
+			return ImGuiKey_NumLock;
+		case GLFW_KEY_PRINT_SCREEN:
+			return ImGuiKey_PrintScreen;
+		case GLFW_KEY_PAUSE:
+			return ImGuiKey_Pause;
+		case GLFW_KEY_KP_0:
+			return ImGuiKey_Keypad0;
+		case GLFW_KEY_KP_1:
+			return ImGuiKey_Keypad1;
+		case GLFW_KEY_KP_2:
+			return ImGuiKey_Keypad2;
+		case GLFW_KEY_KP_3:
+			return ImGuiKey_Keypad3;
+		case GLFW_KEY_KP_4:
+			return ImGuiKey_Keypad4;
+		case GLFW_KEY_KP_5:
+			return ImGuiKey_Keypad5;
+		case GLFW_KEY_KP_6:
+			return ImGuiKey_Keypad6;
+		case GLFW_KEY_KP_7:
+			return ImGuiKey_Keypad7;
+		case GLFW_KEY_KP_8:
+			return ImGuiKey_Keypad8;
+		case GLFW_KEY_KP_9:
+			return ImGuiKey_Keypad9;
+		case GLFW_KEY_KP_DECIMAL:
+			return ImGuiKey_KeypadDecimal;
+		case GLFW_KEY_KP_DIVIDE:
+			return ImGuiKey_KeypadDivide;
+		case GLFW_KEY_KP_MULTIPLY:
+			return ImGuiKey_KeypadMultiply;
+		case GLFW_KEY_KP_SUBTRACT:
+			return ImGuiKey_KeypadSubtract;
+		case GLFW_KEY_KP_ADD:
+			return ImGuiKey_KeypadAdd;
+		case GLFW_KEY_KP_ENTER:
+			return ImGuiKey_KeypadEnter;
+		case GLFW_KEY_KP_EQUAL:
+			return ImGuiKey_KeypadEqual;
+		case GLFW_KEY_LEFT_SHIFT:
+			return ImGuiKey_LeftShift;
+		case GLFW_KEY_LEFT_CONTROL:
+			return ImGuiKey_LeftCtrl;
+		case GLFW_KEY_LEFT_ALT:
+			return ImGuiKey_LeftAlt;
+		case GLFW_KEY_LEFT_SUPER:
+			return ImGuiKey_LeftSuper;
+		case GLFW_KEY_RIGHT_SHIFT:
+			return ImGuiKey_RightShift;
+		case GLFW_KEY_RIGHT_CONTROL:
+			return ImGuiKey_RightCtrl;
+		case GLFW_KEY_RIGHT_ALT:
+			return ImGuiKey_RightAlt;
+		case GLFW_KEY_RIGHT_SUPER:
+			return ImGuiKey_RightSuper;
+		case GLFW_KEY_MENU:
+			return ImGuiKey_Menu;
+		case GLFW_KEY_0:
+			return ImGuiKey_0;
+		case GLFW_KEY_1:
+			return ImGuiKey_1;
+		case GLFW_KEY_2:
+			return ImGuiKey_2;
+		case GLFW_KEY_3:
+			return ImGuiKey_3;
+		case GLFW_KEY_4:
+			return ImGuiKey_4;
+		case GLFW_KEY_5:
+			return ImGuiKey_5;
+		case GLFW_KEY_6:
+			return ImGuiKey_6;
+		case GLFW_KEY_7:
+			return ImGuiKey_7;
+		case GLFW_KEY_8:
+			return ImGuiKey_8;
+		case GLFW_KEY_9:
+			return ImGuiKey_9;
+		case GLFW_KEY_A:
+			return ImGuiKey_A;
+		case GLFW_KEY_B:
+			return ImGuiKey_B;
+		case GLFW_KEY_C:
+			return ImGuiKey_C;
+		case GLFW_KEY_D:
+			return ImGuiKey_D;
+		case GLFW_KEY_E:
+			return ImGuiKey_E;
+		case GLFW_KEY_F:
+			return ImGuiKey_F;
+		case GLFW_KEY_G:
+			return ImGuiKey_G;
+		case GLFW_KEY_H:
+			return ImGuiKey_H;
+		case GLFW_KEY_I:
+			return ImGuiKey_I;
+		case GLFW_KEY_J:
+			return ImGuiKey_J;
+		case GLFW_KEY_K:
+			return ImGuiKey_K;
+		case GLFW_KEY_L:
+			return ImGuiKey_L;
+		case GLFW_KEY_M:
+			return ImGuiKey_M;
+		case GLFW_KEY_N:
+			return ImGuiKey_N;
+		case GLFW_KEY_O:
+			return ImGuiKey_O;
+		case GLFW_KEY_P:
+			return ImGuiKey_P;
+		case GLFW_KEY_Q:
+			return ImGuiKey_Q;
+		case GLFW_KEY_R:
+			return ImGuiKey_R;
+		case GLFW_KEY_S:
+			return ImGuiKey_S;
+		case GLFW_KEY_T:
+			return ImGuiKey_T;
+		case GLFW_KEY_U:
+			return ImGuiKey_U;
+		case GLFW_KEY_V:
+			return ImGuiKey_V;
+		case GLFW_KEY_W:
+			return ImGuiKey_W;
+		case GLFW_KEY_X:
+			return ImGuiKey_X;
+		case GLFW_KEY_Y:
+			return ImGuiKey_Y;
+		case GLFW_KEY_Z:
+			return ImGuiKey_Z;
+		case GLFW_KEY_F1:
+			return ImGuiKey_F1;
+		case GLFW_KEY_F2:
+			return ImGuiKey_F2;
+		case GLFW_KEY_F3:
+			return ImGuiKey_F3;
+		case GLFW_KEY_F4:
+			return ImGuiKey_F4;
+		case GLFW_KEY_F5:
+			return ImGuiKey_F5;
+		case GLFW_KEY_F6:
+			return ImGuiKey_F6;
+		case GLFW_KEY_F7:
+			return ImGuiKey_F7;
+		case GLFW_KEY_F8:
+			return ImGuiKey_F8;
+		case GLFW_KEY_F9:
+			return ImGuiKey_F9;
+		case GLFW_KEY_F10:
+			return ImGuiKey_F10;
+		case GLFW_KEY_F11:
+			return ImGuiKey_F11;
+		case GLFW_KEY_F12:
+			return ImGuiKey_F12;
+		case GLFW_KEY_F13:
+			return ImGuiKey_F13;
+		case GLFW_KEY_F14:
+			return ImGuiKey_F14;
+		case GLFW_KEY_F15:
+			return ImGuiKey_F15;
+		case GLFW_KEY_F16:
+			return ImGuiKey_F16;
+		case GLFW_KEY_F17:
+			return ImGuiKey_F17;
+		case GLFW_KEY_F18:
+			return ImGuiKey_F18;
+		case GLFW_KEY_F19:
+			return ImGuiKey_F19;
+		case GLFW_KEY_F20:
+			return ImGuiKey_F20;
+		case GLFW_KEY_F21:
+			return ImGuiKey_F21;
+		case GLFW_KEY_F22:
+			return ImGuiKey_F22;
+		case GLFW_KEY_F23:
+			return ImGuiKey_F23;
+		case GLFW_KEY_F24:
+			return ImGuiKey_F24;
+		default:
+			return ImGuiKey_None;
 	}
 }
 
@@ -757,9 +757,9 @@ static bool ImGui_ImplGlfw_Init(GLFWwindow* window, bool install_callbacks, Glfw
 	platform_io.Platform_GetClipboardTextFn = [](ImGuiContext*) { return glfwGetClipboardString(nullptr); };
 #ifdef __EMSCRIPTEN__
 	platform_io.Platform_OpenInShellFn = [](ImGuiContext*, const char* url) {
-		ImGui_ImplGlfw_EmscriptenOpenURL(url);
-		return true;
-	};
+			ImGui_ImplGlfw_EmscriptenOpenURL(url);
+			return true;
+		};
 #endif
 
 	// Create mouse cursors
@@ -869,7 +869,7 @@ void ImGui_ImplGlfw_Shutdown() {
 	io.BackendPlatformUserData = nullptr;
 	io.BackendFlags &=
 		~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports |
-		  ImGuiBackendFlags_HasMouseHoveredViewport);
+			ImGuiBackendFlags_HasMouseHoveredViewport);
 	IM_DELETE(bd);
 }
 
@@ -1052,8 +1052,7 @@ static void ImGui_ImplGlfw_UpdateMonitors() {
 #if GLFW_HAS_MONITOR_WORK_AREA
 		int w, h;
 		glfwGetMonitorWorkarea(glfw_monitors[n], &x, &y, &w, &h);
-		if (w > 0 && h > 0)	 // Workaround a small GLFW issue reporting zero on monitor changes: https://github.com/glfw/glfw/pull/1761
-		{
+		if (w > 0 && h > 0) { // Workaround a small GLFW issue reporting zero on monitor changes: https://github.com/glfw/glfw/pull/1761
 			monitor.WorkPos = ImVec2((float)x, (float)y);
 			monitor.WorkSize = ImVec2((float)w, (float)h);
 		}
@@ -1430,7 +1429,7 @@ struct VkAllocationCallbacks;
 enum VkResult { VK_RESULT_MAX_ENUM = 0x7FFFFFFF };
 #endif	// VULKAN_H_
 extern "C" {
-extern GLFWAPI VkResult glfwCreateWindowSurface(VkInstance instance, GLFWwindow* window, const VkAllocationCallbacks* allocator, VkSurfaceKHR* surface);
+	extern GLFWAPI VkResult glfwCreateWindowSurface(VkInstance instance, GLFWwindow* window, const VkAllocationCallbacks* allocator, VkSurfaceKHR* surface);
 }
 static int ImGui_ImplGlfw_CreateVkSurface(ImGuiViewport* viewport, ImU64 vk_instance, const void* vk_allocator, ImU64* out_vk_surface) {
 	ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
@@ -1501,35 +1500,35 @@ static LRESULT CALLBACK ImGui_ImplGlfw_WndProc(HWND hWnd, UINT msg, WPARAM wPara
 	switch (msg) {
 		// GLFW doesn't allow to distinguish Mouse vs TouchScreen vs Pen.
 		// Add support for Win32 (based on imgui_impl_win32), because we rely on _TouchScreen info to trickle inputs differently.
-	case WM_MOUSEMOVE:
-	case WM_NCMOUSEMOVE:
-	case WM_LBUTTONDOWN:
-	case WM_LBUTTONDBLCLK:
-	case WM_LBUTTONUP:
-	case WM_RBUTTONDOWN:
-	case WM_RBUTTONDBLCLK:
-	case WM_RBUTTONUP:
-	case WM_MBUTTONDOWN:
-	case WM_MBUTTONDBLCLK:
-	case WM_MBUTTONUP:
-	case WM_XBUTTONDOWN:
-	case WM_XBUTTONDBLCLK:
-	case WM_XBUTTONUP:
-		ImGui::GetIO().AddMouseSourceEvent(GetMouseSourceFromMessageExtraInfo());
-		break;
+		case WM_MOUSEMOVE:
+		case WM_NCMOUSEMOVE:
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONDBLCLK:
+		case WM_LBUTTONUP:
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONDBLCLK:
+		case WM_RBUTTONUP:
+		case WM_MBUTTONDOWN:
+		case WM_MBUTTONDBLCLK:
+		case WM_MBUTTONUP:
+		case WM_XBUTTONDOWN:
+		case WM_XBUTTONDBLCLK:
+		case WM_XBUTTONUP:
+			ImGui::GetIO().AddMouseSourceEvent(GetMouseSourceFromMessageExtraInfo());
+			break;
 
-		// We have submitted https://github.com/glfw/glfw/pull/1568 to allow GLFW to support "transparent inputs".
-		// In the meanwhile we implement custom per-platform workarounds here (FIXME-VIEWPORT: Implement same work-around for Linux/OSX!)
+			// We have submitted https://github.com/glfw/glfw/pull/1568 to allow GLFW to support "transparent inputs".
+			// In the meanwhile we implement custom per-platform workarounds here (FIXME-VIEWPORT: Implement same work-around for Linux/OSX!)
 #if !GLFW_HAS_MOUSE_PASSTHROUGH && GLFW_HAS_WINDOW_HOVERED
-	case WM_NCHITTEST: {
-		// Let mouse pass-through the window. This will allow the backend to call io.AddMouseViewportEvent() properly (which is OPTIONAL).
-		// The ImGuiViewportFlags_NoInputs flag is set while dragging a viewport, as want to detect the window behind the one we are dragging.
-		// If you cannot easily access those viewport flags from your windowing/event code: you may manually synchronize its state e.g. in
-		// your main loop after calling UpdatePlatformWindows(). Iterate all viewports/platform windows and pass the flag to your windowing system.
-		if (viewport && (viewport->Flags & ImGuiViewportFlags_NoInputs))
-			return HTTRANSPARENT;
-		break;
-	}
+		case WM_NCHITTEST: {
+				// Let mouse pass-through the window. This will allow the backend to call io.AddMouseViewportEvent() properly (which is OPTIONAL).
+				// The ImGuiViewportFlags_NoInputs flag is set while dragging a viewport, as want to detect the window behind the one we are dragging.
+				// If you cannot easily access those viewport flags from your windowing/event code: you may manually synchronize its state e.g. in
+				// your main loop after calling UpdatePlatformWindows(). Iterate all viewports/platform windows and pass the flag to your windowing system.
+				if (viewport && (viewport->Flags & ImGuiViewportFlags_NoInputs))
+					return HTTRANSPARENT;
+				break;
+			}
 #endif
 	}
 	return ::CallWindowProcW(prev_wndproc, hWnd, msg, wParam, lParam);

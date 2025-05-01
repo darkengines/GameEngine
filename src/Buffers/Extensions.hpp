@@ -4,9 +4,9 @@
 #include "Resources/BufferResourceManager.hpp"
 
 namespace drk::Buffers {
-fruit::Component<Resources::BufferResourceManager> addBuffers() {
-	return fruit::createComponent()
-		.registerConstructor<Resources::BufferResourceManager(Devices::DeviceContext & deviceContext)>()
-		.install(Devices::addDevices);
-}
+	fruit::Component<Resources::BufferResourceManager> addBuffers() {
+		return fruit::createComponent()
+			.registerConstructor<Resources::BufferResourceManager(Devices::DeviceContext & deviceContext)>()
+			.install(Devices::addDevices);
+	}
 }  // namespace drk::Meshes

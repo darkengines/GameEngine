@@ -11,9 +11,9 @@ namespace drk::Animations::Systems {
 		Engine::EngineState& engineState,
 		entt::registry& registry
 	) : drk::Systems::StorageSystem<Models::BoneSpatial, Spatials::Components::Spatial<Components::Bone>>(
-		engineState,
-		registry
-	) {}
+			engineState,
+			registry
+		) {}
 	void BoneSpatialSystem::update(
 		Models::BoneSpatial& boneSpatialModel,
 		const Spatials::Components::Spatial<Components::Bone>& boneSpatial
@@ -31,7 +31,7 @@ namespace drk::Animations::Systems {
 			Spatials::Components::Spatial<Spatials::Components::Relative>,
 			Spatials::Components::Spatial<Spatials::Components::Absolute>,
 			Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>
-		>();
+			>();
 		view.use<Common::Components::Dirty<Spatials::Components::Spatial<Spatials::Components::Relative>>>();
 		view.each(
 			[&](
@@ -44,8 +44,8 @@ namespace drk::Animations::Systems {
 				auto& boneSpatial = registry.get_or_emplace<Spatials::Components::Spatial<Components::Bone>>(entity);
 
 				auto translationMatrix = glm::translate(
-					glm::identity<glm::mat4>(),
-					glm::vec3(relativeSpatial.position));
+						glm::identity<glm::mat4>(),
+						glm::vec3(relativeSpatial.position));
 				auto rotationMatrix = glm::toMat4(relativeSpatial.rotation);
 				auto scalingMatrix = glm::scale(glm::identity<glm::mat4>(), glm::vec3(relativeSpatial.scale));
 				relativeSpatial.model = translationMatrix * rotationMatrix * scalingMatrix;
@@ -56,22 +56,22 @@ namespace drk::Animations::Systems {
 					boneSpatial.scale = parentSpatial.scale * relativeSpatial.scale;
 					boneSpatial.rotation = parentSpatial.rotation * relativeSpatial.rotation;
 					boneSpatial.position = parentSpatial.position +
-										   parentSpatial.rotation * (parentSpatial.scale * relativeSpatial.position);
+						parentSpatial.rotation * (parentSpatial.scale * relativeSpatial.position);
 					boneSpatial.model = parentSpatial.model * relativeSpatial.model;
-				} else {
+		} else {
 
-					boneSpatial.scale = relativeSpatial.scale;
-					boneSpatial.rotation = relativeSpatial.rotation;
-					boneSpatial.position = relativeSpatial.position;
-					boneSpatial.model = relativeSpatial.model;
-				}
-				registry.emplace_or_replace<Common::Components::Dirty<Spatials::Components::Spatial<Components::Bone>>>(
-					entity
-				);
-				registry.emplace_or_replace<Graphics::SynchronizationState<Models::BoneSpatial>>(
-					entity,
-					(uint32_t) engineState.getFrameCount());
-			}
-		);
+			boneSpatial.scale = relativeSpatial.scale;
+			boneSpatial.rotation = relativeSpatial.rotation;
+			boneSpatial.position = relativeSpatial.position;
+			boneSpatial.model = relativeSpatial.model;
+		}
+	registry.emplace_or_replace<Common::Components::Dirty<Spatials::Components::Spatial<Components::Bone>>>(
+		entity
+	);
+	registry.emplace_or_replace<Graphics::SynchronizationState<Models::BoneSpatial>>(
+		entity,
+		(uint32_t) engineState.getFrameCount());
+		}
+	);
 	}
 }

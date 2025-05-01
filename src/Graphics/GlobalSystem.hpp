@@ -11,34 +11,34 @@
 
 namespace drk::Graphics {
 	class GlobalSystem {
-	protected:
-		Engine::EngineState& EngineState;
-		entt::registry& Registry;
-		entt::entity CameraEntity;
-		Lights::Systems::DirectionalLightSystem& directionalLightSystem;
-		Lights::Systems::SpotlightSystem& spotlightSystem;
-		Lights::Systems::PointLightSystem& pointLightSystem;
-		uint32_t pointLightBufferIndex;
-		uint32_t pointLightCount;
-		uint32_t directionalLightCount;
-		uint32_t directionalLightBufferIndex;
-		uint32_t spotlightCount;
-		uint32_t spotlightBufferIndex;
-		uint32_t renderStyle;
-	public:
-		boost::signals2::signal<void(entt::entity)> cameraChanged;
-		SynchronizationState<Engine::Models::Global> GlobalSynchronizationState;
-		GlobalSystem(
-			Engine::EngineState& engineState,
-			entt::registry& registry,
-			Lights::Systems::DirectionalLightSystem& directionalLightSystem,
-			Lights::Systems::SpotlightSystem& spotlightSystem,
-			Lights::Systems::PointLightSystem& pointLightSystem
-		);
+		protected:
+			Engine::EngineState& EngineState;
+			entt::registry& Registry;
+			entt::entity CameraEntity;
+			Lights::Systems::DirectionalLightSystem& directionalLightSystem;
+			Lights::Systems::SpotlightSystem& spotlightSystem;
+			Lights::Systems::PointLightSystem& pointLightSystem;
+			uint32_t pointLightBufferIndex;
+			uint32_t pointLightCount;
+			uint32_t directionalLightCount;
+			uint32_t directionalLightBufferIndex;
+			uint32_t spotlightCount;
+			uint32_t spotlightBufferIndex;
+			uint32_t renderStyle;
+		public:
+			boost::signals2::signal<void(entt::entity)> cameraChanged;
+			SynchronizationState<Engine::Models::Global> GlobalSynchronizationState;
+			GlobalSystem(
+				Engine::EngineState& engineState,
+				entt::registry& registry,
+				Lights::Systems::DirectionalLightSystem& directionalLightSystem,
+				Lights::Systems::SpotlightSystem& spotlightSystem,
+				Lights::Systems::PointLightSystem& pointLightSystem
+			);
 
-		void setCamera(entt::entity cameraEntity);
+			void setCamera(entt::entity cameraEntity);
 
-		void update();
-		void setRenderStyle(uint32_t style);
+			void update();
+			void setRenderStyle(uint32_t style);
 	};
 }

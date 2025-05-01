@@ -9,7 +9,7 @@
 namespace drk::UserInterfaces {
 	AssetExplorer::AssetExplorer(Loaders::AssimpLoader& assimpLoader) :
 		assimpLoader(assimpLoader),
-		fileBrowser(ImGui::FileBrowser{ImGuiFileBrowserFlags_SelectDirectory}),
+		fileBrowser(ImGui::FileBrowser{ ImGuiFileBrowserFlags_SelectDirectory }),
 		directoryPath("./") {
 
 	}
@@ -28,25 +28,26 @@ namespace drk::UserInterfaces {
 		);
 		if (!relationship.children.empty()) {
 			auto isOpen = ImGui::TreeNode(
-				(void*) entity,
+				(void*)entity,
 				fmt::format("{0}", nameComponent.name).c_str()
 			);
 			ImGui::SameLine();
-			ImGui::PushID((void*) entity);
+			ImGui::PushID((void*)entity);
 			if (ImGui::Button("Copy##node")) {
 				Nodes::Systems::NodeSystem::copyNodeEntity(assetRegistry, destinationRegistry, entity);
 			}
 			ImGui::PopID();
 			if (isOpen) {
-				for (const auto& childEntity: relationship.children) {
+				for (const auto& childEntity : relationship.children) {
 					renderEntity(destinationRegistry, childEntity);
 				}
 				ImGui::TreePop();
 			}
-		} else {
+		}
+		else {
 			ImGui::Text(fmt::format("{0}", nameComponent.name).c_str());
 			ImGui::SameLine();
-			ImGui::PushID((void*) entity);
+			ImGui::PushID((void*)entity);
 			if (ImGui::Button("Copy##leaf")) {
 				Nodes::Systems::NodeSystem::copyNodeEntity(assetRegistry, destinationRegistry, entity);
 			}
@@ -72,7 +73,7 @@ namespace drk::UserInterfaces {
 				std::regex_constants::ECMAScript | std::regex_constants::icase
 			);
 			std::vector<std::filesystem::directory_entry> filePaths;
-			for (const auto& entry: std::filesystem::recursive_directory_iterator(directoryPath)) {
+			for (const auto& entry : std::filesystem::recursive_directory_iterator(directoryPath)) {
 				if (std::filesystem::is_regular_file(entry) &&
 					std::regex_search(entry.path().extension().string(), self_regex)) {
 					try {
@@ -80,7 +81,8 @@ namespace drk::UserInterfaces {
 						auto result = assimpLoader.Load(entry, assetRegistry);
 						assetLoadResults.emplace_back(std::move(result));
 						std::wcout << entry << std::endl;
-					} catch (const std::exception& exception) {
+					}
+					catch (const std::exception& exception) {
 						std::cerr << fmt::format(
 							"Failed to load file {0}, see exception bellow:\r\n{1}",
 							entry.path().string(),
@@ -91,7 +93,7 @@ namespace drk::UserInterfaces {
 			assetRegistry.sort<Nodes::Components::Node>(
 				[this](const entt::entity left, const entt::entity right) {
 					return Spatials::Systems::SpatialSystem::GetDepth(assetRegistry, left) <
-						   Spatials::Systems::SpatialSystem::GetDepth(assetRegistry, right) || left < right;
+						Spatials::Systems::SpatialSystem::GetDepth(assetRegistry, right) || left < right;
 				}
 			);
 		}

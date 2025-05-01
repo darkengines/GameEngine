@@ -8,15 +8,15 @@ namespace drk::Textures::Systems {
 		entt::registry& registry
 	)
 		: deviceContext(deviceContext), EngineState(engineState), registry(registry) {
-          const auto& ImageInfoView = registry.view<Textures::ImageInfo>(entt::exclude<Devices::Texture>);
-    }
+		const auto& ImageInfoView = registry.view<Textures::ImageInfo>(entt::exclude<Devices::Texture>);
+	}
 
 	void TextureSystem::UploadTextures() {
 		auto imageEntities = registry.view<Textures::ImageInfo>(entt::exclude<Devices::Texture>);
 		for (const auto& imageEntity: imageEntities) {
 			const auto imageInfo = registry.get<Textures::ImageInfo>(
-				imageEntity
-			);
+					imageEntity
+				);
 			if (!imageInfo.pixels.empty()) {
 				const auto& texture = EngineState.UploadTexture(imageInfo);
 				registry.emplace<Devices::Texture>(imageEntity, texture);

@@ -13,12 +13,12 @@ namespace drk::Textures {
 			std::vector<unsigned char>{}
 		};
 		auto pixels = stbi_load(
-			filePath.c_str(),
-			(int*) &imageInfo.width,
-			(int*) &imageInfo.height,
-			(int*) &imageInfo.depth,
-			4u
-		);
+				filePath.c_str(),
+				(int*) &imageInfo.width,
+				(int*) &imageInfo.height,
+				(int*) &imageInfo.depth,
+				4u
+			);
 		imageInfo.pixels.assign(pixels, pixels + imageInfo.width * imageInfo.height * 4u * sizeof(unsigned char));
 		free(pixels);
 		return imageInfo;
@@ -37,13 +37,13 @@ namespace drk::Textures {
 			std::vector<unsigned char>{}
 		};
 		auto pixels = stbi_load_from_memory(
-			memory.data(),
-			(int) memory.size(),
-			(int*) &imageInfo.width,
-			(int*) &imageInfo.height,
-			(int*) &imageInfo.depth,
-			4
-		);
+				memory.data(),
+				(int) memory.size(),
+				(int*) &imageInfo.width,
+				(int*) &imageInfo.height,
+				(int*) &imageInfo.depth,
+				4
+			);
 		imageInfo.pixels.assign(pixels, pixels + imageInfo.width * imageInfo.height * 4u * sizeof(unsigned char));
 		free(pixels);
 		return imageInfo;

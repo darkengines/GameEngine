@@ -14,12 +14,12 @@ namespace drk::Windows {
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 		const auto window = glfwCreateWindow(
-			configuration.Width,
-			configuration.Height,
-			configuration.Title.c_str(),
-			nullptr,
-			nullptr
-		);
+				configuration.Width,
+				configuration.Height,
+				configuration.Title.c_str(),
+				nullptr,
+				nullptr
+			);
 
 		return window;
 	}

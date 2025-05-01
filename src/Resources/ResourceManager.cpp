@@ -7,6 +7,6 @@ namespace drk::Resources {
 		return configuration.jsonConfiguration[std::string(nameof::nameof_short_type<ResourceManager>()).c_str()].get<Configuration::ResourcesConfiguration>();
 	}
 	ResourceManager::ResourceManager(const drk::Configuration::Configuration& configuration) : configuration(
-		ResourceManager::loadConfiguration(configuration)) {
+			ResourceManager::loadConfiguration(configuration)) {
 	}
 }

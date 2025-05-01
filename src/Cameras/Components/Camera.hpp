@@ -10,7 +10,7 @@ namespace drk::Cameras::Components {
 		glm::vec3 position;
 		glm::vec3 front;
 		glm::vec3 up;
-		
+
 		float verticalFov;
 		float aspectRatio;
 		float near;

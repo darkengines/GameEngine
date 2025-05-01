@@ -6,12 +6,12 @@
 
 namespace drk::Scenes::Systems {
 	class SceneSystem {
-	protected:
-		entt::registry& registry;
-		Engine::EngineState& engineState;
-	public:
-		SceneSystem(entt::registry& registry, Engine::EngineState& engineState);
-		void updateDraws();
-		void updateShadowDraws();
+		protected:
+			entt::registry& registry;
+			Engine::EngineState& engineState;
+		public:
+			SceneSystem(entt::registry& registry, Engine::EngineState& engineState);
+			void updateDraws();
+			void updateShadowDraws();
 	};
 }

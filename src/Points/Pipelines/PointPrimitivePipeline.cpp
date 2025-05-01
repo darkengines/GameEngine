@@ -66,24 +66,24 @@ namespace drk::Points::Pipelines {
 		vk::Rect2D scissor;
 
 		const auto& pipelineVertexInputStateCreateInfo = Graphics::Graphics::DefaultPipelineVertexInputStateCreateInfo(
-			vertexInputBindingDescriptions,
-			vertexInputAttributeDescriptions
-		);
+				vertexInputBindingDescriptions,
+				vertexInputAttributeDescriptions
+			);
 		auto pipelineInputAssemblyStateCreateInfo = Graphics::Graphics::DefaultPipelineInputAssemblyStateCreateInfo();
 		pipelineInputAssemblyStateCreateInfo.topology = vk::PrimitiveTopology::ePointList;
 
 		const auto& pipelineViewportStateCreateInfo = Graphics::Graphics::DefaultPipelineViewportStateCreateInfo(
-			{1024u, 768u},
-			viewport,
-			scissor
+		{1024u, 768u},
+		viewport,
+		scissor
 		);
 		const auto& pipelineRasterizationStateCreateInfo = Graphics::Graphics::DefaultPipelineRasterizationStateCreateInfo();
 		auto pipelineMultisampleStateCreateInfo = Graphics::Graphics::DefaultPipelineMultisampleStateCreateInfo();
 		//TODO: Use configurable sample count
 		pipelineMultisampleStateCreateInfo.rasterizationSamples = vk::SampleCountFlagBits::e8;
 		const auto& pipelineColorBlendStateCreateInfo = Graphics::Graphics::DefaultPipelineColorBlendStateCreateInfo(
-			pipelineColorBlendAttachmentState
-		);
+				pipelineColorBlendAttachmentState
+			);
 		const auto& pipelineDepthStencilStateCreateInfo = Graphics::Graphics::DefaultPipelineDepthStencilStateCreateInfo();
 
 		vk::GraphicsPipelineCreateInfo graphicPipelineCreateInfo = {

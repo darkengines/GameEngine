@@ -8,8 +8,8 @@
 #include "../Components/Light.hpp"
 
 namespace drk::Lights::Editors {
-class LightEditor {
-public:
-	static bool Light(Components::Light& light);
-};
+	class LightEditor {
+		public:
+			static bool Light(Components::Light& light);
+	};
 }
